@@ -41,7 +41,8 @@ a{color:var(--gl)}
 .logo{width:30px;height:30px;border-radius:9px;background:var(--g);display:grid;place-items:center;color:#fff;font-weight:800;font-size:15px}
 .brand small{display:block;font-weight:500;color:var(--dim);font-size:11px;letter-spacing:.14em}
 .sp{flex:1}
-.chip{display:inline-flex;align-items:center;gap:7px;height:30px;padding:0 12px;border-radius:99px;border:1px solid var(--line2);font-size:12.5px;color:var(--mut);background:var(--panel)}
+.chip{display:inline-flex;align-items:center;gap:7px;height:30px;padding:0 12px;border-radius:99px;border:1px solid var(--line2);font-size:12.5px;color:var(--mut);background:var(--panel);white-space:nowrap}
+@media (max-width:1100px){.top .chip .tk{display:none}}
 .chip.tgc{cursor:pointer;margin-right:8px;font-family:inherit}
 .chip.tgc:hover{border-color:var(--g);color:var(--tx)}
 .chip.hcc{cursor:pointer;font-family:inherit}
@@ -262,6 +263,15 @@ select.in.msel option{background:var(--panel);color:var(--tx)}
 .sbdem b{color:var(--tx)}
 /* nút Quy tắc (30/10) */
 .mbox.qtbox{width:min(640px,94vw);display:grid;gap:10px}
+.mbox.rmbox{width:min(560px,94vw);display:grid;gap:10px}
+.rmbox h3,.rmbox .pnote,.rmbox p{margin:0}
+.rmbox #rmSeg{justify-self:start}
+.rmbox .err:empty{display:none}
+.rmbox .acts{display:flex;justify-content:flex-end}
+.rmma{border:1px solid var(--line2);border-radius:10px;padding:12px;background:var(--panel2);display:grid;gap:8px}
+.rmcode{font-size:30px;font-weight:800;letter-spacing:6px;color:var(--gl);font-variant-numeric:tabular-nums}
+.rmma .btn{text-decoration:none;display:inline-flex;align-items:center}
+.rmhelp{margin:0;padding-left:18px;font-size:12.5px;color:var(--mut);display:grid;gap:3px}
 .qtbox h3,.qtbox .pnote{margin:0}
 .qtpv{justify-self:start}
 #qtText{min-height:96px;height:110px;padding:10px 12px;resize:vertical;color:var(--tx);background:var(--input);font:inherit;font-size:14px;line-height:1.45}
@@ -456,6 +466,7 @@ details.brief ul{margin:0;padding-left:18px;color:var(--mut)}
 <div class="top">
   <div class="brand"><div class="logo">P</div><div>POLY DỰNG BÀI<small>CAROUSEL TIKTOK</small></div></div>
   <div class="sp"></div>
+  <button class="chip tgc" id="bRm" title="Remote: nhắn việc cho app từ Telegram (viết brief, bấm Chạy, ghi quy tắc, hỏi tình hình). Chỉ nghe khi bật."><span class="dot"></span><span>📱 Remote</span></button>
   <button class="chip tgc" id="bQt" title="Ghi quy tắc mới cho mọi bài sau (không sửa bài nào)"><span>📏 Quy tắc</span></button>
   <button class="chip tgc" id="bTg" title="Cài / đổi Telegram nhận slide bài Laptop"><span class="dot"></span><span>Telegram</span></button>
   <span class="chip hcc" id="hc" title="Kiểm máy: tài khoản Claude, plugin, quy tắc" onclick="if (!event.target.closest('button')) kiemMay()"><span class="dot"></span><span>Đang kiểm Claude…</span></span>
@@ -704,6 +715,55 @@ async function mdCai(){
     try { await api('/api/model-cai', {[o.dataset.mk]: o.value}); toast('Đã đổi model: ' + o.closest('label').firstChild.textContent + ' → ' + o.selectedOptions[0].textContent); }
     catch(e) { $('#kmMdErr').textContent = e.message; } });
 }
+/* nút Remote (fen 30/10 16h15 "cần 1 chat mới để nhắn yêu cầu làm việc", "có nút bật remote control khi nào cần bật lên mới sài"):
+   chat riêng với bot Telegram ra lệnh cho app; máy chủ chỉ nghe khi bật, chỉ nhận tin từ tài khoản đã ghép mã */
+function rmChip(r){
+  const c = $('#bRm'); if (!c || !r) return;
+  const cls = !r.bat ? '' : r.loi ? 'err' : r.noi ? 'ok' : 'warn';
+  setH(c, `<span class="dot ${cls}"></span><span>📱 Remote${r.bat ? (r.loi ? ' · lỗi' : r.noi ? ' · đang bật' : ' · chờ nối') : ''}</span>`);
+}
+function remote(){
+  if ($('#rmBox')) return;
+  const m = document.createElement('div'); m.className = 'modal on';
+  m.innerHTML = `<div class="mbox rmbox" id="rmBox"><h3>📱 Remote qua Telegram</h3>
+    <p class="pnote">Bật khi fen ra ngoài: nhắn riêng cho bot là app trên máy shop làm việc. Không cần thì tắt, bot không nhận lệnh nào.</p>
+    <div class="kseg" id="rmSeg"><button data-b="0">Tắt</button><button data-b="1">Bật</button></div>
+    <div id="rmSt"></div>
+    <p class="err" id="rmErr"></p>
+    <ul class="rmhelp"><li>Nhắn <b>chủ đề bài</b> → Claude viết brief + lợi ích bài, fen bấm <b>▶️ Chạy</b> ngay trên Telegram, xong bài gửi bìa về.</li>
+      <li><b>Trả lời</b> (reply) tin brief, gõ ý cần đổi → Claude sửa brief đó.</li>
+      <li><b>quy tắc: …</b> (kèm ảnh được) → ghi luật mới cho mọi bài sau.</li>
+      <li><b>/tinhhinh</b> → bài đang dựng, xếp hàng, chờ đăng, đã đăng. <b>/tat</b> → tắt Remote.</li></ul>
+    <div class="acts"><button class="btn" id="rmDong">Đóng</button></div></div>`;
+  document.body.appendChild(m);
+  const dong = () => { clearTimeout(remote.t); m.remove(); };
+  $('#rmDong').onclick = dong; m.onclick = e => { if (e.target === m) dong(); };
+  const ve = r => {
+    if (!$('#rmBox') || !r) return;
+    m.querySelectorAll('#rmSeg [data-b]').forEach(b => b.classList.toggle('on', (b.dataset.b === '1') === !!r.bat));
+    let h;
+    if (!r.co_bot) h = `<p class="stc">Chưa cài bot Telegram. <a href="#" id="rmCai">Cài Telegram</a> trước (bước 1, 2 là đủ), rồi bật Remote.</p>`;
+    else if (!r.bat) h = `<p class="stc">Đang tắt.${r.noi ? ' Đã nối với Telegram của <b>' + esc(r.ten) + '</b>, bật lên là dùng được.' : ' Bật lên để lấy mã nối.'}</p>`;
+    else if (!r.noi) h = r.ma ? `<div class="rmma"><div>Mở Telegram, nhắn cho bot <b>@${esc(r.bot)}</b> mã này (dùng trong 15 phút):</div><div class="rmcode">${esc(r.ma)}</div>
+        <div class="row1"><a class="btn sm pri" href="https://t.me/${encodeURIComponent(r.bot)}?start=${encodeURIComponent(r.ma)}" target="_blank" rel="noopener">Mở bot trên Telegram</a><button class="btn sm" id="rmMa">Mã mới</button></div>
+        <p class="pnote">Bấm "Mở bot" rồi bấm Start (Bắt đầu) là nối xong. Chỉ tài khoản Telegram nhắn đúng mã này mới ra lệnh được.</p></div>` : '<p class="stc">Đang tạo mã nối…</p>';
+    else h = `<p class="okc">● Đang bật, nhận lệnh từ Telegram của <b>${esc(r.ten)}</b>${r.lan_cuoi ? ' · tin gần nhất ' + hm(r.lan_cuoi) : ''}${r.chay ? '' : ' (đang khởi động…)'} · <a href="#" id="rmBo">Bỏ nối</a></p>`;
+    setH($('#rmSt'), h);
+    $('#rmErr').textContent = r.loi || '';
+    const cai = $('#rmCai'); if (cai) cai.onclick = e => { e.preventDefault(); dong(); tgDialog(); };
+    const mm = $('#rmMa'); if (mm) mm.onclick = () => gui({ma_moi: true});
+    const bo = $('#rmBo'); if (bo) bo.onclick = e => { e.preventDefault(); gui({bo_noi: true}); };
+    rmChip(r);
+  };
+  const gui = async d => {
+    $('#rmErr').textContent = '';
+    try { ve(await api('/api/tg-lenh', d)); if ('bat' in d) toast(d.bat ? 'Đã bật Remote' : 'Đã tắt Remote'); }
+    catch(e) { if (e.message.startsWith('CAI_TELEGRAM')) { dong(); tgDialog(e.message.split('|')[1]); } else $('#rmErr').textContent = e.message; }
+  };
+  m.querySelectorAll('#rmSeg [data-b]').forEach(b => b.onclick = () => gui({bat: b.dataset.b === '1'}));
+  const tai = async () => { try { ve(await api('/api/tg-lenh')); } catch(e) {} if ($('#rmBox')) remote.t = setTimeout(tai, 3000); };
+  tai();
+}
 /* nút Quy tắc (fen 30/10 11h04 "có chỗ nào trong app cho mình update các quy tắc mới"): ghi luật mới cho mọi bài sau, không đụng bài */
 const QT = {anh: [], pv: 'chung', text: ''};
 const QT_PV = {chung: 'Chung 2 kênh', laptop: '💻 Laptop', ipad: '📱 iPad'};
@@ -817,6 +877,7 @@ async function loadJobs(){
   try {
     const j = await api('/api/jobs'); S.fail = 0; $('#offline')?.remove();
     if (j.ui) { if (!S.ui) S.ui = j.ui; else if (j.ui !== S.ui && canReload()) { location.hash = S.jobId ? 'bai=' + S.jobId : 'moi'; location.reload(); return; } }
+    rmChip(j.remote);
     const old = new Map(S.jobs.map(x => [x.id, x.status])); S.jobs = j.jobs || [];
     S.jobs.forEach(x => { if (old.get(x.id) === 'dang-chay' && x.status !== 'dang-chay' && x.id !== S.jobId) notify(x); });
     renderJobs();
@@ -1708,6 +1769,7 @@ function inline(s){
 $('#bNew').onclick = baiMoi;
 $('#bTg').onclick = () => tgDialog(); tgChip();
 $('#bQt').onclick = () => quyTac(); qtTai();
+$('#bRm').onclick = () => remote();
 
 $('#bCoSan').onclick = coSanDialog;
 $('#bLs').onclick = lsDialog;

@@ -1054,6 +1054,8 @@ def create_job(data):
         # model fen chọn ở Bài mới ("" = theo Kiểm máy > Model); bản cũ "Chạy nhanh" = sonnet
         "model": (data.get("model") if data.get("model") in MODEL_VIEC["model_dung"][1] else ("sonnet" if data.get("nhanh") else "")),
     }
+    if data.get("tu_tg"):      # fen bấm Chạy trên chat lệnh Telegram: xong / lỗi thì báo cả về chat đó
+        job["tu_tg"] = True
     with open(os.path.join(d, "brief.txt"), "w", encoding="utf-8") as f:
         f.write(brief)
     job["anh"] = save_images(d, data.get("anh") or [])
@@ -1684,13 +1686,20 @@ def tg_cai(data):
             CFG["telegram_token"] = old
             raise
         try:
-            save_cfg_keys({"telegram_token": tok, "telegram_bot": me.get("username"), "telegram_chat": None, "telegram_ten": None})
+            # bot mới: chat lệnh Remote ghép với bot cũ không dùng được nữa, ghép lại
+            save_cfg_keys({"telegram_token": tok, "telegram_bot": me.get("username"), "telegram_chat": None, "telegram_ten": None,
+                           "tg_lenh_chat": None, "tg_lenh_nguoi": None, "tg_lenh_ten": None, "tg_lenh_offset": 0})
         except Exception:
             CFG["telegram_token"] = old  # chưa ghi được file thì giữ cài đặt cũ, không dở dang
             raise
         return {"ok": True, "bot": me.get("username")}
     if data.get("kiem"):
-        ups = tg_call("getUpdates", timeout=20) or []
+        TGL["tam_dung"] = now() + 25     # luồng Remote tạm ngừng đọc tin (2 nơi cùng đọc getUpdates thì Telegram báo lỗi)
+        time.sleep(0.3 if not (TGL["luong"] and TGL["luong"].is_alive()) else 1.5)
+        try:
+            ups = tg_call("getUpdates", timeout=20) or []
+        finally:
+            TGL["tam_dung"] = now() + 2
         try:
             log("telegram getUpdates: %d tin %s" % (len(ups), [(k, (u[k].get("chat") or {}).get("type")) for u in ups[-8:] for k in u if k != "update_id" and isinstance(u[k], dict)]))
         except Exception:
@@ -1872,19 +1881,33 @@ BAT_DAU = time.time()
 DOI_RE = re.compile(r"^\s*[-*_]*\s*[*_]*Đã đổi so với brief[*_]*\s*:[*_\s]*(.+)$", re.M | re.I)
 
 
-def _bao_tg(text, anh=None):
-    chat = CFG.get("telegram_chat")
-    try:
-        if anh and os.path.isfile(anh) and os.path.getsize(anh) < 9.5e6:
-            with open(anh, "rb") as f:
-                data = f.read()
-            tg_call("sendPhoto", {"chat_id": chat, "caption": short(text, 1000)}, {"photo": (os.path.basename(anh), data)}, timeout=120)
-        else:
-            tg_call("sendMessage", {"chat_id": chat, "text": text}, timeout=30)
-        return True
-    except Exception as e:
-        log("bao telegram loi: %s" % e)
-        return False
+def _bao_tg(text, anh=None, chats=None):
+    """Báo 1 tin (kèm ảnh bìa nếu có) vào nhóm nhận slide, hoặc vào các chat trong `chats` (nhóm / chat lệnh Remote)."""
+    ok = False
+    data = None
+    for chat in (chats if chats is not None else [CFG.get("telegram_chat")]):
+        try:
+            if anh and os.path.isfile(anh) and os.path.getsize(anh) < 9.5e6:
+                if data is None:
+                    with open(anh, "rb") as f:
+                        data = f.read()
+                tg_call("sendPhoto", {"chat_id": chat, "caption": short(text, 1000)}, {"photo": (os.path.basename(anh), data)}, timeout=120)
+            else:
+                tg_call("sendMessage", {"chat_id": chat, "text": text}, timeout=30)
+            ok = True
+        except Exception as e:
+            log("bao telegram loi: %s" % e)
+    return ok
+
+
+def _noi_bao(job):
+    """Chat nhận báo bài xong / lỗi: nhóm (nếu bật báo), cộng chat lệnh Remote khi bài do fen bấm Chạy trên Telegram."""
+    ds = []
+    if CFG.get("telegram_chat") and CFG.get("telegram_bao") is not False:
+        ds.append(CFG["telegram_chat"])
+    if job.get("tu_tg") and CFG.get("tg_lenh_chat") and CFG["tg_lenh_chat"] not in ds:
+        ds.append(CFG["tg_lenh_chat"])
+    return ds
 
 
 def _danh_dau_run(jid, n, key):
@@ -1913,12 +1936,15 @@ def _bao_mot_bai(jid):
     run = job["runs"][-1]
     if run.get("kind") == "caption":
         return
+    noi = _noi_bao(job)
+    if not noi:
+        return
     ten, _ = ten_hien(job)
     kenh = CFG["kenh"].get(job["kenh"], {}).get("ten", job["kenh"])
     if job.get("status") == "dang-chay":
         idle = now() - ((st or {}).get("last_new") or now())
         if idle > (CFG.get("bao_dung_lau_giay") or 600) and _danh_dau_run(jid, run["n"], "bao_dung_lau"):
-            _bao_tg("⏳ Bài %s (%s): %d phút chưa thấy tiến triển. Photoshop có thể đang treo hoặc mở hộp thoại, fen xem máy shop." % (ten, kenh, idle // 60))
+            _bao_tg("⏳ Bài %s (%s): %d phút chưa thấy tiến triển. Photoshop có thể đang treo hoặc mở hộp thoại, fen xem máy shop." % (ten, kenh, idle // 60), None, noi)
         return
     kq = run.get("ket_qua")
     if kq not in ("xong", "loi") or run.get("da_bao") or (run.get("ended") or 0) < BAT_DAU - 120:
@@ -1936,15 +1962,15 @@ def _bao_mot_bai(jid):
         if v.get("hoi"):
             ls.append("Claude có %d câu hỏi, fen trả lời trong app." % len(v["hoi"]))
         ls.append("Mở app Poly Dựng Bài để xem và " + ("Gửi Telegram." if job["kenh"] == "laptop" else "Đăng TikTok."))
-        _bao_tg("\n".join(ls), sl[0]["path"] if sl else None)
+        _bao_tg("\n".join(ls), sl[0]["path"] if sl else None, noi)
     else:
-        _bao_tg("⚠️ Bài %s (%s) dừng giữa chừng sau %d phút: %s\nMở app bấm Chạy tiếp." % (ten, kenh, phut, short(v.get("ly_do") or "không rõ lý do", 300)))
+        _bao_tg("⚠️ Bài %s (%s) dừng giữa chừng sau %d phút: %s\nMở app bấm Chạy tiếp." % (ten, kenh, phut, short(v.get("ly_do") or "không rõ lý do", 300)), None, noi)
 
 
 def theo_doi():
     while True:
         time.sleep(CFG.get("theo_doi_giay") or 30)
-        if not (CFG.get("telegram_token") and CFG.get("telegram_chat")) or CFG.get("telegram_bao") is False:
+        if not CFG.get("telegram_token") or not ((CFG.get("telegram_chat") and CFG.get("telegram_bao") is not False) or CFG.get("tg_lenh_chat")):
             continue
         try:
             for jid in sorted(os.listdir(JOBS), reverse=True)[:30]:
@@ -1954,6 +1980,599 @@ def theo_doi():
                     log(traceback.format_exc())
         except Exception:
             log(traceback.format_exc())
+
+
+# ---------- Chat lệnh Telegram, "Remote" (fen 30/10 16h15: "cần 1 chat mới để nhắn yêu cầu làm việc"; fen chọn: nhắn riêng với
+# bot; viết brief từ chủ đề rồi bấm Chạy trên Telegram, ghi quy tắc mới, hỏi tình hình; "có nút bật remote control khi nào cần
+# bật lên mới sài"). Chỉ nghe khi fen bật (config tg_lenh). Chỉ nhận tin nhắn RIÊNG từ đúng tài khoản Telegram đã ghép bằng mã
+# hiện trong app (tg_lenh_chat + tg_lenh_nguoi); tin từ người khác, từ nhóm: bỏ qua. Chỉ làm việc app có sẵn (viết brief / chat
+# sửa brief, dựng bài, ghi quy tắc, xem tình hình), không chạy lệnh máy, không đăng TikTok.
+TGL = {"luong": None, "ma": "", "ma_luc": 0, "loi": "", "loi_luc": 0, "tam_dung": 0, "cho": {}, "album": {}, "lan_cuoi": 0, "bo_cu": False}
+TGL_KHOA = threading.Lock()
+TGL_MA_HAN = 900          # mã ghép dùng được 15 phút
+TGL_HELP = (
+    "Nhắn cho mình:\n"
+    "• Chủ đề bài (vd \"laptop cho dân kiến trúc\", \"tìm chủ đề hot mẹo iPad\") → Claude viết brief + lợi ích bài, fen bấm ▶️ Chạy để dựng.\n"
+    "• Trả lời (reply) tin brief, gõ ý cần đổi → Claude sửa brief đó.\n"
+    "• \"quy tắc: …\" (gửi kèm ảnh được) → ghi luật mới cho mọi bài sau.\n"
+    "• /tinhhinh → bài đang dựng, xếp hàng, chờ đăng, đã đăng.\n"
+    "• /tat → tắt nhận lệnh (bật lại ở nút 📱 Remote trong app).\n"
+    "Chỉ Telegram của fen ra lệnh được, người khác nhắn bot mình bỏ qua.")
+TGL_PV = {"chung": "chung 2 kênh", "laptop": "chỉ Laptop", "ipad": "chỉ iPad"}
+
+
+def _bo_dau(s):
+    import unicodedata
+    s = unicodedata.normalize("NFD", s or "")
+    return "".join(c for c in s if unicodedata.category(c) != "Mn").replace("đ", "d").replace("Đ", "D").lower().strip()
+
+
+def tgl_noi():
+    return bool(CFG.get("tg_lenh_chat") and CFG.get("tg_lenh_nguoi"))
+
+
+def tgl_trang_thai():
+    ma = TGL["ma"] if TGL["ma"] and now() - TGL["ma_luc"] < TGL_MA_HAN else ""
+    return {"bat": bool(CFG.get("tg_lenh")), "co_bot": bool(CFG.get("telegram_token")), "bot": CFG.get("telegram_bot") or "",
+            "noi": tgl_noi(), "ten": CFG.get("tg_lenh_ten") or "", "ma": ma, "ma_con": max(0, int(TGL_MA_HAN - (now() - TGL["ma_luc"]))) if ma else 0,
+            "chay": bool(TGL["luong"] and TGL["luong"].is_alive()),
+            "loi": TGL["loi"] if TGL["loi"] and now() - TGL["loi_luc"] < 90 else "", "lan_cuoi": TGL["lan_cuoi"]}
+
+
+def tgl_cai(data):
+    """POST /api/tg-lenh: {bat: true|false} bật / tắt nhận lệnh; {bo_noi: true} bỏ ghép tài khoản; {ma_moi: true} mã ghép mới."""
+    if data.get("bo_noi"):
+        if tgl_noi():
+            tgl_gui("Đã bỏ nối app Poly Dựng Bài với Telegram này. Muốn dùng lại: bật Remote trong app, nhắn mã mới.")
+        save_cfg_keys({"tg_lenh_chat": None, "tg_lenh_nguoi": None, "tg_lenh_ten": None})
+        TGL["ma"] = ""
+        log("tg lenh: bo noi")
+    if "bat" in data:
+        bat = bool(data.get("bat"))
+        if bat and not CFG.get("telegram_token"):
+            raise ValueError("CAI_TELEGRAM|Chưa cài bot Telegram. Cài bot trước rồi bật Remote.")
+        doi = bat != bool(CFG.get("tg_lenh"))
+        save_cfg_keys({"tg_lenh": bat})
+        if doi and bat:
+            TGL["bo_cu"] = True      # tin nhắn bot nhận lúc Remote đang tắt: bỏ, không tự làm việc cũ
+        if doi:
+            log("tg lenh: %s" % ("bat" if bat else "tat"))
+        if bat:
+            tgl_khoi()
+            if doi and tgl_noi():
+                threading.Thread(target=tgl_gui, args=("🟢 Đã bật Remote: nhắn việc cho app ở đây.\n\n" + TGL_HELP,), daemon=True).start()
+        elif doi and tgl_noi():
+            threading.Thread(target=tgl_gui, args=("⚪️ Đã tắt Remote, mình không nhận lệnh nữa. Bật lại ở nút 📱 Remote trong app.",), daemon=True).start()
+    if CFG.get("tg_lenh") and not tgl_noi() and (data.get("ma_moi") or not TGL["ma"] or now() - TGL["ma_luc"] >= TGL_MA_HAN):
+        import secrets
+        TGL["ma"], TGL["ma_luc"], TGL["sai"] = "%06d" % secrets.randbelow(10 ** 6), now(), 0
+    return tgl_trang_thai()
+
+
+def tgl_gui(text, nut=None, tra_loi=None):
+    """Gửi 1 tin vào chat lệnh. Trả message_id (None nếu lỗi / chưa nối)."""
+    chat = CFG.get("tg_lenh_chat")
+    if not chat or not CFG.get("telegram_token"):
+        return None
+    f = {"chat_id": chat, "text": text[:4000], "disable_web_page_preview": "true"}
+    if nut:
+        f["reply_markup"] = json.dumps({"inline_keyboard": nut}, ensure_ascii=False)
+    if tra_loi:
+        f["reply_to_message_id"], f["allow_sending_without_reply"] = tra_loi, "true"
+    try:
+        return (tg_call("sendMessage", f, timeout=30) or {}).get("message_id")
+    except Exception as e:
+        log("tg lenh gui loi: %s" % e)
+        return None
+
+
+def tgl_gui_dai(text):
+    """Brief dài: chia nhiều tin (Telegram tối đa 4096 ký tự / tin), cắt ở chỗ xuống dòng."""
+    ids, phan = [], ""
+    for ln in text.split("\n"):
+        if len(phan) + len(ln) + 1 > 3800 and phan:
+            ids.append(tgl_gui(phan))
+            phan = ""
+        phan += ln[:3800] + "\n"
+    if phan.strip():
+        ids.append(tgl_gui(phan))
+    return [x for x in ids if x]
+
+
+def tgl_khoi():
+    with TGL_KHOA:
+        if TGL["luong"] and TGL["luong"].is_alive():
+            return
+        t = threading.Thread(target=tgl_vong, daemon=True)
+        TGL["luong"] = t
+        t.start()
+
+
+def tgl_vong():
+    log("tg lenh: bat dau nghe")
+    off = int(CFG.get("tg_lenh_offset") or 0)
+    try:
+        tgl_xem_lai()
+    except Exception:
+        log(traceback.format_exc())
+    while CFG.get("tg_lenh") and CFG.get("telegram_token"):
+        if TGL["tam_dung"] > now():        # hộp Cài Telegram đang tìm chat (cũng đọc getUpdates)
+            time.sleep(1)
+            continue
+        # vừa bật Remote: lấy ngay (không chờ) các tin đã nằm sẵn từ lúc tắt rồi bỏ hết; app mở lại khi Remote đang bật thì vẫn làm
+        bo_cu = TGL.pop("bo_cu", False)
+        try:
+            ups = tg_call("getUpdates", {"offset": off, "timeout": 0 if bo_cu else 25, "allowed_updates": json.dumps(["message", "callback_query"])}, timeout=40) or []
+            TGL["loi"] = ""
+        except Exception as e:
+            if bo_cu:
+                TGL["bo_cu"] = True
+            if TGL["tam_dung"] > now():
+                continue
+            s = str(e).split("|")[-1]
+            if "conflict" in s.lower():
+                s = "Bot đang bị chương trình khác đọc tin (webhook, hoặc app khác cùng token bot) nên chưa nhận lệnh được."
+            TGL["loi"], TGL["loi_luc"] = s, now()
+            time.sleep(15)
+            continue
+        bo = 0
+        for u in ups:
+            off = max(off, int(u.get("update_id") or 0) + 1)
+            if bo_cu:
+                m = u.get("message") or (u.get("callback_query") or {}).get("message") or {}
+                bo += (m.get("chat") or {}).get("id") == CFG.get("tg_lenh_chat")
+                continue
+            try:
+                if u.get("callback_query"):
+                    tgl_bam(u["callback_query"])
+                elif u.get("message"):
+                    tgl_tin(u["message"])
+            except Exception:
+                log(traceback.format_exc())
+        if ups:
+            try:
+                save_cfg_keys({"tg_lenh_offset": off})
+            except Exception:
+                pass
+        if bo and tgl_noi():
+            tgl_gui("Có %d tin fen nhắn lúc Remote đang tắt, mình bỏ qua để khỏi làm nhầm việc cũ. Cần thì nhắn lại nha." % bo)
+    log("tg lenh: dung nghe")
+
+
+def tgl_xem_lai():
+    """App vừa mở lại: brief / quy tắc nhờ từ Telegram mà chưa báo kết quả thì theo dõi tiếp."""
+    for jid in (sorted(os.listdir(JOBS), reverse=True)[:60] if os.path.isdir(JOBS) else []):
+        j = read_json(os.path.join(JOBS, jid, "job.json"))
+        if j and j.get("loai") in VIEC_AN and isinstance(j.get("tg"), dict) and not j["tg"].get("bao") and now() - (j.get("created") or 0) < 6 * 3600:
+            threading.Thread(target=tgl_cho_viec, args=(jid,), daemon=True).start()
+
+
+def tgl_lay_anh(m):
+    """Ảnh fen gửi kèm (ảnh thường hoặc file ảnh) -> [{name, data(base64)}] như ô dán ảnh của app."""
+    import urllib.request
+    ids = []
+    if m.get("photo"):
+        ids.append((m["photo"][-1]["file_id"], "anh-telegram.jpg"))
+    dc = m.get("document") or {}
+    if dc.get("file_id") and str(dc.get("mime_type") or "").startswith("image/"):
+        ids.append((dc["file_id"], dc.get("file_name") or "anh-telegram.png"))
+    out = []
+    for fid, ten in ids:
+        try:
+            f = tg_call("getFile", {"file_id": fid}, timeout=30) or {}
+            url = (CFG.get("telegram_api") or "https://api.telegram.org").rstrip("/") + "/file/bot%s/%s" % (CFG["telegram_token"], f["file_path"])
+            with urllib.request.urlopen(urllib.request.Request(url, headers={"User-Agent": "PolyDungBai/1.0"}), timeout=60) as r:
+                raw = r.read(25 * 1024 * 1024)
+            out.append({"name": ten, "data": base64.b64encode(raw).decode("ascii")})
+        except Exception as e:
+            log("tg lenh: tai anh loi %s" % type(e).__name__)   # không ghi lỗi gốc: đường dẫn có token bot
+    return out
+
+
+def tgl_cho_them(x):
+    k = uuid.uuid4().hex[:8]
+    x["t"] = now()
+    TGL["cho"][k] = x
+    for kk in [kk for kk, v in list(TGL["cho"].items()) if now() - v["t"] > 86400]:
+        TGL["cho"].pop(kk, None)
+    for g in [g for g, kk in list(TGL["album"].items()) if kk not in TGL["cho"]]:
+        TGL["album"].pop(g, None)
+    return k
+
+
+def tgl_doan_kenh(s):
+    t = _bo_dau(s)
+    ip = bool(re.search(r"\bipad|\bipados|\bapple pencil\b", t))
+    lt = bool(re.search(r"\blaptop|\bmacbook|\bthinkpad|\bwindows\b|\bdell\b|\bhp\b|\basus\b|\blenovo\b|\bacer\b|\bmsi\b|\bmay tram\b|\bgaming\b", t))
+    return "ipad" if ip and not lt else "laptop" if lt and not ip else ""
+
+
+def tgl_tin(m):
+    c, fr = m.get("chat") or {}, m.get("from") or {}
+    if c.get("type") != "private" or fr.get("is_bot"):
+        return
+    text = (m.get("text") or m.get("caption") or "").strip()
+    if not tgl_noi():
+        ma = TGL["ma"] if TGL["ma"] and now() - TGL["ma_luc"] < TGL_MA_HAN else ""
+        so = re.sub(r"\D", "", text)
+        if ma and so != ma and len(so) == 6:              # đoán mã: sai 10 lần thì huỷ mã, fen bấm Mã mới trong app
+            TGL["sai"] = TGL.get("sai", 0) + 1
+            if TGL["sai"] >= 10:
+                TGL["ma"], TGL["sai"] = "", 0
+                log("tg lenh: sai ma 10 lan, huy ma")
+            return
+        if ma and so == ma:          # "/start 123456" (bấm link trong app) hoặc gõ "123456"
+            ten = " ".join(x for x in (fr.get("first_name"), fr.get("last_name")) if x).strip() or fr.get("username") or "fen"
+            save_cfg_keys({"tg_lenh_chat": c["id"], "tg_lenh_nguoi": fr["id"], "tg_lenh_ten": ten})
+            TGL["ma"] = ""
+            log("tg lenh: da ghep tai khoan %s" % fr.get("id"))
+            try:
+                tg_call("setMyCommands", {"commands": json.dumps([{"command": "tinhhinh", "description": "Bài đang dựng, xếp hàng, chờ đăng"},
+                                                                  {"command": "help", "description": "Xem việc nhắn được"},
+                                                                  {"command": "tat", "description": "Tắt Remote"}], ensure_ascii=False),
+                                          "scope": json.dumps({"type": "chat", "chat_id": c["id"]})}, timeout=20)
+            except Exception:
+                pass
+            tgl_gui("✅ Đã nối với app Poly Dựng Bài trên máy shop.\n\n" + TGL_HELP)
+        return
+    if c.get("id") != CFG.get("tg_lenh_chat") or fr.get("id") != CFG.get("tg_lenh_nguoi"):
+        log("tg lenh: bo qua tin tu tai khoan la %s" % fr.get("id"))
+        return
+    TGL["lan_cuoi"] = now()
+    anh = tgl_lay_anh(m) if (m.get("photo") or m.get("document")) else []
+    g = m.get("media_group_id")
+    if anh and g and not text and g in TGL["album"]:          # album nhiều ảnh: ảnh sau không có chữ, gộp vào việc của ảnh đầu
+        p = TGL["cho"].get(TGL["album"][g])
+        if p is not None:
+            p.setdefault("anh", []).extend(anh)
+            return
+    if (m.get("photo") or m.get("document")) and not text:
+        if g:
+            return
+        return tgl_gui("Mình nhận ảnh rồi. Ảnh dùng khi ghi quy tắc: gửi lại ảnh kèm chữ, vd \"quy tắc: bìa iPad chữ to hơn\".")
+    t0 = _bo_dau(text)
+    lenh = (t0.split() or [""])[0].split("@")[0]
+    if lenh in ("/start", "/help", "/huongdan", "help") or t0 in ("?", "huong dan", "giup", "lenh"):
+        return tgl_gui(TGL_HELP)
+    if lenh in ("/tinhhinh", "/status") or re.match(r"(tinh hinh|tinh trang|status)\b", t0):
+        return tgl_gui(tgl_tinh_hinh())
+    if lenh == "/tat" or t0 in ("tat", "tat remote", "tat lenh", "dung remote"):
+        tgl_cai({"bat": False})
+        return
+    mq = re.match(r"^\s*(?:/quytac(?:@\w+)?|quy\s*t[aắ]c(?:\s*m[oớ]i)?|lu[aậ]t(?:\s*m[oớ]i)?)\s*[:\-–]?\s*", text, re.I)
+    if mq:
+        nd = text[mq.end():].strip()
+        if len(nd) < 3:
+            return tgl_gui("Gõ luật muốn thêm sau chữ quy tắc, vd: quy tắc: slide cuối không ghi địa chỉ")
+        k = tgl_cho_them({"loai": "qt", "text": nd, "anh": anh})
+        if g:
+            TGL["album"][g] = k
+        return tgl_gui("📏 Ghi quy tắc này cho kênh nào?\n“%s”%s" % (short(nd, 300), "\n(kèm %d ảnh)" % len(anh) if anh else ""),
+                       [[{"text": "Chung 2 kênh", "callback_data": "qt:%s:chung" % k}],
+                        [{"text": "💻 Chỉ Laptop", "callback_data": "qt:%s:laptop" % k}, {"text": "📱 Chỉ iPad", "callback_data": "qt:%s:ipad" % k}],
+                        [{"text": "✖ Bỏ", "callback_data": "huy:%s" % k}]])
+    rep = (m.get("reply_to_message") or {}).get("message_id")
+    if rep:
+        bj = tgl_tim_brief(rep)
+        if bj:
+            return tgl_sua_brief(bj, text)
+    mb = re.match(r"^\s*/brief(?:@\w+)?\s*", text, re.I)
+    if lenh.startswith("/") and not mb:
+        return tgl_gui("Mình chưa biết lệnh này.\n\n" + TGL_HELP)
+    chu_de = (text[mb.end():] if mb else text).strip()
+    if len(chu_de) < 3:
+        return tgl_gui("Gõ chủ đề bài, vd: laptop cho dân kiến trúc, hoặc tìm chủ đề hot mẹo iPad")
+    kenh = tgl_doan_kenh(chu_de)
+    if kenh:
+        return tgl_bat_brief(kenh, chu_de)
+    k = tgl_cho_them({"loai": "brief", "text": chu_de})
+    tgl_gui("✍ Viết brief cho kênh nào?\n“%s”" % short(chu_de, 300),
+            [[{"text": "💻 Laptop", "callback_data": "br:%s:laptop" % k}, {"text": "📱 iPad", "callback_data": "br:%s:ipad" % k}],
+             [{"text": "✖ Bỏ", "callback_data": "huy:%s" % k}]])
+
+
+def tgl_bam(q):
+    fr, msg = q.get("from") or {}, q.get("message") or {}
+
+    def tra(t=""):
+        try:
+            tg_call("answerCallbackQuery", {"callback_query_id": q["id"], "text": t[:190]}, timeout=15)
+        except Exception:
+            pass
+
+    def bo_nut():
+        try:
+            tg_call("editMessageReplyMarkup", {"chat_id": (msg.get("chat") or {}).get("id"), "message_id": msg.get("message_id"),
+                                               "reply_markup": json.dumps({"inline_keyboard": []})}, timeout=15)
+        except Exception:
+            pass
+
+    if not tgl_noi() or fr.get("id") != CFG.get("tg_lenh_nguoi") or (msg.get("chat") or {}).get("id") != CFG.get("tg_lenh_chat"):
+        return tra()
+    TGL["lan_cuoi"] = now()
+    loai, _, du = (q.get("data") or "").partition(":")
+    if loai in ("br", "qt", "gy"):
+        k, _, gt = du.partition(":")
+        p = TGL["cho"].pop(k, None)
+        if not p:
+            tra("Hết hạn rồi, fen nhắn lại nha")
+            return bo_nut()
+        tra()
+        bo_nut()
+        if loai == "br" and gt in CFG["kenh"]:
+            return tgl_bat_brief(gt, p["text"])
+        if loai == "qt" and gt in QT_PHAM_VI:
+            return tgl_bat_qt(p, gt)
+        if loai == "gy":
+            try:
+                return tgl_bat_brief(p["kenh"], p["goi_y"][int(gt)])
+            except (ValueError, IndexError, KeyError):
+                return
+        return
+    if loai == "huy":
+        TGL["cho"].pop(du, None)
+        tra("Đã bỏ")
+        return bo_nut()
+    if loai in ("chay", "lai", "bo") and re.fullmatch(r"[0-9a-zA-Z_-]{6,64}", du):
+        if loai == "bo":
+            with LOCK:
+                j = load_job(du)
+                if j:
+                    j.setdefault("tg", {})["bo"] = now()
+                    save_job(j)
+            tra("Đã bỏ brief này")
+            return bo_nut()
+        if loai == "lai":
+            tra("Viết lại…")
+            bo_nut()
+            return tgl_viet_lai(du)
+        return tgl_chay(du, tra, bo_nut)
+    tra()
+
+
+def tgl_bat_brief(kenh, chu_de, them=None):
+    d = {"kenh": kenh, "chu_de": chu_de}
+    d.update(them or {})
+    try:
+        r = viet_brief(d)
+    except ValueError as e:
+        return tgl_gui("⚠️ Chưa viết brief được: " + str(e).split("|")[-1])
+    tk = CFG["kenh"].get(kenh, {}).get("ten", kenh)
+    mid = tgl_gui("✍ Claude đang viết brief %s: “%s”\nXong mình gửi brief + lợi ích bài về đây (thường vài phút)." % (tk, short(chu_de, 200)))
+    tgl_gan(r["id"], {"cho": mid})
+    threading.Thread(target=tgl_cho_viec, args=(r["id"],), daemon=True).start()
+
+
+def tgl_gan(jid, x):
+    with LOCK:
+        j = load_job(jid)
+        if j:
+            j.setdefault("tg", {}).update(x)
+            save_job(j)
+
+
+def tgl_brief_cua(jid):
+    return read_text(os.path.join(job_dir(jid), "brief-viet.txt")).replace("\ufeff", "").strip()
+
+
+def tgl_tim_brief(mid):
+    """Tin fen trả lời (reply) thuộc brief nào (tin brief hoặc tin tóm tắt có nút Chạy)."""
+    for jid in (sorted(os.listdir(JOBS), reverse=True)[:80] if os.path.isdir(JOBS) else []):
+        j = read_json(os.path.join(JOBS, jid, "job.json"))
+        tg = (j or {}).get("tg") if (j or {}).get("loai") == "brief" else None
+        if isinstance(tg, dict) and (tg.get("msg") == mid or mid in (tg.get("msgs") or [])):
+            return jid
+    return None
+
+
+def tgl_viet_lai(jid):
+    j = load_job(jid)
+    if not j or j.get("loai") != "brief":
+        return tgl_gui("Không thấy brief đó nữa, fen nhắn lại chủ đề nha.")
+    bv = tgl_brief_cua(jid)
+    tgl_bat_brief(j.get("kenh"), j.get("chu_de") or j.get("tieu_de") or "", {
+        "brief": bv, "brief_cua": "claude" if bv else "", "chu_de_cu": j.get("chu_de") or "",
+        "ghi_chu": "Fen bấm Viết lại trên Telegram: viết bản khác (góc khác, bìa khác), vẫn đúng chủ đề này."})
+
+
+def tgl_sua_brief(jid, tin):
+    """Fen reply tin brief: 1 lượt Chat sửa brief như ô chat dưới Brief trong app."""
+    j = load_job(jid)
+    if not j:
+        return tgl_gui("Không thấy brief đó nữa.")
+    tgl_gan(jid, {"bo": now()})        # bản cũ thôi dùng, nút Chạy đi theo bản sửa
+    ls = list((j.get("tg") or {}).get("lich_su") or [])
+    try:
+        r = chat_brief({"kenh": j.get("kenh"), "tin": tin, "chu_de": j.get("chu_de") or "", "brief": tgl_brief_cua(jid), "lich_su": ls})
+    except ValueError as e:
+        return tgl_gui("⚠️ Chưa sửa được: " + str(e).split("|")[-1])
+    mid = tgl_gui("✏️ Claude đang sửa brief theo ý fen…")
+    tgl_gan(r["id"], {"cho": mid, "goc": jid, "brief_goc": tgl_brief_cua(jid), "lich_su": (ls + [{"text": tin}])[-8:]})
+    threading.Thread(target=tgl_cho_viec, args=(r["id"],), daemon=True).start()
+
+
+def tgl_chay(jid, tra, bo_nut):
+    with LOCK:
+        j = load_job(jid)
+        if not j or j.get("loai") != "brief":
+            return tra("Không thấy brief này")
+        tg = j.get("tg") or {}
+        if tg.get("chay"):
+            return tra("Brief này đã chạy rồi")
+        if tg.get("bo"):
+            return tra("Brief này đã bỏ / đã có bản sửa")
+        bv = tgl_brief_cua(jid) or (tg.get("brief_goc") or "")
+        if len(bv) < 5:
+            return tra("Brief trống")
+        j.setdefault("tg", {})["chay"] = "dang"
+        save_job(j)
+    tra("Bắt đầu dựng…")
+    bo_nut()
+    try:
+        job = create_job({"kenh": j.get("kenh"), "brief": bv, "tu_tg": True})
+    except ValueError as e:
+        tgl_gan(jid, {"chay": None})
+        return tgl_gui("⚠️ Chưa chạy được: " + str(e).split("|")[-1])
+    tgl_gan(jid, {"chay": job["id"]})
+    ten, tk = ten_hien(job)[0], CFG["kenh"].get(job.get("kenh"), {}).get("ten", job.get("kenh"))
+    if job.get("status") == "hen" and job.get("xep_hang"):
+        tgl_gui("⏳ Đã xếp hàng thứ %d: %s (%s)\nBài trước xong là tự dựng, xong mình báo về đây." % (job.get("thu") or 1, ten, tk))
+    else:
+        tgl_gui("▶️ Đang dựng: %s (%s)\nXong mình gửi bìa về đây. Gõ /tinhhinh để xem tiến độ." % (ten, tk))
+    log("tg lenh: chay bai %s tu brief %s" % (job["id"], jid))
+
+
+def tgl_bat_qt(p, pv):
+    try:
+        r = ghi_quy_tac({"text": p["text"], "pham_vi": pv, "anh": p.get("anh") or []})
+    except ValueError as e:
+        return tgl_gui("⚠️ Chưa ghi được quy tắc: " + str(e).split("|")[-1])
+    mid = tgl_gui("📏 Claude đang ghi quy tắc (%s)…" % TGL_PV.get(pv, pv))
+    tgl_gan(r["id"], {"cho": mid})
+    threading.Thread(target=tgl_cho_viec, args=(r["id"],), daemon=True).start()
+
+
+def tgl_cho_viec(jid, han=2400):
+    """Chờ việc ẩn (brief / chat sửa brief / quy tắc) xong rồi báo kết quả về chat lệnh (1 lần)."""
+    bd = now()
+    while True:
+        time.sleep(4)
+        try:
+            j, _ = parse_job(jid)          # Claude đã thoát mà chưa chốt thì parse_job chốt xong / lỗi
+        except Exception:
+            j = read_json(os.path.join(JOBS, jid, "job.json"))
+        if not j:
+            return
+        if j.get("status") not in ("dang-chay", "moi"):
+            break
+        if now() - bd > han:
+            return tgl_gui("⏳ Việc \"%s\" chạy quá %d phút chưa xong, fen mở app xem nha." % (short(j.get("tieu_de") or "", 60), han // 60))
+    with LOCK:
+        j = load_job(jid)
+        if not j or (j.get("tg") or {}).get("bao"):
+            return
+        j.setdefault("tg", {})["bao"] = now()
+        save_job(j)
+    try:
+        (tgl_bao_qt if j.get("loai") == "quy-tac" else tgl_bao_brief)(jid)
+    except Exception:
+        log(traceback.format_exc())
+
+
+def _tgl_dong(ls, key):
+    return [re.sub(r"[*_`]+", "", re.sub(r"^\W*%s\s*:\s*" % key, "", x, flags=re.I)).strip() for x in ls if re.match(r"^\W*%s\s*:" % key, x, re.I)]
+
+
+def tgl_bao_brief(jid):
+    v = job_view(jid) or {}
+    j = v.get("job") or {}
+    jj = load_job(jid) or {}
+    tg = jj.get("tg") or {}
+    tk = CFG["kenh"].get(j.get("kenh"), {}).get("ten", j.get("kenh"))
+    ls = [x.strip() for x in (v.get("final") or "").splitlines() if x.strip()]
+    bv, st = v.get("brief_viet") or "", j.get("status")
+    if jj.get("chat") and (v.get("final") or "").strip():     # nhớ câu Claude trả lời cho lần fen reply sửa tiếp
+        tgl_gan(jid, {"lich_su": (list(tg.get("lich_su") or []) + [{"ai": True, "text": short(v["final"], 300)}])[-8:]})
+    if st == "dung":
+        return tgl_gui("Đã dừng việc viết brief.")
+    if st != "xong":
+        return tgl_gui("⚠️ Chưa viết được brief: %s" % short(v.get("ly_do") or "Claude dừng giữa chừng", 300),
+                       [[{"text": "🔄 Viết lại", "callback_data": "lai:" + (tg.get("goc") or jid)}]])
+    if jj.get("chat") and not bv:      # chat sửa brief mà Claude chỉ trả lời / góp ý: bản gốc dùng tiếp
+        goc = tg.get("goc")
+        if goc:
+            tgl_gan(goc, {"bo": None})
+        return tgl_gui("💬 " + re.sub(r"[*_`]+", "", v.get("final") or "Claude không đổi brief.").strip()[:3000],
+                       [[{"text": "▶️ Chạy bản đang có", "callback_data": "chay:" + goc}]] if goc else None)
+    trung, goi_y = _tgl_dong(ls, "TRUNG"), _tgl_dong(ls, "GOI_Y")
+    if not bv and trung:
+        k = tgl_cho_them({"loai": "gy", "kenh": j.get("kenh"), "goi_y": goi_y[:4]})
+        nut = [[{"text": "✍ " + short(x, 45), "callback_data": "gy:%s:%d" % (k, i)}] for i, x in enumerate(goi_y[:4])]
+        return tgl_gui("⚠️ Trùng bài cũ: %s\nClaude không viết. %s" % (short(trung[0], 200), "Chủ đề chưa làm, bấm để viết:" if nut else "Fen gõ chủ đề khác nha."), nut or None)
+    if not bv:
+        return tgl_gui("⚠️ Claude chạy xong nhưng không ra brief: %s" % short(v.get("final") or "?", 300),
+                       [[{"text": "🔄 Viết lại", "callback_data": "lai:" + jid}]])
+    msgs = tgl_gui_dai("📝 Brief %s%s:\n\n%s" % (tk, " (đã sửa)" if jj.get("chat") else "", bv))
+    hieu = next((re.sub(r"[*_`]+", "", x).strip() for x in ls if re.match(r"^\W*Chủ đề\s*:", x, re.I)), "")
+    li, cn = _tgl_dong(ls, "LOI_ICH"), (_tgl_dong(ls, "CAN_NHAC") or [""])[0]
+    ts = ["✓ " + (hieu or ("Đã sửa: " + short(re.sub(r"[*_`]+", "", v.get("final") or ""), 300) if jj.get("chat") else "Brief xong"))]
+    if li:
+        ts += ["", "Lợi ích bài:"] + ["• " + x for x in li]
+    if cn and not re.match(r"^không có\.?$", cn, re.I):
+        ts.append("⚠️ Cân nhắc: " + cn)
+    ts += ["", "Bấm ▶️ Chạy để dựng bài. Muốn sửa: trả lời (reply) tin này, gõ ý cần đổi."]
+    mid = tgl_gui("\n".join(ts), [[{"text": "▶️ Chạy dựng bài", "callback_data": "chay:" + jid}],
+                                  [{"text": "🔄 Viết lại", "callback_data": "lai:" + jid}, {"text": "✖ Bỏ", "callback_data": "bo:" + jid}]])
+    tgl_gan(jid, {"msg": mid, "msgs": msgs})
+
+
+def tgl_bao_qt(jid):
+    v = job_view(jid) or {}
+    st = (v.get("job") or {}).get("status")
+    if st == "xong" and (v.get("final") or "").strip():
+        return tgl_gui("📏 " + re.sub(r"[*_`]+", "", v["final"]).strip()[:3500])
+    if st == "dung":
+        return tgl_gui("Đã dừng ghi quy tắc.")
+    tgl_gui("⚠️ Chưa ghi được quy tắc: " + short(v.get("ly_do") or "Claude dừng giữa chừng", 300))
+
+
+def tgl_tinh_hinh():
+    ic = {"laptop": "💻", "ipad": "📱"}
+    tenk = lambda k: "%s %s" % (ic.get(k, ""), CFG["kenh"].get(k, {}).get("ten", k))
+    dang, xep, hen, viet, loi = [], [], [], [], 0
+    cho_dang, da_dang, da_nay = {}, {}, 0
+    hom_nay = time.strftime("%Y-%m-%d")
+    for jid in (sorted(os.listdir(JOBS), reverse=True)[:300] if os.path.isdir(JOBS) else []):
+        j = read_json(os.path.join(JOBS, jid, "job.json"))
+        if not j:
+            continue
+        k, s = j.get("kenh"), j.get("status")
+        if j.get("loai") in VIEC_AN:
+            if s == "dang-chay" and now() - (j.get("created") or 0) < 3600:
+                viet.append("%s %s" % (ic.get(k, ""), short(j.get("tieu_de") or "", 60)))
+            continue
+        ten = ten_hien(j)[0]
+        if s == "dang-chay":
+            r = (j.get("runs") or [{}])[-1]
+            if not pid_alive(r.get("pid"), r.get("started")):
+                continue
+            ev = ""
+            try:
+                v = job_view(jid, 0) or {}
+                ev = next((e.get("x") or "" for e in reversed(v.get("events") or []) if not e.get("s") and e.get("k") != "text"), "")
+            except Exception:
+                pass
+            dang.append("▶️ %s (%s · %d phút%s)" % (short(ten, 60), tenk(k), max(1, (now() - (r.get("started") or now())) // 60),
+                                                    " · " + short(ev, 50) if ev else ""))
+        elif s == "hen":
+            (xep if j.get("xep_hang") else hen).append((j.get("hen_luc") or 0, "%s %s" % (ic.get(k, ""), short(ten, 50))))
+        elif s in ("loi", "dung"):
+            if now() - (j.get("created") or 0) < 86400:
+                loi += 1
+        elif s == "xong":
+            dd = j.get("da_dang")
+            if dd:
+                da_dang[k] = da_dang.get(k, 0) + 1
+                t = dd.get("lich") or dd.get("t")
+                if t and time.strftime("%Y-%m-%d", time.localtime(t)) == hom_nay:
+                    da_nay += 1
+            else:
+                cho_dang[k] = cho_dang.get(k, 0) + 1
+    ls = ["📊 Tình hình lúc %s" % time.strftime("%H:%M %d/%m")]
+    ls += dang or ["Không có bài nào đang dựng."]
+    if xep:
+        ls.append("⏳ Xếp hàng (%d): %s" % (len(xep), " · ".join(x for _, x in sorted(xep))))
+    if hen:
+        ls.append("🗓 Hẹn làm (%d): %s" % (len(hen), " · ".join("%s lúc %s" % (x, time.strftime("%H:%M %d/%m", time.localtime(t))) for t, x in sorted(hen))))
+    if viet:
+        ls.append("✍ Đang viết: " + " · ".join(viet))
+    if loi:
+        ls.append("⚠️ %d bài dừng giữa chừng trong 24 giờ qua, mở app bấm Chạy tiếp." % loi)
+    ls.append("📮 Chờ đăng: " + " · ".join("%s %d" % (tenk(k), cho_dang.get(k, 0)) for k in CFG["kenh"]))
+    ls.append("✅ Đã đăng: " + " · ".join("%s %d" % (tenk(k), da_dang.get(k, 0)) for k in CFG["kenh"]) + (" (hôm nay %d)" % da_nay if da_nay else ""))
+    ci = claude_info()
+    ls.append("Claude trên máy shop: " + ("đã đăng nhập ✓" if ci.get("login") else "CHƯA đăng nhập, mở app bấm Đăng nhập" if ci.get("login") is False else "chưa rõ"))
+    return "\n".join(ls)
 
 
 def hen_job(jid, data):
@@ -2664,6 +3283,8 @@ class H(BaseHTTPRequestHandler):
                 return self.send(200, tiktok_data(m.group(1)))
             if u.path == "/api/telegram":
                 return self.send(200, tg_cai({}))
+            if u.path == "/api/tg-lenh":
+                return self.send(200, tgl_cai({}))
             if u.path == "/api/bai-co-san":
                 return self.send(200, {"bai": bai_co_san()})
             if u.path == "/api/lich-su-brief":
@@ -2684,7 +3305,8 @@ class H(BaseHTTPRequestHandler):
                     uiv = int(os.path.getmtime(os.path.join(UI, "index.html")))
                 except OSError:
                     uiv = 0
-                return self.send(200, {"jobs": list_jobs(), "ui": uiv})
+                return self.send(200, {"jobs": list_jobs(), "ui": uiv,
+                                       "remote": {"bat": bool(CFG.get("tg_lenh")), "noi": tgl_noi(), "loi": bool(tgl_trang_thai()["loi"])}})
             m = re.fullmatch(r"/api/job/([\w-]+)", u.path)
             if m:
                 v = job_view(m.group(1), int((q.get("since") or ["0"])[0]))
@@ -2762,6 +3384,8 @@ class H(BaseHTTPRequestHandler):
                 return self.send(200, {"id": job["id"], "xep_hang": bool(job.get("xep_hang") and job.get("status") == "hen"), "thu": job.get("thu") or 0})
             if u.path == "/api/telegram":
                 return self.send(200, tg_cai(data))
+            if u.path == "/api/tg-lenh":
+                return self.send(200, tgl_cai(data))
             if u.path == "/api/bai-co-san":
                 return self.send(200, mo_bai_co_san(data))
             m = re.fullmatch(r"/api/job/([\w-]+)/(caption|telegram|tiktok)", u.path)
@@ -2863,6 +3487,8 @@ def main():
     threading.Thread(target=claude_info, daemon=True).start()
     threading.Thread(target=theo_doi, daemon=True).start()
     threading.Thread(target=lich, daemon=True).start()
+    if CFG.get("tg_lenh") and CFG.get("telegram_token"):
+        tgl_khoi()
     try:
         srv.serve_forever()
     except KeyboardInterrupt:

@@ -105,6 +105,17 @@ LÀM 1 BÀI
   Viết brief, chat brief, viết caption, ô Sửa vẫn chạy liền không phải chờ. Photoshop vẫn làm lần lượt từng script.
 - "Dừng": dừng bài đang chạy. "Chạy tiếp": làm tiếp từ chỗ dở. Nút ⋯ > "Xoá khỏi danh sách":
   chuyển bài vào thư mục _to_delete của app (không xoá hẳn).
+- Nút "📱 Remote" trên cùng (30/10): ra ngoài vẫn giao việc cho app qua Telegram (chat RIÊNG với bot, không phải nhóm).
+  Bấm Remote > Bật. Lần đầu app hiện mã 6 số: bấm "Mở bot trên Telegram" rồi Start (hoặc nhắn mã cho bot), là nối xong.
+  Chỉ Telegram đã nhắn mã mới ra lệnh được, người khác nhắn bot thì bỏ qua. Không cần thì Tắt (hoặc nhắn /tat).
+  Nhắn cho bot:
+   · chủ đề bài (vd "laptop cho dân kiến trúc", "tìm chủ đề hot mẹo iPad"): Claude viết brief + lợi ích bài, gửi về
+     kèm nút ▶️ Chạy dựng bài / 🔄 Viết lại / ✖ Bỏ. Chưa rõ kênh thì bot hỏi Laptop hay iPad. Trùng bài cũ thì có nút chủ đề khác.
+   · trả lời (reply) tin brief, gõ ý cần đổi: Claude sửa brief đó (như ô chat dưới Brief).
+   · "quy tắc: ..." (kèm ảnh được): bot hỏi Chung / Laptop / iPad rồi ghi luật như nút Quy tắc.
+   · /tinhhinh: bài đang dựng, xếp hàng, hẹn, chờ đăng, đã đăng, Claude đăng nhập chưa.
+  Bài bấm Chạy trên Telegram xong / lỗi thì bot báo về chat đó (kèm ảnh bìa). Đăng TikTok vẫn làm ở app hoặc điện thoại.
+  Tin nhắn gửi lúc Remote đang tắt: bật lên app bỏ qua (không tự làm việc cũ). Đổi bot Telegram thì phải nối lại.
 
 CÀI TIỆN ÍCH POLY TIKTOK (1 lần, cho nút Đăng TikTok)
 1. Chrome gõ chrome://extensions , bật "Chế độ dành cho nhà phát triển" (góc trên phải).
