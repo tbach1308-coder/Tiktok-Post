@@ -1,0 +1,14 @@
+{
+  "name": "poly-store",
+  "description": "Plugin làm content TikTok của POLY Store",
+  "owner": {
+    "name": "POLY Store"
+  },
+  "plugins": [
+    {
+      "name": "poly-carousel",
+      "source": "./poly-carousel",
+      "description": "Dựng bài carousel TikTok Poly Store bằng Photoshop trên máy shop: biên tập, kiểm thông tin, dựng, duyệt chạy song song."
+    }
+  ]
+}

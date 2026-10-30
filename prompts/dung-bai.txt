@@ -1,0 +1,36 @@
+/poly-carousel:dung-bai
+Kênh: {kenh_ten}
+Tên bài: {ten_bai}
+Ngày đăng: {ngay_dang}
+Thư mục kênh: {thu_muc_kenh}
+
+Ảnh fen gửi kèm (ưu tiên dùng hơn ảnh tự tìm; ảnh trùng bài cũ thì vẫn dùng):
+{anh_list}
+
+Brief từng slide:
+{brief}
+
+Ghi chú thêm của fen: {ghi_chu}
+
+---
+Bài này giao từ app "Poly Dựng Bài" trên máy shop. Fen không xem chat và không trả lời được câu hỏi giữa chừng: tự làm hết theo plugin poly-carousel và luật, chỗ chưa rõ tự chọn phương án hợp lý nhất. Thiếu ảnh shop thì dùng ảnh tạm (ảnh hãng) và làm tiếp.
+Ngay khi tạo thư mục bài, in 1 dòng riêng THU_MUC_BAI=<đường dẫn đầy đủ> (app dựa vào dòng này để hiện đúng slide của bài).
+Tạo task list các bước (fen xem tiến độ qua task list trên app). Đặt tên task tiếng Việt đời thường, tối đa 8 chữ, không ghi tên file hay lệnh (vd "Biên tập brief", "Lấy ảnh máy", "Dựng slide bằng Photoshop", "Duyệt bài").
+Làm nhanh (bài trước mất 31 phút, phần lớn là chờ dựng lại và chờ duyệt):
+- Làm đúng mục 1b "Luật làm nhanh" trong sổ dựng. Viết slide thì đọc ipad/API.md (iPad) hoặc code/API-laptop.md (Laptop) + 1 bài gần nhất cùng kiểu, không đọc lại cả thư viện dựng.
+- Xem nhiều ảnh (ảnh tải về, ảnh đã cắt, slide) bằng 1 ảnh ghép: python "E:/Social Claude/_bo-dung-design/prep/xem_nhanh.py" "<ra.jpg>" "<thư mục hoặc ảnh>" ... rồi Read 1 lần, không Read từng ảnh.
+- Bản dựng đầu xong: ghi caption.txt (mục Caption dưới), soi bằng 1 lệnh python "E:/Social Claude/_bo-dung-design/prep/soi_tat_ca.py" "<thư mục bài>" vN --them "<thư mục ảnh tải về của bài>" (ảnh ghép, bố cục, nghiệm thu iPad, dò trùng cả nền mờ), rồi gọi NGAY agent thiết kế + agent duyệt song song (đưa agent duyệt cả đường dẫn caption.txt). Không tự sửa rồi dựng lại trước khi 2 agent trả; lỗi công cụ báo thì sửa sẵn trong file slide, chờ gộp.
+- Có kết quả 2 agent: sửa gộp mọi lỗi, dựng lại 1 lần đúng các slide lỗi, soi lại bằng soi_tat_ca.py. Không gọi duyệt vòng 2; có đổi số liệu thì tự tra lại đúng chỗ đó.
+- Đã ĐẠT thì không làm thêm mục "nên sửa" nào phải dựng lại Photoshop.
+- Gom mọi ảnh cần tách nền vào 1 lệnh; dò trùng mọi ảnh của bài (ảnh máy + nền mờ) trong 1 lệnh.
+- Lệnh chờ Photoshop thì chạy nền, trong lúc chờ làm việc khác (soi ảnh, chuẩn bị phần sau).
+Caption: ghi file "<thư mục bài>/caption.txt" TRƯỚC khi gọi agent duyệt theo "E:/Social Claude/_bo-dung-design/hashtag-tiktok.md": dòng 1 caption tối đa 90 ký tự (1 câu như người bán nói + 3–4 hashtag, có #polystore, không #xuhuong), dòng 2 "Comment ghim: …". Agent duyệt soát luôn caption; có lỗi thì sửa caption.txt cùng lúc sửa slide.
+Agent duyệt (poly-carousel:duyet-bai) và agent thiết kế (poly-carousel:thiet-ke) luôn gọi với model "opus" (tham số model của Agent), kể cả khi phiên này chạy model khác.
+Giá: chỉ ghi giá khi brief có giá hoặc fen nhắn cần giá. Không tự thêm, không tự đổi giá (giữ đúng chữ giá fen viết, kể cả "chờ giá Việt Nam").
+Viết lệnh để không bị chặn quyền (chạy ngầm không ai bấm cho phép được; bài trước bị chặn 12 lần, mỗi lần phải viết lại):
+- Mỗi lệnh Bash làm 1 việc, đường dẫn đầy đủ trong ngoặc kép. Không dùng biến ($B), {a,b}, vòng for, dấu "\ ", không ghi ra /tmp (dùng "E:/Social Claude/Anh tai ve/tai-ve-<dd-mm>/").
+- Python dài hơn 3 dòng: dùng Write ghi ra file .py (trong "<thư mục bài>/tai-nguyen/script/" hoặc thư mục ảnh tải về) rồi chạy python "<file>", không dùng python -c nhiều dòng.
+- Tạo thư mục, chép file: mkdir -p "…" và cp "…" "…" từng lệnh; không dùng PowerShell có biến, khối { } hay nhiều đường dẫn trong 1 lệnh.
+- Không đọc hay tìm trong C:\Users\Dao\.claude. Giao việc cho agent con thì đưa đường dẫn tuyệt đối và dặn agent cũng viết lệnh như trên.
+Trả lời cuối cùng thật ngắn, 1–3 câu tiếng Việt (vd "Xong 7 slide, đã qua duyệt."). App không hiện bảng final hay danh sách cần xác nhận nên không viết chúng; chỗ chưa chắc thì tự chọn phương án an toàn nhất. Có đổi chữ, số hay giá so với brief của fen thì thêm đúng 1 dòng "Đã đổi so với brief: <slide + đổi gì, tối đa 20 chữ>" (không đổi gì thì bỏ dòng này). Việc chỉ fen quyết được (giá, khuyến mãi, máy còn trong kho không, chữ fen viết mà bạn buộc phải đổi) thì thêm tối đa 3 dòng dạng: HOI_FEN: <câu hỏi ngắn> | <cách bạn đang làm> | <cách khác> (tối đa 4 lựa chọn, mỗi lựa chọn ≤ 8 chữ). App hiện thành nút để fen bấm chọn, lựa chọn đầu là cách đang làm. Không hỏi việc tự quyết được. Dòng cuối cùng đúng dạng:
+THU_MUC_BAI=<đường dẫn đầy đủ thư mục bài>

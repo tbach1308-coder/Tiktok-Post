@@ -1,0 +1,196 @@
+POLY DỰNG BÀI - app nhập brief, bấm Chạy
+(E:\Tool\poly-dung-bai · làm 28/10/2026)
+====================================================================
+
+MỞ APP
+- Nhấp đúp icon "Poly Dung Bai" ngoài Desktop (hoặc file "Poly Dung Bai.vbs" trong thư mục này).
+- App mở thành cửa sổ riêng (Edge, hồ sơ riêng trong thư mục _edge, không tự dịch sang tiếng Anh).
+  Tắt cửa sổ thì bài đang chạy vẫn chạy tiếp, mở lại là thấy. Có bản app mới thì trang tự tải lại.
+- App chạy trên máy này, cổng 8777 (cổng 8765 là của tool đăng bài, không dùng chung).
+
+ĐĂNG NHẬP CLAUDE CODE: TÀI KHOẢN NÀO CŨNG LÀM ĐƯỢC
+- Tài khoản Claude nào có gói Pro / Max (hoặc Team) đăng nhập vào là app dựng bài được luôn.
+  Tài khoản miễn phí không chạy Claude Code. Gói Max chạy bài dài đỡ hết lượt hơn.
+- Không phải cài gì theo tài khoản: mỗi lượt chạy app tự nạp plugin dựng bài poly-carousel
+  (E:\Social Claude\_bo-dung-design\plugin\poly-carousel), luật chung của shop (prompts\luat-chung.md)
+  và các file quy tắc ở E:\Social Claude. Sửa quy tắc trong các file đó là mọi tài khoản cùng theo.
+- Góc trên phải báo "chưa đăng nhập" thì bấm Đăng nhập. Trình duyệt mở ra, chọn tài khoản
+  Claude rồi bấm cho phép. Xong app tự nhận.
+- Bấm vào ô "Claude sẵn sàng" góc trên phải = ô Kiểm máy: tài khoản đang dùng (email, gói),
+  plugin, luật chung, file quy tắc, Photoshop tự chạy. Có nút Đổi tài khoản (bấm 2 lần: đăng xuất
+  tài khoản cũ, trình duyệt mở ra chọn tài khoản mới). Đang có bài chạy thì không cho đổi.
+- Lượt chạy trừ vào hạn mức của tài khoản đang đăng nhập (dùng chung với chat trên app Claude).
+- Không đặt ANTHROPIC_API_KEY trên máy: có biến này thì Claude Code tính tiền API, không dùng gói.
+
+LÀM 1 BÀI
+1. Bấm "+ Bài mới" (luôn ra trang trống; bài đang làm dở tự cất ở tab Bản nháp), chọn kênh Laptop hoặc iPad.
+2. Dán brief từng slide (giống gửi trong tab Design). Không còn ô Tên bài, Ngày đăng (29/10 tối, fen thấy thừa): tên bài
+   app lấy từ tiêu đề bìa, giờ đăng hẹn ở thẻ Đăng bài khi bài xong.
+   Chưa có brief: gõ chủ đề 1 dòng ở ô "Chủ đề" (vd "iPad cho sinh viên y"), bấm "Viết brief".
+   Ô Chủ đề hiểu được lời nhờ (30/10): "tìm chủ đề hot mẹo iPad" là Claude tự tìm tin đang hot rồi chọn 1 bài
+   MẸO (không ra bài so sánh); "bài so sánh", "bảng giá", "theo ngành", "tầm 10 triệu" là đúng loại bài đó.
+   Viết xong có 1 dòng "Chủ đề: … · mẹo" cho fen thấy Claude hiểu ý thế nào. Chủ đề mới khác bài đang trong ô
+   thì Claude viết bài mới hẳn (không giữ bài cũ); lỡ tay thì bấm "Lấy lại brief cũ". Bấm lại cùng lời nhờ
+   "tìm chủ đề…" mà chưa sửa brief = Claude chọn chủ đề khác.
+   Claude đọc quy tắc content + tệp người xem, dò trùng bài cũ, viết brief vào ô Brief (vài phút).
+   Trùng bài đã làm thì Claude KHÔNG viết (luật 1b): báo đỏ bài trùng + gợi ý chủ đề chưa làm,
+   bấm 1 gợi ý là điền vào ô Chủ đề. Muốn làm lại bài cũ thì ghi thêm "làm lại" vào chủ đề.
+   Fen đọc, sửa brief rồi bấm Chạy. Có giá thì gõ luôn vào chủ đề hoặc ghi chú.
+   CHAT SỬA BRIEF (29/10): ô 💬 ngay dưới Brief. Gõ kiểu "bìa ngắn lại", "slide 3 đổi sang ThinkPad P16", "thêm slide
+   về pin", "gợi ý góc khác" rồi Enter. Claude (Sonnet cho nhanh, đổi ở Kiểm máy > Model từng việc) sửa thẳng vào ô
+   Brief, giữ phần fen không nhắc; hỏi / nhờ góp ý thì Claude chỉ trả lời, không đổi brief. Có "Hoàn tác" ở tin vừa sửa.
+   Mỗi nháp 1 cuộc chat riêng, lưu theo nháp.
+   BẢN NHÁP (29/10 tối): mỗi nháp 1 brief riêng (kênh, chủ đề, brief, ghi chú, chat), gõ tới đâu tự lưu tới đó.
+   - "💾 Lưu bản nháp" (góc phải chữ Bài mới): cất nháp vào tab "Bản nháp" ở cột trái, mở trang trống để làm bài khác.
+     Bấm nháp ở tab Bản nháp là mở lại làm tiếp.
+   - "🗑 Xoá bản nháp": bỏ nháp đang mở, nháp được cất vào Lịch sử brief (lấy lại được, không mất hẳn).
+   - Laptop và iPad là 2 nháp riêng: nháp đã có brief mà bấm sang kênh kia thì app sang nháp của kênh đó (chưa có
+     thì mở nháp trống), brief kênh cũ vẫn giữ, bấm lại kênh cũ là quay về. Nháp chưa có brief thì chỉ đổi kênh.
+     Brief Claude viết / sửa cho kênh nào thì nháp luôn thuộc kênh đó (nháp cũ bị dính sang kênh kia, app tự trả về).
+   Đang "Viết brief" mà bấm sang nháp khác hay sang bài khác cũng được: viết xong brief tự vào đúng nháp đó.
+   Nháp lưu trên máy (nhap.json), tắt app / tải lại trang vẫn còn. Bấm Chạy thì nháp thành bài.
+   Ảnh shop chưa lưu theo nháp: tải lại trang thì kéo ảnh lại.
+   LỊCH SỬ BRIEF (nút dưới "+ Bài mới"): brief của mọi bài đã chạy, các lần Claude viết brief
+   (cả lần báo trùng, kèm gợi ý chủ đề) và nháp đã bỏ. Lọc Laptop / iPad, tìm chữ. Bấm 1 dòng
+   để xem: Chép, Mở bài, Dùng lại (mở thành nháp mới, nháp đang gõ vẫn giữ).
+3. Ảnh shop: kéo thả, dán (Ctrl+V) hoặc chọn file. Ảnh fen gửi được ưu tiên dùng.
+4. Bấm Chạy (dựng ngay), hoặc "⏰ Hẹn làm" để chốt brief xong hẹn giờ dựng (Tối nay 21:00, Sáng mai
+   8:00, Sáng ngày đăng 8:00 hoặc tự chọn). Tới giờ app tự chạy, mỗi lúc 1 bài (làm dần), xong báo
+   Telegram. Bài hẹn dựng nằm ở tab Đang làm, nhóm "Hẹn dựng": mở ra sửa brief, Đổi giờ, Làm ngay, Huỷ hẹn.
+   Máy shop phải bật và mở app lúc tới giờ; máy tắt thì lúc mở app lên sẽ làm bài trễ hẹn.
+   Bấm Chạy. Ô Tiến độ bên phải: thanh các bước, bước đang làm, câu mới nhất của Claude
+   (bấm "Chi tiết" xem từng bước + nhật ký). Slide hiện dần khi Photoshop dựng xong.
+   Photoshop chạy ngầm phía sau, fen thu nhỏ nó xuống là vẫn dựng, cứ làm việc khác.
+   MODEL (29/10 tối, fen tự chọn khi cần): cạnh nút Chạy có ô "Model": Theo cài đặt / Sonnet · nhanh / Opus · kỹ, chậm
+   (chỉ cho bài này). Ô Sửa bài cũng có ô Model (lượt sửa này và các lượt sau của bài). Mặc định từng việc ở Kiểm
+   máy (chip "Claude sẵn sàng" góc trên) > Model từng việc: Dựng/sửa bài, Viết brief, Chat sửa brief, Viết caption,
+   Agent duyệt + thiết kế. Fen chốt 29/10 19h47: MẶC ĐỊNH MỌI VIỆC LÀ OPUS (chậm xíu mà kỹ); cần nhanh thì chọn Sonnet
+   cho bài đó. Haiku chỉ cho việc nhẹ (chat, caption). Danh sách lượt ghi model từng lượt.
+5. Xong bài: dòng "Đã đổi so với brief" cho biết Claude đổi gì so với brief của fen.
+   Ô "Claude hỏi fen" (nếu có): bấm chọn rồi bấm Gửi trả lời. Lựa chọn đầu là cách Claude đang làm;
+   chọn khác thì Claude chạy tiếp và chỉ sửa đúng slide đó.
+6. Muốn sửa (29/10 tối): dưới MỖI slide có ô "Sửa slide N…", ghi cần sửa vào ô của từng slide (bao nhiêu slide cũng
+   được; dán Ctrl+V hoặc kéo ảnh vào ô / vào slide là ảnh cho đúng slide đó). Ô "Sửa chung / nhắc quy tắc" ở thẻ
+   Sửa bài: sửa cả bài, hoặc nhắc thêm quy tắc (Claude sửa bài này và ghi vào file quy tắc cho bài sau). Rồi bấm "Sửa một lượt". Claude sửa hết các slide đó trong
+   1 lượt, dựng lại 1 lần, duyệt 1 lần. Xem to slide rồi bấm "Sửa slide này" là nhảy tới ô của slide đó. Claude nhớ cả
+   bài và ghi luật vào E:\Social Claude\POLY-quy-tac-lam-content.md cho bài sau.
+7. Đăng bài (ô "Đăng bài" bên phải, khi bài xong): caption Claude viết sẵn, sửa thẳng trong ô.
+   Bài xong có 2 nút iPad | Laptop ở đầu trang: bấm để đổi kênh của bài, nút đăng đổi theo.
+   Bài nằm trong thư mục Laptop mà bấm iPad (hay ngược lại) thì app hỏi lại trước, không đổi liền.
+   - iPad: bấm "Đăng TikTok (web)". Chrome mở TikTok Studio, tiện ích Poly TikTok tự gắn slide +
+     caption. Fen xem đúng tài khoản @poly.store, chọn nhạc rồi TỰ bấm Đăng (tiện ích không bấm).
+   - Laptop: bấm "Gửi Telegram". Slide (album ảnh như gửi tay), caption và câu ghim (mỗi cái 1 tin,
+     giữ tin để copy) về Telegram của fen, mở điện thoại đăng bằng app TikTok. Lần đầu app hiện
+     3 bước cài Telegram (tạo bot ở @BotFather, dán token, nhắn bot 1 tin rồi bấm Kiểm). Token chỉ
+     lưu trên máy này. Đổi bot hay bot bị lỗi: link "Đổi Telegram" dưới nút, hoặc nút "Telegram" trên
+     thanh trên cùng. Gửi vào nhóm (vd Image Laptop Tool): thêm bot vào nhóm, gõ /start@tên_bot
+     trong nhóm rồi bấm Kiểm.
+   - Đã gửi / đã mở rồi mà bấm lại: app hỏi trước, không gửi trùng.
+   - Bài chưa có caption mà bấm Đăng TikTok / Gửi Telegram: Claude tự viết caption + hashtag trước
+     (1–2 phút) rồi app tự mở TikTok / gửi Telegram.
+   - Muốn viết lại caption: bấm "Viết caption", Claude đọc slide viết
+     caption + câu ghim theo luật hashtag, khoảng 1–2 phút, không đụng slide.
+- Báo Telegram: bài xong (kèm ảnh bìa, số phút, câu hỏi nếu có), dừng giữa chừng, hoặc 10 phút
+  không tiến triển thì bot nhắn vào nhóm. Tắt/bật trong nút "Telegram" trên cùng.
+   - Giá: Claude chỉ ghi giá khi brief có giá hoặc fen nhắn cần giá.
+- Nút "📏 Quy tắc" trên thanh trên cùng (30/10): ghi quy tắc mới cho mọi bài sau mà không sửa bài nào.
+  Chọn Chung 2 kênh / Laptop / iPad, gõ quy tắc (dán ảnh minh hoạ nếu cần), bấm "Ghi quy tắc" (Ctrl+Enter).
+  Claude ghi vào file quy tắc, sổ thiết kế, plugin dựng bài, lệnh viết brief của app (chỗ nào liên quan), khoảng 1–3 phút,
+  đóng ô cũng được, xong app báo. Ô này có danh sách quy tắc fen vừa nhắc và các dòng mới nhất trong file quy tắc.
+  Model: Kiểm máy > Model từng việc > Ghi quy tắc (mặc định Opus). Bản lưu trong Project claude.ai không tự cập nhật.
+- Bài đã làm trước đó (trong E:\Social Claude\Laptop, iPad): bấm "Mở bài có sẵn" dưới "+ Bài mới",
+  chọn bài là có ô caption + Gửi Telegram / Đăng TikTok + Sửa như bài làm bằng app.
+- Bấm Chạy nhiều bài liên tục (30/10): bài sau tự XẾP HÀNG, bài trước dựng xong mới tới bài sau, không chồng lên nhau.
+  Cột trái ghi "Xếp hàng thứ N". Mở bài đang xếp hàng: sửa brief được, "Chạy ngay (song song)" nếu cần gấp, "Huỷ" để bỏ.
+  Viết brief, chat brief, viết caption, ô Sửa vẫn chạy liền không phải chờ. Photoshop vẫn làm lần lượt từng script.
+- "Dừng": dừng bài đang chạy. "Chạy tiếp": làm tiếp từ chỗ dở. Nút ⋯ > "Xoá khỏi danh sách":
+  chuyển bài vào thư mục _to_delete của app (không xoá hẳn).
+
+CÀI TIỆN ÍCH POLY TIKTOK (1 lần, cho nút Đăng TikTok)
+1. Chrome gõ chrome://extensions , bật "Chế độ dành cho nhà phát triển" (góc trên phải).
+2. Bấm "Tải tiện ích đã giải nén", chọn thư mục E:\Tool\poly-dung-bai\tiktok-ext
+3. Chrome này phải đăng nhập TikTok tài khoản @poly.store. Tiện ích chỉ chạy khi app mở trang
+   (có ?poly= trên địa chỉ), lấy slide từ app trên chính máy này, không bao giờ bấm Đăng.
+   TikTok chuyển trang (vd bắt đăng nhập lại) làm mất ?poly=: khung Poly TikTok hỏi "Gắn bài … vào
+   trang này?", fen bấm Gắn.
+- Cập nhật tiện ích (Claude báo có bản mới): chrome://extensions, bấm nút tải lại ↻ ở Poly TikTok,
+  rồi tải lại (F5) trang TikTok đang mở.
+- CỘT TRÁI CHIA TAB (29/10 tối): Đang làm (đang chạy, cần xem, hẹn dựng, mới tạo) · Chờ đăng (dựng xong, chưa đăng;
+  bài có giờ hẹn đăng lên đầu, ghi "⏰ Giờ hẹn …") · Bản nháp (brief chưa chạy) · Đã đăng (cả bài đã Schedule, ghi
+  "TikTok sẽ đăng …"). Mỗi bài có ảnh bìa nhỏ + dòng trạng thái. Mở bài nào cột trái tự sang đúng tab của bài đó.
+  Rê chuột vào 1 dòng là hiện nút 🗑 góc phải: bài thì xoá khỏi danh sách (slide trong thư mục bài vẫn giữ, bài hẹn dựng
+  thì huỷ luôn; bài đang chạy phải Dừng trước), nháp thì cất vào Lịch sử brief. Tab Chờ đăng có thêm nút "✓ Đã đăng"
+  (đăng tay / bằng điện thoại xong bấm là bài sang tab Đã đăng); tab Đã đăng có "↩ Chưa đăng" cho bài đánh dấu tay.
+- HẸN GIỜ ĐĂNG (iPad, tiện ích 0.10.0, fen chốt 29/10 17h50): 2 cách, đều là FEN TỰ BẤM Schedule.
+  a) Trong app: mở bài > thẻ Đăng bài > "⏰ Hẹn giờ đăng", chọn giờ (sau ít nhất 20 phút, trong 10 ngày, phút tròn 5).
+     Ngày đã có bài iPad khác thì hộp hẹn báo vàng (luật kênh 1 bài/ngày, 19–22h). Rồi bấm "Mở TikTok để hẹn · …".
+  b) Trên trang TikTok: điền xong, khung Poly có nút "⏰ Hẹn giờ <giờ>": giờ lấy từ app, chưa hẹn thì gợi ý 20:00 /
+     21:00 / 21:30 / 22:00 của ngày đầu tiên chưa có bài. Bấm nút, sửa giờ nếu muốn, bấm "Chọn giờ này trên TikTok":
+     tiện ích chọn Schedule + ngày giờ, đọc lại thấy đúng thì báo. Fen kiểm trang rồi TỰ BẤM Schedule ở cuối trang.
+  TikTok giữ bài và tự đăng đúng giờ, máy shop tắt cũng được. App KHÔNG còn tự mở TikTok lúc có hẹn.
+  Chọn ngày giờ không được thì khung Poly báo, fen chọn tay rồi bấm Schedule.
+- "✓ Đánh dấu đã đăng": bài Laptop đăng bằng app điện thoại xong, hoặc bài fen tự đăng ngoài tiện ích, bấm để bài
+  sang tab Đã đăng.
+- QUY TẮC ĐĂNG TIKTOK (fen chốt 29/10, tiện ích 0.7.0):
+  1. Link đăng: tiktok.com/tiktokstudio/upload?from=webapp&tab=photo (vào thẳng tab Photos), app nối mã bài vào cuối.
+  2. Chrome: app mở bằng hồ sơ Chrome chọn ở Kiểm máy > Đăng TikTok (bấm chip "Claude sẵn sàng" góc trên, hoặc
+     "Đổi Chrome / link" ở thẻ Đăng của bài iPad). Qua máy khác: chọn lại hồ sơ có đăng nhập @poly.store và có
+     tiện ích Poly TikTok, bấm Mở thử, rồi Lưu. Máy không tự thấy Chrome thì dán đường dẫn chrome.exe.
+  3. Thấy bài nháp cũ ("You have an unsaved photo post"): tiện ích tự bấm Discard rồi đăng bài mới luôn.
+  4. Bấm Điền lại: tiện ích bỏ ảnh cũ trên trang (Discard ở cuối trang soạn bài) rồi gắn lại từ đầu, không gắn chồng.
+  5. Tiêu đề = câu caption (bỏ hashtag). Mô tả = hashtag: có chip History (# ipad, # polystore…) thì bấm chip,
+     không có thì gõ rồi chọn đúng gợi ý của TikTok. Điền xong dòng mờ "Writing a long description…" phải mất;
+     còn thì khung Poly báo "ô mô tả chưa nhận hashtag".
+  6. Nhạc (kênh shop = tài khoản doanh nghiệp, chỉ có nhạc thương mại của TikTok, ít bài, tên tiếng Anh):
+     a) Favorites trước: fen thả tim sẵn vài bài hip hop hợp gu (TikTok > Royalty-free sounds / bảng nhạc,
+        bấm ♡). Tiện ích lấy bài chưa dùng trong Favorites.
+     b) Hết thì tìm "Search sounds" theo vòng từ khoá hip hop / hip hop beat / boom bap / lofi hip hop / trap beat
+        (đổi bằng "nhac_tu_khoa" trong config.json).
+     c) Không ra thì lấy bài chưa dùng ở For You. Hết hẳn bài mới thì lấy bài dùng lâu nhất rồi (khung Poly ghi rõ).
+     Bỏ bài dưới 15 giây. Bài đã chọn ghi vào nhac-da-dung.json và hiện "Nhạc đã chọn: …" ở thẻ Đăng.
+  7. KHÔNG TỰ BẤM ĐĂNG (fen chốt 29/10 17h50, tiện ích 0.10.0, sau khi tìm hiểu cách TikTok xử lý đăng tự động):
+     - Điều khoản TikTok (bản cho VN, 1/12/2025) cấm "dùng script tự động… tương tác với dịch vụ"; Tiêu chuẩn cộng
+       đồng mục Spam cấm vận hành tài khoản "bằng tự động hoá không được phép". Không có cách "đăng tự động mà không
+       bị nhận ra" nào đúng luật, Claude không làm kiểu né phát hiện.
+     - TikTok KHÔNG nói đăng từ web bị giảm view (hẹn giờ, Content Check Lite còn có trên web cho tài khoản Business).
+     - TikTok nói rõ: bài quảng bá sản phẩm không bật Tiết lộ nội dung -> Thương hiệu của bạn thì KHÔNG được lên Dành
+       cho bạn; bật thì không giảm view.
+     - Your brand (30/10 12h54, tiện ích 0.10.1): MẶC ĐỊNH TẮT cho mọi bài như cài đặt gốc TikTok (fen chốt). Bài nào
+       muốn khai quảng bá thì ô Đăng bài trong app có dòng "Your brand: Không bật | Bật", bấm Bật thì tiện ích bật
+       (Show more > Disclose post content > Your brand). Bật thì bài có nhãn Commercial content, chỉ sửa trên app điện thoại.
+     Nên: tiện ích điền sẵn (ảnh, tiêu đề, hashtag, nhạc, Your brand nếu fen bật), FEN TỰ BẤM Post / Schedule. Đã bỏ: đếm
+     ngược 8 giây tự bấm Post, tự hẹn + tự bấm Schedule, app tự mở TikTok lúc có hẹn, ô "tự bấm Đăng" ở Kiểm máy.
+     Fen bấm Post / Schedule xong: app ghi "Đã đăng TikTok lúc …" / "Đã hẹn trên TikTok, TikTok sẽ đăng lúc …", ghi
+     cả bài có bật Thương hiệu của bạn chưa (fen chọn Bật mà trang chưa bật thì thẻ Đăng báo đỏ), báo Telegram (nếu bật báo).
+     TikTok hỏi xác minh (captcha, kéo thanh trượt): tiện ích không đụng vào, fen tự làm.
+     Tiện ích chỉ bấm: tab Photos, Discard (nháp cũ / ảnh cũ), ô tiêu đề, ô mô tả, chip/gợi ý hashtag, Add sound,
+     tab nhạc, ô tìm nhạc, nút Use, Show more + công tắc Disclose post content + ô Your brand, và (khi fen bấm
+     ⏰ Hẹn giờ) ô Schedule + lịch ngày + cột giờ phút. KHÔNG BAO GIỜ bấm Post / Schedule / Post now.
+  8. Sổ nhạc: nhac-da-dung.json (thư mục app). Fen chốt 17h02: CHỈ bài nhạc của bài ĐÃ ĐĂNG mới tính là trùng.
+     Chọn mà chưa đăng (Điền lại, đóng tab) thì bài nhạc đó vẫn được chọn lại cho bài sau. Fen bấm Post / Schedule
+     trên trang thì tiện ích ghi nhận là đã đăng.
+- Thao tác (0.7.1, fen chê chậm): gõ theo từng từ, nghỉ rất ngắn, gợi ý hashtag hiện là chọn ngay, rê chuột trước
+  khi bấm. Cả bài khoảng 25–40 giây (lâu hơn khi phải tìm nhạc nhiều từ khoá).
+- ĐÃ THỬ KHÔNG ĐƯỢC, KHÔNG DÙNG LẠI (ghi cả ở đầu tiktok-ext\tiktok.js):
+  - Gắn ảnh vào ô file đầu tiên (ô tab Videos): TikTok báo "File format not supported".
+  - Gõ ô mô tả bằng lệnh gõ thường (execCommand): chữ chỉ nằm trên mặt ô, TikTok không nhận, hashtag không ăn.
+  - Tìm bảng nhạc theo tên lớp chung: lấy nhầm khung trang và ô "Search locations", từ khoá nhạc bị gõ vào ô mô tả.
+  - Hỏi fen trong khung Poly khi có bài nháp cũ: fen không thấy khung, bài không được gắn gì.
+  - Đếm ảnh theo ô chọn file: TikTok xoá ô ngay sau khi nhận, khung Poly báo "Mới gắn 0/7" dù trang đủ 7 ảnh.
+  - Gõ từng chữ, chờ cố định mỗi hashtag: chậm quá.
+  - Từ khoá "rap việt" cho kênh shop: thư viện nhạc thương mại gần như không có.
+  - Tự bấm Post sau 8 giây đếm ngược (0.8), tự hẹn + tự bấm Schedule, app tự mở TikTok lúc có hẹn (0.9): bỏ 29/10
+    vì điều khoản TikTok cấm script tự đăng. Không làm lại.
+- TikTok đổi giao diện mà tiện ích không gắn được ảnh: khung Poly TikTok góc dưới phải báo lỗi,
+  fen kéo slide trong thư mục bài vào tay và báo Claude sửa tiện ích. Khung báo "ô chỉ nhận 1 file":
+  bấm sang đăng Ảnh rồi Điền lại; vẫn vậy thì bấm "Vẫn gắn N slide" rồi xem TikTok nhận đủ chưa.
+  Không điền được caption thì bấm "Chép caption" trong app rồi dán.
+
+BÊN TRONG
+- App gọi Claude Code (claude.exe) chạy ngầm tại E:\Social Claude với lệnh plugin
+  /poly-carousel:dung-bai và /poly-carousel:sua-bai. Luật, bộ code, agent đều là của plugin.
+- Quyền: chế độ acceptEdits + danh sách lệnh cho phép app tự truyền (--allowedTools).
+  Nhật ký báo "Bị chặn quyền" thì thêm lệnh đó vào "cho_phep_them" trong config.json.
+- Mỗi bài 1 thư mục trong jobs\ (brief, ảnh fen gửi, log Claude). Nút ⋯ > Chi tiết kỹ thuật để xem lỗi.
+- Sửa câu lệnh giao cho Claude: thư mục prompts\. Sửa cổng, thư mục: config.json.
+- Lỗi không mở được app: xem app-log.txt, chụp màn hình gửi Claude.

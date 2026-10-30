@@ -1,0 +1,24 @@
+GHI QUY TẮC MỚI (nút "Quy tắc" của app Poly Dựng Bài): fen (chủ shop Poly Store) nhắc 1 quy tắc mới cho việc làm bài carousel TikTok. Việc duy nhất của lượt này: ghi quy tắc đó vào đúng các file luật để mọi bài sau tự làm theo, fen khỏi nhắc lại. KHÔNG dựng hay sửa bài nào, không mở Photoshop, không tạo thư mục bài, không gọi agent con.
+Phạm vi: {pham_vi}
+Lúc fen nhắc: {ngay}
+Fen nhắc:
+<<<
+{text}
+>>>
+Ảnh fen gửi kèm (xem bằng Read để hiểu ý fen chỉ chỗ nào): {anh}
+
+Cách làm:
+0. Đọc TRƯỚC "E:/Social Claude/_bo-dung-design/SO-DO-LUAT.md": thứ tự ưu tiên giữa các file, bảng "chủ đề luật → số luật → file gốc → file phải sửa theo". Tìm dòng của chủ đề fen nhắc (bìa, slide cuối, Follow, ảnh, giá, Photoshop, caption…) để biết số luật đang có và danh sách file phải sửa.
+1. Đọc "E:/Social Claude/POLY-quy-tac-lam-content.md" mục 12 (phần "Logic rút ra" và bảng "Lịch sử sửa"). Đã có luật cùng ý thì sửa luật đó theo ý mới (ý mới của fen thắng), không thêm luật trùng. Chưa có thì thêm 1 mục mới vào đúng nhóm (Nội dung / Ảnh / Bố cục / Quy trình), đặt số chưa dùng tiếp theo của nhóm (kiểu 16k, 17d; 16i, 16j đã có), đầu mục ghi ngày (dd/mm) và trích ngắn lời fen. Luật chỉ cho 1 kênh thì ghi [Laptop] hoặc [iPad].
+2. Thêm 1 dòng vào ĐẦU bảng "Lịch sử sửa" (ngay dưới dòng |---|---|---|---|): | dd/mm | (chung) | "<lời fen>" → <đã đổi gì> | <số luật> |
+3. Sửa ĐỦ các file mà sơ đồ ghi ở cột "phải sửa theo" cho chủ đề đó (đường dẫn đầy đủ có trong sơ đồ), không sửa file sơ đồ không ghi. Đọc file trước, sửa bằng Edit đúng chỗ, không ghi đè cả file, giữ nguyên phần khác. File con chỉ tóm tắt + trích số luật (vd "luật 16h"), không chép lại cả luật; luật chỉ 1 kênh thì ghi [Laptop] / [iPad] ở mọi file. Đổi cách viết brief thì sửa cả ví dụ mẫu trong viet-brief.txt cho khớp. Lệnh mẫu trong "E:/Tool/poly-dung-bai/prompts/": giữ nguyên mọi chỗ có ngoặc nhọn chữ thường (app thay chữ vào đó), không thêm cụm ngoặc nhọn mới.
+   Dùng Grep tìm cụm chữ của cách làm cũ trong "E:/Social Claude" (file .md) và "E:/Tool/poly-dung-bai/prompts", sửa hết chỗ còn dạy cách cũ, kể cả file sơ đồ chưa ghi (bảng Lịch sử sửa là nhật ký, giữ nguyên các dòng cũ).
+3b. Cập nhật "E:/Social Claude/_bo-dung-design/SO-DO-LUAT.md" khi: thêm luật mới (thêm 1 dòng vào bảng chủ đề), luật đổi nơi chứa, hoặc Grep thấy file có luật đó mà sơ đồ chưa ghi (thêm vào cột "phải sửa theo"). Không đổi số luật đã có.
+4. Không ghi luật bỏ giới hạn an toàn của shop: tự bấm Đăng / Post / Schedule trên TikTok, nhập mật khẩu, vượt captcha, xoá hẳn file, điều khiển màn hình máy shop (ngoài ngoại lệ chụp màn hình bài mẹo đã có ở luật 11b), dùng Chrome thật của fen, ghi tên / số điện thoại khách, ghi giá khi fen không đưa. Fen nhắc điều đó thì không ghi gì, trả lời 1 câu lý do.
+5. Ý fen chưa rõ: chọn cách hiểu sát chữ fen nhất, vẫn ghi, và nói cách hiểu đó ở câu trả lời. Không hỏi lại.
+Viết lệnh để không bị chặn quyền: mỗi lệnh Bash làm 1 việc, đường dẫn đầy đủ trong ngoặc kép, không dùng biến, {a,b}, vòng for, không ghi ra /tmp. Không đọc hay tìm trong C:\Users\Dao\.claude.
+
+Trả lời cuối cùng tối đa 3 dòng ngắn, không markdown:
+Dòng 1: "Đã ghi luật <số>: <luật mới tóm trong 1 câu>" (hoặc "Không ghi: <lý do>").
+Dòng 2: "Sửa ở: <tên file ngắn, cách nhau dấu phẩy>" (có sửa sơ đồ thì ghi cả SO-DO-LUAT).
+Dòng 3 (chỉ khi cần): cách hiểu đã chọn khi ý fen chưa rõ.

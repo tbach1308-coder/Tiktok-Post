@@ -1,0 +1,52 @@
+{
+  "permissions": {
+    "defaultMode": "acceptEdits",
+    "allow": [
+      "Bash(python *)",
+      "Bash(py *)",
+      "Bash(node *)",
+      "Bash(curl *)",
+      "Bash(ls *)",
+      "Bash(mkdir *)",
+      "Bash(cp *)",
+      "PowerShell(python *)",
+      "PowerShell(py *)",
+      "PowerShell(Get-ChildItem *)",
+      "WebSearch",
+      "WebFetch",
+      "Bash(python3 *)",
+      "Bash(mv *)",
+      "Bash(cat *)",
+      "Bash(head *)",
+      "Bash(tail *)",
+      "Bash(wc *)",
+      "Bash(find *)",
+      "Bash(grep *)",
+      "Bash(cd *)",
+      "Bash(echo *)",
+      "Bash(sleep *)",
+      "Bash(stat *)",
+      "Bash(du *)",
+      "Bash(file *)",
+      "Bash(sort *)",
+      "Bash(diff *)",
+      "PowerShell(Copy-Item *)",
+      "PowerShell(Move-Item *)",
+      "PowerShell(New-Item *)",
+      "PowerShell(Test-Path *)",
+      "PowerShell(Get-Content *)",
+      "PowerShell(Start-Sleep *)"
+    ],
+    "additionalDirectories": [
+      "C:\\Users\\Dao\\Pictures\\PolySocial",
+      "C:\\Users\\Dao\\Pictures\\Screenshots",
+      "C:\\Users\\Dao\\Downloads\\Telegram Desktop",
+      "E:\\Tool\\Anh",
+      "E:\\Tool\\poly-dung-bai"
+    ]
+  },
+  "env": {
+    "PYTHONUTF8": "1",
+    "CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS": "8"
+  }
+}

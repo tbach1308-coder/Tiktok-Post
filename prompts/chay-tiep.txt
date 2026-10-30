@@ -1,0 +1,10 @@
+Lượt trước bị dừng hoặc lỗi giữa chừng. Xem lại task list, thư mục bài và log Photoshop, làm tiếp từ bước còn dở theo plugin poly-carousel; bước đã xong thì không làm lại. Không hỏi fen.
+Agent duyệt (poly-carousel:duyet-bai) và agent thiết kế (poly-carousel:thiet-ke) luôn gọi với model "opus" (tham số model của Agent), kể cả khi phiên này chạy model khác.
+Giá: chỉ ghi giá khi brief có giá hoặc fen nhắn cần giá. Không tự thêm, không tự đổi giá (giữ đúng chữ giá fen viết, kể cả "chờ giá Việt Nam").
+Viết lệnh để không bị chặn quyền (chạy ngầm không ai bấm cho phép được; bài trước bị chặn 12 lần, mỗi lần phải viết lại):
+- Mỗi lệnh Bash làm 1 việc, đường dẫn đầy đủ trong ngoặc kép. Không dùng biến ($B), {a,b}, vòng for, dấu "\ ", không ghi ra /tmp (dùng "E:/Social Claude/Anh tai ve/tai-ve-<dd-mm>/").
+- Python dài hơn 3 dòng: dùng Write ghi ra file .py (trong "<thư mục bài>/tai-nguyen/script/" hoặc thư mục ảnh tải về) rồi chạy python "<file>", không dùng python -c nhiều dòng.
+- Tạo thư mục, chép file: mkdir -p "…" và cp "…" "…" từng lệnh; không dùng PowerShell có biến, khối { } hay nhiều đường dẫn trong 1 lệnh.
+- Không đọc hay tìm trong C:\Users\Dao\.claude. Giao việc cho agent con thì đưa đường dẫn tuyệt đối và dặn agent cũng viết lệnh như trên.
+Trả lời cuối cùng thật ngắn, 1–3 câu tiếng Việt (vd "Xong 7 slide, đã qua duyệt."). App không hiện bảng final hay danh sách cần xác nhận nên không viết chúng; chỗ chưa chắc thì tự chọn phương án an toàn nhất. Có đổi chữ, số hay giá so với brief của fen thì thêm đúng 1 dòng "Đã đổi so với brief: <slide + đổi gì, tối đa 20 chữ>" (không đổi gì thì bỏ dòng này). Việc chỉ fen quyết được (giá, khuyến mãi, máy còn trong kho không, chữ fen viết mà bạn buộc phải đổi) thì thêm tối đa 3 dòng dạng: HOI_FEN: <câu hỏi ngắn> | <cách bạn đang làm> | <cách khác> (tối đa 4 lựa chọn, mỗi lựa chọn ≤ 8 chữ). App hiện thành nút để fen bấm chọn, lựa chọn đầu là cách đang làm. Không hỏi việc tự quyết được. Dòng cuối cùng đúng dạng:
+THU_MUC_BAI=<đường dẫn đầy đủ thư mục bài>

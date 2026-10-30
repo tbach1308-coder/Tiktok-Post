@@ -1,0 +1,22 @@
+# Không bao giờ đưa lên: token Telegram, bài đã làm, nhật ký, dữ liệu trình duyệt
+config.json
+jobs/
+_edge/
+_soi/
+_to_delete/
+*.log
+app-log.txt
+nhap.json
+nhap-bo.json
+nhac-da-dung.json
+tiktok-da-dang.json
+__pycache__/
+*.pyc
+social-claude/Anh tai ve/
+social-claude/Laptop/
+social-claude/iPad/
+social-claude/Claude outputs/
+social-claude/_to_delete*/
+social-claude/.claude/
+social-claude/_bo-dung-design/out/
+social-claude/_bo-dung-design/anh-da-dung*
