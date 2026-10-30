@@ -1,0 +1,73 @@
+POLY DỰNG BÀI TRÊN MACBOOK
+(làm 30/10/2026 · Mac làm đủ như máy shop: viết brief, dựng bài bằng Photoshop, gửi Telegram, đăng TikTok)
+Cách dùng app (Bài mới, Sửa, Đăng bài…) giống hệt máy shop: xem HUONG-DAN.txt. File này chỉ ghi chỗ khác trên Mac.
+====================================================================
+
+1. CÀI 1 LẦN
+- Photoshop bản 2024 trở lên (cài bằng Creative Cloud, đăng nhập tài khoản Adobe).
+- Font cho slide (thiếu thì chữ trên slide bị đổi sang font khác):
+  · Bộ UTM: UTM Cookies, UTM Avo, UTM Avo Bold (nên có thêm UTM Avo Bold Italic, UTM Alberta Heavy).
+    Chép file font từ máy shop sang Mac, nhấp đúp từng file > Cài đặt phông chữ.
+  · Source Serif: mở Creative Cloud > Phông chữ (Fonts), tìm "Source Serif", bấm bật
+    (cần kiểu Black và Semibold Italic, giống máy shop).
+  · Emoji: Mac có sẵn Apple Color Emoji, không cần cài.
+- Google Chrome (để đăng TikTok, mục 5).
+- Python, thư viện ảnh, Claude Code: lần đầu mở app, app tự hỏi, bấm "Cài" (mục 3).
+
+2. CHÉP APP VÀO MÁY
+- Chép cả thư mục app vào máy, đặt tên poly-dung-bai, ví dụ trong thư mục Tool ở thư mục nhà:
+  ~/Tool/poly-dung-bai (trong có Poly Dung Bai.command, server.py, social-claude, tiktok-ext…).
+  Tải từ GitHub: repo Tiktok-Post > nút Code > Download ZIP, giải nén, đổi tên thư mục thành poly-dung-bai.
+- Lần đầu mở app, app TỰ làm (không hỏi):
+  · chép thư mục social-claude của app thành ~/Social Claude (giống E:\Social Claude của máy shop: luật, bộ dựng,
+    thư mục bài Laptop, iPad, Anh tai ve). Đã có ~/Social Claude thì giữ nguyên, không chép đè.
+  · tạo hàng chờ Photoshop ~/Pictures/PolySocial/_tu-chay.
+  · ghi 2 thư mục này vào file config.json của app.
+- Muốn có bài cũ của máy shop trên Mac: chép các thư mục bài trong E:\Social Claude\Laptop và \iPad sang
+  ~/Social Claude/Laptop và ~/Social Claude/iPad.
+- Muốn đổi 2 thư mục trên: tắt app, sửa dòng "thu_muc_lam_viec" (bộ luật + bài) và "tu_chay" (hàng chờ) trong
+  config.json, mở lại app.
+
+3. MỞ / TẮT APP
+- Nhấp đúp "Poly Dung Bai.command". Cửa sổ Terminal hiện lên, vài giây sau app mở thành cửa sổ Chrome riêng
+  (không có Chrome thì mở bằng trình duyệt mặc định). Đóng cửa sổ Terminal được, app vẫn chạy; đóng cửa sổ app thì bài đang
+  chạy vẫn chạy, nhấp đúp lại là thấy.
+- Mac chặn "không mở được vì không xác định được nhà phát triển": chuột phải vào file > Mở > Mở (chỉ 1 lần).
+  Mac báo "không có quyền mở": mở Terminal, gõ chữ bash và 1 dấu cách, kéo file vào cửa sổ Terminal, bấm Enter.
+- Lần đầu:
+  · Mac chưa có Python: hiện hộp "Cài Python", bấm, Mac hiện hộp cài (Install), chờ xong rồi nhấp đúp lại file.
+  · Thiếu thư viện ảnh hay Claude Code: hiện hộp "Máy còn thiếu…", bấm "Cài". Cửa sổ Terminal tự cài vài phút
+    (cần mạng). Hỏi "Cài Claude Code…?" thì gõ c rồi Enter.
+  · Đăng nhập Claude: bấm Đăng nhập ở góc trên app. Cửa sổ Terminal + trình duyệt mở ra, chọn tài khoản Claude
+    (gói Pro / Max), bấm cho phép. App tự nhận.
+- Tắt hẳn app: nhấp đúp "Tat Poly Dung Bai.command". Còn bài đang chạy thì Photoshop vẫn dựng nốt bài đó.
+
+4. PHOTOSHOP TRÊN MAC
+- Như máy shop: Claude không bấm vào Photoshop, chỉ đưa việc vào hàng chờ, Photoshop tự chạy ngầm phía sau.
+  Mở app là hàng chờ tự bật (bấm chip "Claude sẵn sàng" góc trên > Kiểm máy: "Photoshop tự chạy: đang bật").
+  Photoshop đang tắt thì có bài là Mac tự mở Photoshop.
+- Lần đầu Mac hỏi "Terminal muốn điều khiển Adobe Photoshop": bấm OK.
+  Lỡ bấm Không cho phép: Cài đặt hệ thống > Quyền riêng tư & Bảo mật > Tự động hoá > Terminal > bật Adobe Photoshop.
+- Kiểm font + Photoshop: mở app trước, rồi nhấp đúp
+  ~/Social Claude/_bo-dung-design/plugin/poly-carousel/cai-dat/kiem-may-mac.command
+  Dòng "THIEU" là font chưa cài (cài xong mở lại Photoshop).
+- Máy có nhiều bản Photoshop: Mac tự chọn bản mới nhất.
+
+5. ĐĂNG TIKTOK (iPad): TIỆN ÍCH POLY TIKTOK
+- Chrome gõ chrome://extensions , bật "Chế độ dành cho nhà phát triển", bấm "Tải tiện ích đã giải nén",
+  chọn thư mục tiktok-ext trong thư mục app.
+- Chrome này đăng nhập TikTok @poly.store. Trong app: Kiểm máy > Đăng TikTok > chọn hồ sơ Chrome, bấm Mở thử, Lưu.
+  App không thấy Chrome thì dán /Applications/Google Chrome.app vào ô đường dẫn.
+- Tiện ích chỉ điền sẵn, fen tự bấm Post / Schedule (như máy shop).
+
+6. TELEGRAM
+- Nút "Telegram" trên thanh trên cùng, cài 3 bước như máy shop. Token chỉ lưu trên Mac này.
+
+7. KHÁC MÁY SHOP
+- Dán ảnh bằng ⌘V (Command + V).
+- Bài mẹo Windows cần ảnh chụp màn hình Windows: Mac không chụp được. Fen gửi ảnh chụp từ máy shop (kéo vào ô
+  ảnh), không có thì Claude dùng ảnh tạm và hỏi cuối bài.
+- Luật, sổ dựng sửa trên Mac (nút Quy tắc, ô Sửa chung) nằm ở ~/Social Claude của Mac, không tự sang máy shop
+  (và ngược lại). Cần 2 máy giống nhau thì nhờ Claude đồng bộ.
+- Có lỗi: chụp cửa sổ app / Terminal gửi Claude. Nhật ký: app-log.txt và _mac/server-out.log trong thư mục app,
+  hàng chờ Photoshop: ~/Pictures/PolySocial/_tu-chay/nhat-ky.txt.

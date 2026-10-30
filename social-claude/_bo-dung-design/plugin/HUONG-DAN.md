@@ -38,6 +38,11 @@ Gõ tay trong Claude Code vẫn được:
 ## Sửa plugin
 Plugin đọc thẳng từ thư mục này, sửa file xong trong Claude Code gõ `/reload-plugins` là có hiệu lực.
 
+## Trên MacBook (30/10)
+- Bộ này nằm ở `~/Social Claude` (app Poly Dựng Bài tự chép lần đầu). Cài: nhấp đúp `poly-carousel/cai-dat/cai-dat-mac.command` (Python + thư viện ảnh, Claude Code, thư mục; cài plugin cho Claude Code gõ tay chỉ khi fen chọn). Kiểm: `cai-dat/kiem-may-mac.command` (có kiểm font trong Photoshop).
+- Hàng chờ Photoshop: `~/Pictures/PolySocial/_tu-chay`, bộ canh `_bo-dung-design/tu-chay/poly-tu-chay-mac.py` (app tự bật; gõ Claude Code tay không mở app thì nhấp đúp `tu-chay/bat-tu-chay-mac.command`). Bộ canh tự đổi đường dẫn `E:/Social Claude/…` trong file .jsx sang đường dẫn Mac, nên luật, mẫu slide không phải sửa.
+- Lệnh gõ tay trên Mac: dùng `python3` thay `python`, đường dẫn `~/Social Claude/...` thay `E:\Social Claude\...`. Chạy từ app thì app tự lo.
+
 ## Lưu ý
 - Nên cài Git for Windows (https://git-scm.com) để Claude Code có Git Bash; không có vẫn chạy bằng PowerShell.
 - Claude Code bản 2.1.214 trở lên (gõ `claude update`) để chữ tiếng Việt không lỗi.

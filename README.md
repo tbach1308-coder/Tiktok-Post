@@ -13,3 +13,15 @@ App trên máy shop Poly Store (DESKTOP-FMBNEET) để Claude dựng bài carous
 Không có trong repo (cố ý): `config.json` (token Telegram, cài đặt máy), `jobs/` (bài đã làm), nhật ký, ảnh bài, dữ liệu trình duyệt. Cài lại máy mới: chép repo về đúng 2 thư mục trên, mở app, cài lại Telegram trong app.
 
 Giao diện sửa ở `dev/_index.src.html`, build ra `ui/index.html` bằng `python3 dev/build_ui.py`.
+
+## MacBook (macOS)
+Chạy đủ như máy shop (viết brief, Photoshop qua hàng chờ, Telegram, tiện ích TikTok). Hướng dẫn cho fen: `HUONG-DAN-MAC.txt`.
+
+| Trên Mac | Tương đương máy shop |
+|---|---|
+| Thư mục app (vd `~/Tool/poly-dung-bai`), mở bằng `Poly Dung Bai.command`, tắt bằng `Tat Poly Dung Bai.command` | `E:\Tool\poly-dung-bai`, `Poly Dung Bai.vbs` |
+| `~/Social Claude` (lần đầu app tự chép từ `social-claude/`) | `E:\Social Claude` |
+| `~/Pictures/PolySocial/_tu-chay`, bộ canh `social-claude/_bo-dung-design/tu-chay/poly-tu-chay-mac.py` (app tự bật) | `C:\Users\Dao\Pictures\PolySocial\_tu-chay`, `poly-tu-chay.vbs` |
+| `plugin/poly-carousel/cai-dat/cai-dat-mac.command`, `kiem-may-mac.command` | `cai-dat.bat/.ps1`, `kiem-may.bat` |
+
+`server.py` có `IS_MAC`: nhánh Windows giữ nguyên từng byte lệnh giao Claude; trên Mac đường dẫn máy shop trong lệnh mẫu / luật chung được đổi sang đường dẫn Mac, luật chung thêm đoạn "TRÊN MÁY NÀY". 2 thư mục gốc ghi trong `config.json` (`thu_muc_lam_viec`, `tu_chay`). Thư mục chạy `_mac/`, `_chrome/` không đưa lên repo.
