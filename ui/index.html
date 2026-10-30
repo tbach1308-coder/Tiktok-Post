@@ -751,7 +751,7 @@ function remote(){
     <ul class="rmhelp"><li>Nhắn <b>chủ đề bài</b> → Claude viết brief + lợi ích bài, fen bấm <b>▶️ Chạy</b> ngay trên Telegram, xong bài gửi bìa về.</li>
       <li><b>Trả lời</b> (reply) tin brief, gõ ý cần đổi → Claude sửa brief đó.</li>
       <li><b>quy tắc: …</b> (kèm ảnh được) → ghi luật mới cho mọi bài sau.</li>
-      <li><b>/tinhhinh</b> → bài đang dựng, xếp hàng, chờ đăng, đã đăng. <b>/tat</b> → tắt Remote.</li></ul>
+      <li><b>/tinhhinh</b> → bài đang dựng, xếp hàng, chờ đăng, đã đăng. <b>/tat</b> → tắt Remote, <b>/bat</b> → bật lại từ xa.</li></ul>
     <div class="acts"><button class="btn" id="rmDong">Đóng</button></div></div>`;
   document.body.appendChild(m);
   const dong = () => { clearTimeout(remote.t); m.remove(); };
@@ -761,7 +761,7 @@ function remote(){
     m.querySelectorAll('#rmSeg [data-b]').forEach(b => b.classList.toggle('on', (b.dataset.b === '1') === !!r.bat));
     let h;
     if (!r.co_bot) h = `<p class="stc">Chưa cài bot Telegram. <a href="#" id="rmCai">Cài Telegram</a> trước (bước 1, 2 là đủ), rồi bật Remote.</p>`;
-    else if (!r.bat) h = `<p class="stc">Đang tắt.${r.noi ? ' Đã nối với Telegram của <b>' + esc(r.ten) + '</b>, bật lên là dùng được.' : ' Bật lên để lấy mã nối.'}</p>`;
+    else if (!r.bat) h = `<p class="stc">Đang tắt.${r.noi ? ' Đã nối với Telegram của <b>' + esc(r.ten) + '</b>: lúc tắt bot không làm việc nào, chỉ nghe lệnh <b>/bat</b> để bật lại từ xa. Muốn bot không nghe gì: <a href="#" id="rmBo">Bỏ nối</a>.' : ' Bật lên để lấy mã nối.'}</p>`;
     else if (!r.noi) h = r.ma ? `<div class="rmma"><div>Mở Telegram, nhắn cho bot <b>@${esc(r.bot)}</b> mã này (dùng trong 15 phút):</div><div class="rmcode">${esc(r.ma)}</div>
         <div class="row1"><a class="btn sm pri" href="https://t.me/${encodeURIComponent(r.bot)}?start=${encodeURIComponent(r.ma)}" target="_blank" rel="noopener">Mở bot trên Telegram</a><button class="btn sm" id="rmMa">Mã mới</button></div>
         <p class="pnote">Bấm "Mở bot" rồi bấm Start (Bắt đầu) là nối xong. Chỉ tài khoản Telegram nhắn đúng mã này mới ra lệnh được.</p></div>` : '<p class="stc">Đang tạo mã nối…</p>';

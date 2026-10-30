@@ -113,10 +113,14 @@ LÀM 1 BÀI
    · chủ đề bài (vd "laptop cho dân kiến trúc", "tìm chủ đề hot mẹo iPad"): Claude viết brief + lợi ích bài, gửi về
      kèm nút ▶️ Chạy dựng bài / 🔄 Viết lại / ✖ Bỏ. Chưa rõ kênh thì bot hỏi Laptop hay iPad. Trùng bài cũ thì có nút chủ đề khác.
    · trả lời (reply) tin brief, gõ ý cần đổi: Claude sửa brief đó (như ô chat dưới Brief).
-   · "quy tắc: ..." (kèm ảnh được): bot hỏi Chung / Laptop / iPad rồi ghi luật như nút Quy tắc.
+   · "quy tắc: ..." (kèm ảnh được): ghi luật luôn, không hỏi (chữ chỉ nhắc laptop hoặc iPad thì ghi cho kênh đó, còn lại chung).
    · /tinhhinh: bài đang dựng, xếp hàng, hẹn, chờ đăng, đã đăng, Claude đăng nhập chưa.
+  BẢNG ĐIỀU KHIỂN ghim đầu chat (tự gửi khi nối xong; lạc thì nhắn /bang): nút 🟢 Bật / ⚪ Tắt Remote, 🔄 Làm mới,
+  ✍ Viết brief, 📏 Quy tắc (bấm là bot hỏi, fen trả lời tin đó), 📊 Tình hình chi tiết, ❓ Hướng dẫn. Bảng tự sửa khi có bài
+  chạy / xếp hàng / xong. Tắt Remote thì bot không làm việc nào nhưng vẫn nghe nút Bật (/bat) để bật lại từ xa;
+  muốn bot không nghe gì nữa: ô Remote trong app > Bỏ nối.
   Bài bấm Chạy trên Telegram xong / lỗi thì bot báo về chat đó (kèm ảnh bìa). Đăng TikTok vẫn làm ở app hoặc điện thoại.
-  Tin nhắn gửi lúc Remote đang tắt: bật lên app bỏ qua (không tự làm việc cũ). Đổi bot Telegram thì phải nối lại.
+  Tin nhắn gửi lúc app tắt / chưa nối: bật lên app bỏ qua (không tự làm việc cũ). Đổi bot Telegram thì phải nối lại.
 
 CÀI TIỆN ÍCH POLY TIKTOK (1 lần, cho nút Đăng TikTok)
 1. Chrome gõ chrome://extensions , bật "Chế độ dành cho nhà phát triển" (góc trên phải).
