@@ -6,7 +6,7 @@ for _f in (_s.stdout, _s.stderr):
     try: _f.reconfigure(encoding='utf-8', errors='replace')
     except Exception: pass
 import sys, os, time, json
-Q = os.environ.get("POLY_TU_CHAY", r"C:\Users\Dao\Pictures\PolySocial\_tu-chay")
+Q = os.environ.get("POLY_TU_CHAY", os.path.expanduser("~/Pictures/PolySocial/_tu-chay") if sys.platform == "darwin" else r"C:\Users\Dao\Pictures\PolySocial\_tu-chay")   # Mac: hàng chờ của bộ canh poly-tu-chay-mac.py
 a = sys.argv[1:]
 if len(a) < 2 or len(a) % 2: sys.exit('Can cap: anh-vao anh-ra ...')
 cap = [(os.path.abspath(a[i]).replace('\\', '/'), os.path.abspath(a[i + 1]).replace('\\', '/')) for i in range(0, len(a), 2)]

@@ -35,7 +35,7 @@ var F = {
   T: pick(["UTM-Cookies", "UTM-Alberta-Heavy", "SegoeUIBlack"]),
   B: pick(["UTMAvoBold", "SegoeUI-Bold"]),
   R: pick(["UTM-Avo", "SegoeUI"]),
-  E: pick(["NotoColorEmoji-SVG", "SegoeUIEmoji"])
+  E: pick(["NotoColorEmoji-SVG", "AppleColorEmoji", "SegoeUIEmoji"])
 };
 var BULB = "\uD83D\uDCA1", POINT = "\uD83D\uDC49";
 

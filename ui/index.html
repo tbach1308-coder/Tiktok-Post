@@ -641,6 +641,9 @@ function henGoiY(ngay){   // nút nhanh: sáng mai 8:00, tối nay 21:00, sáng 
 function ddmm(d){ return String(d.getDate()).padStart(2,'0') + '/' + String(d.getMonth()+1).padStart(2,'0'); }
 
 /* ---------- Claude Code trên máy ---------- */
+/* máy Mac (fen dùng thêm MacBook, 30/10): chữ hướng dẫn theo máy. Máy chủ báo os trong /api/health; chưa có thì đoán theo trình duyệt */
+const laMac = () => (S.health && S.health.os) ? S.health.os === 'mac' : /Mac/i.test(navigator.platform || navigator.userAgent || '');
+const phimDan = () => laMac() ? '⌘V' : 'Ctrl+V';
 async function health(force){
   try {
     const h = await api('/api/health' + (force ? '?force=1' : ''));
@@ -660,7 +663,7 @@ async function health(force){
 }
 async function login(b){
   try { if (b) { b.disabled = true; b.textContent = 'Đang mở…'; }
-    await api('/api/login', {}); toast('Đã mở cửa sổ đăng nhập (cửa sổ đen + trình duyệt). Làm theo hướng dẫn trong đó, xong app tự nhận.');
+    await api('/api/login', {}); toast(`Đã mở cửa sổ đăng nhập (${laMac() ? 'cửa sổ Terminal' : 'cửa sổ đen'} + trình duyệt). Làm theo hướng dẫn trong đó, xong app tự nhận.`);
     clearInterval(login.t); let n = 0;
     login.t = setInterval(async () => { n++; await health(true); if ((S.health && S.health.login) || n > 60) { clearInterval(login.t); if (S.health && S.health.login) toast('Đã đăng nhập Claude. Bấm Chạy được rồi.'); } }, 5000);
   } catch(e) { toast(e.message, true); }
@@ -691,7 +694,7 @@ function kiemMay(denTT){
       <label>Hồ sơ Chrome<select class="in" id="kmHs"><option value="">Chrome tự chọn (hồ sơ mở gần nhất)</option></select></label>
       <label>Link đăng<input class="in" id="kmLink" autocomplete="off"></label>
       <p class="pnote">Tiện ích chỉ điền sẵn, không tự bấm Post / Schedule: điều khoản TikTok cấm script tự đăng (fen chốt 29/10).</p>
-      <details><summary>Máy không thấy Chrome: đường dẫn chrome.exe</summary><input class="in" id="kmCh" autocomplete="off" placeholder="C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"></details>
+      <details><summary>Máy không thấy Chrome: đường dẫn ${laMac() ? 'Google Chrome.app' : 'chrome.exe'}</summary><input class="in" id="kmCh" autocomplete="off" placeholder="${laMac() ? '/Applications/Google Chrome.app' : 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'}"></details>
       <p class="err" id="kmTtErr"></p>
       <div class="acts"><button class="btn sm" id="kmTtThu">Mở thử</button><button class="btn sm pri" id="kmTtLuu">Lưu</button></div></div>
     <div class="kmtt" id="kmMd"><b>Model từng việc</b>
@@ -774,7 +777,7 @@ function quyTac(){
     <p class="pnote">Ghi quy tắc mới cho mọi bài sau. Claude ghi vào đúng file luật (file quy tắc, sổ thiết kế, plugin dựng bài, lệnh viết brief của app), không sửa bài nào. Muốn sửa luôn 1 bài thì dùng ô "Sửa chung / nhắc quy tắc" trong bài đó.</p>
     <div class="kseg qtpv">${Object.entries(QT_PV).map(([k, t]) => `<button data-pv="${k}" class="${QT.pv === k ? 'on' : ''}">${t}</button>`).join('')}</div>
     <textarea class="in" id="qtText" placeholder="vd: slide cuối bỏ dòng &quot;Comment kèm ngân sách, Poly chọn máy 👇&quot;; bìa iPad ưu tiên ảnh máy chụp ở shop…">${esc(QT.text)}</textarea>
-    <div class="drop qtdrop" id="qtDrop"><div class="hint">Ảnh minh hoạ (không bắt buộc): dán Ctrl+V, kéo thả hoặc <a href="#" id="qtPick">chọn file</a>.</div></div><input type="file" id="qtFile" accept="image/*" multiple hidden>
+    <div class="drop qtdrop" id="qtDrop"><div class="hint">Ảnh minh hoạ (không bắt buộc): dán ${phimDan()}, kéo thả hoặc <a href="#" id="qtPick">chọn file</a>.</div></div><input type="file" id="qtFile" accept="image/*" multiple hidden>
     <p class="err" id="qtErr"></p>
     <div class="acts"><button class="btn" id="qtDong">Đóng</button><button class="btn pri" id="qtGhi">Ghi quy tắc</button></div>
     <div class="qtds" id="qtDs"></div></div>`;
@@ -842,7 +845,7 @@ async function doiTk(b){
   try {
     await api('/api/login', {doi: true});
     b.dataset.cho = 1; b.disabled = true; b.textContent = 'Đang chờ đăng nhập…';
-    $('#kmOk').textContent = 'Đã mở cửa sổ đen: đăng xuất tài khoản cũ, trình duyệt mở ra thì chọn tài khoản mới. Xong app tự nhận.';
+    $('#kmOk').textContent = (laMac() ? 'Đã mở cửa sổ Terminal' : 'Đã mở cửa sổ đen') + ': đăng xuất tài khoản cũ, trình duyệt mở ra thì chọn tài khoản mới. Xong app tự nhận.';
     const cu = (h.tk && h.tk.email) || ''; let n = 0, daRa = false;
     clearInterval(doiTk.t);
     doiTk.t = setInterval(async () => { n++; await health(true); const x = S.health || {};
@@ -861,8 +864,8 @@ function renderBanner(){
   if (h && (h.err || !h.claude)) html = `<div class="banner red"><p><b>Máy chưa có Claude Code.</b> Nhờ người cài giúp rồi bấm Kiểm lại.</p><button class="btn sm" onclick="recheck(this)">Kiểm lại</button></div>`;
   else if (h && h.login === false) html = `<div class="banner"><p><b>Claude Code trên máy chưa đăng nhập.</b> Bấm Đăng nhập, trình duyệt mở ra thì chọn tài khoản Claude của fen (gói Max). Chỉ làm 1 lần.</p><button class="btn pri sm" onclick="login(this)">Đăng nhập</button><button class="btn sm" onclick="recheck(this)">Kiểm lại</button></div>`;
   else if (h && (h.san_sang || []).some(x => x.can && !x.ok)) { const x = h.san_sang.find(x => x.can && !x.ok);
-    html = `<div class="banner red"><p><b>Thiếu ${esc(x.ten)}</b> (${esc(x.ghi)}). Không có thì Claude không biết cách dựng bài. Kiểm ổ E rồi bấm Kiểm lại.</p><button class="btn sm" onclick="recheck(this)">Kiểm lại</button></div>`; }
-  else if (h && h.cwd_ok === false) html = `<div class="banner red"><p>Không thấy thư mục <b>${esc(h.cwd)}</b>. Kiểm tra ổ E.</p><button class="btn sm" onclick="recheck(this)">Kiểm lại</button></div>`;
+    html = `<div class="banner red"><p><b>Thiếu ${esc(x.ten)}</b> (${esc(x.ghi)}). Không có thì Claude không biết cách dựng bài. ${laMac() ? 'Kiểm thư mục Social Claude (mở lại app là tự chép)' : 'Kiểm ổ E'} rồi bấm Kiểm lại.</p><button class="btn sm" onclick="recheck(this)">Kiểm lại</button></div>`; }
+  else if (h && h.cwd_ok === false) html = `<div class="banner red"><p>Không thấy thư mục <b>${esc(h.cwd)}</b>. ${laMac() ? 'Mở lại app là tự tạo (đổi thư mục trong config.json).' : 'Kiểm tra ổ E.'}</p><button class="btn sm" onclick="recheck(this)">Kiểm lại</button></div>`;
   setH(el, html);
   const b = $('#bRun'); if (b && !b.dataset.busy) b.disabled = !canRun();
   const why = $('#fWhy');
@@ -1025,11 +1028,11 @@ function newView(){
     <div class="chatb"><div class="chatl" id="chatL"></div>
       <div class="chatin"><input class="in" id="chatT" autocomplete="off" placeholder="💬 Chat sửa brief: vd bìa ngắn lại, slide 3 đổi sang máy khác, thêm slide về pin, gợi ý góc khác…"><button class="btn" id="chatGui">Gửi</button></div></div>
     <div class="mt"><span class="lbl">Ảnh shop <i>(không bắt buộc)</i></span>
-      <div class="drop" id="drop"><div class="hint">Claude ưu tiên dùng ảnh này thay ảnh tự tìm. Kéo thả vào trang, dán (Ctrl+V) hoặc <a href="#" id="pick">chọn file</a>.</div></div>
+      <div class="drop" id="drop"><div class="hint">Claude ưu tiên dùng ảnh này thay ảnh tự tìm. Kéo thả vào trang, dán (${phimDan()}) hoặc <a href="#" id="pick">chọn file</a>.</div></div>
       <input type="file" id="file" accept="image/*" multiple hidden>
     </div>
     <div class="mt"><span class="lbl">Ghi chú thêm <i>(vd ảnh số 1 dùng cho bìa)</i></span><textarea class="in small" id="fNote" placeholder="${esc(k.ph.note)}">${esc(f.note || '')}</textarea></div>
-    <div class="henbox" id="henBox" hidden><span class="lbl">Hẹn giờ dựng bài <i>(máy shop bật, mở app lúc đó; tới giờ app tự chạy, mỗi lần 1 bài, xong báo Telegram)</i></span>
+    <div class="henbox" id="henBox" hidden><span class="lbl">Hẹn giờ dựng bài <i>(${laMac() ? 'máy Mac' : 'máy shop'} bật, mở app lúc đó; tới giờ app tự chạy, mỗi lần 1 bài, xong báo Telegram)</i></span>
       <div class="henr"><div class="hq" id="henQ"></div><input class="in" type="datetime-local" id="fHen"><button class="btn pri" id="bHenOk">Lên lịch</button><button class="btn ghost" id="bHenX">Thôi</button></div></div>
     <div class="foot"><button class="btn pri" id="bRun">Chạy</button><button class="btn" id="bHen" title="Chốt brief xong, hẹn giờ cho app tự dựng (làm dần từng bài)">⏰ Hẹn làm</button><label class="mlab" title="Model Claude dựng bài này. Theo cài đặt = Kiểm máy > Model. Sonnet nhanh hơn, Opus kỹ hơn; agent duyệt theo Kiểm máy.">Model ${chonModel('fModel', ['', 'sonnet', 'opus'], f.model || (f.nhanh ? 'sonnet' : ''))}</label><div><p>Không cần ngồi canh. Tắt app vẫn chạy tiếp, mở lại là thấy.</p><div class="err" id="fWhy"></div><div class="err" id="fErr"></div></div></div>
   </div>`;
@@ -1308,7 +1311,7 @@ function updateJob(){
     const xh = !!j.xep_hang, thu = xh ? thuHang(j) : 0;
     jb.push(xh ? `<div class="banner hen"><p><b>⏳ Đang xếp hàng${thu ? ' thứ ' + thu : ''}.</b> Đang có bài khác dựng, bài đó xong là bài này tự chạy (không chồng lên nhau). Brief còn sửa được ở dưới.${j.hen_bao ? ' <span class="doi">Claude Code trên máy chưa sẵn sàng (chưa đăng nhập?), bấm Đăng nhập ở góc trên.</span>' : ''}</p>
       <button class="btn sm" data-henngay>Chạy ngay (song song)</button><button class="btn sm ghost" data-henhuy>Huỷ</button></div>`
-    : `<div class="banner hen"><p><b>⏰ ${toi ? 'Tới giờ hẹn, đang chờ lượt' : 'Hẹn dựng lúc ' + esc(henTxt(j.hen_luc))}.</b> ${toi ? 'App làm dần từng bài, bài trước xong là tới bài này.' : 'Máy shop bật và mở app lúc đó là app tự chạy, xong báo Telegram.'}${j.hen_bao ? ' <span class="doi">Claude Code trên máy chưa sẵn sàng (chưa đăng nhập?), bấm Đăng nhập ở góc trên.</span>' : ''}</p>
+    : `<div class="banner hen"><p><b>⏰ ${toi ? 'Tới giờ hẹn, đang chờ lượt' : 'Hẹn dựng lúc ' + esc(henTxt(j.hen_luc))}.</b> ${toi ? 'App làm dần từng bài, bài trước xong là tới bài này.' : (laMac() ? 'Máy Mac' : 'Máy shop') + ' bật và mở app lúc đó là app tự chạy, xong báo Telegram.'}${j.hen_bao ? ' <span class="doi">Claude Code trên máy chưa sẵn sàng (chưa đăng nhập?), bấm Đăng nhập ở góc trên.</span>' : ''}</p>
       <input class="in" type="datetime-local" id="henDoi" value="${dtLocal(new Date((j.hen_luc || nowS()) * 1000))}"><button class="btn sm" data-hendoi>Đổi giờ</button><button class="btn sm pri" data-henngay>Làm ngay</button><button class="btn sm ghost" data-henhuy>Huỷ hẹn</button></div>`);
     jb.push(`
       <div class="card henbrief"><div class="sec">Brief <span class="n">sửa được tới lúc bắt đầu dựng</span></div><textarea class="in" id="henBrief">${esc(j.brief || '')}</textarea><div class="acts"><button class="btn sm" data-henluu>Lưu brief</button></div></div>`);
@@ -1608,7 +1611,7 @@ function henDangDialog(j){
   const m = document.createElement('div'); m.className = 'modal on';
   const gy = henDangGoiY(j.ngay_dang || '');
   m.innerHTML = `<div class="mbox"><h3>Hẹn giờ đăng TikTok</h3>
-    <p class="pnote">Giờ này hiện sẵn trên nút ⏰ Hẹn giờ ở khung Poly trên trang TikTok: fen bấm nút, tiện ích chọn Schedule + ngày giờ, fen tự bấm Schedule; TikTok tự đăng đúng giờ (máy shop tắt cũng được). Hẹn sau ít nhất 20 phút, trong vòng 10 ngày. Kênh: 1 bài/ngày, 19–22h.</p>
+    <p class="pnote">Giờ này hiện sẵn trên nút ⏰ Hẹn giờ ở khung Poly trên trang TikTok: fen bấm nút, tiện ích chọn Schedule + ngày giờ, fen tự bấm Schedule; TikTok tự đăng đúng giờ (${laMac() ? 'máy' : 'máy shop'} tắt cũng được). Hẹn sau ít nhất 20 phút, trong vòng 10 ngày. Kênh: 1 bài/ngày, 19–22h.</p>
     <div class="hq" id="hdQ">${gy.map(([t], i) => `<button class="q" data-i="${i}">${esc(t)}</button>`).join('')}</div>
     <input class="in" type="datetime-local" id="hdT" step="300">
     <p class="stc" id="hdTrung"></p><p class="err" id="hdErr"></p>

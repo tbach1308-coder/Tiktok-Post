@@ -30,7 +30,10 @@ if not fs:
 try:
     font = ImageFont.truetype('arial.ttf', 15)
 except Exception:
-    font = ImageFont.load_default()
+    try:   # Mac: Arial.ttf (chữ hoa) trong /System/Library/Fonts/Supplemental
+        font = ImageFont.truetype('Arial.ttf', 15)
+    except Exception:
+        font = ImageFont.load_default()
 CH = 40
 hang = (len(fs) + COT - 1) // COT
 bang = Image.new('RGB', (COT * O, hang * (O + CH)), (24, 24, 24))
