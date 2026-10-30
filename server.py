@@ -2092,19 +2092,23 @@ BAT_DAU = time.time()
 DOI_RE = re.compile(r"^\s*[-*_]*\s*[*_]*Đã đổi so với brief[*_]*\s*:[*_\s]*(.+)$", re.M | re.I)
 
 
-def _bao_tg(text, anh=None, chats=None):
-    """Báo 1 tin (kèm ảnh bìa nếu có) vào nhóm nhận slide, hoặc vào các chat trong `chats` (nhóm / chat lệnh Remote)."""
+def _bao_tg(text, anh=None, chats=None, jid=None):
+    """Báo 1 tin (kèm ảnh bìa nếu có) vào nhóm nhận slide, hoặc vào các chat trong `chats` (nhóm / chat lệnh Remote).
+    jid: bài xong, chat lệnh Remote có thêm nút xem đủ slide + caption."""
     ok = False
     data = None
     for chat in (chats if chats is not None else [CFG.get("telegram_chat")]):
+        f2 = {"chat_id": chat}
+        if jid and chat == CFG.get("tg_lenh_chat"):
+            f2["reply_markup"] = json.dumps({"inline_keyboard": [[{"text": "📷 Xem đủ slide + caption", "callback_data": "xem:" + jid}]]}, ensure_ascii=False)
         try:
             if anh and os.path.isfile(anh) and os.path.getsize(anh) < 9.5e6:
                 if data is None:
                     with open(anh, "rb") as f:
                         data = f.read()
-                tg_call("sendPhoto", {"chat_id": chat, "caption": short(text, 1000)}, {"photo": (os.path.basename(anh), data)}, timeout=120)
+                tg_call("sendPhoto", dict(f2, caption=short(text, 1000)), {"photo": (os.path.basename(anh), data)}, timeout=120)
             else:
-                tg_call("sendMessage", {"chat_id": chat, "text": text}, timeout=30)
+                tg_call("sendMessage", dict(f2, text=text), timeout=30)
             ok = True
         except Exception as e:
             log("bao telegram loi: %s" % e)
@@ -2173,7 +2177,7 @@ def _bao_mot_bai(jid):
         if v.get("hoi"):
             ls.append("Claude có %d câu hỏi, fen trả lời trong app." % len(v["hoi"]))
         ls.append("Mở app Poly Dựng Bài để xem và " + ("Gửi Telegram." if job["kenh"] == "laptop" else "Đăng TikTok."))
-        _bao_tg("\n".join(ls), sl[0]["path"] if sl else None, noi)
+        _bao_tg("\n".join(ls), sl[0]["path"] if sl else None, noi, jid if sl else None)
     else:
         _bao_tg("⚠️ Bài %s (%s) dừng giữa chừng sau %d phút: %s\nMở app bấm Chạy tiếp." % (ten, kenh, phut, short(v.get("ly_do") or "không rõ lý do", 300)), None, noi)
 
@@ -2208,6 +2212,7 @@ TGL_HELP = (
     "• Trả lời (reply) tin brief, gõ ý cần đổi → Claude sửa brief đó.\n"
     "• \"quy tắc: …\" (gửi kèm ảnh được) → ghi luật mới luôn cho mọi bài sau (chữ chỉ nhắc laptop / iPad thì ghi cho kênh đó).\n"
     "• /tinhhinh → bài đang dựng, xếp hàng, chờ đăng, đã đăng.\n"
+    "• /cho (nút 📮 Bài chờ đăng) → bấm 1 bài là mình gửi đủ slide + caption + câu ghim để fen coi / đăng bằng điện thoại, đăng xong bấm ✅ Đã đăng.\n"
     "• /tat → tắt nhận lệnh; lúc tắt mình chỉ nghe /bat để bật lại (hoặc bật ở nút 📱 Remote trong app).\n"
     "• Bảng điều khiển ghim đầu chat: nút Bật / Tắt, Viết brief, Quy tắc, tình hình tự cập nhật. Lạc mất bảng: /bang.\n"
     "Chỉ Telegram của fen ra lệnh được, người khác nhắn bot mình bỏ qua.")
@@ -2370,6 +2375,7 @@ def tgl_menu():
         return
     try:
         tg_call("setMyCommands", {"commands": json.dumps([{"command": "tinhhinh", "description": "Bài đang dựng, xếp hàng, chờ đăng"},
+                                                          {"command": "cho", "description": "Bài chờ đăng: xem slide + caption"},
                                                           {"command": "bat", "description": "Bật Remote"},
                                                           {"command": "tat", "description": "Tắt Remote (vẫn nghe /bat)"},
                                                           {"command": "bang", "description": "Gửi lại bảng điều khiển (ghim)"},
@@ -2459,6 +2465,8 @@ def tgl_tin(m):
     la_bat = lenh in ("/bat", "/on") or t0 in ("bat", "bat remote", "mo remote", "bat lenh", "on")
     if lenh in ("/bang", "/menu", "/start") or t0 in ("bang", "bang dieu khien", "menu"):
         return tgl_bang(moi=True)
+    if lenh in ("/cho", "/chodang") or t0 in ("cho dang", "bai cho dang"):
+        return tgl_ds_cho()
     if not CFG.get("tg_lenh"):            # Remote đang tắt: chỉ nhận lệnh bật
         if la_bat:
             tgl_cai({"bat": True})
@@ -2543,6 +2551,9 @@ def tgl_bam(q):
     loai, _, du = (q.get("data") or "").partition(":")
     if loai == "bg":
         return tgl_bam_bang(du, tra)
+    if loai == "xem" and re.fullmatch(r"[0-9a-zA-Z_-]{6,64}", du):     # chỉ xem: lúc Remote tắt vẫn xem được
+        tra("Đang gửi slide…")
+        return tgl_xem(du)
     if not CFG.get("tg_lenh"):
         return tra("Remote đang tắt, nhắn /bat để bật rồi bấm lại")
     if loai in ("br", "qt", "gy"):
@@ -2567,6 +2578,24 @@ def tgl_bam(q):
         TGL["cho"].pop(du, None)
         tra("Đã bỏ")
         return bo_nut()
+    if loai == "dd" and re.fullmatch(r"[0-9a-zA-Z_-]{6,64}", du):
+        try:
+            danh_dau_dang(du, {})
+        except ValueError as e:
+            return tra(str(e))
+        tra("Đã chuyển sang Đã đăng")
+        bo_nut()
+        tgl_gui("✅ Đã đánh dấu đã đăng: %s" % ten_hien(load_job(du) or {})[0])
+        return tgl_bang(ep=True)
+    if loai == "cap" and re.fullmatch(r"[0-9a-zA-Z_-]{6,64}", du):
+        try:
+            viet_caption(du, {})
+        except ValueError as e:
+            return tra(str(e).split("|")[-1])
+        tra("Claude đang viết caption…")
+        bo_nut()
+        tgl_gui("✍ Claude đang viết caption (1–2 phút), xong mình gửi về đây.")
+        return threading.Thread(target=tgl_cho_caption, args=(du,), daemon=True).start()
     if loai in ("chay", "lai", "bo") and re.fullmatch(r"[0-9a-zA-Z_-]{6,64}", du):
         if loai == "bo":
             with LOCK:
@@ -2847,7 +2876,8 @@ def tgl_bang_nut():
     return [[{"text": "⚪ Tắt Remote" if bat else "🟢 Bật Remote", "callback_data": "bg:tat" if bat else "bg:bat"},
              {"text": "🔄 Làm mới", "callback_data": "bg:moi"}],
             [{"text": "✍ Viết brief", "callback_data": "bg:brief"}, {"text": "📏 Quy tắc", "callback_data": "bg:qt"}],
-            [{"text": "📊 Tình hình chi tiết", "callback_data": "bg:th"}, {"text": "❓ Hướng dẫn", "callback_data": "bg:help"}]]
+            [{"text": "📮 Bài chờ đăng", "callback_data": "bg:cho"}, {"text": "📊 Tình hình", "callback_data": "bg:th"}],
+            [{"text": "❓ Hướng dẫn", "callback_data": "bg:help"}]]
 
 
 def tgl_bang_chu():
@@ -2915,6 +2945,84 @@ def tgl_bang(moi=False, ep=False):
         TGL["bang_dau"], TGL["bang_luc"] = dau, now()
 
 
+def tgl_ds_cho():
+    """Nút 📮 Bài chờ đăng: danh sách bài xong chưa đăng (mới trước), bấm bài là gửi slide + caption về chat."""
+    ic = {"laptop": "💻", "ipad": "📱"}
+    ds = []
+    for jid in (sorted(os.listdir(JOBS), reverse=True)[:300] if os.path.isdir(JOBS) else []):
+        j = read_json(os.path.join(JOBS, jid, "job.json"))
+        if j and j.get("loai") not in VIEC_AN and j.get("status") == "xong" and not j.get("da_dang"):
+            ds.append(j)
+    if not ds:
+        return tgl_gui("📮 Không có bài nào chờ đăng.")
+    nut = [[{"text": "%s %s" % (ic.get(j.get("kenh"), ""), short(ten_hien(j)[0], 48)), "callback_data": "xem:" + j["id"]}] for j in ds[:15]]
+    tgl_gui("📮 Bài chờ đăng (%d%s): bấm 1 bài để xem đủ slide + caption." % (len(ds), ", hiện 15 bài mới nhất" if len(ds) > 15 else ""), nut)
+
+
+def tgl_xem(jid):
+    """Gửi đủ slide (album như nút Gửi Telegram) + caption + câu ghim của 1 bài về chat lệnh, kèm nút Đã đăng."""
+    j = load_job(jid)
+    if not j:
+        return tgl_gui("Không thấy bài này nữa.")
+    chat = CFG.get("tg_lenh_chat")
+    sl = list_slides(j.get("thu_muc_bai"))
+    ten = ten_hien(j)[0]
+    tk = CFG["kenh"].get(j.get("kenh"), {}).get("ten", j.get("kenh"))
+    if not sl:
+        return tgl_gui("Bài %s chưa có slide." % ten)
+    tgl_gui("📷 %s (%s) · %d slide" % (ten, tk, len(sl)))
+    file_goc = bool(CFG.get("telegram_file")) or any(os.path.getsize(x["path"]) > 9.5e6 for x in sl)
+    kieu = "document" if file_goc else "photo"
+    i = 0
+    try:
+        for c in chia_nhom(len(sl)):
+            nhom = sl[i:i + c]
+            i += c
+            if len(nhom) == 1:
+                with open(nhom[0]["path"], "rb") as f:
+                    tg_call("sendDocument" if file_goc else "sendPhoto", {"chat_id": chat}, {kieu: (nhom[0]["name"], f.read())}, timeout=300)
+            else:
+                media, files = [], {}
+                for k, x in enumerate(nhom):
+                    with open(x["path"], "rb") as f:
+                        files["f%d" % k] = (x["name"], f.read())
+                    media.append({"type": kieu, "media": "attach://f%d" % k})
+                tg_call("sendMediaGroup", {"chat_id": chat, "media": json.dumps(media)}, files, timeout=300)
+    except (ValueError, OSError) as e:
+        return tgl_gui("⚠️ Gửi được %d/%d slide thì lỗi: %s" % (i - c if i else 0, len(sl), (str(e).split("|")[-1] if isinstance(e, ValueError) else "không đọc được file slide")))
+    cap, ghim = tach_caption(read_caption(j))
+    if cap:            # mỗi cái 1 tin riêng để giữ tin copy
+        tgl_gui(cap)
+    if ghim:
+        tgl_gui(ghim)
+    nut = [[{"text": "✅ Đã đăng xong", "callback_data": "dd:" + jid}, {"text": "📮 Bài khác", "callback_data": "bg:cho"}]]
+    if not cap:
+        nut.insert(0, [{"text": "✍ Viết caption", "callback_data": "cap:" + jid}])
+    tgl_gui(("Trên là caption, câu ghim (giữ tin để copy)." if cap else "Bài chưa có caption.") +
+            (" Kênh iPad đăng trên TikTok web thì vẫn mở app bấm Đăng TikTok." if j.get("kenh") == "ipad" else "") +
+            " Đăng xong bấm ✅ để chuyển bài sang Đã đăng.", nut)
+
+
+def tgl_cho_caption(jid, han=900):
+    bd = now()
+    while now() - bd < han:
+        time.sleep(4)
+        try:
+            j, _ = parse_job(jid)
+        except Exception:
+            j = read_json(os.path.join(JOBS, jid, "job.json"))
+        if not j or j.get("status") != "dang-chay":
+            break
+    j = load_job(jid) or {}
+    cap, ghim = tach_caption(read_caption(j))
+    if not cap:
+        return tgl_gui("⚠️ Chưa viết được caption, fen mở app bấm Viết caption.")
+    tgl_gui(cap)
+    if ghim:
+        tgl_gui(ghim)
+    tgl_gui("Caption xong (giữ tin để copy).", [[{"text": "✅ Đã đăng xong", "callback_data": "dd:" + jid}, {"text": "📮 Bài khác", "callback_data": "bg:cho"}]])
+
+
 def tgl_bam_bang(viec, tra):
     if viec == "bat":
         tra("Đã bật Remote")
@@ -2931,6 +3039,9 @@ def tgl_bam_bang(viec, tra):
     if viec == "th":
         tra()
         return tgl_gui(tgl_tinh_hinh())
+    if viec == "cho":               # chỉ xem: lúc Remote tắt vẫn xem được
+        tra()
+        return tgl_ds_cho()
     if not CFG.get("tg_lenh"):
         return tra("Remote đang tắt, bấm 🟢 Bật Remote trước")
     tra()

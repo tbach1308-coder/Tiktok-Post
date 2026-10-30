@@ -116,9 +116,13 @@ LÀM 1 BÀI
    · "quy tắc: ..." (kèm ảnh được): ghi luật luôn, không hỏi (chữ chỉ nhắc laptop hoặc iPad thì ghi cho kênh đó, còn lại chung).
    · /tinhhinh: bài đang dựng, xếp hàng, hẹn, chờ đăng, đã đăng, Claude đăng nhập chưa.
   BẢNG ĐIỀU KHIỂN ghim đầu chat (tự gửi khi nối xong; lạc thì nhắn /bang): nút 🟢 Bật / ⚪ Tắt Remote, 🔄 Làm mới,
-  ✍ Viết brief, 📏 Quy tắc (bấm là bot hỏi, fen trả lời tin đó), 📊 Tình hình chi tiết, ❓ Hướng dẫn. Bảng tự sửa khi có bài
+  ✍ Viết brief, 📏 Quy tắc (bấm là bot hỏi, fen trả lời tin đó), 📮 Bài chờ đăng, 📊 Tình hình, ❓ Hướng dẫn. Bảng tự sửa khi có bài
   chạy / xếp hàng / xong. Tắt Remote thì bot không làm việc nào nhưng vẫn nghe nút Bật (/bat) để bật lại từ xa;
   muốn bot không nghe gì nữa: ô Remote trong app > Bỏ nối.
+  COI BÀI TRÊN ĐIỆN THOẠI (ở đâu có mạng): nút 📮 Bài chờ đăng (hoặc /cho) ra danh sách bài xong chưa đăng, bấm 1 bài là bot gửi
+  đủ slide (album) + caption + câu ghim (mỗi cái 1 tin, giữ tin để copy). Chưa có caption thì có nút ✍ Viết caption.
+  Đăng xong bấm "✅ Đã đăng xong" là bài sang tab Đã đăng. Bài fen bấm Chạy trên Telegram xong thì tin báo có nút
+  "📷 Xem đủ slide + caption". Lúc Remote tắt vẫn coi được (chỉ xem).
   Bài bấm Chạy trên Telegram xong / lỗi thì bot báo về chat đó (kèm ảnh bìa). Đăng TikTok vẫn làm ở app hoặc điện thoại.
   Tin nhắn gửi lúc app tắt / chưa nối: bật lên app bỏ qua (không tự làm việc cũ). Đổi bot Telegram thì phải nối lại.
 
