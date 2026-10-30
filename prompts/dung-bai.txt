@@ -24,7 +24,7 @@ Làm nhanh (bài trước mất 31 phút, phần lớn là chờ dựng lại v�
 - Đã ĐẠT thì không làm thêm mục "nên sửa" nào phải dựng lại Photoshop.
 - Gom mọi ảnh cần tách nền vào 1 lệnh; dò trùng mọi ảnh của bài (ảnh máy + nền mờ) trong 1 lệnh.
 - Lệnh chờ Photoshop thì chạy nền, trong lúc chờ làm việc khác (soi ảnh, chuẩn bị phần sau).
-Caption: ghi file "<thư mục bài>/caption.txt" TRƯỚC khi gọi agent duyệt theo "E:/Social Claude/_bo-dung-design/hashtag-tiktok.md": dòng 1 caption tối đa 90 ký tự (1 câu như người bán nói + 3–4 hashtag, có #polystore, không #xuhuong), dòng 2 "Comment ghim: …". Agent duyệt soát luôn caption; có lỗi thì sửa caption.txt cùng lúc sửa slide.
+Caption: ghi file "<thư mục bài>/caption.txt" TRƯỚC khi gọi agent duyệt theo "E:/Social Claude/_bo-dung-design/hashtag-tiktok.md": dòng 1 caption tối đa 90 ký tự (1 câu như người bán nói + 3–4 hashtag, có hashtag thương hiệu của kênh: iPad #polystore, Laptop #polystorelaptop (luật 1e), không #xuhuong), dòng 2 "Comment ghim: …". Agent duyệt soát luôn caption; có lỗi thì sửa caption.txt cùng lúc sửa slide.
 Agent duyệt (poly-carousel:duyet-bai) và agent thiết kế (poly-carousel:thiet-ke) luôn gọi với model "opus" (tham số model của Agent), kể cả khi phiên này chạy model khác.
 Giá: chỉ ghi giá khi brief có giá hoặc fen nhắn cần giá. Không tự thêm, không tự đổi giá (giữ đúng chữ giá fen viết, kể cả "chờ giá Việt Nam").
 Viết lệnh để không bị chặn quyền (chạy ngầm không ai bấm cho phép được; bài trước bị chặn 12 lần, mỗi lần phải viết lại):

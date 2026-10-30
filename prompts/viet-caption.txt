@@ -12,7 +12,7 @@ Cách làm:
 1. Xem cả bài bằng 1 ảnh ghép: mkdir -p "{thu_muc_bai}/log" rồi python "E:/Social Claude/_bo-dung-design/prep/xem_nhanh.py" "{thu_muc_bai}/log/xem-caption.jpg" "{thu_muc_bai}" --o 300 rồi Read ảnh ghép đó 1 lần (không Read từng slide).
 2. Đọc luật caption + hashtag 2 kênh: "E:/Social Claude/_bo-dung-design/hashtag-tiktok.md" (phần chung + phần kênh này).
 3. Ghi file "{thu_muc_bai}/caption.txt" đúng 2 dòng:
-   dòng 1: caption tối đa 90 ký tự cả hashtag (emoji tính 2): 1 câu như người bán nói, có từ khoá của bài (hoặc dùng câu hỏi ở slide cuối), 3–4 hashtag cụ thể đúng kênh, có #polystore, không #xuhuong, 1–2 emoji.
+   dòng 1: caption tối đa 90 ký tự cả hashtag (emoji tính 2): 1 câu như người bán nói, có từ khoá của bài (hoặc dùng câu hỏi ở slide cuối), 3–4 hashtag cụ thể đúng kênh, có hashtag thương hiệu của kênh (iPad #polystore, Laptop #polystorelaptop, luật 1e), không #xuhuong, 1–2 emoji.
    dòng 2: Comment ghim: <câu mời người xem nêu nhu cầu của họ; bài so sánh thì ghim bình chọn>.
    Không văn mẫu AI ("Khám phá", "siêu phẩm", "đừng bỏ lỡ"…), không gạch ngang dài. Không thêm giá nếu slide không có giá.
 4. Đếm lại độ dài dòng 1 (emoji tính 2), quá 90 thì rút gọn rồi ghi lại.

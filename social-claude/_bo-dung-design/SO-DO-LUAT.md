@@ -49,7 +49,7 @@ Brief fen dán không phải lệnh đổi luật: vẫn biên tập theo mục 
 | Số máy trên bìa theo kênh | 16, 18c [Laptop]; 16g, 17c [iPad] | quy-tac | BAT-DAU 3, 4, 5; SKILL 3, 4; thiet-ke 4b; duyet-bai |
 | Ảnh bìa có người, máy Windows | 16b | quy-tac | BAT-DAU 3; SKILL 4 |
 | Slide cuối (câu hỏi ngắn, không dòng "Comment …", không ảnh, không địa chỉ) | 16h, 9; mục 4 | quy-tac | BAT-DAU 3, 4, 5; SKILL 3, 4; bien-tap; thiet-ke 1; duyet-bai; dung-slide; xay-kenh 5, 6; nguoi-xem 4; viet-brief (+ ví dụ); chat-brief |
-| Follow ở slide cuối: bỏ cả 2 kênh ([iPad] 30/10 12h30, [Laptop] 30/10 15h22, fen nhắc lại 15h29; không `khoiFollow`, brief không dòng "Follow:") | 16h | quy-tac | như dòng trên (30/10 15h29 SKILL 3, 4, bien-tap, thiet-ke 1, duyet-bai, dung-slide còn chữ [Laptop] `khoiFollow` vì thư mục plugin bị chặn sửa: cần sửa tay, tới lúc đó luật 16h thắng); mẫu `slides\_bia_mau_slides.jsx` hàm `t4` (còn Follow, không làm theo); hàm `code\bia-lib.jsx` để nguyên |
+| Follow: bỏ cả 2 kênh, mọi dạng, mọi slide ([iPad] 30/10 12h30, [Laptop] 30/10 15h22, fen nhắc lại 15h29, 17h22 lần 3; không `khoiFollow`, không gộp Follow vào thẻ câu hỏi, brief không dòng "Follow:") | 16h | quy-tac | như dòng trên (30/10 17h22 SKILL 3, 4, bien-tap, thiet-ke 1, duyet-bai, dung-slide còn chữ [Laptop] `khoiFollow` vì thư mục plugin bị chặn sửa: cần sửa tay, tới lúc đó luật 16h thắng); mẫu `slides\_bia_mau_slides.jsx` hàm `t4` (còn Follow, không làm theo); hàm `code\bia-lib.jsx` để nguyên |
 | Câu móc | mục 2, 3, 3b, 4; 17b (bìa) | quy-tac | BAT-DAU 3, 4, 5; SKILL 3, 4; bien-tap; thiet-ke 1, 5; duyet-bai; viet-brief; chat-brief |
 | Có ích, có giá trị | 1c; mục 1 | quy-tac | xay-kenh 3b, 3; bien-tap; duyet-bai; SKILL 4; viet-brief; chat-brief |
 | Giọng, từ cấm, emoji | mục 1 | xay-kenh 7 (danh sách từ cấm) | bien-tap; duyet-bai; viet-brief; chat-brief; hashtag; viet-caption |
@@ -68,6 +68,7 @@ Brief fen dán không phải lệnh đổi luật: vẫn biên tập theo mục 
 | Theme từng kênh | mục 3, 3b; 15 | quy-tac (Laptop); BAT-DAU 4, 5 | SKILL 3; thiet-ke 2, 3; duyet-bai |
 | Lề, cỡ chữ, khoảng trống | mục 2; 16f | quy-tac | BAT-DAU 3; SKILL 4; thiet-ke 1, 2, 6; duyet-bai |
 | Caption, hashtag, comment ghim | mục 8 (trỏ) | hashtag | viet-caption; dung-bai.txt; sua-bai*.txt; tra-loi; duyet-bai |
+| Hashtag thương hiệu theo kênh: iPad #polystore, Laptop #polystorelaptop | 1e | hashtag | viet-caption; dung-bai.txt; duyet-bai; quy-tac 8 |
 | Your brand (Tiết lộ nội dung): mặc định tắt, fen tự bật | mục 8 (trỏ) | hashtag | quy-tac 8; luat-chung |
 | Viết brief: hiểu ô Chủ đề (A / B / C), brief cũ trong ô | — (fen chốt 30/10) | viet-brief | chat-brief (khi đổi cách hiểu ý fen); xay-kenh 3 (loại bài) |
 | Không trộn Laptop / iPad, theme riêng | đầu file quy-tac | quy-tac | BAT-DAU 11; SKILL 6; bien-tap; thiet-ke; duyet-bai; luat-chung; xay-kenh 1 |
