@@ -2964,7 +2964,7 @@ def mac_san_sang(ds, tuoi):
         if x["ma"] == "ps":
             x["ten"] = "Photoshop tự chạy (hàng chờ)"
             if not x["ok"]:
-                x["ghi"] = "bộ canh hàng chờ chưa chạy: đóng rồi mở lại app (Poly Dung Bai.command). Có bài là Photoshop tự mở"
+                x["ghi"] = "hàng chờ chưa chạy: tắt app rồi mở lại bằng Poly Dung Bai. Có bài là Photoshop tự mở"
         elif x["ma"] == "chrome" and not x["ok"]:
             x["ghi"] = "không thấy Google Chrome: cài Chrome, hoặc dán đường dẫn ở Đăng TikTok bên dưới"
         elif x["ma"] == "plugin" and not x["ok"]:
@@ -2972,7 +2972,7 @@ def mac_san_sang(ds, tuoi):
     thieu = mac_thu_vien_thieu()
     ds.append({"ma": "python", "ten": "Python + thư viện ảnh", "ok": not thieu, "can": False,
                "ghi": ("Python %d.%d, đủ thư viện" % sys.version_info[:2]) if not thieu else
-               "thiếu %s: tắt app, nhấp đúp Poly Dung Bai.command, chọn Cài" % ", ".join(thieu)})
+               "chưa cài thư viện ảnh (Claude cần để soi ảnh, tách nền): tắt app, mở lại bằng Poly Dung Bai, bấm Cài"})
     goc, q = CFG.get("thu_muc_lam_viec") or "", CFG.get("tu_chay") or ""
     ds.append({"ma": "thu_muc", "ten": "Thư mục trên máy Mac", "ok": os.path.isdir(os.path.join(goc, "_bo-dung-design")), "can": False,
                "ghi": "bộ luật + bài: %s · hàng chờ Photoshop: %s (đổi trong config.json)" % (goc.replace(home, "~", 1), q.replace(home, "~", 1))})
