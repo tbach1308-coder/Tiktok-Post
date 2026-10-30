@@ -267,9 +267,20 @@
     const du = x => !x.giay || x.giay >= 15;
     const moi = ds => ds.find(x => !set.has(x.khoa) && du(x));
     let chon = null, nguon = '', ds = [];
-    const fav = tabNhac(root, /^(favorites|yêu thích|đã lưu|mục yêu thích)$/i);      // 1) nhạc fen thả tim sẵn
+    // fen 30/10 18h20 "chọn nhạc ngẫu nhiên đi miễn không trùng nhau" (cả iPad và Laptop): bốc ngẫu nhiên 1 bài chưa
+    // đăng ở tab For You (danh sách đang mở), rồi Favorites, rồi tìm 1 từ khoá rộng ngẫu nhiên; không còn theo gu hip hop.
+    if (d.nhac_kieu === 'ngau-nhien') {
+      const boc = a => { const c = a.filter(x => !set.has(x.khoa) && du(x)); return c.length ? c[Math.floor(Math.random() * c.length)] : null; };
+      const fy = tabNhac(root, /^(for you|dành cho bạn|gợi ý|đề xuất)$/i);
+      if (fy && fy.getAttribute('aria-selected') !== 'true') { bam(fy); await nghi(600, 1000); }
+      ds = await choDs(root, null, 8000); chon = boc(ds); if (chon) nguon = 'For You (ngẫu nhiên)';
+      if (!chon) { const fv = tabNhac(root, /^(favorites|yêu thích|đã lưu|mục yêu thích)$/i);
+        if (fv) { bam(fv); await nghi(600, 1000); ds = await choDs(root, null, 6000); chon = boc(ds); if (chon) nguon = 'Favorites (ngẫu nhiên)'; } }
+      if (!chon) for (const q of (d.nhac_tim || []).slice(0, 3)) { chon = boc(await timNhac(root, q)); if (chon) { nguon = q + ' (ngẫu nhiên)'; break; } }
+    }
+    const fav = !chon && d.nhac_kieu !== 'ngau-nhien' && tabNhac(root, /^(favorites|yêu thích|đã lưu|mục yêu thích)$/i);      // 1) nhạc fen thả tim sẵn
     if (fav) { bam(fav); await nghi(600, 1000); ds = await choDs(root, null, 6000); chon = moi(ds); if (chon) nguon = 'Favorites'; }
-    if (!chon) for (const q of (d.nhac_tim || ['hip hop']).slice(0, 3)) {             // 2) tìm theo gu, xoay từ khoá
+    if (!chon && d.nhac_kieu !== 'ngau-nhien') for (const q of (d.nhac_tim || ['hip hop']).slice(0, 3)) {             // 2) tìm theo gu, xoay từ khoá
       chon = moi(await timNhac(root, q)); if (chon) { nguon = q; break; }
     }
     if (!chon) {                                                                       // 3) For You (nhạc thương mại TikTok gợi ý)
@@ -703,7 +714,7 @@
         }
         say(dg + '. Đang chọn nhạc…');
         const nhac = daCoNhac() ? 'co-san' : await chonNhac(d);
-        if (!/^ok|^co-san/.test(nhac)) bao.push('chưa chọn được nhạc hip hop (' + nhac + '), fen bấm Add sound chọn giúp');
+        if (!/^ok|^co-san/.test(nhac)) bao.push('chưa chọn được nhạc (' + nhac + '), fen bấm Add sound chọn giúp');
         const coBrand = d.brand === true;   // fen chốt 30/10 12h54: mặc định TẮT như cài đặt gốc TikTok; chỉ bật khi fen bấm Bật ở ô Đăng bài của app
         let br = '';
         if (coBrand) {

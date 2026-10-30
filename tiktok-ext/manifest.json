@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Poly TikTok",
-  "version": "0.10.1",
+  "version": "0.10.2",
   "description": "App Poly Dựng Bài bấm Đăng TikTok là tiện ích này mở tab Ảnh, gắn sẵn slide + caption vào TikTok Studio. Fen tự kiểm và tự bấm Đăng (tiện ích không bao giờ bấm Đăng).",
   "minimum_chrome_version": "111",
   "permissions": [

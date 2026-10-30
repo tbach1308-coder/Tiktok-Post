@@ -3277,6 +3277,7 @@ def mo_tiktok(jid):
 # gu fen chốt 29/10: hip hop. Kênh shop (tài khoản doanh nghiệp) chỉ có nhạc thương mại của TikTok, tên bài tiếng Anh,
 # nên từ khoá tiếng Anh; "rap việt" gần như không có bài. Tiện ích lấy Favorites (fen thả tim) trước, rồi mới tìm.
 NHAC_TU_KHOA = ["hip hop", "hip hop beat", "boom bap", "lofi hip hop", "trap beat"]
+NHAC_RONG = ["chill", "pop", "happy", "lofi", "upbeat", "acoustic", "edm", "vlog", "piano", "funk", "hip hop", "r&b"]   # nhạc ngẫu nhiên (30/10 18h20)
 
 
 def nhac_so():
@@ -3451,8 +3452,11 @@ def tiktok_data(jid):
         "id": jid, "kenh": job["kenh"], "handle": k.get("handle", ""), "ten": ten_hien(job)[0],
         "caption": tach_caption(read_caption(job))[0],
         "brand": brand_bai(job)["bat"],   # Tiết lộ nội dung → Your brand: mặc định tắt, chỉ bật khi fen bấm Bật ở ô Đăng bài (30/10 12h54)
-        # chọn nhạc: gu hip hop, xoay vòng từ khoá, bỏ bài đã dùng
-        "nhac_tim": (lambda ds, k: ds[k:] + ds[:k])(list(CFG.get("nhac_tu_khoa") or NHAC_TU_KHOA), len(nhac_so()) % max(1, len(CFG.get("nhac_tu_khoa") or NHAC_TU_KHOA))),
+        # chọn nhạc (fen 30/10 18h20, cả 2 kênh): ngẫu nhiên, miễn không trùng bài đã đăng; từ khoá rộng xáo ngẫu nhiên khi For You /
+        # Favorites hết bài mới. Kênh nào ghi trong config "nhac_theo_gu" (vd ["laptop"]) thì quay lại kiểu cũ: hip hop, xoay vòng từ khoá.
+        "nhac_kieu": "theo-gu" if job["kenh"] in (CFG.get("nhac_theo_gu") or []) else "ngau-nhien",
+        "nhac_tim": (lambda ds, k: ds[k:] + ds[:k])(list(CFG.get("nhac_tu_khoa") or NHAC_TU_KHOA), len(nhac_so()) % max(1, len(CFG.get("nhac_tu_khoa") or NHAC_TU_KHOA)))
+        if job["kenh"] in (CFG.get("nhac_theo_gu") or []) else __import__("random").sample(NHAC_RONG, len(NHAC_RONG)),
         # fen chốt 29/10 17h50: tiện ích KHÔNG tự bấm Post/Schedule (điều khoản TikTok cấm script tự động); nút Hẹn giờ trong khung Poly
         # chỉ chọn Schedule + ngày giờ, fen tự bấm Schedule. Giờ gợi ý: giờ hẹn trong app, không có thì 19–22h ngày còn trống (1 bài/ngày).
         "hen_dang": job.get("hen_dang") or 0, "goi_y_hen": goi_y_hen(job),
