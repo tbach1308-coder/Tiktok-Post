@@ -30,6 +30,7 @@ UI = os.path.join(APP, "ui")
 PROMPTS = os.path.join(APP, "prompts")
 mimetypes.add_type("font/woff2", ".woff2")
 IS_WIN = os.name == "nt"
+IS_MAC = sys.platform == "darwin"   # MacBook của fen (30/10): chạy đủ như máy shop; mọi nhánh Windows giữ nguyên
 CREATE_NO_WINDOW = 0x08000000
 CREATE_NEW_PROCESS_GROUP = 0x00000200
 
@@ -73,6 +74,87 @@ DEFAULT_CFG = {
     },
 }
 
+# ---------------------------------------------------------------- máy Mac: thư mục (fen 30/10 "set tự cài đặt trong máy khỏi hỏi")
+# Mac không có ổ E / user Dao: ~/Social Claude = E:\Social Claude (Laptop/, iPad/, _bo-dung-design/ …),
+# ~/Pictures/PolySocial/_tu-chay = hàng chờ Photoshop, thư mục chứa server.py = E:\Tool\poly-dung-bai.
+# Lần đầu mở app thì ghi 2 thư mục gốc vào config.json (mac_chuan_bi); muốn đổi thì sửa config.json rồi mở lại app.
+MAC_GOC = os.path.join(os.path.expanduser("~"), "Social Claude")
+MAC_HANG_CHO = os.path.join(os.path.expanduser("~"), "Pictures", "PolySocial", "_tu-chay")
+_WIN_DD = re.compile(r"^\s*(?:[A-Za-z]:[\\/]|\\\\)")
+
+
+def la_duong_dan_win(p):
+    """Đường dẫn của máy Windows (E:\\..., C:/..., \\\\máy\\...): trên Mac không dùng được."""
+    return isinstance(p, str) and bool(_WIN_DD.match(p))
+
+
+def _nfc(s):
+    """Mac hay lưu tên file tiếng Việt dạng NFD: chuẩn hoá NFC trước khi so đường dẫn / tên thư mục."""
+    import unicodedata
+    return unicodedata.normalize("NFC", s) if isinstance(s, str) else s
+
+
+def mac_bang(goc, hang_cho):
+    """Bảng đổi đường dẫn máy shop -> máy này (dài trước ngắn sau). Luật, plugin, lệnh mẫu ghi đường dẫn máy shop."""
+    return [
+        ("C:/Users/Dao/Pictures/PolySocial/_tu-chay", hang_cho),
+        ("E:/Tool/poly-dung-bai", APP),
+        ("E:/Social Claude", goc),
+        ("C:/Users/Dao", os.path.expanduser("~")),
+    ]
+
+
+_MAC_RE = {}
+
+
+def mac_doi(text, bang):
+    """Đổi gốc đường dẫn máy shop trong 1 đoạn chữ (lệnh giao Claude, luật chung, dòng THU_MUC_BAI=) sang đường dẫn máy này.
+    Nhận cả \\ lẫn /, ổ đĩa hoa / thường; phần đường dẫn ngay sau gốc (tới dấu cách / ngoặc) đổi \\ thành /."""
+    if not text:
+        return text
+    for win, mac in bang:
+        r = _MAC_RE.get(win)
+        if r is None:
+            p = win.split("/")
+            r = _MAC_RE[win] = re.compile(r"(?<![\w/\\])" + re.escape(p[0]) + r"[\\/]+" + r"[\\/]+".join(re.escape(x) for x in p[1:])
+                                          + r"(?![\w-])((?:[\\/][^\s\"'`<>|*?\\/]*)*)", re.I)
+        text = r.sub(lambda m: mac.rstrip("/") + m.group(1).replace("\\", "/"), text)
+    return text
+
+
+def mac_cfg(cfg):
+    """Máy Mac: đổi các đường dẫn máy shop trong cấu hình (mặc định của app, hay config.json chép từ máy shop) sang thư mục
+    trên Mac. Fen tự ghi đường dẫn Mac trong config.json thì giữ. Đường dẫn máy shop không có trên Mac (E:\\Tool\\Anh) thì bỏ."""
+    goc = cfg.get("thu_muc_lam_viec")
+    goc = os.path.expanduser(goc) if goc and not la_duong_dan_win(goc) else MAC_GOC
+    q = cfg.get("tu_chay")
+    q = os.path.expanduser(q) if q and not la_duong_dan_win(q) else MAC_HANG_CHO
+    cfg["thu_muc_lam_viec"], cfg["tu_chay"] = goc, q
+    bang = mac_bang(goc, q)
+
+    def doi(v):
+        if not isinstance(v, str) or not v:
+            return v
+        if not la_duong_dan_win(v):
+            return os.path.expanduser(v)
+        m = mac_doi(v, bang)
+        return None if la_duong_dan_win(m) else m
+
+    cfg["plugin_dir"] = doi(cfg.get("plugin_dir")) or ""
+    cfg["quy_tac"] = [x for x in (doi(x) for x in cfg.get("quy_tac") or []) if x]
+    cfg["thu_muc_bai"] = {k: doi(v) or "" for k, v in (cfg.get("thu_muc_bai") or {}).items()}
+    tm = [x for x in (doi(x) for x in cfg.get("them_thu_muc") or []) if x]
+    if not any((q + "/").startswith(x.rstrip("/") + "/") for x in tm):
+        tm.append(q)
+    cfg["them_thu_muc"] = tm
+    for k in ("chrome_path", "chrome_user_data"):
+        if la_duong_dan_win(cfg.get(k)):
+            cfg.pop(k, None)
+    if any(la_duong_dan_win(x) for x in cfg.get("lenh_claude") or []):
+        cfg["lenh_claude"] = []
+    return cfg
+
+
 LOCK = threading.RLock()
 STATE = {}  # job_id -> parsed state cache
 WATCHERS = {}  # job_id -> thread
@@ -93,6 +175,8 @@ def load_cfg():
                     cfg[k] = v
         except Exception as e:  # config hong thi dung mac dinh
             log("config.json loi: %s" % e)
+    if IS_MAC:
+        cfg = mac_cfg(cfg)
     return cfg
 
 
@@ -170,6 +254,8 @@ def proc_start(pid):
             if not ok:
                 return None
             return ((c.hi << 32) | c.lo) / 1e7 - 11644473600
+        if IS_MAC:   # Mac không có /proc
+            return mac_proc_start(pid)
         with open("/proc/%d/stat" % int(pid)) as f:
             ticks = int(f.read().rsplit(")", 1)[1].split()[19])
         with open("/proc/stat") as f:
@@ -222,6 +308,8 @@ def kill_tree(pid):
             stderr=subprocess.DEVNULL,
             creationflags=CREATE_NO_WINDOW,
         )
+    elif IS_MAC:
+        mac_kill_cay(pid)
     else:
         try:
             os.killpg(int(pid), 15)
@@ -230,6 +318,65 @@ def kill_tree(pid):
                 os.kill(int(pid), 15)
             except Exception:
                 pass
+
+
+# ---------------------------------------------------------------- máy Mac: tiến trình
+def _ps(*a):
+    try:
+        return subprocess.run(["ps"] + list(a), capture_output=True, text=True, timeout=10).stdout
+    except Exception:
+        return ""
+
+
+def mac_proc_start(pid):
+    """Giờ tiến trình được tạo = bây giờ - thời gian đã chạy (ps etime: [[dd-]hh:]mm:ss). None nếu không còn."""
+    s = _ps("-o", "etime=", "-p", str(int(pid))).strip()
+    m = re.fullmatch(r"(?:(\d+)-)?(?:(\d+):)?(\d+):(\d+)", s)
+    if not m:
+        return None
+    d, h, mi, se = (int(x or 0) for x in m.groups())
+    return time.time() - (((d * 24 + h) * 60 + mi) * 60 + se)
+
+
+def mac_kill_cay(pid):
+    """Dừng Claude + mọi tiến trình con (như taskkill /T của Windows): lấy cả cây con trước (cha chết thì con bị
+    chuyển sang launchd, mất dấu), dừng cả nhóm tiến trình, rồi từng con; 3 giây sau còn sống thì giết hẳn."""
+    pid = int(pid)
+    con = {}
+    for ln in _ps("-A", "-o", "pid=,ppid=").splitlines():
+        x = ln.split()
+        if len(x) == 2 and x[0].isdigit() and x[1].isdigit():
+            con.setdefault(int(x[1]), []).append(int(x[0]))
+    cay, i = [pid], 0
+    while i < len(cay):
+        cay += [c for c in con.get(cay[i], []) if c not in cay]
+        i += 1
+    try:
+        os.killpg(pid, 15)
+    except Exception:
+        pass
+    for p in cay:
+        try:
+            os.kill(p, 15)
+        except Exception:
+            pass
+    for _ in range(30):
+        time.sleep(0.1)
+        if not any(_con_song(p) for p in cay):
+            return
+    for p in cay:
+        try:
+            os.kill(p, 9)
+        except Exception:
+            pass
+
+
+def _con_song(p):
+    try:
+        os.kill(p, 0)
+        return True
+    except OSError:
+        return False
 
 
 # ---------------------------------------------------------------- tim Claude Code
@@ -247,6 +394,8 @@ def resolve_claude():
             os.path.join(home, ".local", "bin", "claude.exe"),
             os.path.join(os.environ.get("LOCALAPPDATA", ""), "Programs", "claude", "claude.exe"),
         ]
+    elif IS_MAC:
+        cands += mac_cho_claude(home)
     for c in cands:
         if c and os.path.isfile(c):
             return [c]
@@ -292,6 +441,15 @@ def resolve_claude():
             return [os.environ.get("COMSPEC", "cmd.exe"), "/d", "/c", c]
         return [c]
     return None
+
+
+def mac_cho_claude(home):
+    """Chỗ Claude Code hay nằm trên Mac (bản cài chính thức, Homebrew, npm, nvm): app mở từ Finder có thể thiếu PATH."""
+    import glob
+    ds = [os.path.join(home, ".local", "bin", "claude"), os.path.join(home, ".claude", "local", "claude"),
+          "/opt/homebrew/bin/claude", "/usr/local/bin/claude", os.path.join(home, ".npm-global", "bin", "claude")]
+    ds += sorted(glob.glob(os.path.join(home, ".nvm", "versions", "node", "*", "bin", "claude")), reverse=True)
+    return [x for x in ds if os.access(x, os.X_OK)]
 
 
 # ---------------------------------------------------------------- model từng việc (fen 29/10 19h31 "trong app khi làm fen tự chuyển model cần thiết")
@@ -535,6 +693,8 @@ def note_folder(st, s):
     """Dòng THU_MUC_BAI=<đường dẫn> (Claude in ra khi tạo thư mục và ở câu cuối) là chắc nhất: có rồi thì giữ."""
     if not s:
         return
+    if IS_MAC:
+        return mac_note_folder(st, s)
     for m in MARK_RE.finditer(s):
         rest = m.group(1)
         k = PATH_RE.search(rest)  # đường dẫn thư mục bài chuẩn (E:\ hoặc /e/), bỏ chữ đứng sau
@@ -564,11 +724,43 @@ def note_folder_tool(st, name, inp):
         src = " ".join(segs)
     else:
         return
+    if IS_MAC:
+        m = mac_bai_re().search(_nfc(mac_doi(src, mac_bang_cfg())))
+        if m:
+            st["folder"] = m.group(0).rstrip(".,;:)/")
+        return
     m = PATH_RE.search(src)
     if m:
         p = m.group(0).replace("/", "\\").rstrip(".,;:)\\")
         p = re.sub(r"^\\([A-Za-z])\\", lambda x: x.group(1).upper() + ":\\", p)   # /e/Social Claude -> E:\Social Claude
         st["folder"] = p
+
+
+def mac_bang_cfg():
+    return mac_bang(CFG.get("thu_muc_lam_viec") or MAC_GOC, CFG.get("tu_chay") or MAC_HANG_CHO)
+
+
+def mac_bai_re():
+    """Máy Mac: thư mục bài = <thư mục kênh trong config>/T<tháng>_<Tên>_<dd-mm> (đường dẫn POSIX, có dấu cách trong gốc)."""
+    goc = sorted({_nfc(v).rstrip("/") for v in (CFG.get("thu_muc_bai") or {}).values() if v}, key=len, reverse=True)
+    if not goc:
+        return re.compile(r"(?!)")
+    return re.compile("(?:%s)/+T\\d{1,2}_[^\\\\/\"'`\\s<>|*?]+" % "|".join(re.escape(x) for x in goc))
+
+
+def mac_note_folder(st, s):
+    """Như note_folder, đường dẫn Mac. Claude lỡ ghi đường dẫn máy shop (E:\\Social Claude\\iPad\\...) thì đổi sang Mac."""
+    for m in MARK_RE.finditer(s):
+        rest = _nfc(mac_doi(m.group(1), mac_bang_cfg()))
+        k = mac_bai_re().search(rest)
+        if k:
+            p = k.group(0).rstrip(".,;:)/")
+        else:   # thư mục ngoài thư mục kênh: lấy tới dấu ngoặc / khoảng trắng + chữ như máy thử
+            p = re.split(r"[`*'\"]| \(| [-–] |\. ", rest.strip())[0].strip().rstrip(".,;:)\\/ ")
+            if not p.startswith("/"):
+                continue
+        if p:
+            st["folder"], st["folder_chac"] = p, True
 
 
 def handle_line(st, obj, run):
@@ -864,6 +1056,8 @@ def san_sang():
         tuoi = None
     ds.append({"ma": "ps", "ten": "Photoshop tự chạy", "ok": tuoi is not None and tuoi < 90, "can": False,
                "ghi": "đang bật" if tuoi is not None and tuoi < 90 else "chưa mở Photoshop (mở lên là tự bật, bài chờ được)"})
+    if IS_MAC:
+        mac_san_sang(ds, tuoi)
     return ds
 
 
@@ -876,6 +1070,13 @@ def doi_tai_khoan():
     cmd = resolve_claude()
     if not cmd:
         raise ValueError("Không tìm thấy Claude Code")
+    if IS_MAC:   # cửa sổ Terminal thay cửa sổ đen
+        mac_mo_terminal("doi-tai-khoan", ['echo "Đăng xuất tài khoản Claude cũ..."', mac_lenh(cmd + ["auth", "logout"]), "echo",
+                                          'echo "Đăng nhập tài khoản mới: trình duyệt tự mở, chọn tài khoản Claude cần dùng."',
+                                          mac_lenh(cmd + ["auth", "login"]), "echo", 'echo "Xong. Đóng cửa sổ này, quay lại app Poly Dựng Bài."',
+                                          'read -n 1 -s -r -p "Bấm phím bất kỳ để đóng..."'])
+        _CLAUDE["t"] = 0
+        return {"ok": True}
     c = cmd[-1] if len(cmd) > 1 and cmd[0].lower().endswith("cmd.exe") else None
     lenh = ('call "%s"' % c) if c else " ".join('"%s"' % x for x in cmd)
     bat = os.path.join(APP, "doi-tai-khoan.bat")
@@ -901,6 +1102,8 @@ def start_run(job, prompt, kind, resume=None, label=None, model=None, them_dir=N
     if AGENT_OPUS in prompt:      # agent duyệt + thiết kế: theo lựa chọn của bài, không có thì theo Kiểm máy > Model
         md = job.get("model_duyet")
         prompt = prompt.replace(AGENT_OPUS, cau_model_duyet(md if md in MODEL_VIEC["model_duyet"][1] and md is not None else model_viec("model_duyet")))
+    if IS_MAC:   # lệnh mẫu ghi đường dẫn máy shop (E:/Social Claude/...): đổi sang thư mục trên Mac
+        prompt = mac_doi(prompt, mac_bang_cfg())
     with open(os.path.join(d, "prompt-%d.txt" % n), "w", encoding="utf-8") as f:
         f.write(prompt)
     args = cmd + ["-p", "--output-format", "stream-json", "--verbose"]
@@ -929,6 +1132,8 @@ def start_run(job, prompt, kind, resume=None, label=None, model=None, them_dir=N
         args += ["--plugin-dir", pd]          # chung tên plugin đã cài thì bản này thay (cùng thư mục nguồn)
     lc = os.path.join(PROMPTS, "luat-chung.md")
     if os.path.isfile(lc):
+        if IS_MAC:   # bản cho Mac: đường dẫn Mac + bảng đổi đường dẫn, lệnh macOS (ghi kèm lượt chạy)
+            lc = mac_luat_chung(lc, os.path.join(d, "luat-chung-%d.md" % n))
         args += ["--append-system-prompt-file", lc]
     # --add-dir nhan nhieu thu muc sau 1 co; de cuoi cung (brief di qua stdin nen khong bi nuot)
     dirs = [x for x in (CFG.get("them_thu_muc") or []) + list(them_dir or []) if os.path.isdir(x)] + [d]
@@ -945,6 +1150,8 @@ def start_run(job, prompt, kind, resume=None, label=None, model=None, them_dir=N
     # trước nằm trong E:\Social Claude\.claude\settings.json (cần tin thư mục); app tự đặt để tài khoản / user nào cũng như nhau
     env.setdefault("PYTHONUTF8", "1")
     env.setdefault("CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS", "8")
+    if IS_MAC:
+        mac_env(env)
     kw = {}
     if IS_WIN:
         kw["creationflags"] = CREATE_NO_WINDOW | CREATE_NEW_PROCESS_GROUP
@@ -1809,8 +2016,12 @@ def kenh_thu_muc(f):
     if not f:
         return None
     a = f.replace("/", "\\").lower().rstrip("\\") + "\\"
+    if IS_MAC:
+        a = _nfc(a)
     for k, r in (CFG.get("thu_muc_bai") or {}).items():
         r = (r or "").replace("/", "\\").lower().rstrip("\\")
+        if IS_MAC:
+            r = _nfc(r)
         if r and k in CFG["kenh"] and a.startswith(r + "\\"):
             return k
     return None
@@ -2074,7 +2285,10 @@ TIKTOK_LINK = "https://www.tiktok.com/tiktokstudio/upload?from=webapp&tab=photo"
 
 def chrome_ho_so():
     """Các hồ sơ (profile) Chrome trên máy: [{dir, ten, email}] đọc từ Local State (chỉ đọc, không sửa gì của Chrome)."""
-    goc = CFG.get("chrome_user_data") or os.path.join(os.environ.get("LOCALAPPDATA", ""), r"Google\Chrome\User Data")
+    if IS_MAC:
+        goc = CFG.get("chrome_user_data") or os.path.expanduser("~/Library/Application Support/Google/Chrome")
+    else:
+        goc = CFG.get("chrome_user_data") or os.path.join(os.environ.get("LOCALAPPDATA", ""), r"Google\Chrome\User Data")
     ls = read_json(os.path.join(goc, "Local State"), {}) or {}
     info = ((ls.get("profile") or {}).get("info_cache") or {})
     ds = [{"dir": k, "ten": (v.get("name") or k), "email": v.get("user_name") or ""} for k, v in info.items() if isinstance(v, dict)]
@@ -2098,7 +2312,11 @@ def tiktok_cai(data=None):
             keys["chrome_profile"] = hs
         if "chrome" in data:
             c = (data.get("chrome") or "").strip().strip('"')
-            if c and not (os.path.isfile(c) and c.lower().endswith(".exe")):
+            if IS_MAC:
+                c = c.strip("'").rstrip("/")
+                if c and not mac_chrome_ok(c):
+                    raise ValueError("Không thấy Google Chrome ở đường dẫn này (vd /Applications/Google Chrome.app)")
+            elif c and not (os.path.isfile(c) and c.lower().endswith(".exe")):
                 raise ValueError("Không thấy file chrome.exe ở đường dẫn này")
             keys["chrome_path"] = c
         if keys:
@@ -2113,12 +2331,16 @@ def tiktok_cai(data=None):
 def mo_chrome(url):
     ch = tim_chrome()
     if not ch:
-        raise ValueError("Không thấy Chrome trên máy. Mở Kiểm máy > Đăng TikTok, dán đường dẫn chrome.exe.")
+        raise ValueError(MAC_KHONG_CHROME if IS_MAC else "Không thấy Chrome trên máy. Mở Kiểm máy > Đăng TikTok, dán đường dẫn chrome.exe.")
+    if IS_MAC:
+        return mac_mo_chrome(ch, url)
     args = [ch] + (["--profile-directory=" + CFG["chrome_profile"]] if CFG.get("chrome_profile") else []) + [url]
     subprocess.Popen(args, creationflags=CREATE_NO_WINDOW if IS_WIN else 0)
 
 
 def tim_chrome():
+    if IS_MAC:
+        return mac_tim_chrome()
     c = CFG.get("chrome_path")
     if c and os.path.isfile(c):
         return c
@@ -2138,7 +2360,7 @@ def mo_tiktok(jid):
     goc = CFG.get("tiktok_upload") or TIKTOK_LINK
     url = goc + ("&" if "?" in goc else "?") + "poly=" + jid
     if not tim_chrome():
-        raise ValueError("Không thấy Chrome trên máy. Mở Kiểm máy > Đăng TikTok, dán đường dẫn chrome.exe.")
+        raise ValueError(MAC_KHONG_CHROME if IS_MAC else "Không thấy Chrome trên máy. Mở Kiểm máy > Đăng TikTok, dán đường dẫn chrome.exe.")
     with LOCK:
         # bấm đúp trong 5 giây chỉ mở 1 tab
         cu = [x for x in ((load_job(jid) or job).get("da_gui") or []) if x.get("kieu") == "tiktok"]
@@ -2533,7 +2755,7 @@ def bai_co_san():
     for jid in (os.listdir(JOBS) if os.path.isdir(JOBS) else []):
         j = read_json(os.path.join(JOBS, jid, "job.json"))
         if j and j.get("thu_muc_bai"):
-            da[os.path.normcase(os.path.realpath(j["thu_muc_bai"]))] = jid
+            da[khoa_thu_muc(j["thu_muc_bai"])] = jid
     out = []
     for kenh, root in (CFG.get("thu_muc_bai") or {}).items():
         if kenh not in CFG["kenh"] or not root or not os.path.isdir(root):
@@ -2545,9 +2767,9 @@ def bai_co_san():
             sl = list_slides(f)
             if not sl:
                 continue
-            ten, ngay = ten_thu_muc(fn)
+            ten, ngay = ten_thu_muc(_nfc(fn) if IS_MAC else fn)
             out.append({"kenh": kenh, "ten": ten, "ngay": ngay, "thu_muc": fn, "n": len(sl),
-                        "mt": max(x["mt"] for x in sl), "job": da.get(os.path.normcase(os.path.realpath(f)))})
+                        "mt": max(x["mt"] for x in sl), "job": da.get(khoa_thu_muc(f))})
     out.sort(key=lambda x: -x["mt"])
     return out[:60]
 
@@ -2564,7 +2786,7 @@ def mo_bai_co_san(data):
         for x in bai_co_san():
             if x["kenh"] == kenh and x["thu_muc"] == fn and x["job"]:
                 return {"id": x["job"]}
-        ten, ngay = ten_thu_muc(fn)
+        ten, ngay = ten_thu_muc(_nfc(fn) if IS_MAC else fn)
         jid = time.strftime("%Y%m%d-%H%M%S-") + uuid.uuid4().hex[:4]
         os.makedirs(job_dir(jid), exist_ok=True)
         save_job({"id": jid, "kenh": kenh, "brief": "", "ten_bai": ten, "tieu_de": ten, "ngay_dang": ngay,
@@ -2572,7 +2794,16 @@ def mo_bai_co_san(data):
     return {"id": jid}
 
 
+def khoa_thu_muc(f):
+    """Khoá so 2 đường dẫn thư mục bài (Mac: thêm chuẩn hoá NFC, tên tiếng Việt Finder lưu NFD)."""
+    if IS_MAC:
+        return _nfc(os.path.realpath(f))
+    return os.path.normcase(os.path.realpath(f))
+
+
 def allowed_path(p):
+    if IS_MAC:
+        return mac_allowed_path(p)
     try:
         rp = os.path.realpath(p)
     except Exception:
@@ -2584,6 +2815,237 @@ def allowed_path(p):
             if os.path.normcase(rp).startswith(os.path.normcase(rr + os.sep)) or os.path.normcase(rp) == os.path.normcase(rr):
                 return True
     return False
+
+
+# ---------------------------------------------------------------- máy Mac: Terminal, Chrome, luật chung, hàng chờ Photoshop
+# (fen 30/10: Mac chạy đủ như máy shop: viết brief, dựng bài bằng Photoshop trên Mac, gửi Telegram, tiện ích TikTok)
+MAC_KHONG_CHROME = ("Không thấy Google Chrome trên máy. Cài Chrome vào thư mục Ứng dụng (Applications), "
+                    "hoặc mở Kiểm máy > Đăng TikTok, dán đường dẫn Google Chrome.app.")
+
+
+def mac_dir(*a):
+    """Thư mục _mac của app: file máy Mac tự tạo (lệnh python, cửa sổ đăng nhập, pid, nhật ký). Không đưa lên repo."""
+    d = os.path.join(APP, "_mac", *a)
+    os.makedirs(d, exist_ok=True)
+    return d
+
+
+def mac_lenh(args):
+    import shlex
+    return " ".join(shlex.quote(str(x)) for x in args)
+
+
+def mac_mo_terminal(ten, dong):
+    """Mở 1 cửa sổ Terminal chạy vài lệnh (thay cửa sổ đen của Windows): ghi _mac/<ten>.command rồi mở bằng Terminal."""
+    f = os.path.join(mac_dir(), ten + ".command")
+    bo = [] if CFG.get("dung_api_key") is True else ["unset ANTHROPIC_API_KEY ANTHROPIC_AUTH_TOKEN"]   # như env_claude()
+    with open(f, "w", encoding="utf-8", newline="\n") as fh:
+        fh.write("#!/bin/bash\n# Poly Dung Bai tu tao luc %s\nclear\n%s\n" % (time.strftime("%d/%m %H:%M"), "\n".join(bo + list(dong))))
+    os.chmod(f, 0o755)
+    subprocess.Popen(["open", "-a", "Terminal", f], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+
+MAC_TEN_GOC = {
+    "C:/Users/Dao/Pictures/PolySocial/_tu-chay": "hàng chờ Photoshop",
+    "E:/Tool/poly-dung-bai": "app Poly Dựng Bài",
+    "E:/Social Claude": "bộ luật, bộ dựng, bài Laptop / iPad, ảnh tải về",
+    "C:/Users/Dao": "thư mục user (Downloads, Pictures, .claude)",
+}
+MAC_GHI_CHU = """
+
+TRÊN MÁY NÀY: MacBook của fen (macOS). App Poly Dựng Bài tự thêm đoạn này, máy shop Windows không có.
+Luật, plugin poly-carousel, sổ dựng và lệnh mẫu viết cho máy shop Windows. Đường dẫn trên máy này:
+%s
+- Thư mục khác của máy shop (E:\\Tool\\Anh, ảnh Telegram Desktop, Screenshots của Windows…) không có trên máy này: bỏ qua, không đi tìm.
+File nào ghi đường dẫn E:/… hay C:\\Users\\Dao\\… thì hiểu theo bảng trên; trong lệnh và dòng THU_MUC_BAI= luôn ghi đường dẫn thật của máy này (dấu /).
+- Sửa file luật, sổ dựng, plugin, lệnh mẫu của app (nút Quy tắc, "Chung", ghi luật rút ra): đường dẫn viết trong các file đó giữ kiểu máy shop (E:/Social Claude/…), không ghi đường dẫn Mac vào (các file này dùng chung với máy shop).
+- Lệnh: Bash của macOS, không cmd, không PowerShell. Gõ python "…" như luật được (app trỏ lệnh python sang python3 của app).
+- Photoshop: vẫn chỉ qua hàng chờ (chay_ps.py, tach_nen_ps.py tự biết hàng chờ của máy này qua biến POLY_TU_CHAY). Bộ canh hàng chờ trên Mac tự đổi đường dẫn E:/… trong file .jsx sang đường dẫn Mac. Không tự gọi osascript, không mở hay điều khiển Photoshop / app nào bằng tay (luật 11b).
+- Hàng chờ không chạy (chay_ps.py báo CANH BAO hay QUA GIO): báo fen 1 câu "fen mở lại app Poly Dựng Bài và mở Photoshop", không tự xử lý.
+- Chụp màn hình bài mẹo: máy này là Mac, không chụp màn hình máy này cho bài mẹo Windows hay iPad; dùng ảnh fen gửi hoặc ảnh tạm, hỏi fen bằng HOI_FEN (luật 11b, 18).
+- Font: Mac không có Segoe UI. Log Photoshop ghi font đã dùng khác UTM-Cookies / UTMAvoBold / UTM-Avo / Source Serif thì máy này thiếu font: thêm 1 dòng cuối bài báo fen cài font.
+"""
+
+
+def mac_luat_chung(src, dst):
+    """Luật chung cho lượt chạy trên Mac: đường dẫn máy shop đổi sang Mac + đoạn "TRÊN MÁY NÀY" (bảng đổi đường dẫn, lệnh macOS)."""
+    bang = mac_bang_cfg()
+    dong = "\n".join("- %s (%s) = %s : %s" % (w, w.replace("/", "\\"), m, MAC_TEN_GOC.get(w, "")) for w, m in bang)
+    t = read_text(src).replace("\r\n", "\n")
+    with open(dst, "w", encoding="utf-8", newline="\n") as f:
+        f.write(mac_doi(t, bang).rstrip() + MAC_GHI_CHU % dong)
+    return dst
+
+
+def mac_env(env):
+    """Môi trường Claude trên Mac: lệnh python (luật ghi python "…", Mac chỉ có python3), hàng chờ Photoshop của máy này,
+    chỗ cài hay gặp của node / claude / Homebrew (app mở từ Finder có thể thiếu PATH)."""
+    b = mac_dir("bin")
+    py = os.path.join(b, "python")
+    noi = '#!/bin/sh\n# Poly Dung Bai: may Mac khong co lenh python -> python3 cua app\nexec %s "$@"\n' % mac_lenh([sys.executable or "python3"])
+    try:
+        if read_text(py) != noi:
+            with open(py, "w", encoding="utf-8", newline="\n") as f:
+                f.write(noi)
+        os.chmod(py, 0o755)
+    except OSError as e:
+        log("mac: khong ghi duoc lenh python: %s" % e)
+    cu = [x for x in (env.get("PATH") or "/usr/bin:/bin:/usr/sbin:/sbin").split(os.pathsep) if x and x != b]
+    them = [x for x in ("/opt/homebrew/bin", "/usr/local/bin", os.path.expanduser("~/.local/bin")) if os.path.isdir(x) and x not in cu]
+    env["PATH"] = os.pathsep.join([b] + cu + them)
+    env["POLY_TU_CHAY"] = CFG.get("tu_chay") or MAC_HANG_CHO
+    env["POLY_PYTHON"] = sys.executable or "python3"
+    return env
+
+
+def mac_chrome_ok(c):
+    c = os.path.expanduser(c or "")
+    if c.endswith(".app"):
+        return os.path.isdir(os.path.join(c, "Contents", "MacOS"))
+    return os.path.isfile(c) and os.access(c, os.X_OK)
+
+
+def mac_tim_chrome():
+    c = CFG.get("chrome_path")
+    if c and mac_chrome_ok(c):
+        return os.path.expanduser(c)
+    for p in ("/Applications/Google Chrome.app", os.path.expanduser("~/Applications/Google Chrome.app")):
+        if mac_chrome_ok(p):
+            return p
+    return shutil.which("google-chrome") or shutil.which("chrome")
+
+
+def mac_mo_chrome(ch, url):
+    hs = ["--profile-directory=" + CFG["chrome_profile"]] if CFG.get("chrome_profile") else []
+    if ch.endswith(".app"):
+        # -n: Chrome đang mở vẫn nhận đúng hồ sơ + link (không có -n thì Mac bỏ --args khi Chrome đang chạy)
+        args = ["open", "-na", ch, "--args"] + hs + [url]
+    else:
+        args = [ch] + hs + [url]
+    subprocess.Popen(args, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)
+
+
+def mac_allowed_path(p):
+    """Như allowed_path, so sau khi chuẩn hoá NFC (Mac không phân biệt NFC / NFD khi mở file nhưng chuỗi khác nhau)."""
+    try:
+        rp = _nfc(os.path.realpath(p))
+    except Exception:
+        return False
+    for r in [JOBS, CFG.get("thu_muc_lam_viec") or ""] + list(CFG.get("thu_muc_bai", {}).values()):
+        if r and os.path.isdir(r):
+            rr = _nfc(os.path.realpath(r)).rstrip("/")
+            if rp == rr or rp.startswith(rr + "/"):
+                return True
+    return False
+
+
+_MAC_TV = {"t": 0, "thieu": None}
+
+
+def mac_thu_vien_thieu():
+    """Thư viện ảnh các công cụ soi / tách nền cần (như cai-dat.ps1 máy shop): pillow, numpy, scipy, opencv-python."""
+    if _MAC_TV["thieu"] is not None and now() - _MAC_TV["t"] < 120:
+        return _MAC_TV["thieu"]
+    ten = {"PIL": "pillow", "numpy": "numpy", "scipy": "scipy", "cv2": "opencv-python"}
+    try:
+        r = subprocess.run([sys.executable, "-c", "import importlib.util as u\nprint(' '.join(m for m in ('PIL', 'numpy', 'scipy', 'cv2') if u.find_spec(m) is None))"],
+                           capture_output=True, text=True, timeout=30)
+        thieu = [ten[m] for m in r.stdout.split() if m in ten] if r.returncode == 0 else ["?"]
+    except Exception:
+        thieu = ["?"]
+    _MAC_TV.update(t=now(), thieu=thieu)
+    return thieu
+
+
+def mac_san_sang(ds, tuoi):
+    """Ô Kiểm máy trên Mac: chữ đúng máy Mac + Python / thư viện ảnh + thư mục đang dùng."""
+    home = os.path.expanduser("~")
+    for x in ds:
+        if x["ma"] == "ps":
+            x["ten"] = "Photoshop tự chạy (hàng chờ)"
+            if not x["ok"]:
+                x["ghi"] = "bộ canh hàng chờ chưa chạy: đóng rồi mở lại app (Poly Dung Bai.command). Có bài là Photoshop tự mở"
+        elif x["ma"] == "chrome" and not x["ok"]:
+            x["ghi"] = "không thấy Google Chrome: cài Chrome, hoặc dán đường dẫn ở Đăng TikTok bên dưới"
+        elif x["ma"] == "plugin" and not x["ok"]:
+            x["ghi"] = "không thấy %s: chép thư mục social-claude của app thành ~/Social Claude" % (CFG.get("plugin_dir") or "plugin").replace(home, "~")
+    thieu = mac_thu_vien_thieu()
+    ds.append({"ma": "python", "ten": "Python + thư viện ảnh", "ok": not thieu, "can": False,
+               "ghi": ("Python %d.%d, đủ thư viện" % sys.version_info[:2]) if not thieu else
+               "thiếu %s: tắt app, nhấp đúp Poly Dung Bai.command, chọn Cài" % ", ".join(thieu)})
+    goc, q = CFG.get("thu_muc_lam_viec") or "", CFG.get("tu_chay") or ""
+    ds.append({"ma": "thu_muc", "ten": "Thư mục trên máy Mac", "ok": os.path.isdir(os.path.join(goc, "_bo-dung-design")), "can": False,
+               "ghi": "bộ luật + bài: %s · hàng chờ Photoshop: %s (đổi trong config.json)" % (goc.replace(home, "~", 1), q.replace(home, "~", 1))})
+
+
+def mac_tu_chay_file():
+    for g in (CFG.get("thu_muc_lam_viec") or "", os.path.join(APP, "social-claude")):
+        f = os.path.join(g, "_bo-dung-design", "tu-chay", "poly-tu-chay-mac.py")
+        if os.path.isfile(f):
+            return f
+    return ""
+
+
+def mac_canh_hang_cho():
+    """Như scheduled task 5 phút + Startup của máy shop: bộ canh hàng chờ Photoshop (poly-tu-chay-mac.py) chưa chạy / chết
+    (dang-chay.txt cũ hơn 20 giây) thì bật lại. Bộ canh có khoá nên bật thừa cũng chỉ 1 bản chạy."""
+    con = []
+    while True:
+        con = [p for p in con if p.poll() is None]      # dọn tiến trình con đã thoát (không để zombie)
+        try:
+            q = CFG.get("tu_chay") or MAC_HANG_CHO
+            try:
+                tuoi = now() - os.path.getmtime(os.path.join(q, "dang-chay.txt"))
+            except OSError:
+                tuoi = None
+            f = mac_tu_chay_file()
+            if f and (tuoi is None or tuoi > 20):
+                os.makedirs(q, exist_ok=True)
+                with open(os.path.join(q, "poly-tu-chay-mac.log"), "ab") as lg:
+                    con.append(subprocess.Popen([sys.executable, f, "--hang-cho", q, "--goc", CFG.get("thu_muc_lam_viec") or MAC_GOC, "--app", APP],
+                                                stdin=subprocess.DEVNULL, stdout=lg, stderr=lg, cwd=q, start_new_session=True))
+                log("mac: bat bo canh hang cho Photoshop %s" % q)
+        except Exception:
+            log(traceback.format_exc())
+        time.sleep(CFG.get("mac_canh_giay") or 30)
+
+
+def mac_chuan_bi():
+    """Mở app trên Mac (fen 30/10 "set tự cài đặt trong máy khỏi hỏi luôn"): lần đầu ghi 2 thư mục gốc vào config.json,
+    chép bộ luật (social-claude của app) thành ~/Social Claude nếu chưa có, tạo Laptop / iPad / hàng chờ, bật bộ canh hàng chờ."""
+    p = os.path.join(APP, "config.json")
+    user = read_json(p, None) if os.path.exists(p) else {}
+    if isinstance(user, dict):      # config.json sai cú pháp: không ghi đè (save_cfg_keys cũng chặn)
+        keys = {k: CFG[k] for k in ("thu_muc_lam_viec", "tu_chay") if not user.get(k) or la_duong_dan_win(user.get(k))}
+        if keys:
+            try:
+                save_cfg_keys(keys)
+                log("mac: ghi thu muc vao config.json: %s" % keys)
+            except Exception as e:
+                log("mac: chua ghi duoc config.json: %s" % e)
+    goc, q = CFG["thu_muc_lam_viec"], CFG["tu_chay"]
+    nguon = os.path.join(APP, "social-claude")
+    try:
+        if not os.path.isdir(os.path.join(goc, "_bo-dung-design")) and os.path.isdir(os.path.join(nguon, "_bo-dung-design")) \
+                and khoa_thu_muc(nguon) != khoa_thu_muc(goc):
+            os.makedirs(goc, exist_ok=True)
+            for fn in sorted(os.listdir(nguon)):      # chỉ chép cái chưa có, không ghi đè file nào
+                s, dd = os.path.join(nguon, fn), os.path.join(goc, fn)
+                if os.path.lexists(dd):
+                    continue
+                if os.path.isdir(s):
+                    shutil.copytree(s, dd)
+                else:
+                    shutil.copy2(s, dd)
+            log("mac: chep bo luat %s -> %s" % (nguon, goc))
+        for sub in ("Laptop", "iPad", "Anh tai ve"):
+            os.makedirs(os.path.join(goc, sub), exist_ok=True)
+        os.makedirs(os.path.join(q, "_da-chay"), exist_ok=True)
+        with open(os.path.join(mac_dir(), "hang-cho.txt"), "w", encoding="utf-8") as f:   # Tat Poly Dung Bai.command đọc
+            f.write(q + "\n")
+    except Exception:
+        log(traceback.format_exc())
+    threading.Thread(target=mac_canh_hang_cho, daemon=True).start()
 
 
 # ---------------------------------------------------------------- HTTP
@@ -2658,6 +3120,7 @@ class H(BaseHTTPRequestHandler):
                     "cwd": CFG.get("thu_muc_lam_viec"), "cwd_ok": os.path.isdir(CFG.get("thu_muc_lam_viec") or ""),
                     "mode": CFG.get("che_do_quyen"), "kenh": CFG["kenh"],
                     "tk": ci.get("tk") or {}, "san_sang": san_sang(),
+                    "os": "mac" if IS_MAC else "win" if IS_WIN else "khac",   # giao diện đổi chữ hướng dẫn theo máy (⌘, Terminal…)
                 })
             m = re.fullmatch(r"/api/tiktok/([\w-]+)", u.path)
             if m:
@@ -2735,6 +3198,10 @@ class H(BaseHTTPRequestHandler):
                     comspec = os.environ.get("COMSPEC", "cmd.exe")
                     subprocess.Popen([comspec, "/c", "start", "Dang nhap Claude Code", comspec, "/k"] + cmd + ["auth", "login"],
                                      creationflags=CREATE_NO_WINDOW)
+                elif IS_MAC:   # mở 1 cửa sổ Terminal đăng nhập; claude auth login tự mở trình duyệt
+                    mac_mo_terminal("dang-nhap", ['echo "Đăng nhập Claude Code: trình duyệt tự mở, chọn tài khoản Claude của fen rồi bấm cho phép."',
+                                                  mac_lenh(cmd + ["auth", "login"]), "echo",
+                                                  'echo "Xong. Đóng cửa sổ này, quay lại app Poly Dựng Bài (app tự nhận)."'])
                 _CLAUDE["t"] = 0
                 return self.send(200, {"ok": True})
             if u.path == "/api/tiktok-soi":
@@ -2818,6 +3285,8 @@ class H(BaseHTTPRequestHandler):
                         raise ValueError("Không mở được thư mục này")
                     if IS_WIN:
                         os.startfile(p)  # noqa
+                    elif IS_MAC:
+                        subprocess.Popen(["open", p], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)   # mở bằng Finder
                     return self.send(200, {"ok": True})
                 if act == "xoa":
                     # khong xoa han: chuyen vao jobs\_to_delete
@@ -2858,6 +3327,8 @@ def main():
         print("App da chay san o cong %d" % port)
         return
     srv.daemon_threads = True
+    if IS_MAC:   # lần đầu: ghi thư mục vào config.json, chép bộ luật, bật bộ canh hàng chờ Photoshop
+        mac_chuan_bi()
     log("mo app cong %d" % port)
     print("Poly Dung Bai: http://127.0.0.1:%d" % port)
     threading.Thread(target=claude_info, daemon=True).start()
