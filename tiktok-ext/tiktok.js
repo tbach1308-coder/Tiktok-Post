@@ -252,6 +252,19 @@
     await nghi(400, 800);    // như người: đọc danh sách kết quả
     return ds;
   }
+  async function cuonDs(root) {   // cuộn danh sách nhạc xuống 1 đoạn (tải thêm bài); false = hết, không cuộn được nữa
+    const it = root.querySelector('[class*="MusicPanelMusicItem__wrap"]');
+    if (!it) return false;
+    let el = it.parentElement;
+    while (el && el !== root && !(el.scrollHeight > el.clientHeight + 10 && /auto|scroll/.test(getComputedStyle(el).overflowY))) el = el.parentElement;
+    if (!el) return false;
+    const truoc = el.scrollTop;
+    el.scrollTop = truoc + Math.max(200, el.clientHeight * 0.8);
+    el.dispatchEvent(new Event('scroll', { bubbles: true }));
+    await nghi(700, 1200);
+    await choDs(root, null, 4000);
+    return el.scrollTop !== truoc;
+  }
   async function chonNhac(d) {
     const b = nutThemNhac();
     if (!b) return 'khong-nut';
@@ -267,16 +280,21 @@
     const du = x => !x.giay || x.giay >= 15;
     const moi = ds => ds.find(x => !set.has(x.khoa) && du(x));
     let chon = null, nguon = '', ds = [];
-    // fen 30/10 18h20 "chọn nhạc ngẫu nhiên đi miễn không trùng nhau" (cả iPad và Laptop): bốc ngẫu nhiên 1 bài chưa
-    // đăng ở tab For You (danh sách đang mở), rồi Favorites, rồi tìm 1 từ khoá rộng ngẫu nhiên; không còn theo gu hip hop.
+    // fen 30/10 18h20 "chọn nhạc ngẫu nhiên đi miễn không trùng nhau" (cả iPad và Laptop); 18h29 "lướt rồi chọn, không tìm kiếm
+    // vì kênh business": lướt (cuộn) danh sách For You một đoạn ngẫu nhiên rồi bốc ngẫu nhiên 1 bài chưa đăng; hết thì Favorites.
     if (d.nhac_kieu === 'ngau-nhien') {
       const boc = a => { const c = a.filter(x => !set.has(x.khoa) && du(x)); return c.length ? c[Math.floor(Math.random() * c.length)] : null; };
+      const luot = async () => {
+        const n = Math.floor(Math.random() * 5);                       // cuộn ngẫu nhiên 0–4 lần như người lướt
+        for (let i = 0; i < n; i++) if (!await cuonDs(root)) break;
+        for (let i = 0; i < 12; i++) { const c = boc(baiNhac(root)); if (c) return c; if (!await cuonDs(root)) break; }
+        return null;
+      };
       const fy = tabNhac(root, /^(for you|dành cho bạn|gợi ý|đề xuất)$/i);
       if (fy && fy.getAttribute('aria-selected') !== 'true') { bam(fy); await nghi(600, 1000); }
-      ds = await choDs(root, null, 8000); chon = boc(ds); if (chon) nguon = 'For You (ngẫu nhiên)';
+      await choDs(root, null, 8000); chon = await luot(); if (chon) nguon = 'For You (lướt)';
       if (!chon) { const fv = tabNhac(root, /^(favorites|yêu thích|đã lưu|mục yêu thích)$/i);
-        if (fv) { bam(fv); await nghi(600, 1000); ds = await choDs(root, null, 6000); chon = boc(ds); if (chon) nguon = 'Favorites (ngẫu nhiên)'; } }
-      if (!chon) for (const q of (d.nhac_tim || []).slice(0, 3)) { chon = boc(await timNhac(root, q)); if (chon) { nguon = q + ' (ngẫu nhiên)'; break; } }
+        if (fv) { bam(fv); await nghi(600, 1000); await choDs(root, null, 6000); chon = await luot(); if (chon) nguon = 'Favorites (lướt)'; } }
     }
     const fav = !chon && d.nhac_kieu !== 'ngau-nhien' && tabNhac(root, /^(favorites|yêu thích|đã lưu|mục yêu thích)$/i);      // 1) nhạc fen thả tim sẵn
     if (fav) { bam(fav); await nghi(600, 1000); ds = await choDs(root, null, 6000); chon = moi(ds); if (chon) nguon = 'Favorites'; }
@@ -293,6 +311,10 @@
       }
     }
     if (!chon) return 'khong-thay-bai';
+    await nghi(300, 600);                    // danh sách vừa tải thêm có thể vẽ lại: tìm lại đúng bài trước khi rê chuột / bấm Use
+    const lai = baiNhac(root).find(x => x.khoa === chon.khoa); if (lai) chon.el = lai.el;
+    try { chon.el.scrollIntoView({ block: 'center' }); } catch (e) {}
+    await nghi(200, 400);
     hover(chon.el); await nghi(300, 600);
     const u = nutDung(chon.el);
     if (!u) return 'khong-nut-dung';

@@ -166,11 +166,12 @@ CÀI TIỆN ÍCH POLY TIKTOK (1 lần, cho nút Đăng TikTok)
      không có thì gõ rồi chọn đúng gợi ý của TikTok. Điền xong dòng mờ "Writing a long description…" phải mất;
      còn thì khung Poly báo "ô mô tả chưa nhận hashtag".
   6. Nhạc (kênh shop = tài khoản doanh nghiệp, chỉ có nhạc thương mại của TikTok, ít bài, tên tiếng Anh):
-     fen chốt 30/10 18h20 cho cả iPad và Laptop: chọn NGẪU NHIÊN, miễn không trùng bài đã đăng (tiện ích 0.10.2).
-     a) Bốc ngẫu nhiên 1 bài chưa dùng ở tab For You.
-     b) Hết thì bốc ngẫu nhiên ở Favorites (bài fen thả tim ♡).
-     c) Hết nữa thì tìm 1 từ khoá rộng ngẫu nhiên (chill, pop, lofi, acoustic, edm…) rồi bốc ngẫu nhiên.
-     d) Hết hẳn bài mới thì lấy bài dùng lâu nhất rồi (khung Poly ghi rõ).
+     fen chốt 30/10 cho cả iPad và Laptop: chọn NGẪU NHIÊN, miễn không trùng bài đã đăng; LƯỚT rồi chọn, KHÔNG tìm
+     kiếm (kênh business tìm ít ra bài) (tiện ích 0.10.3).
+     a) Tab For You: cuộn xuống một đoạn ngẫu nhiên (như người lướt), bốc ngẫu nhiên 1 bài chưa dùng; chưa có bài mới thì
+        cuộn tiếp (tối đa 12 lần).
+     b) Hết thì làm y vậy ở Favorites (bài fen thả tim ♡).
+     c) Hết hẳn bài mới thì lấy bài dùng lâu nhất rồi (khung Poly ghi rõ).
      Muốn 1 kênh quay lại kiểu cũ (hip hop, xoay từ khoá "nhac_tu_khoa"): thêm "nhac_theo_gu": ["laptop"] vào config.json.
      Bỏ bài dưới 15 giây. Bài đã chọn ghi vào nhac-da-dung.json và hiện "Nhạc đã chọn: …" ở thẻ Đăng.
   7. KHÔNG TỰ BẤM ĐĂNG (fen chốt 29/10 17h50, tiện ích 0.10.0, sau khi tìm hiểu cách TikTok xử lý đăng tự động):
