@@ -9,7 +9,7 @@ for _f in (_s.stdout, _s.stderr):
     try: _f.reconfigure(encoding='utf-8', errors='replace')
     except Exception: pass
 import sys, os, time, shutil, argparse, re
-Q = os.environ.get("POLY_TU_CHAY", r"C:\Users\Dao\Pictures\PolySocial\_tu-chay")
+Q = os.environ.get("POLY_TU_CHAY", os.path.expanduser("~/Pictures/PolySocial/_tu-chay") if sys.platform == "darwin" else r"C:\Users\Dao\Pictures\PolySocial\_tu-chay")   # Mac: hàng chờ của bộ canh poly-tu-chay-mac.py
 ap = argparse.ArgumentParser()
 ap.add_argument('jsx'); ap.add_argument('bai'); ap.add_argument('ver')
 ap.add_argument('--cho', type=int, default=300, help='giây chờ tối đa')
@@ -17,7 +17,7 @@ a = ap.parse_args()
 ten = os.path.basename(a.jsx)
 nk = os.path.join(Q, 'nhat-ky.txt'); hb = os.path.join(Q, 'dang-chay.txt')
 if not os.path.exists(hb) or time.time() - os.path.getmtime(hb) > 30:
-    print('CANH BAO: bo tu chay co ve chua bat (dang-chay.txt cu hon 30 giay). Mo Photoshop hoac chay tay poly-tu-chay.jsx 1 lan.')
+    print('CANH BAO: bo tu chay co ve chua bat (dang-chay.txt cu hon 30 giay). ' + ('Mo lai app Poly Dung Bai (tu bat bo canh hang cho tren Mac).' if sys.platform == 'darwin' else 'Mo Photoshop hoac chay tay poly-tu-chay.jsx 1 lan.'))
 dau = os.path.getsize(nk) if os.path.exists(nk) else 0
 log = os.path.join(a.bai, 'log', a.ver + '.log')
 log_cu = os.path.getmtime(log) if os.path.exists(log) else 0
