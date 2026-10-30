@@ -62,6 +62,8 @@ Cách dùng app (Bài mới, Sửa, Đăng bài…) giống hệt máy shop: xem
 
 6. TELEGRAM
 - Nút "Telegram" trên thanh trên cùng, cài 3 bước như máy shop. Token chỉ lưu trên Mac này.
+- Nút "📱 Remote" (nhắn việc cho app qua Telegram): Mac dùng chung bot với máy shop thì chỉ bật Remote ở 1 máy.
+  2 máy cùng bật thì ô Remote báo "Bot đang bị chương trình khác đọc tin". Muốn cả 2 máy cùng nhận lệnh: tạo bot riêng cho Mac.
 
 7. KHÁC MÁY SHOP
 - Dán ảnh bằng ⌘V (Command + V).
