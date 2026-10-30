@@ -2,6 +2,8 @@
 config.json
 jobs/
 _edge/
+_chrome/
+_mac/
 _soi/
 _to_delete/
 *.log
