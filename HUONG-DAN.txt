@@ -106,7 +106,8 @@ LÀM 1 BÀI
 - "Dừng": dừng bài đang chạy. "Chạy tiếp": làm tiếp từ chỗ dở. Nút ⋯ > "Xoá khỏi danh sách":
   chuyển bài vào thư mục _to_delete của app (không xoá hẳn).
 - Nút "📱 Remote" trên cùng (30/10): ra ngoài vẫn giao việc cho app qua Telegram (chat RIÊNG với bot, không phải nhóm).
-  Bấm Remote > Bật. Lần đầu app hiện mã 6 số: bấm "Mở bot trên Telegram" rồi Start (hoặc nhắn mã cho bot), là nối xong.
+  Nút Tắt / Bật nằm ngay trên thanh trên cùng (bấm chữ "📱 Remote" để xem mã nối, hướng dẫn).
+  Lần đầu bấm Bật app hiện mã 6 số: bấm "Mở bot trên Telegram" rồi Start (hoặc nhắn mã cho bot), là nối xong.
   Chỉ Telegram đã nhắn mã mới ra lệnh được, người khác nhắn bot thì bỏ qua. Không cần thì Tắt (hoặc nhắn /tat).
   Nhắn cho bot:
    · chủ đề bài (vd "laptop cho dân kiến trúc", "tìm chủ đề hot mẹo iPad"): Claude viết brief + lợi ích bài, gửi về

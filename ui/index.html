@@ -263,6 +263,11 @@ select.in.msel option{background:var(--panel);color:var(--tx)}
 .sbdem b{color:var(--tx)}
 /* nút Quy tắc (30/10) */
 .mbox.qtbox{width:min(640px,94vw);display:grid;gap:10px}
+.chip.rmc{margin-right:8px;padding-right:3px;gap:8px}
+.chip.rmc .rml{cursor:pointer}
+.chip.rmc .rml:hover{color:var(--tx)}
+.kseg.rmsw{padding:1px}
+.kseg.rmsw button{padding:2px 11px;font-size:12px}
 .mbox.rmbox{width:min(560px,94vw);display:grid;gap:10px}
 .rmbox h3,.rmbox .pnote,.rmbox p{margin:0}
 .rmbox #rmSeg{justify-self:start}
@@ -466,7 +471,7 @@ details.brief ul{margin:0;padding-left:18px;color:var(--mut)}
 <div class="top">
   <div class="brand"><div class="logo">P</div><div>POLY DỰNG BÀI<small>CAROUSEL TIKTOK</small></div></div>
   <div class="sp"></div>
-  <button class="chip tgc" id="bRm" title="Remote: nhắn việc cho app từ Telegram (viết brief, bấm Chạy, ghi quy tắc, hỏi tình hình). Chỉ nghe khi bật."><span class="dot"></span><span>📱 Remote</span></button>
+  <span class="chip rmc" id="bRm" title="Remote: nhắn việc cho app từ Telegram (viết brief, bấm Chạy, ghi quy tắc, hỏi tình hình). Chỉ nghe khi bật. Bấm chữ Remote để xem mã nối, hướng dẫn."><span class="dot"></span><span class="rml" role="button">📱 Remote</span><span class="kseg rmsw"><button data-rb="0">Tắt</button><button data-rb="1">Bật</button></span></span>
   <button class="chip tgc" id="bQt" title="Ghi quy tắc mới cho mọi bài sau (không sửa bài nào)"><span>📏 Quy tắc</span></button>
   <button class="chip tgc" id="bTg" title="Cài / đổi Telegram nhận slide bài Laptop"><span class="dot"></span><span>Telegram</span></button>
   <span class="chip hcc" id="hc" title="Kiểm máy: tài khoản Claude, plugin, quy tắc" onclick="if (!event.target.closest('button')) kiemMay()"><span class="dot"></span><span>Đang kiểm Claude…</span></span>
@@ -720,10 +725,20 @@ async function mdCai(){
 }
 /* nút Remote (fen 30/10 16h15 "cần 1 chat mới để nhắn yêu cầu làm việc", "có nút bật remote control khi nào cần bật lên mới sài"):
    chat riêng với bot Telegram ra lệnh cho app; máy chủ chỉ nghe khi bật, chỉ nhận tin từ tài khoản đã ghép mã */
+// fen 30/10 17h15 "cho nút bật tắt này nằm ra ngoài luôn": nút Tắt / Bật nằm ngay trên thanh trên cùng, bấm chữ Remote mở ô mã nối + hướng dẫn
 function rmChip(r){
   const c = $('#bRm'); if (!c || !r) return;
-  const cls = !r.bat ? '' : r.loi ? 'err' : r.noi ? 'ok' : 'warn';
-  setH(c, `<span class="dot ${cls}"></span><span>📱 Remote${r.bat ? (r.loi ? ' · lỗi' : r.noi ? ' · đang bật' : ' · chờ nối') : ''}</span>`);
+  S.rm = r;
+  const d = c.querySelector('.dot'); if (d) d.className = 'dot ' + (!r.bat ? '' : r.loi ? 'err' : r.noi ? 'ok' : 'warn');
+  const l = c.querySelector('.rml'); if (l) l.textContent = '📱 Remote' + (r.bat ? (r.loi ? ' · lỗi' : r.noi ? '' : ' · chờ nối') : '');
+  c.querySelectorAll('[data-rb]').forEach(b => b.classList.toggle('on', (b.dataset.rb === '1') === !!r.bat));
+}
+async function rmBat(v){
+  try {
+    const r = await api('/api/tg-lenh', {bat: v}); rmChip(r);
+    toast(v ? 'Đã bật Remote' + (r.noi ? ': nhắn việc cho bot trên Telegram' : '') : 'Đã tắt Remote');
+    if (v && !r.noi) remote();      // chưa nối Telegram: mở ô có mã nối
+  } catch(e) { if (e.message.startsWith('CAI_TELEGRAM')) tgDialog(e.message.split('|')[1]); else toast(e.message, true); }
 }
 function remote(){
   if ($('#rmBox')) return;
@@ -1772,7 +1787,8 @@ function inline(s){
 $('#bNew').onclick = baiMoi;
 $('#bTg').onclick = () => tgDialog(); tgChip();
 $('#bQt').onclick = () => quyTac(); qtTai();
-$('#bRm').onclick = () => remote();
+$('#bRm .rml').onclick = () => remote();
+document.querySelectorAll('#bRm [data-rb]').forEach(b => b.onclick = e => { e.stopPropagation(); const v = b.dataset.rb === '1'; if (S.rm && v === !!S.rm.bat) return; rmBat(v); });
 
 $('#bCoSan').onclick = coSanDialog;
 $('#bLs').onclick = lsDialog;
