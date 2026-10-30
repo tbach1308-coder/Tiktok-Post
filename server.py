@@ -2206,16 +2206,13 @@ TGL = {"luong": None, "ma": "", "ma_luc": 0, "loi": "", "loi_luc": 0, "tam_dung"
 TGL_KHOA = threading.Lock()
 TGL_KHOA_BANG = threading.Lock()
 TGL_MA_HAN = 900          # mã ghép dùng được 15 phút
-TGL_HELP = (
-    "Nhắn cho mình:\n"
-    "• Chủ đề bài (vd \"laptop cho dân kiến trúc\", \"tìm chủ đề hot mẹo iPad\") → Claude viết brief + lợi ích bài, fen bấm ▶️ Chạy để dựng.\n"
-    "• Trả lời (reply) tin brief, gõ ý cần đổi → Claude sửa brief đó.\n"
-    "• \"quy tắc: …\" (gửi kèm ảnh được) → ghi luật mới luôn cho mọi bài sau (chữ chỉ nhắc laptop / iPad thì ghi cho kênh đó).\n"
-    "• /tinhhinh → bài đang dựng, xếp hàng, chờ đăng, đã đăng.\n"
-    "• /cho (nút 📮 Bài chờ đăng) → bấm 1 bài là mình gửi đủ slide + caption + câu ghim để fen coi / đăng bằng điện thoại, đăng xong bấm ✅ Đã đăng.\n"
-    "• /tat → tắt nhận lệnh; lúc tắt mình chỉ nghe /bat để bật lại (hoặc bật ở nút 📱 Remote trong app).\n"
-    "• Bảng điều khiển ghim đầu chat: nút Bật / Tắt, Viết brief, Quy tắc, tình hình tự cập nhật. Lạc mất bảng: /bang.\n"
-    "Chỉ Telegram của fen ra lệnh được, người khác nhắn bot mình bỏ qua.")
+TGL_HELP = (   # fen 30/10 18h05 "giao diện gọn thôi nha": tin ngắn
+    "📖 Cách dùng\n"
+    "• Nhắn chủ đề → brief + nút ▶️ Chạy\n"
+    "• Reply tin brief → sửa brief\n"
+    "• quy tắc: … → ghi luật (kèm ảnh được)\n"
+    "• /cho → coi slide + caption bài chờ đăng\n"
+    "• /tinhhinh · /bang · /tat · /bat")
 TGL_PV = {"chung": "chung 2 kênh", "laptop": "chỉ Laptop", "ipad": "chỉ iPad"}
 
 
@@ -2261,9 +2258,9 @@ def tgl_cai(data):
             threading.Thread(target=tgl_bang, kwargs={"ep": True}, daemon=True).start()
         if bat:
             if doi and tgl_noi():
-                threading.Thread(target=tgl_gui, args=("🟢 Đã bật Remote: nhắn việc cho app ở đây.\n\n" + TGL_HELP,), daemon=True).start()
+                threading.Thread(target=tgl_gui, args=("🟢 Đã bật Remote.",), daemon=True).start()
         elif doi and tgl_noi():
-            threading.Thread(target=tgl_gui, args=("⚪️ Đã tắt Remote: mình không làm việc nào, chỉ nghe lệnh /bat để bật lại (hoặc bật ở nút 📱 Remote trong app).",), daemon=True).start()
+            threading.Thread(target=tgl_gui, args=("⚪ Đã tắt Remote. Nhắn /bat để bật lại.",), daemon=True).start()
     if CFG.get("tg_lenh") and not tgl_noi() and (data.get("ma_moi") or not TGL["ma"] or now() - TGL["ma_luc"] >= TGL_MA_HAN):
         import secrets
         TGL["ma"], TGL["ma_luc"], TGL["sai"] = "%06d" % secrets.randbelow(10 ** 6), now(), 0
@@ -2361,7 +2358,7 @@ def tgl_vong():
             except Exception:
                 pass
         if bo and tgl_noi():
-            tgl_gui("Có %d tin fen nhắn lúc Remote đang tắt, mình bỏ qua để khỏi làm nhầm việc cũ. Cần thì nhắn lại nha." % bo)
+            tgl_gui("Bỏ qua %d tin nhắn lúc Remote tắt, cần thì nhắn lại." % bo)
         try:
             tgl_bang()            # bảng ghim: sửa khi tình hình đổi
         except Exception:
@@ -2453,7 +2450,7 @@ def tgl_tin(m):
             TGL["ma"] = ""
             log("tg lenh: da ghep tai khoan %s" % fr.get("id"))
             tgl_menu()
-            tgl_gui("✅ Đã nối với app Poly Dựng Bài trên máy shop.\n\n" + TGL_HELP)
+            tgl_gui("✅ Đã nối app Poly Dựng Bài.\n\n" + TGL_HELP)
             tgl_bang(moi=True)
         return
     if c.get("id") != CFG.get("tg_lenh_chat") or fr.get("id") != CFG.get("tg_lenh_nguoi"):
@@ -2472,10 +2469,10 @@ def tgl_tin(m):
             tgl_cai({"bat": True})
         elif now() - TGL.get("ngu_bao", 0) > 300:
             TGL["ngu_bao"] = now()
-            tgl_gui("⚪️ Remote đang tắt nên mình chưa làm việc này. Nhắn /bat để bật rồi nhắn lại nha.")
+            tgl_gui("⚪ Remote đang tắt, nhắn /bat để bật.")
         return
     if la_bat:
-        return tgl_gui("Remote đang bật rồi, fen nhắn việc luôn nha.")
+        return tgl_gui("🟢 Remote đang bật rồi.")
     anh = tgl_lay_anh(m) if (m.get("photo") or m.get("document")) else []
     g = m.get("media_group_id")
     if anh and g and not text and g in TGL["album"]:          # album nhiều ảnh: ảnh sau không có chữ, gộp vào việc của ảnh đầu
@@ -2486,7 +2483,7 @@ def tgl_tin(m):
     if (m.get("photo") or m.get("document")) and not text:
         if g:
             return
-        return tgl_gui("Mình nhận ảnh rồi. Ảnh dùng khi ghi quy tắc: gửi lại ảnh kèm chữ, vd \"quy tắc: bìa iPad chữ to hơn\".")
+        return tgl_gui("Ảnh dùng khi ghi quy tắc: gửi lại kèm chữ \"quy tắc: …\".")
     if lenh in ("/help", "/huongdan", "help") or t0 in ("?", "huong dan", "giup", "lenh"):
         return tgl_gui(TGL_HELP)
     if lenh in ("/tinhhinh", "/status") or re.match(r"(tinh hinh|tinh trang|status)\b", t0):
@@ -2499,7 +2496,7 @@ def tgl_tin(m):
     if mq or hoi_qt:
         nd = (text[mq.end():] if mq else text).strip()
         if len(nd) < 3:
-            return tgl_gui("Gõ luật muốn thêm sau chữ quy tắc, vd: quy tắc: slide cuối không ghi địa chỉ")
+            return tgl_gui("Gõ luật sau chữ quy tắc, vd: quy tắc: slide cuối không ghi địa chỉ")
         # fen 30/10 17h32 "luật mới đã update thì làm không cần hỏi": ghi luôn, không hỏi phạm vi. Chữ chỉ nhắc 1 kênh
         # (laptop / iPad) thì ghi cho kênh đó, còn lại ghi chung 2 kênh. Album nhiều ảnh: chờ 3 giây gom đủ ảnh rồi mới ghi.
         pv = tgl_doan_kenh(nd) or "chung"
@@ -2516,15 +2513,15 @@ def tgl_tin(m):
             return tgl_sua_brief(bj, text)
     mb = re.match(r"^\s*/brief(?:@\w+)?\s*", text, re.I)
     if lenh.startswith("/") and not mb:
-        return tgl_gui("Mình chưa biết lệnh này.\n\n" + TGL_HELP)
+        return tgl_gui("Lệnh lạ.\n\n" + TGL_HELP)
     chu_de = (text[mb.end():] if mb else text).strip()
     if len(chu_de) < 3:
-        return tgl_gui("Gõ chủ đề bài, vd: laptop cho dân kiến trúc, hoặc tìm chủ đề hot mẹo iPad")
+        return tgl_gui("Gõ chủ đề bài, vd: laptop cho dân kiến trúc")
     kenh = tgl_doan_kenh(chu_de)
     if kenh:
         return tgl_bat_brief(kenh, chu_de)
     k = tgl_cho_them({"loai": "brief", "text": chu_de})
-    tgl_gui("✍ Viết brief cho kênh nào?\n“%s”" % short(chu_de, 300),
+    tgl_gui("✍ Kênh nào? “%s”" % short(chu_de, 200),
             [[{"text": "💻 Laptop", "callback_data": "br:%s:laptop" % k}, {"text": "📱 iPad", "callback_data": "br:%s:ipad" % k}],
              [{"text": "✖ Bỏ", "callback_data": "huy:%s" % k}]])
 
@@ -2585,7 +2582,7 @@ def tgl_bam(q):
             return tra(str(e))
         tra("Đã chuyển sang Đã đăng")
         bo_nut()
-        tgl_gui("✅ Đã đánh dấu đã đăng: %s" % ten_hien(load_job(du) or {})[0])
+        tgl_gui("✅ Đã đăng: %s" % ten_hien(load_job(du) or {})[0])
         return tgl_bang(ep=True)
     if loai == "cap" and re.fullmatch(r"[0-9a-zA-Z_-]{6,64}", du):
         try:
@@ -2594,7 +2591,7 @@ def tgl_bam(q):
             return tra(str(e).split("|")[-1])
         tra("Claude đang viết caption…")
         bo_nut()
-        tgl_gui("✍ Claude đang viết caption (1–2 phút), xong mình gửi về đây.")
+        tgl_gui("✍ Đang viết caption…")
         return threading.Thread(target=tgl_cho_caption, args=(du,), daemon=True).start()
     if loai in ("chay", "lai", "bo") and re.fullmatch(r"[0-9a-zA-Z_-]{6,64}", du):
         if loai == "bo":
@@ -2621,7 +2618,7 @@ def tgl_bat_brief(kenh, chu_de, them=None):
     except ValueError as e:
         return tgl_gui("⚠️ Chưa viết brief được: " + str(e).split("|")[-1])
     tk = CFG["kenh"].get(kenh, {}).get("ten", kenh)
-    mid = tgl_gui("✍ Claude đang viết brief %s: “%s”\nXong mình gửi brief + lợi ích bài về đây (thường vài phút)." % (tk, short(chu_de, 200)))
+    mid = tgl_gui("✍ Đang viết brief %s: “%s”…" % (tk, short(chu_de, 150)))
     tgl_gan(r["id"], {"cho": mid})
     threading.Thread(target=tgl_cho_viec, args=(r["id"],), daemon=True).start()
 
@@ -2669,7 +2666,7 @@ def tgl_sua_brief(jid, tin):
         r = chat_brief({"kenh": j.get("kenh"), "tin": tin, "chu_de": j.get("chu_de") or "", "brief": tgl_brief_cua(jid), "lich_su": ls})
     except ValueError as e:
         return tgl_gui("⚠️ Chưa sửa được: " + str(e).split("|")[-1])
-    mid = tgl_gui("✏️ Claude đang sửa brief theo ý fen…")
+    mid = tgl_gui("✏️ Đang sửa brief…")
     tgl_gan(r["id"], {"cho": mid, "goc": jid, "brief_goc": tgl_brief_cua(jid), "lich_su": (ls + [{"text": tin}])[-8:]})
     threading.Thread(target=tgl_cho_viec, args=(r["id"],), daemon=True).start()
 
@@ -2699,9 +2696,9 @@ def tgl_chay(jid, tra, bo_nut):
     tgl_gan(jid, {"chay": job["id"]})
     ten, tk = ten_hien(job)[0], CFG["kenh"].get(job.get("kenh"), {}).get("ten", job.get("kenh"))
     if job.get("status") == "hen" and job.get("xep_hang"):
-        tgl_gui("⏳ Đã xếp hàng thứ %d: %s (%s)\nBài trước xong là tự dựng, xong mình báo về đây." % (job.get("thu") or 1, ten, tk))
+        tgl_gui("⏳ Xếp hàng thứ %d: %s (%s)" % (job.get("thu") or 1, ten, tk))
     else:
-        tgl_gui("▶️ Đang dựng: %s (%s)\nXong mình gửi bìa về đây. Gõ /tinhhinh để xem tiến độ." % (ten, tk))
+        tgl_gui("▶️ Đang dựng: %s (%s)" % (ten, tk))
     log("tg lenh: chay bai %s tu brief %s" % (job["id"], jid))
     tgl_bang(ep=True)
 
@@ -2714,7 +2711,7 @@ def tgl_bat_qt(p, pv):
     except ValueError as e:
         return tgl_gui("⚠️ Chưa ghi được quy tắc: " + str(e).split("|")[-1])
     na = len(p.get("anh") or [])
-    mid = tgl_gui("📏 Claude đang ghi quy tắc (%s%s): “%s”" % (TGL_PV.get(pv, pv), ", kèm %d ảnh" % na if na else "", short(p["text"], 200)))
+    mid = tgl_gui("📏 Đang ghi quy tắc (%s%s): “%s”" % (TGL_PV.get(pv, pv), ", %d ảnh" % na if na else "", short(p["text"], 150)))
     tgl_gan(r["id"], {"cho": mid})
     threading.Thread(target=tgl_cho_viec, args=(r["id"],), daemon=True).start()
 
@@ -2783,11 +2780,10 @@ def tgl_bao_brief(jid):
     hieu = next((re.sub(r"[*_`]+", "", x).strip() for x in ls if re.match(r"^\W*Chủ đề\s*:", x, re.I)), "")
     li, cn = _tgl_dong(ls, "LOI_ICH"), (_tgl_dong(ls, "CAN_NHAC") or [""])[0]
     ts = ["✓ " + (hieu or ("Đã sửa: " + short(re.sub(r"[*_`]+", "", v.get("final") or ""), 300) if jj.get("chat") else "Brief xong"))]
-    if li:
-        ts += ["", "Lợi ích bài:"] + ["• " + x for x in li]
+    ts += ["• " + x for x in li]
     if cn and not re.match(r"^không có\.?$", cn, re.I):
-        ts.append("⚠️ Cân nhắc: " + cn)
-    ts += ["", "Bấm ▶️ Chạy để dựng bài. Muốn sửa: trả lời (reply) tin này, gõ ý cần đổi."]
+        ts.append("⚠️ " + cn)
+    ts.append("↩️ Reply tin này để sửa")
     mid = tgl_gui("\n".join(ts), [[{"text": "▶️ Chạy dựng bài", "callback_data": "chay:" + jid}],
                                   [{"text": "🔄 Viết lại", "callback_data": "lai:" + jid}, {"text": "✖ Bỏ", "callback_data": "bo:" + jid}]])
     tgl_gan(jid, {"msg": mid, "msgs": msgs, "chat": CFG.get("tg_lenh_chat")})
@@ -2873,11 +2869,10 @@ def tgl_tinh_hinh():
 # ghim đầu chat"): 1 tin có nút, app tự sửa tin đó khi tình hình đổi (bài chạy / xếp hàng / xong, bật tắt Remote)
 def tgl_bang_nut():
     bat = bool(CFG.get("tg_lenh"))
-    return [[{"text": "⚪ Tắt Remote" if bat else "🟢 Bật Remote", "callback_data": "bg:tat" if bat else "bg:bat"},
-             {"text": "🔄 Làm mới", "callback_data": "bg:moi"}],
-            [{"text": "✍ Viết brief", "callback_data": "bg:brief"}, {"text": "📏 Quy tắc", "callback_data": "bg:qt"}],
-            [{"text": "📮 Bài chờ đăng", "callback_data": "bg:cho"}, {"text": "📊 Tình hình", "callback_data": "bg:th"}],
-            [{"text": "❓ Hướng dẫn", "callback_data": "bg:help"}]]
+    return [[{"text": "⚪ Tắt" if bat else "🟢 Bật", "callback_data": "bg:tat" if bat else "bg:bat"},
+             {"text": "🔄", "callback_data": "bg:moi"}, {"text": "❓", "callback_data": "bg:help"}],
+            [{"text": "✍ Brief", "callback_data": "bg:brief"}, {"text": "📏 Quy tắc", "callback_data": "bg:qt"}],
+            [{"text": "📮 Chờ đăng", "callback_data": "bg:cho"}, {"text": "📊 Tình hình", "callback_data": "bg:th"}]]
 
 
 def tgl_bang_chu():
@@ -2885,24 +2880,28 @@ def tgl_bang_chu():
     d = _tgl_so_lieu(chi_tiet=False)
     ic = d["ic"]
     bat = bool(CFG.get("tg_lenh"))
-    ls = ["🎛 BẢNG ĐIỀU KHIỂN · Poly Dựng Bài (máy shop)",
-          "Remote: " + ("🟢 đang bật, nhắn việc ở đây" if bat else "⚪ đang tắt (chỉ nghe nút Bật / lệnh /bat)"), ""]
-    ls += ["▶️ Đang dựng: %s (%s · %d phút)" % (short(x["ten"], 50), ic.get(x["k"], ""), x["phut"]) for x in d["dang"]] \
-        or ["▶️ Không có bài nào đang dựng"]
-    if d["xep"] or d["hen"]:
-        ls.append("⏳ Xếp hàng: %d · 🗓 Hẹn làm: %d" % (len(d["xep"]), len(d["hen"])))
+    ls = ["🎛 Poly Dựng Bài · " + ("🟢 Remote bật" if bat else "⚪ Remote tắt")]
+    ls += ["▶️ Đang dựng: %s (%s %d')" % (short(x["ten"], 45), ic.get(x["k"], ""), x["phut"]) for x in d["dang"]] \
+        or ["▶️ Không có bài đang dựng"]
+    phu = []
+    if d["xep"]:
+        phu.append("⏳ Xếp hàng %d" % len(d["xep"]))
+    if d["hen"]:
+        phu.append("🗓 Hẹn %d" % len(d["hen"]))
     if d["viet"]:
-        ls.append("✍ Đang viết: %d việc" % len(d["viet"]))
+        phu.append("✍ Đang viết %d" % len(d["viet"]))
     if d["loi"]:
-        ls.append("⚠️ %d bài dừng giữa chừng (24 giờ)" % d["loi"])
-    ls.append("📮 Chờ đăng: " + " · ".join("%s %d" % (ic.get(k, k), d["cho_dang"].get(k, 0)) for k in CFG["kenh"]))
-    ls.append("✅ Đã đăng: " + " · ".join("%s %d" % (ic.get(k, k), d["da_dang"].get(k, 0)) for k in CFG["kenh"]))
+        phu.append("⚠️ Dừng %d" % d["loi"])
+    if phu:
+        ls.append(" · ".join(phu))
+    ls.append("📮 Chờ đăng %s · ✅ Đã đăng %s" % (" ".join("%s%d" % (ic.get(k, k), d["cho_dang"].get(k, 0)) for k in CFG["kenh"]),
+                                                " ".join("%s%d" % (ic.get(k, k), d["da_dang"].get(k, 0)) for k in CFG["kenh"])))
     ci = _CLAUDE.get("login")
     if ci is False:
-        ls.append("⚠️ Claude trên máy shop CHƯA đăng nhập")
+        ls.append("⚠️ Claude máy shop CHƯA đăng nhập")
     dau = json.dumps([bat, [(x["ten"], x["k"]) for x in d["dang"]], len(d["xep"]), len(d["hen"]), len(d["viet"]), d["loi"],
                       d["cho_dang"], d["da_dang"], ci], ensure_ascii=False, sort_keys=True)
-    ls += ["", "Cập nhật %s" % time.strftime("%H:%M %d/%m")]
+    ls.append("🕒 %s" % time.strftime("%H:%M %d/%m"))
     return "\n".join(ls), dau
 
 
@@ -2954,9 +2953,9 @@ def tgl_ds_cho():
         if j and j.get("loai") not in VIEC_AN and j.get("status") == "xong" and not j.get("da_dang"):
             ds.append(j)
     if not ds:
-        return tgl_gui("📮 Không có bài nào chờ đăng.")
+        return tgl_gui("📮 Không có bài chờ đăng.")
     nut = [[{"text": "%s %s" % (ic.get(j.get("kenh"), ""), short(ten_hien(j)[0], 48)), "callback_data": "xem:" + j["id"]}] for j in ds[:15]]
-    tgl_gui("📮 Bài chờ đăng (%d%s): bấm 1 bài để xem đủ slide + caption." % (len(ds), ", hiện 15 bài mới nhất" if len(ds) > 15 else ""), nut)
+    tgl_gui("📮 Chờ đăng (%d%s):" % (len(ds), ", 15 bài mới nhất" if len(ds) > 15 else ""), nut)
 
 
 def tgl_xem(jid):
@@ -2970,7 +2969,7 @@ def tgl_xem(jid):
     tk = CFG["kenh"].get(j.get("kenh"), {}).get("ten", j.get("kenh"))
     if not sl:
         return tgl_gui("Bài %s chưa có slide." % ten)
-    tgl_gui("📷 %s (%s) · %d slide" % (ten, tk, len(sl)))
+    tgl_gui("📷 %s · %d slide" % (ten, len(sl)))
     file_goc = bool(CFG.get("telegram_file")) or any(os.path.getsize(x["path"]) > 9.5e6 for x in sl)
     kieu = "document" if file_goc else "photo"
     i = 0
@@ -2998,9 +2997,7 @@ def tgl_xem(jid):
     nut = [[{"text": "✅ Đã đăng xong", "callback_data": "dd:" + jid}, {"text": "📮 Bài khác", "callback_data": "bg:cho"}]]
     if not cap:
         nut.insert(0, [{"text": "✍ Viết caption", "callback_data": "cap:" + jid}])
-    tgl_gui(("Trên là caption, câu ghim (giữ tin để copy)." if cap else "Bài chưa có caption.") +
-            (" Kênh iPad đăng trên TikTok web thì vẫn mở app bấm Đăng TikTok." if j.get("kenh") == "ipad" else "") +
-            " Đăng xong bấm ✅ để chuyển bài sang Đã đăng.", nut)
+    tgl_gui("Giữ tin để copy. Đăng xong bấm ✅." if cap else "Chưa có caption.", nut)
 
 
 def tgl_cho_caption(jid, han=900):
@@ -3020,7 +3017,7 @@ def tgl_cho_caption(jid, han=900):
     tgl_gui(cap)
     if ghim:
         tgl_gui(ghim)
-    tgl_gui("Caption xong (giữ tin để copy).", [[{"text": "✅ Đã đăng xong", "callback_data": "dd:" + jid}, {"text": "📮 Bài khác", "callback_data": "bg:cho"}]])
+    tgl_gui("Giữ tin để copy. Đăng xong bấm ✅.", [[{"text": "✅ Đã đăng xong", "callback_data": "dd:" + jid}, {"text": "📮 Bài khác", "callback_data": "bg:cho"}]])
 
 
 def tgl_bam_bang(viec, tra):
@@ -3046,10 +3043,10 @@ def tgl_bam_bang(viec, tra):
         return tra("Remote đang tắt, bấm 🟢 Bật Remote trước")
     tra()
     if viec == "brief":
-        return tgl_gui("✍ Nhắn chủ đề bài vào đây (vd: laptop cho dân kiến trúc, tìm chủ đề hot mẹo iPad). Có chữ laptop / iPad thì mình tự chọn kênh.",
+        return tgl_gui("✍ Nhắn chủ đề bài:",
                        markup={"force_reply": True, "input_field_placeholder": "Chủ đề bài…"})
     if viec == "qt":
-        mid = tgl_gui("📏 Nhắn quy tắc mới vào đây (gửi kèm ảnh được), vd: slide cuối không ghi địa chỉ shop.",
+        mid = tgl_gui("📏 Nhắn quy tắc mới (kèm ảnh được):",
                       markup={"force_reply": True, "input_field_placeholder": "Quy tắc mới…"})
         if mid:
             TGL["hoi_qt"] = mid
