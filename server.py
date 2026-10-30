@@ -1920,7 +1920,7 @@ def tg_cai(data):
                 ten = c.get("title") if nhom else (c.get("first_name") or c.get("username") or "")
                 ten = ten or ""
                 save_cfg_keys({"telegram_chat": c["id"], "telegram_ten": ten})
-                tg_call("sendMessage", {"chat_id": c["id"], "text": "Đã nối Poly Dựng Bài với %s. Bài Laptop xong bấm Gửi Telegram là slide + caption về đây." % (("nhóm " + ten) if nhom else ("Telegram của " + ten))}, timeout=20)
+                tg_call("sendMessage", {"chat_id": c["id"], "text": "Đã nối Poly Dựng Bài với %s. Bài xong bấm Gửi Telegram là slide + caption về đây." % (("nhóm " + ten) if nhom else ("Telegram của " + ten))}, timeout=20)
                 return {"ok": True, "ten": ten}
         if not ups:
             try:  # bot đang có webhook (vd từng gắn với dịch vụ khác) thì getUpdates không nhận tin
@@ -2176,7 +2176,7 @@ def _bao_mot_bai(jid):
             ls.append("Đã đổi so với brief: " + re.sub(r"[*_`]+", "", m.group(1)).strip())
         if v.get("hoi"):
             ls.append("Claude có %d câu hỏi, fen trả lời trong app." % len(v["hoi"]))
-        ls.append("Mở app Poly Dựng Bài để xem và " + ("Gửi Telegram." if job["kenh"] == "laptop" else "Đăng TikTok."))
+        ls.append("Mở app Poly Dựng Bài để xem và Đăng TikTok.")
         _bao_tg("\n".join(ls), sl[0]["path"] if sl else None, noi, jid if sl else None)
     else:
         _bao_tg("⚠️ Bài %s (%s) dừng giữa chừng sau %d phút: %s\nMở app bấm Chạy tiếp." % (ten, kenh, phut, short(v.get("ly_do") or "không rõ lý do", 300)), None, noi)
@@ -3195,6 +3195,11 @@ def tiktok_cai(data=None):
             if hs and hs not in [x["dir"] for x in chrome_ho_so()]:
                 raise ValueError("Không thấy hồ sơ Chrome này trên máy")
             keys["chrome_profile"] = hs
+        if "ho_so_laptop" in data:     # fen 30/10 18h15: Laptop cũng đăng TikTok web, Chrome hồ sơ riêng (đăng nhập @polystorelaptop)
+            hs = (data.get("ho_so_laptop") or "").strip()
+            if hs and hs not in [x["dir"] for x in chrome_ho_so()]:
+                raise ValueError("Không thấy hồ sơ Chrome này trên máy")
+            keys["chrome_profile_kenh"] = dict(CFG.get("chrome_profile_kenh") or {}, laptop=hs)
         if "chrome" in data:
             c = (data.get("chrome") or "").strip().strip('"')
             if IS_MAC:
@@ -3208,18 +3213,31 @@ def tiktok_cai(data=None):
             save_cfg_keys(keys)
             CFG.update(keys)
         if data.get("thu"):
-            mo_chrome(CFG.get("tiktok_upload") or TIKTOK_LINK)
+            mo_chrome(CFG.get("tiktok_upload") or TIKTOK_LINK, data.get("thu_kenh") if data.get("thu_kenh") in CFG["kenh"] else "ipad")
     return {"link": CFG.get("tiktok_upload") or "", "link_mac_dinh": TIKTOK_LINK, "chrome": tim_chrome() or "",
-            "chrome_tu_chon": CFG.get("chrome_path") or "", "ho_so": chrome_ho_so(), "ho_so_chon": CFG.get("chrome_profile") or ""}
+            "chrome_tu_chon": CFG.get("chrome_path") or "", "ho_so": chrome_ho_so(), "ho_so_chon": CFG.get("chrome_profile") or "",
+            "ho_so_laptop": (CFG.get("chrome_profile_kenh") or {}).get("laptop") or ""}
 
 
-def mo_chrome(url):
+def ho_so_kenh(kenh):
+    """Hồ sơ Chrome đăng TikTok của kênh: iPad dùng chrome_profile (như cũ), Laptop dùng chrome_profile_kenh.laptop.
+    None = chưa chọn (Laptop phải chọn, không mở nhầm hồ sơ @poly.store); "" = Chrome tự chọn."""
+    if kenh == "laptop":
+        return (CFG.get("chrome_profile_kenh") or {}).get("laptop") or None
+    return CFG.get("chrome_profile") or ""
+
+
+def mo_chrome(url, kenh="ipad"):
     ch = tim_chrome()
     if not ch:
         raise ValueError(MAC_KHONG_CHROME if IS_MAC else "Không thấy Chrome trên máy. Mở Kiểm máy > Đăng TikTok, dán đường dẫn chrome.exe.")
+    hs = ho_so_kenh(kenh)
+    if hs is None:
+        raise ValueError("CHON_HO_SO|Chọn hồ sơ Chrome đăng nhập %s (Kiểm máy > Đăng TikTok > Hồ sơ Chrome Laptop) rồi bấm lại."
+                         % CFG["kenh"].get(kenh, {}).get("handle", kenh))
     if IS_MAC:
-        return mac_mo_chrome(ch, url)
-    args = [ch] + (["--profile-directory=" + CFG["chrome_profile"]] if CFG.get("chrome_profile") else []) + [url]
+        return mac_mo_chrome(ch, url, hs)
+    args = [ch] + (["--profile-directory=" + hs] if hs else []) + [url]
     subprocess.Popen(args, creationflags=CREATE_NO_WINDOW if IS_WIN else 0)
 
 
@@ -3251,7 +3269,7 @@ def mo_tiktok(jid):
         cu = [x for x in ((load_job(jid) or job).get("da_gui") or []) if x.get("kieu") == "tiktok"]
         if cu and now() - cu[-1].get("t", 0) < 5:
             return {"ok": True, "trung": True}
-        mo_chrome(url)
+        mo_chrome(url, job.get("kenh"))
         _ghi_da_gui(jid, {"t": now(), "kieu": "tiktok"})
     return {"ok": True}
 
@@ -3293,8 +3311,6 @@ def hen_dang_job(jid, data):
         j = load_job(jid)
         if not j:
             raise ValueError("Không thấy bài")
-        if j.get("kenh") != "ipad":
-            raise ValueError("Hẹn giờ đăng chỉ cho bài iPad (đăng bằng TikTok web). Bài Laptop đăng bằng app điện thoại.")
         if data.get("huy"):
             j.pop("hen_dang", None); j.pop("hen_dang_mo", None)
         else:
@@ -3800,8 +3816,9 @@ def mac_tim_chrome():
     return shutil.which("google-chrome") or shutil.which("chrome")
 
 
-def mac_mo_chrome(ch, url):
-    hs = ["--profile-directory=" + CFG["chrome_profile"]] if CFG.get("chrome_profile") else []
+def mac_mo_chrome(ch, url, ho_so=None):
+    ho_so = CFG.get("chrome_profile") if ho_so is None else ho_so
+    hs = ["--profile-directory=" + ho_so] if ho_so else []
     if ch.endswith(".app"):
         # -n: Chrome đang mở vẫn nhận đúng hồ sơ + link (không có -n thì Mac bỏ --args khi Chrome đang chạy)
         args = ["open", "-na", ch, "--args"] + hs + [url]

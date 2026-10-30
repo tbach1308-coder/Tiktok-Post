@@ -79,7 +79,11 @@ LÀM 1 BÀI
    Bài nằm trong thư mục Laptop mà bấm iPad (hay ngược lại) thì app hỏi lại trước, không đổi liền.
    - iPad: bấm "Đăng TikTok (web)". Chrome mở TikTok Studio, tiện ích Poly TikTok tự gắn slide +
      caption. Fen xem đúng tài khoản @poly.store, chọn nhạc rồi TỰ bấm Đăng (tiện ích không bấm).
-   - Laptop: bấm "Gửi Telegram". Slide (album ảnh như gửi tay), caption và câu ghim (mỗi cái 1 tin,
+   - Laptop (30/10 18h15): cũng có nút "Đăng TikTok (web)" như iPad, mở bằng hồ sơ Chrome riêng của kênh Laptop
+     (đăng nhập @polystorelaptop, có cài tiện ích Poly TikTok). Lần đầu bấm app mở Kiểm máy > Đăng TikTok:
+     chọn "Hồ sơ Chrome Laptop" rồi Lưu ("Mở thử Laptop" để kiểm). Hẹn giờ đăng dùng được cho cả Laptop.
+     Muốn đăng bằng điện thoại thì vẫn có nút "Gửi Telegram":
+     slide (album ảnh như gửi tay), caption và câu ghim (mỗi cái 1 tin,
      giữ tin để copy) về Telegram của fen, mở điện thoại đăng bằng app TikTok. Lần đầu app hiện
      3 bước cài Telegram (tạo bot ở @BotFather, dán token, nhắn bot 1 tin rồi bấm Kiểm). Token chỉ
      lưu trên máy này. Đổi bot hay bot bị lỗi: link "Đổi Telegram" dưới nút, hoặc nút "Telegram" trên

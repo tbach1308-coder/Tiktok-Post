@@ -16,7 +16,7 @@ File này là gốc cho caption, hashtag, comment ghim, Your brand; luật nội
 <caption ≤ 90 ký tự>
 Comment ghim: <câu ghim>
 ```
-App Poly Dựng Bài hiện file này cho fen sửa. Dòng 1 được điền vào TikTok (iPad) hoặc gửi Telegram (Laptop).
+App Poly Dựng Bài hiện file này cho fen sửa. Dòng 1 được tiện ích Poly TikTok điền vào TikTok Studio (cả 2 kênh từ 30/10, mỗi kênh 1 hồ sơ Chrome) hoặc gửi Telegram (Laptop đăng bằng điện thoại).
 
 ## Your brand (Tiết lộ nội dung, fen chốt 30/10 12h54)
 - Mặc định **tắt** cho mọi bài, đúng cài đặt gốc của TikTok (When to post: Now, Everyone, Comment + Reuse of content bật, Disclose post content tắt, AI-generated content tắt). Tiện ích Poly TikTok không bật Your brand.

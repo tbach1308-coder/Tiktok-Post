@@ -694,14 +694,15 @@ function kiemMay(denTT){
   m.innerHTML = `<div class="mbox"><h3>Kiểm máy</h3>
     <p class="pnote">Tài khoản Claude nào có gói Pro / Max đăng nhập vào cũng làm được: plugin dựng bài, luật chung và file quy tắc nằm trên máy này, mỗi lượt chạy app tự nạp. Gói Max chạy bài dài đỡ hết lượt hơn.</p>
     <div id="kmL"></div><p class="err" id="kmErr"></p><p class="okc" id="kmOk"></p>
-    <div class="kmtt" id="kmTT"><b>Đăng TikTok (iPad)</b>
-      <p class="pnote">Chrome mở bằng hồ sơ nào thì hồ sơ đó phải đăng nhập @poly.store và cài tiện ích Poly TikTok. Qua máy khác thì chọn lại ở đây.</p>
-      <label>Hồ sơ Chrome<select class="in" id="kmHs"><option value="">Chrome tự chọn (hồ sơ mở gần nhất)</option></select></label>
+    <div class="kmtt" id="kmTT"><b>Đăng TikTok</b>
+      <p class="pnote">Mỗi kênh 1 hồ sơ Chrome: hồ sơ đó phải đăng nhập đúng tài khoản TikTok của kênh và cài tiện ích Poly TikTok. Qua máy khác thì chọn lại ở đây.</p>
+      <label>Hồ sơ Chrome iPad (@poly.store)<select class="in" id="kmHs"><option value="">Chrome tự chọn (hồ sơ mở gần nhất)</option></select></label>
+      <label>Hồ sơ Chrome Laptop (@polystorelaptop)<select class="in" id="kmHsL"><option value="">Chưa chọn</option></select></label>
       <label>Link đăng<input class="in" id="kmLink" autocomplete="off"></label>
       <p class="pnote">Tiện ích chỉ điền sẵn, không tự bấm Post / Schedule: điều khoản TikTok cấm script tự đăng (fen chốt 29/10).</p>
       <details><summary>Máy không thấy Chrome: đường dẫn ${laMac() ? 'Google Chrome.app' : 'chrome.exe'}</summary><input class="in" id="kmCh" autocomplete="off" placeholder="${laMac() ? '/Applications/Google Chrome.app' : 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'}"></details>
       <p class="err" id="kmTtErr"></p>
-      <div class="acts"><button class="btn sm" id="kmTtThu">Mở thử</button><button class="btn sm pri" id="kmTtLuu">Lưu</button></div></div>
+      <div class="acts"><button class="btn sm" id="kmTtThu">Mở thử iPad</button><button class="btn sm" id="kmTtThuL">Mở thử Laptop</button><button class="btn sm pri" id="kmTtLuu">Lưu</button></div></div>
     <div class="kmtt" id="kmMd"><b>Model từng việc</b>
       <p class="pnote">Opus kỹ nhưng chậm, Sonnet nhanh, Haiku nhanh nhất cho việc nhẹ. Bài mới và ô Sửa bài có chọn riêng cho từng bài. "Mặc định" = model mặc định của tài khoản đang đăng nhập.</p>
       <div id="kmMdL">Đang tải…</div><p class="err" id="kmMdErr"></p></div>
@@ -843,13 +844,16 @@ async function ttCai(den){
   let c; try { c = await api('/api/tiktok-cai'); } catch(e) { $('#kmTtErr').textContent = e.message; return; }
   const sl = $('#kmHs'); if (!sl) return;
   sl.insertAdjacentHTML('beforeend', (c.ho_so || []).map(x => `<option value="${esc(x.dir)}" ${x.dir === c.ho_so_chon ? 'selected' : ''}>${esc(x.ten)}${x.email ? ' · ' + esc(x.email) : ''}</option>`).join(''));
+  const slL = $('#kmHsL');
+  if (slL) slL.insertAdjacentHTML('beforeend', (c.ho_so || []).map(x => `<option value="${esc(x.dir)}" ${x.dir === c.ho_so_laptop ? 'selected' : ''}>${esc(x.ten)}${x.email ? ' · ' + esc(x.email) : ''}</option>`).join(''));
   $('#kmLink').value = c.link || c.link_mac_dinh; $('#kmLink').placeholder = c.link_mac_dinh;
   $('#kmCh').value = c.chrome_tu_chon || ''; if (!c.chrome) $('#kmTT details').open = true;
   const luu = async thu => { $('#kmTtErr').textContent = '';
     const link = $('#kmLink').value.trim();
-    try { await api('/api/tiktok-cai', {link: link === c.link_mac_dinh ? '' : link, ho_so: sl.value, chrome: $('#kmCh').value.trim(), thu: !!thu}); toast(thu ? 'Đã mở Chrome bằng hồ sơ đã chọn' : 'Đã lưu Chrome + link đăng'); health(true); }
+    try { await api('/api/tiktok-cai', {link: link === c.link_mac_dinh ? '' : link, ho_so: sl.value, ho_so_laptop: slL ? slL.value : undefined, chrome: $('#kmCh').value.trim(), thu: !!thu, thu_kenh: thu || undefined}); toast(thu ? 'Đã mở Chrome bằng hồ sơ ' + (thu === 'laptop' ? 'Laptop' : 'iPad') : 'Đã lưu Chrome + link đăng'); health(true); }
     catch(e) { $('#kmTtErr').textContent = e.message; } };
-  $('#kmTtLuu').onclick = () => luu(false); $('#kmTtThu').onclick = () => luu(true);
+  $('#kmTtLuu').onclick = () => luu(false); $('#kmTtThu').onclick = () => luu('ipad');
+  const thuL = $('#kmTtThuL'); if (thuL) thuL.onclick = () => luu('laptop');
   if (den) $('#kmTT').scrollIntoView({block: 'center'});
 }
 async function doiTk(b){
@@ -1575,26 +1579,30 @@ const normCap = t => (t || '').replace(/\r\n?/g, '\n').replace(/\s+$/, '');
 function renderPost(){
   const d = S.data, j = d.job, w = $('#postWrap'), sl = d.slides || [];
   if (j.status !== 'xong' || !sl.length) { setH(w, ''); return; }
-  const ipad = j.kenh === 'ipad', gui = (d.da_gui || []).filter(x => x.kieu === (ipad ? 'tiktok' : 'telegram')).pop();
+  // fen 30/10 18h15: Laptop cũng Đăng TikTok (web) như iPad, Chrome hồ sơ riêng; vẫn giữ Gửi Telegram để đăng bằng điện thoại
+  const ipad = j.kenh === 'ipad', handle = ipad ? '@poly.store' : '@polystorelaptop';
+  const gui = (d.da_gui || []).filter(x => x.kieu === 'tiktok').pop(), guiTg = (d.da_gui || []).filter(x => x.kieu === 'telegram').pop();
   const ta = $('#capT');
   if (ta && document.activeElement === ta) return;            // fen đang gõ caption: không vẽ lại
   const busy = !!(S.dangGui && S.dangGui[j.id]) || !!j.sau_caption;
-  const henD = ipad && j.hen_dang && !j.da_dang ? j.hen_dang : 0;
-  const nut = j.sau_caption ? 'Đang viết caption…' : busy ? (ipad ? 'Đang mở…' : 'Đang gửi…') : (ipad ? (henD ? 'Mở TikTok để hẹn · ' + henTxt(henD) : 'Đăng TikTok (web)') : 'Gửi Telegram');
-  const daGui = gui ? `<br><span class="${gui.thieu ? 'stc' : 'okc'}">${ipad ? 'Đã mở TikTok' : (gui.thieu ? `Mới gửi ${gui.n}/${gui.tong} slide qua Telegram` : 'Đã gửi Telegram')} lúc ${hm(gui.t)}</span>` : '';
+  const henD = j.hen_dang && !j.da_dang ? j.hen_dang : 0;
+  const nut = j.sau_caption ? 'Đang viết caption…' : busy ? 'Đang chạy…' : (henD ? 'Mở TikTok để hẹn · ' + henTxt(henD) : 'Đăng TikTok (web)');
+  const daGui = (gui ? `<br><span class="okc">Đã mở TikTok lúc ${hm(gui.t)}</span>` : '')
+    + (guiTg ? `<br><span class="${guiTg.thieu ? 'stc' : 'okc'}">${guiTg.thieu ? `Mới gửi ${guiTg.n}/${guiTg.tong} slide qua Telegram` : 'Đã gửi Telegram'} lúc ${hm(guiTg.t)}</span>` : '');
   const h = `<div class="card mt post"><div class="ph"><b>Đăng bài</b><span class="pn" id="capN"></span></div>
     <textarea class="in cap" id="capT" placeholder="Claude chưa viết caption. Gõ caption ở đây (dòng 1 tối đa 90 ký tự, dòng 2 comment ghim).">
 ${esc(d.caption || '')}</textarea>
-    <div class="pacts"><button class="btn sm pri" id="bDang"${busy ? ' disabled' : ''}>${nut}</button><button class="btn sm ghost" id="bCopy">Chép caption</button><button class="btn sm ghost" id="bVietCap" title="Claude đọc slide, viết caption + câu ghim theo luật hashtag kênh (khoảng 1–2 phút)">${(d.caption || '').trim() ? 'Viết lại caption' : '✍ Viết caption'}</button>${ipad && !j.da_dang ? `<button class="btn sm ghost" id="bHenDang" title="Chọn giờ đăng: giờ này hiện sẵn trên nút ⏰ Hẹn giờ ở khung Poly trên trang TikTok">⏰ ${j.hen_dang ? 'Đổi giờ đăng' : 'Hẹn giờ đăng'}</button>` : ''}<button class="btn sm ghost" id="bDaDang" title="${ipad ? 'Fen tự đăng ngoài tiện ích' : 'Fen đăng bằng app TikTok trên điện thoại xong thì bấm'}">${j.da_dang ? 'Bỏ đánh dấu đã đăng' : '✓ Đánh dấu đã đăng'}</button></div>
+    <div class="pacts"><button class="btn sm pri" id="bDang"${busy ? ' disabled' : ''}>${nut}</button>${ipad ? '' : `<button class="btn sm ghost" id="bGuiTg"${busy ? ' disabled' : ''} title="Gửi album slide + caption + câu ghim vào Telegram để đăng bằng app TikTok trên điện thoại">Gửi Telegram</button>`}<button class="btn sm ghost" id="bCopy">Chép caption</button><button class="btn sm ghost" id="bVietCap" title="Claude đọc slide, viết caption + câu ghim theo luật hashtag kênh (khoảng 1–2 phút)">${(d.caption || '').trim() ? 'Viết lại caption' : '✍ Viết caption'}</button>${!j.da_dang ? `<button class="btn sm ghost" id="bHenDang" title="Chọn giờ đăng: giờ này hiện sẵn trên nút ⏰ Hẹn giờ ở khung Poly trên trang TikTok">⏰ ${j.hen_dang ? 'Đổi giờ đăng' : 'Hẹn giờ đăng'}</button>` : ''}<button class="btn sm ghost" id="bDaDang" title="Fen tự đăng ngoài tiện ích (vd đăng bằng app TikTok trên điện thoại) xong thì bấm">${j.da_dang ? 'Bỏ đánh dấu đã đăng' : '✓ Đánh dấu đã đăng'}</button></div>
     ${(() => { const b = d.brand || {bat: false, nguon: 'mac-dinh'};
-      return `<div class="brrow" title="Tiết lộ nội dung → Thương hiệu của bạn (Disclose post content → Your brand). Mặc định tắt như cài đặt gốc TikTok (fen chốt 30/10); bài nào cần thì bấm Bật."><span>Your brand${ipad ? '' : ' (lúc đăng bằng điện thoại)'}</span><div class="kseg"><button data-br="0" class="${b.bat ? '' : 'on'}">Không bật</button><button data-br="1" class="${b.bat ? 'on' : ''}">Bật</button></div><span>${b.nguon === 'fen' ? 'fen chọn' : 'mặc định'}</span></div>`; })()}
-    <p class="pnote">${ipad ? 'Chrome mở TikTok Studio, tiện ích Poly TikTok gắn slide, tiêu đề, hashtag, chọn nhạc hip hop chưa dùng; Tiết lộ nội dung để tắt như mặc định (chọn Bật ở ô Your brand thì tiện ích bật). Fen kiểm đúng @poly.store rồi tự bấm Post, hoặc bấm ⏰ Hẹn giờ ở khung Poly rồi tự bấm Schedule. <a href="#" id="ttCai">Đổi Chrome / link</a>' + (henD ? `<br><span class="hen">⏰ Giờ hẹn ${esc(henTxt(henD))}: mở TikTok, khung Poly có nút ⏰ Hẹn giờ điền sẵn giờ này, fen bấm nút rồi tự bấm Schedule (máy tắt TikTok vẫn đăng đúng giờ). <a href="#" id="henHuy">Huỷ hẹn</a></span>` : '') + (j.da_dang ? `<br><span class="okc">${j.da_dang.lich ? (j.da_dang.lich > nowS() ? 'Đã hẹn trên TikTok, TikTok sẽ đăng lúc ' : 'TikTok đã đăng lúc ') + esc(henTxt(j.da_dang.lich)) : 'Đã đăng TikTok lúc ' + hm(j.da_dang.t)}${j.da_dang.brand === false && (!d.brand || d.brand.bat) ? ' · <span class="stc">chưa bật Thương hiệu của bạn</span>' : ''}</span>` : j.dang_loi ? `<br><span class="stc">Chưa đăng được: ${esc(j.dang_loi.loi)}</span>` : '') + (j.nhac && j.nhac.ten ? `<br>Nhạc đã chọn: <b>${esc(j.nhac.ten)}</b>${j.nhac.tacgia ? ' · ' + esc(j.nhac.tacgia) : ''}` : '') : `Gửi ${sl.length} slide (album ảnh), caption và câu ghim (mỗi cái 1 tin) vào Telegram ${d.telegram && d.telegram_ten ? esc(d.telegram_ten) : 'của fen'} để đăng bằng app TikTok. <a href="#" id="tgSet">${d.telegram ? 'Đổi Telegram' : 'Cài Telegram'}</a>`}${daGui}</p></div>`;
+      return `<div class="brrow" title="Tiết lộ nội dung → Thương hiệu của bạn (Disclose post content → Your brand). Mặc định tắt như cài đặt gốc TikTok (fen chốt 30/10); bài nào cần thì bấm Bật."><span>Your brand</span><div class="kseg"><button data-br="0" class="${b.bat ? '' : 'on'}">Không bật</button><button data-br="1" class="${b.bat ? 'on' : ''}">Bật</button></div><span>${b.nguon === 'fen' ? 'fen chọn' : 'mặc định'}</span></div>`; })()}
+    <p class="pnote">${'Chrome ' + (ipad ? '' : '(hồ sơ Laptop) ') + 'mở TikTok Studio, tiện ích Poly TikTok gắn slide, tiêu đề, hashtag, chọn nhạc hip hop chưa dùng; Tiết lộ nội dung để tắt như mặc định (chọn Bật ở ô Your brand thì tiện ích bật). Fen kiểm đúng ' + handle + ' rồi tự bấm Post, hoặc bấm ⏰ Hẹn giờ ở khung Poly rồi tự bấm Schedule. <a href="#" id="ttCai">Đổi Chrome / link</a>' + (henD ? `<br><span class="hen">⏰ Giờ hẹn ${esc(henTxt(henD))}: mở TikTok, khung Poly có nút ⏰ Hẹn giờ điền sẵn giờ này, fen bấm nút rồi tự bấm Schedule (máy tắt TikTok vẫn đăng đúng giờ). <a href="#" id="henHuy">Huỷ hẹn</a></span>` : '') + (j.da_dang ? `<br><span class="okc">${j.da_dang.lich ? (j.da_dang.lich > nowS() ? 'Đã hẹn trên TikTok, TikTok sẽ đăng lúc ' : 'TikTok đã đăng lúc ') + esc(henTxt(j.da_dang.lich)) : 'Đã đăng TikTok lúc ' + hm(j.da_dang.t)}${j.da_dang.brand === false && (!d.brand || d.brand.bat) ? ' · <span class="stc">chưa bật Thương hiệu của bạn</span>' : ''}</span>` : j.dang_loi ? `<br><span class="stc">Chưa đăng được: ${esc(j.dang_loi.loi)}</span>` : '') + (j.nhac && j.nhac.ten ? `<br>Nhạc đã chọn: <b>${esc(j.nhac.ten)}</b>${j.nhac.tacgia ? ' · ' + esc(j.nhac.tacgia) : ''}` : '') + (ipad ? '' : `<br>Đăng bằng điện thoại: Gửi Telegram gửi ${sl.length} slide (album), caption và câu ghim vào Telegram ${d.telegram && d.telegram_ten ? esc(d.telegram_ten) : 'của fen'}. <a href="#" id="tgSet">${d.telegram ? 'Đổi Telegram' : 'Cài Telegram'}</a>`)}${daGui}</p></div>`;
   if (!setH(w, h)) { capCount(); return; }
   capCount();
   $('#capT').oninput = capCount;
   $('#capT').onblur = saveCap;
   $('#bCopy').onclick = () => { const t = $('#capT').value.split('\n')[0].trim(); navigator.clipboard.writeText(t).then(() => toast('Đã chép caption'), () => toast('Không chép được', true)); };
-  $('#bDang').onclick = e => dang(e.currentTarget, ipad);
+  $('#bDang').onclick = e => dang(e.currentTarget, true);
+  const bTg = $('#bGuiTg'); if (bTg) bTg.onclick = e => dang(e.currentTarget, false);
   w.querySelectorAll('[data-br]').forEach(b => b.onclick = async ev => { ev.preventDefault();
     const v = b.dataset.br === '1';
     if (d.brand && d.brand.bat === v) return;
@@ -1663,7 +1671,7 @@ async function vietCap(b){
   try { await api('/api/job/' + id + '/viet-caption', {}); toast('Claude đang viết caption, khoảng 1–2 phút'); await reload(); }
   catch(e) { toast(e.message, true); b.disabled = false; b.textContent = co ? 'Viết lại caption' : '✍ Viết caption'; }
 }
-async function dang(b, ipad){
+async function dang(b, ipad){   // ipad = true: Đăng TikTok (web, cả 2 kênh); false: Gửi Telegram
   const j = S.data.job, id = j.id;
   S.dangGui = S.dangGui || {};
   if (S.dangGui[id]) return;
@@ -1681,7 +1689,9 @@ async function dang(b, ipad){
     const r = await api('/api/job/' + id + (ipad ? '/tiktok' : '/telegram'), {});
     toast(ipad ? 'Đã mở TikTok: tiện ích điền bài, fen kiểm rồi tự bấm ' + (j.hen_dang && !j.da_dang ? '⏰ Hẹn giờ (' + henTxt(j.hen_dang) + ') ở khung Poly, rồi Schedule' : 'Post') : 'Đã gửi ' + r.n + ' slide + caption qua Telegram');
   } catch(e) {
-    if (e.message.startsWith('CAI_TELEGRAM')) tgDialog(e.message.split('|')[1]); else toast(e.message, true);
+    if (e.message.startsWith('CAI_TELEGRAM')) tgDialog(e.message.split('|')[1]);
+    else if (e.message.startsWith('CHON_HO_SO')) { toast(e.message.split('|')[1], true); kiemMay(true); }
+    else toast(e.message, true);
   } finally {
     delete S.dangGui[id];
     if (S.jobId === id) await reload();
