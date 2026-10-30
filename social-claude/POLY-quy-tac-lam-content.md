@@ -213,6 +213,7 @@ Agent biên tập và agent duyệt coi phần "Logic rút ra" là luật bắt 
 ### Lịch sử sửa
 | Ngày | Bài | Chủ shop sửa | Logic rút ra |
 |---|---|---|---|
+| 30/10 | Laptop cho dân kiến trúc | Slide 7: "xóa đi cha update quy tắc mới rồi mà" (ảnh thẻ Follow + nút + mũi tên) → bài dựng trước 15h22 nên còn khối Follow; dựng lại còn 1 thẻ câu hỏi giữa slide. Luật không đổi, nhắc lần nữa: sửa bài nào cũng soi slide cuối theo 16h mới nhất | 16h |
 | 30/10 | (chung) | "hashtag mặc định của ipad là #polystore, laptop là #polystorelaptop" → hashtag thương hiệu theo kênh; sửa luôn caption.txt 6 bài Laptop 29–30/10 (bỏ 1 hashtag rộng cho đủ 90 ký tự) | 1e |
 | 30/10 | Pin laptop còn bao nhiêu % (`Laptop\T10_PinLaptopConBaoNhieu_30-10`) | Slide 7: "quy tắc mới thêm, update sửa lại" → bài dựng trước khi luật bỏ Follow nên slide 7 còn khối Follow; dựng lại còn 1 thẻ câu hỏi giữa slide. Luật không đổi, chỉ nhắc: bài dựng dở lúc luật đổi phải soi lại slide cuối theo luật mới nhất trước khi giao | 16h |
 | 30/10 | (chung) | "không làm ảnh giống hình uplaod" (ảnh 1 thẻ kính gộp "Follow để có thêm mẹo laptop" + nút xanh "+ Follow @polystorelaptop" + "Bấm dấu + ở avatar bên phải" + mũi tên) → nhắc lần 3: cả 2 kênh không Follow dưới mọi dạng ở mọi slide (kể cả gộp vào thẻ câu hỏi), soi PNG slide cuối trước khi giao | 16h, mục 4 |
