@@ -5,6 +5,8 @@ Bố cục: A Đối đầu VS [iPad] · B Hero tràn · C Cận chi tiết · D
 
 | Ngày | Kênh | Bài | Bố cục | Ghi chú |
 |---|---|---|---|---|
+| 30/10 | iPad | iPad đơ, không nhận sạc | B Hero tràn | iPad Pro Newsroom 2021 (nr21-xdr) tách nền, màn vẽ lại "hết pin + cáp" (pin to), nghiêng -9°, tràn phải/đáy 3%, vệt sáng đỏ, không sticker |
+| 30/10 | iPad | Thay đồ, iPad có báo? | F Sticker chú thích | iPad Air tháo màn (iFixit, bỏ tay, xoá ký hiệu pin) nghiêng -5°, viền xanh nhạt quanh tấm màn, vệt sáng xanh lá, 2 sticker "Màn?" xanh / "Pin?" vàng |
 | 30/10 | iPad | iPad đầy bộ nhớ, 4 chỗ dọn | C Cận chi tiết | iPad Newsroom iPadOS 26 tách nền, màn thay bằng Dung lượng iPad vẽ lại (thanh màu gần kín), nghiêng -8°, vệt sáng đỏ, không sticker |
 | 30/10 | iPad | Air M3 hay Air M4 | A Đối đầu (xếp tầng song sinh) | 2 máy nằm ngang (Newsroom, tách nền) xếp tầng cùng tâm x 540, -4° / +4°, không chồng, không VS, không sticker, vệt sáng tím / xanh lá |
 | 30/10 | iPad | Pro 12.9 2020 hay 11 M1 | A Đối đầu (so le chéo) | 2 máy nằm ngang so le chéo (12.9 trên trái -7°, 11 dưới phải +7°, màn 11 thay LumaFusion), vệt sáng xanh lá / xanh dương; fen bỏ VS (v3) |
