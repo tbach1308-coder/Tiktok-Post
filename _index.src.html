@@ -58,6 +58,14 @@ a{color:var(--gl)}
 .chatl .cm a{color:var(--gl)}
 .chatl .cm .dot{display:inline-block;vertical-align:middle;margin-right:4px}
 .chatin{display:flex;gap:8px;margin-top:6px}
+.chatin .chatpk{height:38px;padding:0 10px;flex:none}
+.chatanh{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.chatanh:empty{display:none}
+.chatanh .ca{position:relative;width:56px;height:56px;border-radius:8px;overflow:hidden;border:1px solid var(--line2)}
+.chatanh .ca img{width:100%;height:100%;object-fit:cover}
+.chatanh .ca button{position:absolute;top:2px;right:2px;width:18px;height:18px;border-radius:50%;border:0;background:rgba(0,0,0,.65);color:#fff;font-size:10px;cursor:pointer;line-height:18px;padding:0}
+.chatb.hot{border-color:var(--g)}
+.chatl .cm .cmanh{display:block;font-size:12px;opacity:.8;margin-bottom:2px}
 .chatin .in{flex:1;height:38px;padding:0 12px}
 .chatl:not(:empty) + .chatin{margin-top:8px}
 .mbox .hq{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px}
@@ -994,17 +1002,22 @@ function offline(){
 function readFiles(files, arr, cb){
   [...files].filter(x => x && x.type && x.type.startsWith('image/')).forEach(x => { const r = new FileReader(); r.onload = () => { arr.push({name:x.name || ('anh-' + Date.now() + '.png'), data:r.result}); cb(); }; r.readAsDataURL(x); });
 }
+function oChat(el){ return S.view === 'new' && S.form && el && el.closest && el.closest('#chatB'); }   // dán / kéo ảnh vào ô chat sửa brief
+function themAnhChat(files){ const f = S.form; f._chatAnh = f._chatAnh || []; readFiles(files, f._chatAnh, () => veChatAnh(f)); }
 function curDrop(){ if ($('#qtDrop')) return {arr:QT.anh, el:$('#qtDrop')};   // ô Quy tắc đang mở: ảnh dán / kéo vào ô đó
   return S.view === 'new' ? {arr:S.form.anh, el:$('#drop')} : (S.view === 'job' && $('#fdrop') ? {arr:draft().anh, el:$('#fdrop')} : null); }
 addEventListener('dragover', e => { e.preventDefault(); const c = e.target.closest && e.target.closest('.slc[data-fn]');
   document.querySelectorAll('.slc.hot').forEach(x => { if (x !== c) x.classList.remove('hot'); }); if (c && S.view === 'job') { c.classList.add('hot'); return; }
+  const cb = $('#chatB'); if (cb) cb.classList.toggle('hot', !!oChat(e.target)); if (oChat(e.target)) return;
   const t = curDrop(); if (t && t.el) t.el.classList.add('hot'); });
-addEventListener('dragleave', e => { if (!e.relatedTarget) { document.querySelectorAll('.slc.hot').forEach(x => x.classList.remove('hot')); const t = curDrop(); if (t && t.el) t.el.classList.remove('hot'); } });
+addEventListener('dragleave', e => { if (!e.relatedTarget) { document.querySelectorAll('.slc.hot, #chatB.hot').forEach(x => x.classList.remove('hot')); const t = curDrop(); if (t && t.el) t.el.classList.remove('hot'); } });
 addEventListener('drop', e => { e.preventDefault(); const c = e.target.closest && e.target.closest('.slc[data-fn]');
   if (c && S.view === 'job') { c.classList.remove('hot'); themAnhSlide(+c.dataset.fn, e.dataTransfer.files); return; }
+  if (oChat(e.target)) { $('#chatB').classList.remove('hot'); themAnhChat(e.dataTransfer.files); return; }
   const t = curDrop(); if (!t) return; t.el && t.el.classList.remove('hot'); readFiles(e.dataTransfer.files, t.arr, () => renderThumbs(t.el, t.arr)); });
 addEventListener('paste', e => { const fs = [...(e.clipboardData?.items || [])].filter(i => i.kind === 'file').map(i => i.getAsFile()); if (!fs.length) return;
   const a = document.activeElement; if (S.view === 'job' && a && a.classList && a.classList.contains('slfix')) { e.preventDefault(); themAnhSlide(+a.dataset.fn, fs); return; }
+  if (oChat(a)) { e.preventDefault(); themAnhChat(fs); return; }
   const t = curDrop(); if (!t) return; e.preventDefault(); readFiles(fs, t.arr, () => renderThumbs(t.el, t.arr)); });
 function setupPick(file, pick, arr, el){
   pick.onclick = e => { e.preventDefault(); file.click(); };
@@ -1035,8 +1048,9 @@ function newView(){
     <div class="vbst" id="vbSt"></div>
     <span class="lbl">Brief từng slide</span>
     <textarea class="in" id="fBrief" placeholder="${esc(k.ph.brief)}">${esc(f.brief || '')}</textarea>
-    <div class="chatb"><div class="chatl" id="chatL"></div>
-      <div class="chatin"><input class="in" id="chatT" autocomplete="off" placeholder="💬 Chat sửa brief: vd bìa ngắn lại, slide 3 đổi sang máy khác, thêm slide về pin, gợi ý góc khác…"><button class="btn" id="chatGui">Gửi</button></div></div>
+    <div class="chatb" id="chatB"><div class="chatl" id="chatL"></div>
+      <div class="chatanh" id="chatAnh"></div>
+      <div class="chatin"><button class="btn ghost chatpk" id="chatPick" title="Gắn ảnh (hoặc dán Ctrl+V / kéo thả ảnh vào ô chat)">🖼</button><input type="file" id="chatFile" accept="image/*" multiple hidden><input class="in" id="chatT" autocomplete="off" placeholder="💬 Chat sửa brief: vd bìa ngắn lại, slide 3 đổi sang máy khác… (dán ảnh vào đây được)"><button class="btn" id="chatGui">Gửi</button></div></div>
     <div class="mt"><span class="lbl">Ảnh shop <i>(không bắt buộc)</i></span>
       <div class="drop" id="drop"><div class="hint">Claude ưu tiên dùng ảnh này thay ảnh tự tìm. Kéo thả vào trang, dán (${phimDan()}) hoặc <a href="#" id="pick">chọn file</a>.</div></div>
       <input type="file" id="file" accept="image/*" multiple hidden>
@@ -1079,6 +1093,9 @@ function newView(){
   if (f.briefNote && /Trùng bài cũ:|Claude hỏi:/.test(f.briefNote)) { f.briefNote = '<span class="okc">✓ Đã viết brief vào ô dưới, fen đọc và sửa rồi bấm Chạy.</span>'; saveForm(); }  // ghi chú dài kiểu cũ
   if (f.briefJob) pollBrief(f); else if (f.briefNote) { setH($('#vbSt'), f.briefNote); bindGoiY(); }
   veChat(f); $('#chatGui').onclick = () => guiChat(f); $('#chatT').onkeydown = e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); guiChat(f); } };
+  f._chatAnh = f._chatAnh || []; veChatAnh(f);
+  $('#chatPick').onclick = e => { e.preventDefault(); $('#chatFile').click(); };
+  $('#chatFile').onchange = () => { const fl = $('#chatFile'); readFiles(fl.files, f._chatAnh, () => veChatAnh(f)); fl.value = ''; };
   if (f.chatJob) pollChat(f);
 }
 function bindGoiY(){
@@ -1166,7 +1183,7 @@ async function pollBrief(f){
 function veChat(f){
   const L = $('#chatL'); if (!L || S.form !== f) return;
   const ds = (f.chat || []).slice(-8);
-  setH(L, ds.map((x, i) => `<div class="cm ${x.ai ? 'ai' : 'fen'}"><span>${esc(x.text)}</span>${x.ai && x.doi && i === ds.length - 1 && f.briefTruoc != null ? ' <a href="#" id="chatHt">Hoàn tác</a>' : ''}</div>`).join('')
+  setH(L, ds.map((x, i) => `<div class="cm ${x.ai ? 'ai' : 'fen'}">${x.n_anh ? `<span class="cmanh">🖼 ${x.n_anh} ảnh</span>` : ''}<span>${esc(x.text)}</span>${x.ai && x.doi && i === ds.length - 1 && f.briefTruoc != null ? ' <a href="#" id="chatHt">Hoàn tác</a>' : ''}</div>`).join('')
     + (f.chatJob ? `<div class="cm ai cho"><span class="dot run"></span> Claude đang sửa… <a href="#" id="chatDung">Dừng</a></div>` : ''));
   const ht = $('#chatHt'); if (ht) ht.onclick = e => { e.preventDefault(); const cu = f.brief; f.brief = f.briefTruoc; f.briefTruoc = cu; const t = $('#fBrief'); if (t) t.value = f.brief;
     f.chat.push({ai: true, text: 'Đã hoàn tác về brief trước đó.', doi: true, t: Date.now()}); saveForm(f); veChat(f); };
@@ -1174,12 +1191,20 @@ function veChat(f){
   const b = $('#chatGui'); if (b) b.disabled = !!(f.chatJob || f.briefJob);
   L.scrollTop = L.scrollHeight;
 }
+// ảnh trong ô chat (fen 3/11 "cho dán hình vào chát"): giữ trong bộ nhớ trang (f._chatAnh), gửi kèm tin, gửi xong bỏ
+function veChatAnh(f){
+  const el = $('#chatAnh'); if (!el || S.form !== f) return;
+  const a = f._chatAnh || [];
+  el.innerHTML = a.map((x, i) => `<div class="ca"><img src="${x.data}" alt=""><button data-i="${i}" title="Bỏ ảnh này">✕</button></div>`).join('');
+  el.querySelectorAll('button[data-i]').forEach(b => b.onclick = () => { a.splice(+b.dataset.i, 1); veChatAnh(f); });
+}
 async function guiChat(f){
-  const o = $('#chatT'), tin = (o.value || '').trim();
-  if (!tin || f.chatJob || f.briefJob) return;
+  const o = $('#chatT'), tin = (o.value || '').trim(), anh = (f._chatAnh || []).slice();
+  if ((!tin && !anh.length) || f.chatJob || f.briefJob) return;
   f.brief = $('#fBrief').value; f.chude = ($('#fChuDe').value || '').trim();
-  f.chat = f.chat || []; f.chat.push({ai: false, text: tin, t: Date.now()}); o.value = '';
-  try { const r = await api('/api/chat-brief', {kenh: f.kenh, chu_de: f.chude, brief: f.brief || '', tin, lich_su: f.chat.slice(-9, -1)});
+  f.chat = f.chat || []; f.chat.push({ai: false, text: tin || '(ảnh)', n_anh: anh.length || undefined, t: Date.now()}); o.value = '';
+  f._chatAnh = []; veChatAnh(f);
+  try { const r = await api('/api/chat-brief', {kenh: f.kenh, chu_de: f.chude, brief: f.brief || '', tin, anh, lich_su: f.chat.slice(-9, -1)});
     f.chatJob = r.id; f.chatT = Date.now(); saveForm(f); veChat(f); pollChat(f); }
   catch(e) { f.chat.push({ai: true, text: 'Chưa gửi được: ' + e.message, t: Date.now()}); saveForm(f); veChat(f); }
 }

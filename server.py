@@ -1507,7 +1507,7 @@ def chat_brief(data):
     Việc ẩn loai=brief (như Viết brief): sửa thì ghi brief-viet.txt, chỉ hỏi / góp ý thì không ghi, câu trả lời ở final."""
     kenh = data.get("kenh") if data.get("kenh") in CFG["kenh"] else "laptop"
     tin = (data.get("tin") or "").strip()
-    if len(tin) < 2:
+    if len(tin) < 2 and not data.get("anh"):
         raise ValueError("Gõ tin nhắn trước đã")
     if not resolve_claude():
         raise ValueError("Không tìm thấy Claude Code trên máy. Bấm Kiểm lại ở góc trên.")
@@ -1520,14 +1520,19 @@ def chat_brief(data):
         if isinstance(x, dict) and (x.get("text") or "").strip():
             ls.append(("Claude: " if x.get("ai") else "Fen: ") + short(str(x.get("text")).replace("\n", " "), 300))
     out = os.path.join(d, "brief-viet.txt")
+    # fen 3/11 12h22 "cho dán hình vào chat": ảnh dán / kéo vào ô chat lưu trong việc này, Claude xem bằng Read
+    anh = save_images(d, data.get("anh") or [], "anh-chat")
+    tin_gui = tin[:2000] or "(fen chỉ gửi ảnh)"
+    if anh:
+        tin_gui += "\n(Fen gửi kèm %d ảnh, xem hết bằng Read trước khi sửa / trả lời: %s)" % (len(anh), ", ".join('"%s"' % a.replace("\\", "/") for a in anh))
     prompt = fill(read_prompt("chat-brief.txt"), {
         "kenh_ten": "%s (%s)" % (k.get("ten", kenh), k.get("handle", "")),
         "chu_de": (data.get("chu_de") or "").strip() or "(chưa gõ)",
         "brief": (data.get("brief") or "").strip()[:20000] or "(trống)",
-        "lich_su": "\n".join(ls) or "(chưa có)", "tin": tin[:2000],
+        "lich_su": "\n".join(ls) or "(chưa có)", "tin": tin_gui,
         "out": out.replace("\\", "/"),
     })
-    job = {"id": jid, "kenh": kenh, "loai": "brief", "chat": True, "brief": "", "ten_bai": "", "tieu_de": "Chat brief: " + short(tin, 60),
+    job = {"id": jid, "kenh": kenh, "loai": "brief", "chat": True, "brief": "", "ten_bai": "", "tieu_de": "Chat brief: " + short(tin or "(ảnh)", 60), "anh": anh,
            "chu_de": (data.get("chu_de") or "").strip(), "ngay_dang": "", "ghi_chu": "", "created": now(), "status": "moi", "runs": [],
            "model": model_viec("model_chat")}       # chat cần nhanh: mặc định Sonnet (đổi ở Kiểm máy > Model)
     with LOCK:
@@ -2480,7 +2485,8 @@ def tgl_tin(m):
         if p is not None:
             p.setdefault("anh", []).extend(anh)
             return
-    if (m.get("photo") or m.get("document")) and not text:
+    rep_bj = tgl_tim_brief((m.get("reply_to_message") or {}).get("message_id")) if m.get("reply_to_message") else None
+    if (m.get("photo") or m.get("document")) and not text and not rep_bj:
         if g:
             return
         return tgl_gui("Ảnh dùng khi ghi quy tắc: gửi lại kèm chữ \"quy tắc: …\".")
@@ -2506,11 +2512,8 @@ def tgl_tin(m):
             threading.Timer(3, lambda: tgl_bat_qt(TGL["cho"].pop(k, None), pv)).start()
             return
         return tgl_bat_qt(TGL["cho"].pop(k), pv)
-    rep = (m.get("reply_to_message") or {}).get("message_id")
-    if rep:
-        bj = tgl_tim_brief(rep)
-        if bj:
-            return tgl_sua_brief(bj, text)
+    if rep_bj:              # reply tin brief (kèm ảnh được, fen 3/11): Claude sửa brief đó
+        return tgl_sua_brief(rep_bj, text, anh)
     mb = re.match(r"^\s*/brief(?:@\w+)?\s*", text, re.I)
     if lenh.startswith("/") and not mb:
         return tgl_gui("Lệnh lạ.\n\n" + TGL_HELP)
@@ -2655,7 +2658,7 @@ def tgl_viet_lai(jid):
         "ghi_chu": "Fen bấm Viết lại trên Telegram: viết bản khác (góc khác, bìa khác), vẫn đúng chủ đề này."})
 
 
-def tgl_sua_brief(jid, tin):
+def tgl_sua_brief(jid, tin, anh=None):
     """Fen reply tin brief: 1 lượt Chat sửa brief như ô chat dưới Brief trong app."""
     j = load_job(jid)
     if not j:
@@ -2663,7 +2666,7 @@ def tgl_sua_brief(jid, tin):
     tgl_gan(jid, {"bo": now()})        # bản cũ thôi dùng, nút Chạy đi theo bản sửa
     ls = list((j.get("tg") or {}).get("lich_su") or [])
     try:
-        r = chat_brief({"kenh": j.get("kenh"), "tin": tin, "chu_de": j.get("chu_de") or "", "brief": tgl_brief_cua(jid), "lich_su": ls})
+        r = chat_brief({"kenh": j.get("kenh"), "tin": tin, "anh": anh or [], "chu_de": j.get("chu_de") or "", "brief": tgl_brief_cua(jid), "lich_su": ls})
     except ValueError as e:
         return tgl_gui("⚠️ Chưa sửa được: " + str(e).split("|")[-1])
     mid = tgl_gui("✏️ Đang sửa brief…")

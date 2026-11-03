@@ -40,6 +40,9 @@ LÀM 1 BÀI
    về pin", "gợi ý góc khác" rồi Enter. Claude (Sonnet cho nhanh, đổi ở Kiểm máy > Model từng việc) sửa thẳng vào ô
    Brief, giữ phần fen không nhắc; hỏi / nhờ góp ý thì Claude chỉ trả lời, không đổi brief. Có "Hoàn tác" ở tin vừa sửa.
    Mỗi nháp 1 cuộc chat riêng, lưu theo nháp.
+   Gửi ảnh vào chat (3/11): bấm vào ô chat rồi dán Ctrl+V, kéo thả ảnh vào khung chat, hoặc bấm nút 🖼 bên trái ô.
+   Ảnh hiện nhỏ trên ô (✕ để bỏ), gửi cùng tin (gửi mỗi ảnh không chữ cũng được), Claude xem ảnh rồi sửa / trả lời.
+   Ảnh chat không lưu theo nháp (tải lại trang thì dán lại). Telegram: reply tin brief kèm ảnh cũng được.
    BẢN NHÁP (29/10 tối): mỗi nháp 1 brief riêng (kênh, chủ đề, brief, ghi chú, chat), gõ tới đâu tự lưu tới đó.
    - "💾 Lưu bản nháp" (góc phải chữ Bài mới): cất nháp vào tab "Bản nháp" ở cột trái, mở trang trống để làm bài khác.
      Bấm nháp ở tab Bản nháp là mở lại làm tiếp.
