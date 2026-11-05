@@ -85,7 +85,7 @@ LÀM 1 BÀI
    - Laptop (30/10 18h15): cũng có nút "Đăng TikTok (web)" như iPad, mở bằng hồ sơ Chrome riêng của kênh Laptop
      (đăng nhập @polystorelaptop, có cài tiện ích Poly TikTok). Lần đầu bấm app mở Kiểm máy > Đăng TikTok:
      chọn "Hồ sơ Chrome Laptop" rồi Lưu ("Mở thử Laptop" để kiểm). Hẹn giờ đăng dùng được cho cả Laptop.
-     Muốn đăng bằng điện thoại thì vẫn có nút "Gửi Telegram":
+   - Cả 2 kênh (iPad có từ 5/11): muốn đăng bằng điện thoại thì bấm nút "Gửi Telegram":
      slide (album ảnh như gửi tay), caption và câu ghim (mỗi cái 1 tin,
      giữ tin để copy) về Telegram của fen, mở điện thoại đăng bằng app TikTok. Lần đầu app hiện
      3 bước cài Telegram (tạo bot ở @BotFather, dán token, nhắn bot 1 tin rồi bấm Kiểm). Token chỉ
