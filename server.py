@@ -2210,6 +2210,7 @@ def theo_doi():
 TGL = {"luong": None, "ma": "", "ma_luc": 0, "loi": "", "loi_luc": 0, "tam_dung": 0, "cho": {}, "album": {}, "lan_cuoi": 0, "bo_cu": False}
 TGL_KHOA = threading.Lock()
 TGL_KHOA_BANG = threading.Lock()
+TGL_KHOA_XEM = threading.Lock()   # gửi slide 1 bài 1 lượt (không xen tin 2 bài), chạy nền để luồng nghe vẫn trả lời nút ngay
 TGL_MA_HAN = 900          # mã ghép dùng được 15 phút
 TGL_HELP = (   # fen 30/10 18h05 "giao diện gọn thôi nha": tin ngắn
     "📖 Cách dùng\n"
@@ -2552,8 +2553,25 @@ def tgl_bam(q):
     if loai == "bg":
         return tgl_bam_bang(du, tra)
     if loai == "xem" and re.fullmatch(r"[0-9a-zA-Z_-]{6,64}", du):     # chỉ xem: lúc Remote tắt vẫn xem được
-        tra("Đang gửi slide…")
-        return tgl_xem(du)
+        dang, vua = TGL.setdefault("xem_dang", set()), TGL.setdefault("xem_luc", {}).get(du, 0)
+        if du in dang:             # bấm 2 lần liền (bảng ghim + danh sách): không gửi album 2 lần
+            return tra("Đang gửi bài này, chờ chút nha")
+        if now() - vua < 60:
+            return tra("Vừa gửi bài này lúc %s, kéo lên xem nha" % time.strftime("%H:%M", time.localtime(vua)))
+        dang.add(du)
+        tra("Bài trước gửi xong sẽ tới bài này" if TGL_KHOA_XEM.locked() else "Đang gửi slide…")
+        threading.Thread(target=tgl_xem_nen, args=(du,), daemon=True).start()
+        return
+    # ✅ Đã đăng xong: chỉ ghi sổ (app chuyển bài sang tab Đã đăng), lúc Remote tắt vẫn bấm được (fen 5/11)
+    if loai == "dd" and re.fullmatch(r"[0-9a-zA-Z_-]{6,64}", du):
+        try:
+            danh_dau_dang(du, {})
+        except ValueError as e:
+            return tra(str(e))
+        tra("Đã chuyển sang Đã đăng")
+        bo_nut()
+        tgl_gui("✅ Đã đăng: %s" % ten_hien(load_job(du) or {})[0])
+        return tgl_bang(ep=True)
     if not CFG.get("tg_lenh"):
         return tra("Remote đang tắt, nhắn /bat để bật rồi bấm lại")
     if loai in ("br", "qt", "gy"):
@@ -2578,15 +2596,6 @@ def tgl_bam(q):
         TGL["cho"].pop(du, None)
         tra("Đã bỏ")
         return bo_nut()
-    if loai == "dd" and re.fullmatch(r"[0-9a-zA-Z_-]{6,64}", du):
-        try:
-            danh_dau_dang(du, {})
-        except ValueError as e:
-            return tra(str(e))
-        tra("Đã chuyển sang Đã đăng")
-        bo_nut()
-        tgl_gui("✅ Đã đăng: %s" % ten_hien(load_job(du) or {})[0])
-        return tgl_bang(ep=True)
     if loai == "cap" and re.fullmatch(r"[0-9a-zA-Z_-]{6,64}", du):
         try:
             viet_caption(du, {})
@@ -2806,7 +2815,7 @@ def _tgl_so_lieu(chi_tiet=True):
     """Số liệu cho /tinhhinh và bảng điều khiển ghim: bài đang dựng, xếp hàng, hẹn, chờ / đã đăng theo kênh."""
     ic = {"laptop": "💻", "ipad": "📱"}
     tenk = lambda k: "%s %s" % (ic.get(k, ""), CFG["kenh"].get(k, {}).get("ten", k))
-    d = {"dang": [], "xep": [], "hen": [], "viet": [], "loi": 0, "cho_dang": {}, "da_dang": {}, "da_nay": 0, "ic": ic, "tenk": tenk}
+    d = {"dang": [], "xep": [], "hen": [], "viet": [], "loi": 0, "cho_dang": {}, "cho_ds": [], "da_dang": {}, "da_nay": 0, "ic": ic, "tenk": tenk}
     hom_nay = time.strftime("%Y-%m-%d")
     for jid in (sorted(os.listdir(JOBS), reverse=True)[:300] if os.path.isdir(JOBS) else []):
         j = read_json(os.path.join(JOBS, jid, "job.json"))
@@ -2844,6 +2853,7 @@ def _tgl_so_lieu(chi_tiet=True):
                     d["da_nay"] += 1
             else:
                 d["cho_dang"][k] = d["cho_dang"].get(k, 0) + 1
+                d["cho_ds"].append((jid, k, ten))
     return d
 
 
@@ -2870,12 +2880,20 @@ def tgl_tinh_hinh():
 
 # ---------- bảng điều khiển ghim đầu chat lệnh (fen 30/10 17h22 "tạo giao diện điều khiển rồi ghi ở telegram", chọn "bảng điều khiển
 # ghim đầu chat"): 1 tin có nút, app tự sửa tin đó khi tình hình đổi (bài chạy / xếp hàng / xong, bật tắt Remote)
-def tgl_bang_nut():
+BANG_CHO = 5   # số bài chờ đăng hiện tên ngay trên bảng ghim (fen 5/11 "coi được tên bài đang chờ để bấm gửi")
+
+
+def tgl_bang_nut(cho=None):
+    """cho: [(jid, kenh, tên)] bài chờ đăng mới trước; BANG_CHO bài đầu thành nút, bấm là gửi slide + caption (xem:)."""
     bat = bool(CFG.get("tg_lenh"))
-    return [[{"text": "⚪ Tắt" if bat else "🟢 Bật", "callback_data": "bg:tat" if bat else "bg:bat"},
-             {"text": "🔄", "callback_data": "bg:moi"}, {"text": "❓", "callback_data": "bg:help"}],
-            [{"text": "✍ Brief", "callback_data": "bg:brief"}, {"text": "📏 Quy tắc", "callback_data": "bg:qt"}],
-            [{"text": "📮 Chờ đăng", "callback_data": "bg:cho"}, {"text": "📊 Tình hình", "callback_data": "bg:th"}]]
+    cho = cho or []
+    ic = {"laptop": "💻", "ipad": "📱"}
+    nut = [[{"text": "⚪ Tắt" if bat else "🟢 Bật", "callback_data": "bg:tat" if bat else "bg:bat"},
+            {"text": "🔄", "callback_data": "bg:moi"}, {"text": "❓", "callback_data": "bg:help"}],
+           [{"text": "✍ Brief", "callback_data": "bg:brief"}, {"text": "📏 Quy tắc", "callback_data": "bg:qt"}],
+           [{"text": "📮 Tất cả %d bài chờ" % len(cho) if len(cho) > BANG_CHO else "📮 Chờ đăng", "callback_data": "bg:cho"},
+            {"text": "📊 Tình hình", "callback_data": "bg:th"}]]
+    return nut + [[{"text": "%s %s" % (ic.get(k, ""), short(ten, 40)), "callback_data": "xem:" + jid}] for jid, k, ten in cho[:BANG_CHO]]
 
 
 def tgl_bang_chu():
@@ -2899,13 +2917,15 @@ def tgl_bang_chu():
         ls.append(" · ".join(phu))
     ls.append("📮 Chờ đăng %s · ✅ Đã đăng %s" % (" ".join("%s%d" % (ic.get(k, k), d["cho_dang"].get(k, 0)) for k in CFG["kenh"]),
                                                 " ".join("%s%d" % (ic.get(k, k), d["da_dang"].get(k, 0)) for k in CFG["kenh"])))
+    if d["cho_ds"]:
+        ls.append("👇 Bấm tên bài chờ đăng để nhận slide + caption")
     ci = _CLAUDE.get("login")
     if ci is False:
         ls.append("⚠️ Claude máy shop CHƯA đăng nhập")
     dau = json.dumps([bat, [(x["ten"], x["k"]) for x in d["dang"]], len(d["xep"]), len(d["hen"]), len(d["viet"]), d["loi"],
-                      d["cho_dang"], d["da_dang"], ci], ensure_ascii=False, sort_keys=True)
+                      d["cho_dang"], d["da_dang"], ci, d["cho_ds"][:BANG_CHO]], ensure_ascii=False, sort_keys=True)
     ls.append("🕒 %s" % time.strftime("%H:%M %d/%m"))
-    return "\n".join(ls), dau
+    return "\n".join(ls), dau, d["cho_ds"]
 
 
 def tgl_bang(moi=False, ep=False):
@@ -2913,11 +2933,11 @@ def tgl_bang(moi=False, ep=False):
     if not tgl_noi():
         return
     with TGL_KHOA_BANG:
-        chu, dau = tgl_bang_chu()
+        chu, dau, cho = tgl_bang_chu()
         mid, chat = CFG.get("tg_lenh_bang"), CFG["tg_lenh_chat"]
         if not moi and mid and not ep and dau == TGL.get("bang_dau") and (now() - TGL.get("bang_luc", 0) < 300 or "Đang dựng:" not in chu):
             return
-        nut = json.dumps({"inline_keyboard": tgl_bang_nut()}, ensure_ascii=False)
+        nut = json.dumps({"inline_keyboard": tgl_bang_nut(cho)}, ensure_ascii=False)
         if mid and not moi:
             try:
                 tg_call("editMessageText", {"chat_id": chat, "message_id": mid, "text": chu, "reply_markup": nut}, timeout=20)
@@ -2931,7 +2951,7 @@ def tgl_bang(moi=False, ep=False):
                 if "not found" not in l and "can't be edited" not in l:
                     TGL["bang_luc"] = now()       # lỗi mạng: thử lại lượt sau, không gửi bảng mới
                     return
-        moi_id = tgl_gui(chu, tgl_bang_nut())
+        moi_id = tgl_gui(chu, tgl_bang_nut(cho))
         if not moi_id:
             return
         try:
@@ -3001,6 +3021,20 @@ def tgl_xem(jid):
     if not cap:
         nut.insert(0, [{"text": "✍ Viết caption", "callback_data": "cap:" + jid}])
     tgl_gui("Giữ tin để copy. Đăng xong bấm ✅." if cap else "Chưa có caption.", nut)
+    return True
+
+
+def tgl_xem_nen(jid):
+    ok = False
+    with TGL_KHOA_XEM:
+        try:
+            ok = tgl_xem(jid) is True
+        except Exception:
+            log(traceback.format_exc())
+    TGL["xem_luc"] = {k: v for k, v in TGL.get("xem_luc", {}).items() if now() - v < 60}
+    if ok:
+        TGL["xem_luc"][jid] = now()     # gửi xong: 1 phút sau mới gửi lại được
+    TGL.setdefault("xem_dang", set()).discard(jid)   # lỗi (không thấy bài, thiếu slide, mạng): bấm lại được ngay
 
 
 def tgl_cho_caption(jid, han=900):

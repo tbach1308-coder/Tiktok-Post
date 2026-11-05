@@ -126,10 +126,13 @@ LÀM 1 BÀI
   ✍ Viết brief, 📏 Quy tắc (bấm là bot hỏi, fen trả lời tin đó), 📮 Bài chờ đăng, 📊 Tình hình, ❓ Hướng dẫn. Bảng tự sửa khi có bài
   chạy / xếp hàng / xong. Tắt Remote thì bot không làm việc nào nhưng vẫn nghe nút Bật (/bat) để bật lại từ xa;
   muốn bot không nghe gì nữa: ô Remote trong app > Bỏ nối.
-  COI BÀI TRÊN ĐIỆN THOẠI (ở đâu có mạng): nút 📮 Bài chờ đăng (hoặc /cho) ra danh sách bài xong chưa đăng, bấm 1 bài là bot gửi
-  đủ slide (album) + caption + câu ghim (mỗi cái 1 tin, giữ tin để copy). Chưa có caption thì có nút ✍ Viết caption.
-  Đăng xong bấm "✅ Đã đăng xong" là bài sang tab Đã đăng. Bài fen bấm Chạy trên Telegram xong thì tin báo có nút
-  "📷 Xem đủ slide + caption". Lúc Remote tắt vẫn coi được (chỉ xem).
+  COI BÀI TRÊN ĐIỆN THOẠI (ở đâu có mạng): 5 bài chờ đăng mới nhất hiện tên ngay dưới bảng ghim (5/11), nhiều hơn thì nút
+  "📮 Tất cả N bài chờ" (hoặc /cho) ra đủ danh sách. Bấm tên 1 bài là bot gửi đủ slide (album) + caption + câu ghim
+  (mỗi cái 1 tin, giữ tin để copy); bấm lại bài đó trong 1 phút thì bot không gửi lần 2, bấm bài khác
+  lúc bot đang gửi thì bot gửi xong bài trước rồi gửi tiếp. Chưa có caption thì có nút ✍ Viết caption.
+  Đăng xong bấm "✅ Đã đăng xong" là bài trong app sang tab Đã đăng (ghi "đánh dấu tay"), tên bài rời bảng ghim.
+  Bài fen bấm Chạy trên Telegram xong thì tin báo có nút "📷 Xem đủ slide + caption".
+  Lúc Remote tắt vẫn coi bài và bấm ✅ Đã đăng xong được.
   Bài bấm Chạy trên Telegram xong / lỗi thì bot báo về chat đó (kèm ảnh bìa). Đăng TikTok vẫn làm ở app hoặc điện thoại.
   Tin nhắn gửi lúc app tắt / chưa nối: bật lên app bỏ qua (không tự làm việc cũ). Đổi bot Telegram thì phải nối lại.
 
