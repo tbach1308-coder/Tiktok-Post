@@ -110,6 +110,7 @@ Không dùng lại:
 - [ ] Agent bắt lỗi app định kỳ theo checklist. Lần 18h04 bị dừng khi fen gửi tin chen ngang (Claude báo nhầm là đang chạy); chạy lại 19h20 trên bản chụp `snap-1920`.
 
 ## 7. Nhật ký
+- 6/11 13h44: fen gửi ảnh đầu trang Bài mới "khúc này nhìn bừa bộn quá" → gom 1 hàng: "Bài mới" + nút kênh + nút Photoshop/Canva + (nhắc thiếu mẫu) + "💾 Lưu nháp" "🗑 Xoá nháp" dạt phải (nút viền mờ); bỏ đoạn giới thiệu dài và 2 nhãn KÊNH / LÀM BẰNG (ý nghĩa để ở title khi rê chuột).
 - 6/11 13h41: fen "bài viết làm xong có tag là làm bằng canva hoặc photoshop" → tag `tagDung` cạnh tag kênh: cột trái "🖌 PS" / "🎨 Canva", trang bài "🖌 Photoshop" / "🎨 Canva" (theo `job.dung_bang`, `list_jobs` trả thêm `dung_bang`; bài cũ = Photoshop). Đổi nhãn "Làm trên" thành "Làm bằng".
 - 6/11 13h39: fen gửi ảnh ô Kênh (2 thẻ to) "làm gọn cái này luôn" → Kênh + Làm trên chung 1 dòng nút nhỏ: "KÊNH [💻 Laptop | 📱 iPad]  LÀM TRÊN [🖌 Photoshop | 🎨 Canva]" (`#seg` thành `.kseg.segk`, iPad chọn thì vàng, @handle để ở title).
 - 6/11 13h36: fen gửi ảnh ô "Làm trên" (2 thẻ to) "làm nhỏ gọn lại" → 1 dòng: nhãn LÀM TRÊN + nút 2 ô nhỏ kiểu `.kseg` "🖌 Photoshop | 🎨 Canva" (Canva chọn thì tím), bỏ dòng giải thích (để ở title khi rê chuột), chỉ hiện "<kênh> chưa có mẫu Canva · thêm mẫu" khi cần.
