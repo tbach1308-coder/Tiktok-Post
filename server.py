@@ -83,6 +83,13 @@ DEFAULT_CFG = {
 # Mac không có ổ E / user Dao: ~/Social Claude = E:\Social Claude (Laptop/, iPad/, _bo-dung-design/ …),
 # ~/Pictures/PolySocial/_tu-chay = hàng chờ Photoshop, thư mục chứa server.py = E:\Tool\poly-dung-bai.
 # Lần đầu mở app thì ghi 2 thư mục gốc vào config.json (mac_chuan_bi); muốn đổi thì sửa config.json rồi mở lại app.
+# máy Windows khác máy shop (cài bằng "Poly Dung Bai Setup.exe", fen 6/11 "chuyển thành exe cho nhiều người sài"):
+# không có E:\Social Claude / C:\Users\Dao thì app tự dùng thư mục trong máy này (như Mac) và đổi đường dẫn máy shop.
+SHOP_GOC = "E:\\Social Claude"
+SHOP_HANG_CHO = "C:\\Users\\Dao\\Pictures\\PolySocial\\_tu-chay"
+WIN_GOC = os.path.join(os.path.expanduser("~"), "Social Claude")
+WIN_HANG_CHO = os.path.join(os.path.expanduser("~"), "Pictures", "PolySocial", "_tu-chay")
+PY_KEM = os.path.join(os.path.dirname(APP), "python")     # Python đi kèm bản cài .exe: <thư mục cài>\python, app ở <thư mục cài>\app
 MAC_GOC = os.path.join(os.path.expanduser("~"), "Social Claude")
 MAC_HANG_CHO = os.path.join(os.path.expanduser("~"), "Pictures", "PolySocial", "_tu-chay")
 _WIN_DD = re.compile(r"^\s*(?:[A-Za-z]:[\\/]|\\\\)")
@@ -160,6 +167,44 @@ def mac_cfg(cfg):
     return cfg
 
 
+def win_cfg(cfg):
+    """Máy Windows không phải máy shop (không có E:\\Social Claude, không có C:\\Users\\Dao): dùng ~\\Social Claude và
+    ~\\Pictures\\PolySocial\\_tu-chay, đổi các đường dẫn máy shop trong cấu hình sang máy này. Máy shop không đổi gì."""
+    k = lambda x: os.path.normcase(os.path.normpath(x or ""))
+    goc, q = cfg.get("thu_muc_lam_viec") or SHOP_GOC, cfg.get("tu_chay") or SHOP_HANG_CHO
+    moi_goc = k(goc) == k(SHOP_GOC) and not os.path.isdir(SHOP_GOC)
+    moi_q = k(q) == k(SHOP_HANG_CHO) and not os.path.isdir("C:\\Users\\Dao")
+    if not (moi_goc or moi_q):
+        return cfg
+    cfg["thu_muc_lam_viec"] = goc = WIN_GOC if moi_goc else goc
+    cfg["tu_chay"] = q = WIN_HANG_CHO if moi_q else q
+    cfg["_may_moi"] = True
+    bang = mac_bang(goc, q)
+
+    def doi(v):
+        if not isinstance(v, str) or not v:
+            return v
+        m = mac_doi(v, bang)
+        return os.path.normpath(m) if m != v else v
+
+    cfg["plugin_dir"] = doi(cfg.get("plugin_dir")) or ""
+    cfg["quy_tac"] = [doi(x) for x in cfg.get("quy_tac") or [] if x]
+    cfg["thu_muc_bai"] = {kk: doi(v) or "" for kk, v in (cfg.get("thu_muc_bai") or {}).items()}
+    tm = [doi(x) for x in cfg.get("them_thu_muc") or [] if x]
+    tm = [x for x in tm if os.path.isdir(x)]       # E:\\Tool\\Anh, Screenshots… máy này không có thì bỏ
+    if not any(k(q) == k(x) or k(q).startswith(k(x) + os.sep) for x in tm):
+        tm.append(os.path.dirname(q))
+    cfg["them_thu_muc"] = tm
+    if any(la_duong_dan_win(x) and not os.path.exists(x) for x in cfg.get("lenh_claude") or []):
+        cfg["lenh_claude"] = []
+    return cfg
+
+
+def doi_goc():
+    """Máy này phải đổi đường dẫn máy shop trong lệnh / luật (Mac, hay Windows máy mới cài bằng file .exe)."""
+    return IS_MAC or bool(CFG.get("_may_moi"))
+
+
 LOCK = threading.RLock()
 STATE = {}  # job_id -> parsed state cache
 WATCHERS = {}  # job_id -> thread
@@ -182,6 +227,8 @@ def load_cfg():
             log("config.json loi: %s" % e)
     if IS_MAC:
         cfg = mac_cfg(cfg)
+    elif IS_WIN:
+        cfg = win_cfg(cfg)
     return cfg
 
 
@@ -512,6 +559,12 @@ def env_claude():
     if CFG.get("dung_api_key") is not True:
         for k in ("ANTHROPIC_API_KEY", "ANTHROPIC_AUTH_TOKEN"):
             env.pop(k, None)
+    if IS_WIN and os.path.isfile(os.path.join(PY_KEM, "python.exe")):   # bản cài .exe: lệnh python = Python đi kèm (có thư viện ảnh)
+        cu = [x for x in (env.get("PATH") or "").split(os.pathsep) if x]
+        env["PATH"] = os.pathsep.join([PY_KEM, os.path.join(PY_KEM, "Scripts")] + cu)
+        env["POLY_PYTHON"] = os.path.join(PY_KEM, "python.exe")
+    if CFG.get("_may_moi"):
+        env["POLY_TU_CHAY"] = CFG.get("tu_chay") or WIN_HANG_CHO
     return env
 
 
@@ -706,6 +759,8 @@ def note_folder(st, s):
         return
     if IS_MAC:
         return mac_note_folder(st, s)
+    if CFG.get("_may_moi"):      # Claude lỡ ghi đường dẫn máy shop (E:/Social Claude/...): đổi sang máy này
+        s = mac_doi(s, mac_bang_cfg())
     for m in MARK_RE.finditer(s):
         rest = m.group(1)
         k = PATH_RE.search(rest)  # đường dẫn thư mục bài chuẩn (E:\ hoặc /e/), bỏ chữ đứng sau
@@ -740,6 +795,8 @@ def note_folder_tool(st, name, inp):
         if m:
             st["folder"] = m.group(0).rstrip(".,;:)/")
         return
+    if CFG.get("_may_moi"):
+        src = mac_doi(src, mac_bang_cfg())
     m = PATH_RE.search(src)
     if m:
         p = m.group(0).replace("/", "\\").rstrip(".,;:)\\")
@@ -748,7 +805,8 @@ def note_folder_tool(st, name, inp):
 
 
 def mac_bang_cfg():
-    return mac_bang(CFG.get("thu_muc_lam_viec") or MAC_GOC, CFG.get("tu_chay") or MAC_HANG_CHO)
+    b = mac_bang(CFG.get("thu_muc_lam_viec") or MAC_GOC, CFG.get("tu_chay") or MAC_HANG_CHO)
+    return [(w, m.replace("\\", "/")) for w, m in b] if IS_WIN else b    # Windows máy mới: ghi C:/Users/... (dấu /) trong lệnh
 
 
 def mac_bai_re():
@@ -1130,7 +1188,7 @@ def start_run(job, prompt, kind, resume=None, label=None, model=None, them_dir=N
     if AGENT_OPUS in prompt:      # agent duyệt + thiết kế: theo lựa chọn của bài, không có thì theo Kiểm máy > Model
         md = job.get("model_duyet")
         prompt = prompt.replace(AGENT_OPUS, cau_model_duyet(md if md in MODEL_VIEC["model_duyet"][1] and md is not None else model_viec("model_duyet")))
-    if IS_MAC:   # lệnh mẫu ghi đường dẫn máy shop (E:/Social Claude/...): đổi sang thư mục trên Mac
+    if doi_goc():   # lệnh mẫu ghi đường dẫn máy shop (E:/Social Claude/...): đổi sang thư mục máy này (Mac / máy mới)
         prompt = mac_doi(prompt, mac_bang_cfg())
     with open(os.path.join(d, "prompt-%d.txt" % n), "w", encoding="utf-8") as f:
         f.write(prompt)
@@ -1164,6 +1222,8 @@ def start_run(job, prompt, kind, resume=None, label=None, model=None, them_dir=N
     if os.path.isfile(lc):
         if IS_MAC:   # bản cho Mac: đường dẫn Mac + bảng đổi đường dẫn, lệnh macOS (ghi kèm lượt chạy)
             lc = mac_luat_chung(lc, os.path.join(d, "luat-chung-%d.md" % n))
+        elif CFG.get("_may_moi"):
+            lc = win_luat_chung(lc, os.path.join(d, "luat-chung-%d.md" % n))
         args += ["--append-system-prompt-file", lc]
     # --add-dir nhan nhieu thu muc sau 1 co; de cuoi cung (brief di qua stdin nen khong bi nuot)
     dirs = [x for x in (CFG.get("them_thu_muc") or []) + list(them_dir or []) if os.path.isdir(x)] + [d]
@@ -4090,6 +4150,30 @@ File nào ghi đường dẫn E:/… hay C:\\Users\\Dao\\… thì hiểu theo b�
 """
 
 
+WIN_GHI_CHU = """
+
+TRÊN MÁY NÀY: máy Windows khác máy shop (cài Poly Dựng Bài bằng file .exe). App Poly Dựng Bài tự thêm đoạn này, máy shop không có.
+Luật, plugin poly-carousel, sổ dựng và lệnh mẫu viết cho máy shop. Đường dẫn trên máy này:
+%s
+- Thư mục khác của máy shop (E:\\Tool\\Anh, ảnh Telegram Desktop, Screenshots…) máy này không có: bỏ qua, không đi tìm.
+File nào ghi đường dẫn E:/… hay C:\\Users\\Dao\\… thì hiểu theo bảng trên; trong lệnh và dòng THU_MUC_BAI= luôn ghi đường dẫn thật của máy này (dấu /).
+- Sửa file luật, sổ dựng, plugin, lệnh mẫu của app (nút Quy tắc, "Chung", ghi luật rút ra): đường dẫn viết trong các file đó giữ kiểu máy shop (E:/Social Claude/…), không ghi đường dẫn máy này vào.
+- Lệnh python "…" chạy Python đi kèm app (đã có pillow, numpy, scipy, opencv).
+- Photoshop: vẫn chỉ qua hàng chờ (chay_ps.py, tach_nen_ps.py tự biết hàng chờ của máy này qua biến POLY_TU_CHAY). Bộ canh hàng chờ của app tự đổi đường dẫn E:/… trong file .jsx sang máy này. Máy chưa cài Photoshop thì báo fen 1 câu "máy này chưa có Photoshop, chọn Làm bằng Canva", không tự cài.
+- Font: log Photoshop ghi font đã dùng khác UTM-Cookies / UTMAvoBold / UTM-Avo / Source Serif thì máy này thiếu font: thêm 1 dòng cuối bài báo fen cài font.
+"""
+
+
+def win_luat_chung(src, dst):
+    """Luật chung cho lượt chạy trên Windows máy mới: đường dẫn máy shop đổi sang máy này + đoạn "TRÊN MÁY NÀY"."""
+    bang = mac_bang_cfg()
+    dong = "\n".join("- %s (%s) = %s : %s" % (w, w.replace("/", "\\"), m, MAC_TEN_GOC.get(w, "")) for w, m in bang)
+    t = read_text(src).replace("\r\n", "\n")
+    with open(dst, "w", encoding="utf-8", newline="\n") as f:
+        f.write(mac_doi(t, bang).rstrip() + WIN_GHI_CHU % dong)
+    return dst
+
+
 def mac_luat_chung(src, dst):
     """Luật chung cho lượt chạy trên Mac: đường dẫn máy shop đổi sang Mac + đoạn "TRÊN MÁY NÀY" (bảng đổi đường dẫn, lệnh macOS)."""
     bang = mac_bang_cfg()
@@ -4232,6 +4316,106 @@ def mac_canh_hang_cho():
         except Exception:
             log(traceback.format_exc())
         time.sleep(CFG.get("mac_canh_giay") or 30)
+
+
+def win_chuan_bi():
+    """Windows máy mới (cài bằng file .exe), như mac_chuan_bi: ghi 2 thư mục gốc vào config.json, chép bộ luật (social-claude
+    của app) thành ~\\Social Claude nếu chưa có, tạo Laptop / iPad / hàng chờ, bật bộ canh hàng chờ Photoshop."""
+    p = os.path.join(APP, "config.json")
+    user = read_json(p, None) if os.path.exists(p) else {}
+    if isinstance(user, dict):
+        keys = {k: CFG[k] for k in ("thu_muc_lam_viec", "tu_chay") if not user.get(k)}
+        if keys:
+            try:
+                save_cfg_keys(keys)
+                log("may moi: ghi thu muc vao config.json: %s" % keys)
+            except Exception as e:
+                log("may moi: chua ghi duoc config.json: %s" % e)
+    goc, q = CFG["thu_muc_lam_viec"], CFG["tu_chay"]
+    nguon = os.path.join(APP, "social-claude")
+    try:
+        if not os.path.isdir(os.path.join(goc, "_bo-dung-design")) and os.path.isdir(os.path.join(nguon, "_bo-dung-design")):
+            os.makedirs(goc, exist_ok=True)
+            for fn in sorted(os.listdir(nguon)):      # chỉ chép cái chưa có, không ghi đè file nào
+                sp, dp = os.path.join(nguon, fn), os.path.join(goc, fn)
+                if os.path.lexists(dp):
+                    continue
+                if os.path.isdir(sp):
+                    shutil.copytree(sp, dp)
+                else:
+                    shutil.copy2(sp, dp)
+            log("may moi: chep bo luat %s -> %s" % (nguon, goc))
+        for sub in ("Laptop", "iPad", "Anh tai ve"):
+            os.makedirs(os.path.join(goc, sub), exist_ok=True)
+        os.makedirs(os.path.join(q, "_da-chay"), exist_ok=True)
+    except Exception:
+        log(traceback.format_exc())
+    threading.Thread(target=win_canh_hang_cho, daemon=True).start()
+
+
+def win_canh_hang_cho():
+    """Windows máy mới: giữ bộ canh hàng chờ Photoshop (tu-chay-win.py của app, đổi đường dẫn E:/ trong .jsx rồi gọi Photoshop
+    qua COM) luôn chạy, như Startup + scheduled task của máy shop. Bộ canh có khoá nên bật thừa cũng chỉ 1 bản."""
+    f = os.path.join(APP, "tu-chay-win.py")
+    py = sys.executable or "python"
+    pyw = os.path.join(os.path.dirname(py), "pythonw.exe")
+    if os.path.isfile(pyw):
+        py = pyw
+    con = []
+    while True:
+        con = [x for x in con if x.poll() is None]
+        try:
+            q = CFG.get("tu_chay") or WIN_HANG_CHO
+            try:
+                tuoi = now() - os.path.getmtime(os.path.join(q, "dang-chay.txt"))
+            except OSError:
+                tuoi = None
+            if os.path.isfile(f) and (tuoi is None or tuoi > 20):
+                os.makedirs(q, exist_ok=True)
+                with open(os.path.join(q, "poly-tu-chay-win.log"), "ab") as lg:
+                    con.append(subprocess.Popen([py, f, "--hang-cho", q, "--goc", CFG.get("thu_muc_lam_viec") or WIN_GOC, "--app", APP],
+                                                stdin=subprocess.DEVNULL, stdout=lg, stderr=lg, cwd=q,
+                                                creationflags=CREATE_NO_WINDOW | CREATE_NEW_PROCESS_GROUP))
+                log("may moi: bat bo canh hang cho Photoshop %s" % q)
+        except Exception:
+            log(traceback.format_exc())
+        time.sleep(CFG.get("mac_canh_giay") or 30)
+
+
+def cai_claude():
+    """Windows chưa có Claude Code: mở 1 cửa sổ PowerShell cài Claude Code bản chính thức (claude.ai/install.ps1), cài Git for
+    Windows nếu thiếu (Claude Code cần Git Bash), rồi đăng nhập. Người dùng thấy và làm theo trong cửa sổ đó."""
+    if not IS_WIN:
+        raise ValueError("Chỉ dùng trên Windows")
+    d = os.path.join(APP, "_win")
+    os.makedirs(d, exist_ok=True)
+    ps1 = os.path.join(d, "cai-claude.ps1")
+    noi = "\r\n".join([
+        "$ErrorActionPreference = 'Continue'",
+        "$Host.UI.RawUI.WindowTitle = 'Cai Claude Code - Poly Dung Bai'",
+        "Write-Host 'CAI CLAUDE CODE CHO POLY DUNG BAI (can mang, vai phut)' -ForegroundColor Cyan",
+        "if (-not (Get-Command git -ErrorAction SilentlyContinue)) {",
+        "  Write-Host '1. Cai Git for Windows (Claude Code can). Windows hoi cho phep thi bam Yes.' -ForegroundColor Yellow",
+        "  winget install --id Git.Git -e --source winget --accept-package-agreements --accept-source-agreements",
+        "} else { Write-Host '1. Da co Git.' -ForegroundColor Green }",
+        "Write-Host '2. Cai Claude Code...' -ForegroundColor Yellow",
+        "irm https://claude.ai/install.ps1 | iex",
+        "$c = Join-Path $env:USERPROFILE '.local\\bin\\claude.exe'",
+        "if (-not (Test-Path $c)) { $g = Get-Command claude -ErrorAction SilentlyContinue; if ($g) { $c = $g.Source } }",
+        "if (Test-Path $c) {",
+        "  Write-Host '3. Dang nhap: trinh duyet tu mo, chon tai khoan Claude (goi Pro / Max) roi bam cho phep.' -ForegroundColor Yellow",
+        "  & $c auth login",
+        "  Write-Host 'XONG. Dong cua so nay, quay lai app Poly Dung Bai (app tu nhan).' -ForegroundColor Green",
+        "} else { Write-Host 'CHUA CAI DUOC Claude Code. Chup man hinh cua so nay gui nguoi ho tro.' -ForegroundColor Red }",
+        "Read-Host 'Bam Enter de dong'",
+        ""])
+    with open(ps1, "w", encoding="utf-8-sig", newline="") as fh:
+        fh.write(noi)
+    comspec = os.environ.get("COMSPEC", "cmd.exe")
+    subprocess.Popen([comspec, "/c", "start", "Cai Claude Code", "powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", ps1],
+                     creationflags=CREATE_NO_WINDOW)
+    _CLAUDE["t"] = 0
+    return {"ok": True}
 
 
 def mac_chuan_bi():
@@ -4418,6 +4602,8 @@ class H(BaseHTTPRequestHandler):
                 self.send(200, {"ok": True})
                 threading.Timer(0.3, lambda: os._exit(0)).start()
                 return
+            if u.path == "/api/cai-claude":
+                return self.send(200, cai_claude())
             if u.path == "/api/login" and data.get("doi"):
                 return self.send(200, doi_tai_khoan())
             if u.path == "/api/login":
@@ -4569,6 +4755,8 @@ def main():
     srv.daemon_threads = True
     if IS_MAC:   # lần đầu: ghi thư mục vào config.json, chép bộ luật, bật bộ canh hàng chờ Photoshop
         mac_chuan_bi()
+    elif CFG.get("_may_moi"):     # Windows máy mới (cài bằng file .exe): như Mac
+        win_chuan_bi()
     log("mo app cong %d" % port)
     print("Poly Dung Bai: http://127.0.0.1:%d" % port)
     threading.Thread(target=claude_info, daemon=True).start()

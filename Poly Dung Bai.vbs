@@ -22,7 +22,9 @@ End Function
 
 If Not Song() Then
   ' goi Python bang duong dan day du (PATH may shop hay bi phan mem khac lam hong)
-  py = sh.ExpandEnvironmentStrings("%LOCALAPPDATA%") & "\Programs\Python\Python312\pythonw.exe"
+  ' ban cai bang file Setup .exe: Python di kem nam canh thu muc app (<thu muc cai>\python)
+  py = fso.GetParentFolderName(app) & "\python\pythonw.exe"
+  If Not fso.FileExists(py) Then py = sh.ExpandEnvironmentStrings("%LOCALAPPDATA%") & "\Programs\Python\Python312\pythonw.exe"
   If Not fso.FileExists(py) Then py = "pythonw.exe"
   sh.CurrentDirectory = app
   sh.Run """" & py & """ """ & app & "\server.py""", 0, False

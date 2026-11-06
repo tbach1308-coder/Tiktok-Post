@@ -23,3 +23,6 @@ social-claude/.claude/
 social-claude/_bo-dung-design/out/
 social-claude/_bo-dung-design/anh-da-dung*
 canva-tt.json
+packaging/.cache/
+dist/
+_win/

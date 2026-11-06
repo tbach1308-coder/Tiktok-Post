@@ -1,0 +1,6 @@
+# Thư viện ảnh bộ dựng dùng (như cai-dat.ps1 máy shop: pillow numpy scipy opencv), bản cho Windows / Python 3.12.
+# opencv bản headless: cùng "import cv2", không kèm giao diện (nhẹ hơn).
+pillow==11.0.0
+numpy==2.1.3
+scipy==1.14.1
+opencv-python-headless==4.10.0.84

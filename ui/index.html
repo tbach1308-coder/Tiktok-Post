@@ -675,7 +675,7 @@ async function health(force){
     const v = (h.version || '').replace(/\s*\(Claude Code\)/, '');
     let cls = 'ok', txt = 'Claude sẵn sàng', btn = '';
     const tk = (h.tk && h.tk.email) || '', thieu = (h.san_sang || []).filter(x => x.can && !x.ok);
-    if (h.err || !h.claude) { cls = 'err'; txt = 'Không thấy Claude Code'; }
+    if (h.err || !h.claude) { cls = 'err'; txt = 'Không thấy Claude Code'; if (!laMac()) btn = `<button class="btn sm pri" onclick="caiClaude(this)">Cài Claude Code</button>`; }
     else if (h.login && thieu.length) { cls = 'err'; txt = 'Thiếu ' + thieu.map(x => x.ten).join(', '); }
     else if (h.login === false) { cls = 'warn'; txt = 'Chưa đăng nhập Claude'; btn = `<button class="btn sm pri" onclick="login(this)">Đăng nhập</button>`; }
     else if (h.login == null) { cls = 'warn'; txt = 'Chưa kiểm được đăng nhập'; }
@@ -684,6 +684,15 @@ async function health(force){
     if ($('#kmL')) kmVe();
     renderBanner();
   } catch(e) { setH($('#hc'), `<span class="dot err"></span><span>Mất kết nối với app</span>`); }
+}
+// máy Windows mới (cài bằng file .exe) chưa có Claude Code: mở cửa sổ cài + đăng nhập, app tự nhận khi xong
+async function caiClaude(b){
+  try { if (b) { b.disabled = true; b.textContent = 'Đang mở…'; }
+    await api('/api/cai-claude', {}); toast('Đã mở cửa sổ cài Claude Code. Làm theo hướng dẫn trong đó (vài phút, cần mạng), xong app tự nhận.');
+    clearInterval(caiClaude.t); let n = 0;
+    caiClaude.t = setInterval(async () => { n++; await health(true); if ((S.health && S.health.claude && S.health.login) || n > 120) clearInterval(caiClaude.t); }, 5000);
+  } catch(e) { toast(e.message, true); }
+  finally { setTimeout(() => { if (b) { b.disabled = false; b.textContent = 'Cài Claude Code'; } }, 5000); }
 }
 async function login(b){
   try { if (b) { b.disabled = true; b.textContent = 'Đang mở…'; }
