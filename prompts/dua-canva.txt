@@ -11,7 +11,7 @@ Tên thiết kế mới: {ten_canva}
 Thiết kế khung để copy (chỉ mượn trang cỡ 1080x1440): {mau_khung}
 Thiết kế Canva cũ của bài (fen bấm đưa lại thì vẫn tạo thiết kế mới, giữ bản cũ): {canva_link}
 
-Công cụ Canva là các công cụ mcp__claude_ai_Canva__* (connector Canva trong tài khoản Claude, nạp nền vài giây sau khi phiên mở). Chưa thấy thì dùng ToolSearch tìm "Canva" (chưa có thì chờ 5 giây bằng sleep 5 rồi tìm lại, tối đa 3 lần). Vẫn không có: dừng, trả lời đúng 1 câu "Chưa nối được Canva: fen vào claude.ai > Customize > Connectors > Canva bấm Connect rồi bấm lại Đưa lên Canva." và không ghi canva.json.
+Công cụ Canva là các công cụ mcp__claude_ai_Canva__* (connector Canva trong tài khoản Claude, nạp nền vài giây sau khi phiên mở). Chưa thấy thì dùng ToolSearch tìm "Canva" (chưa có thì chờ 5 giây bằng python -c "import time; time.sleep(5)" rồi tìm lại, tối đa 3 lần). Vẫn không có: dừng, trả lời đúng 1 câu "Chưa nối được Canva: fen vào claude.ai > Customize > Connectors > Canva bấm Connect rồi bấm lại Đưa lên Canva." và không ghi canva.json.
 
 Cách làm:
 1. Tải slide lên Canva, lần lượt từng slide theo thứ tự:

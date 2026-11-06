@@ -969,7 +969,8 @@ def parse_job(jid):
         if st["folder"] and job.get("thu_muc_bai") != st["folder"]:
             job["thu_muc_bai"] = st["folder"]
             changed = True
-        if st["session_id"] and job.get("session_id") != st["session_id"]:
+        if st["session_id"] and job.get("session_id") != st["session_id"] \
+                and (job.get("runs") or [{}])[-1].get("kind") not in ("canva", "caption"):   # lượt phụ không thay phiên dựng bài
             job["session_id"] = st["session_id"]
             changed = True
         # luot chay cuoi da ket thuc?
@@ -990,6 +991,11 @@ def parse_job(jid):
                     if not res or res[-1]["ok"]:
                         err = read_text(os.path.join(job_dir(jid), "stderr-%d.txt" % last["n"]))[-800:]
                         last["ly_do"] = "Claude dừng giữa chừng. " + short(explain_err(err), 300)
+                if job["status"] == "xong" and job.get("dung_bang") == "canva" and last.get("kind") in ("dung", "tiep") \
+                        and not list_slides(job.get("thu_muc_bai")):     # vd chưa nối Canva: không báo "Xong 0 slide"
+                    txt = re.sub(r"^\s*THU_MUC_BAI\s*=.*$", "", (res[-1]["text"] if res else "") or "", flags=re.M).strip()
+                    job["status"] = last["ket_qua"] = "loi"
+                    last["ly_do"] = job["loi_chay"] = short(txt or "Dựng trên Canva chưa ra slide nào", 300)
                 if last.get("kind") == "canva":
                     canva_chot(jid, job, last, res)
                 _danh_dau_ket(st, last)
@@ -1136,8 +1142,10 @@ def start_run(job, prompt, kind, resume=None, label=None, model=None, them_dir=N
         model = ""
     if model:
         args += ["--model", model]
-    if CFG.get("cho_phep_them"):
-        args += ["--allowedTools"] + list(CFG["cho_phep_them"])
+    them = list(CFG.get("cho_phep_them") or [])
+    if "mcp__claude_ai_Canva" not in them:   # config.json fen tự ghi cho_phep_them riêng: vẫn cho công cụ Canva
+        them.append("mcp__claude_ai_Canva")
+    args += ["--allowedTools"] + them
     if resume:
         args += ["--resume", resume]
     pd = plugin_dir()
@@ -1245,6 +1253,8 @@ def _dem_hang():
             continue
         if j.get("status") == "dang-chay":
             r = (j.get("runs") or [{}])[-1]
+            if r.get("kind") in ("caption", "canva"):     # viết caption / Canva không dùng Photoshop: không bắt bài khác xếp hàng
+                continue
             if pid_alive(r.get("pid"), r.get("started")):
                 dang += 1
         elif j.get("status") == "hen" and (j.get("hen_luc") or 0) <= now():
@@ -1317,7 +1327,7 @@ def create_job(data):
 
 
 NHAP_KHOA = ("id", "kenh", "ten", "ngay", "brief", "note", "chude", "briefJob", "briefT", "briefNote", "nhanh", "t",
-             "chat", "chatJob", "chatT", "briefTruoc", "kb", "model", "briefCd", "briefCdGui", "briefMay")
+             "chat", "chatJob", "chatT", "briefTruoc", "kb", "model", "briefCd", "briefCdGui", "briefMay", "dung")
 
 
 def _sach_nhap(x):
@@ -2031,9 +2041,6 @@ def _gui_telegram(jid):
             tg_call("sendMessage", {"chat_id": chat, "text": cap}, timeout=30)
         if ghim:
             tg_call("sendMessage", {"chat_id": chat, "text": ghim}, timeout=30)
-        cv = canva_doc(jid)
-        if cv:
-            tg_call("sendMessage", {"chat_id": chat, "text": "🎨 Sửa trên Canva: " + cv["edit_url"]}, timeout=30)
     except (ValueError, OSError) as e:
         m = str(e).split("|")[-1] if isinstance(e, ValueError) else "không đọc được file slide (vừa bị xoá hoặc đổi tên?)"
         if da:  # gửi được phần nào ghi phần đó, báo rõ cho fen
@@ -2043,6 +2050,12 @@ def _gui_telegram(jid):
             raise ValueError("Chưa gửi được: " + m)
         raise
     _ghi_da_gui(jid, {"t": now(), "kieu": "telegram", "n": len(sl)})
+    cv = canva_doc(jid)
+    if cv:
+        try:
+            tg_call("sendMessage", {"chat_id": chat, "text": "🎨 Sửa trên Canva: " + cv["edit_url"]}, timeout=30)
+        except (ValueError, OSError) as e:
+            log("gui link canva loi: %s" % e)
     return {"ok": True, "n": len(sl)}
 
 
@@ -2094,16 +2107,31 @@ def canva_mau(kenh):
     return ((CFG.get("canva_mau") or {}).get(kenh) or "").strip()
 
 
+_CANVA_ID = re.compile(r"D[A-Za-z0-9_-]{10}")
+
+
+def _la_link_canva(u):
+    u = str(u or "")
+    h = urlparse(u).netloc.lower() if u.startswith("https://") else ""
+    return u if h in ("canva.com", "canva.link") or h.endswith(".canva.com") else ""
+
+
 def canva_doc(jid):
-    """{design_id, edit_url, view_url, so_trang, ten} Claude ghi sau khi đưa lên / dựng trên Canva, chưa có thì None."""
+    """{design_id, edit_url, view_url, so_trang, ten, nguon, lay_lai} Claude ghi sau khi đưa lên / dựng trên Canva, chưa có thì None.
+    edit_url dựng lại từ mã thiết kế (link edit_url / view_url Canva trả về chỉ sống ~30 ngày)."""
     d = read_json(os.path.join(job_dir(jid), "canva.json"), None)
     if not isinstance(d, dict):
         return None
-    u = str(d.get("edit_url") or d.get("view_url") or "")
-    if not u.startswith("https://") or "canva." not in u:
+    did = str(d.get("design_id") or "")
+    if not _CANVA_ID.fullmatch(did):
+        did = ""
+    edit = ("https://www.canva.com/design/%s/edit" % did) if did else _la_link_canva(d.get("edit_url") or d.get("view_url"))
+    if not edit:
         return None
-    d["edit_url"] = u
-    return {k: d.get(k) for k in ("design_id", "edit_url", "view_url", "so_trang", "ten")}
+    so = d.get("so_trang")
+    return {"design_id": did or None, "edit_url": edit, "view_url": _la_link_canva(d.get("view_url")) or None,
+            "so_trang": so if isinstance(so, int) else None, "ten": str(d.get("ten") or "")[:120],
+            "nguon": str(d.get("nguon") or "")[:30], "lay_lai": d.get("lay_lai") is True}
 
 
 def canva_bien(job):
@@ -2138,16 +2166,48 @@ def canva_cai(data=None):
 
 
 def canva_chot(jid, job, run, res):
-    """Lượt "Đưa lên Canva" kết thúc: hỏng thì bài vẫn còn nguyên (status xong, ghi lỗi riêng ở canva_loi)."""
+    """Lượt Canva (Đưa lên / Lấy lại) kết thúc: hỏng thì bài vẫn còn nguyên (status xong, ghi lỗi riêng ở canva_loi).
+    Lấy lại: Claude tải trang về <bài>/_canva-moi; đủ trang mới đổi (slide cũ sang _to_delete), thiếu thì giữ slide cũ."""
     p = os.path.join(job_dir(jid), "canva.json")
-    moi = os.path.isfile(p) and os.path.getmtime(p) >= (run.get("started") or 0) and canva_doc(jid)   # Claude ghi trong lượt này
-    if job["status"] == "xong" and moi:
-        job.pop("canva_loi", None)
+    bat = run.get("started") or 0
+    cv = os.path.isfile(p) and os.path.getmtime(p) >= bat and canva_doc(jid)   # Claude ghi trong lượt này
+    lay = bool(run.get("lay"))
+    viec = "Lấy lại từ Canva" if lay else "Đưa lên Canva"
+    txt = re.sub(r"^\s*THU_MUC_BAI\s*=.*$", "", (res[-1]["text"] if res else "") or "", flags=re.M).strip()
+    loi = "" if job["status"] == "xong" and cv else ("fen đã dừng" if job["status"] == "dung" else txt or run.get("ly_do") or "Claude chưa làm xong")
+    f = job.get("thu_muc_bai")
+    moi_dir = os.path.join(f, "_canva-moi") if f else ""
+    if lay and not loi:
+        moi = list_slides(moi_dir)
+        so = cv.get("so_trang") or 0
+        if not (so and [x["n"] for x in moi] == list(range(1, so + 1)) and all(x["mt"] >= bat - 1 for x in moi)):
+            loi = "ảnh tải về chưa đủ (%d/%d trang)" % (len(moi), so)
+        else:
+            ts = time.strftime("%d%m-%H%M%S")
+            try:
+                bk = os.path.join(f, "_to_delete", "truoc-canva-" + ts)
+                os.makedirs(bk, exist_ok=True)
+                for x in list_slides(f):
+                    shutil.move(x["path"], os.path.join(bk, x["name"]))
+                for x in moi:
+                    shutil.move(x["path"], os.path.join(f, "slide-%02d.png" % x["n"]))
+                log("canva lay lai %s: %d slide (cu o %s)" % (jid, len(moi), bk))
+            except OSError as e:
+                log("canva lay lai loi %s: %s" % (jid, e))
+                loi = "đổi slide bị lỗi (%s), slide cũ ở _to_delete/truoc-canva-%s" % (e, ts)
+    if moi_dir and os.path.isdir(moi_dir):      # còn ảnh tải dở: cất vào _to_delete (không xoá hẳn)
+        try:
+            if os.listdir(moi_dir):
+                shutil.move(moi_dir, os.path.join(f, "_to_delete", "canva-moi-" + time.strftime("%d%m-%H%M%S")))
+            else:
+                os.rmdir(moi_dir)
+        except OSError:
+            pass
+    if loi:
+        job["canva_loi"] = short("%s chưa được: %s%s" % (viec, loi, ". Slide cũ giữ nguyên" if lay else ""), 260)
     else:
-        txt = (res[-1]["text"] if res else "") or ""
-        txt = re.sub(r"^\s*THU_MUC_BAI\s*=.*$", "", txt, flags=re.M).strip()
-        job["canva_loi"] = "Fen đã dừng" if job["status"] == "dung" else short(txt or run.get("ly_do") or "Claude chưa đưa xong lên Canva", 220)
-    if list_slides(job.get("thu_muc_bai")):
+        job.pop("canva_loi", None)
+    if list_slides(f):
         job["status"] = "xong"
 
 
@@ -2168,6 +2228,8 @@ def dua_canva(jid, lay=False):
             raise ValueError("Không tìm thấy Claude Code trên máy. Bấm Kiểm lại ở góc trên.")
         if lay and not canva_doc(jid):
             raise ValueError("Bài chưa có thiết kế trên Canva")
+        if jid in GUI_DANG:
+            raise ValueError("Bài đang gửi Telegram / mở TikTok, chờ xong rồi làm")
         k = CFG["kenh"].get(job["kenh"], {})
         ten = ten_hien(job)
         data = canva_bien(job)
@@ -2180,6 +2242,9 @@ def dua_canva(jid, lay=False):
         job.pop("canva_loi", None)
         start_run(job, fill(read_prompt("lay-canva.txt" if lay else "dua-canva.txt"), data), "canva", None,
                   "Lấy lại từ Canva" if lay else "Đưa lên Canva", model="sonnet")
+        if lay:
+            job["runs"][-1]["lay"] = True
+            save_job(job)
     return {"ok": True}
 
 
@@ -4350,7 +4415,7 @@ class H(BaseHTTPRequestHandler):
                         job.pop("loi_chay", None)
                         sid = job.get("session_id")
                         if sid and data.get("tiep") is not False:
-                            start_run(job, read_prompt("chay-tiep.txt"), "tiep", sid)
+                            start_run(job, read_prompt("chay-tiep-canva.txt" if job.get("dung_bang") == "canva" else "chay-tiep.txt"), "tiep", sid)
                         else:
                             start_run(job, build_prompt_dung(job), "dung")
                     return self.send(200, {"ok": True})

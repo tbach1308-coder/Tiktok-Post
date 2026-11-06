@@ -140,7 +140,8 @@ LÀM 1 BÀI
   Thiết kế Claude làm nằm trong thư mục Canva "POLY Dựng Bài"; thiết kế mẫu / thiết kế khác của fen không bị sửa.
    · Ô Đăng bài > "🎨 Đưa lên Canva": Claude đưa các slide lên Canva thành 1 thiết kế (mỗi slide 1 trang, 3–5 phút).
      Có rồi thì có "🎨 Mở Canva" (mở thiết kế trên web / app Canva điện thoại) và "⬇ Lấy lại từ Canva": sửa trên Canva
-     xong bấm để thay slide trong app bằng ảnh mới (slide cũ chuyển vào _to_delete của bài), rồi đăng TikTok như thường.
+     xong bấm để thay slide trong app bằng ảnh mới (đủ trang mới đổi, slide cũ chuyển vào _to_delete/truoc-canva-… của bài;
+     tải thiếu thì giữ slide cũ và báo), rồi đăng TikTok như thường.
      Slide Photoshop lên Canva là ảnh phẳng: thêm chữ / hình đè lên được, sửa chữ có sẵn thì không.
    · Bài mới > "Dựng bằng: Canva": Claude chép trang của thiết kế mẫu kênh sang thiết kế mới, thay chữ + ảnh máy theo brief,
      xuất slide về thư mục bài, viết caption, agent duyệt soát chữ. Chữ sửa tiếp được trên Canva. Ô Sửa slide của bài

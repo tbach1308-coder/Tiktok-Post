@@ -16,7 +16,7 @@ Brief gốc của bài (để nắm bối cảnh):
 
 ---
 Fen có thể ghi sửa cho nhiều slide cùng lúc (dạng "Slide N: … | Slide M: … | Chung: …"): làm HẾT các mục trong lượt này. "Chung (fen nhắc, ghi thành quy tắc)" là fen nhắc trong lúc làm: áp cho cả bài này VÀ ghi thành luật vào "E:/Social Claude/POLY-quy-tac-lam-content.md" (đúng mục, thêm 1 dòng đầu bảng lịch sử, ghi rõ [Laptop] / [iPad] nếu chỉ 1 kênh), rồi sửa các file con theo "E:/Social Claude/_bo-dung-design/SO-DO-LUAT.md". Ảnh tên "slideN-k.*" trong danh sách ảnh mới là ảnh fen dán vào ô sửa của slide N: dùng cho đúng slide N.
-Công cụ Canva là các công cụ mcp__claude_ai_Canva__* (nạp nền vài giây sau khi phiên mở). Chưa thấy thì ToolSearch tìm "Canva" (chưa có thì sleep 5 rồi tìm lại, tối đa 3 lần). Vẫn không có: dừng, trả lời "Chưa nối được Canva: fen vào claude.ai > Customize > Connectors > Canva bấm Connect rồi bấm Sửa lại."
+Công cụ Canva là các công cụ mcp__claude_ai_Canva__* (nạp nền vài giây sau khi phiên mở). Chưa thấy thì ToolSearch tìm "Canva" (chưa có thì chờ 5 giây bằng python -c "import time; time.sleep(5)" rồi tìm lại, tối đa 3 lần). Vẫn không có: dừng, trả lời "Chưa nối được Canva: fen vào claude.ai > Customize > Connectors > Canva bấm Connect rồi bấm Sửa lại."
 Thiết kế của bài "(chưa có)" hoặc không mở được: search-designs tìm theo tên bài trong thư mục Canva "{thu_muc_canva}"; không thấy thì dựng lại các trang cần từ mẫu (merge-designs create_new_design + sửa như lúc dựng) và ghi lại "{canva_json}".
 
 Cách làm:

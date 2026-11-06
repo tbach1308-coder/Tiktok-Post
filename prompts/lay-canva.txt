@@ -1,5 +1,5 @@
 Lấy lại slide từ thiết kế Canva của bài (fen vừa sửa trên Canva) về thư mục bài trong app. Chỉ xuất ảnh, KHÔNG sửa thiết kế Canva, không mở Photoshop, không gọi agent con. Làm nhanh (1–3 phút).
-Fen bấm nút "Lấy lại từ Canva" nghĩa là fen đồng ý thay slide trong thư mục bài bằng ảnh xuất từ Canva.
+Fen bấm nút "Lấy lại từ Canva" nghĩa là fen đồng ý thay slide trong app bằng ảnh xuất từ Canva (app tự đổi khi đủ trang, slide cũ chuyển vào _to_delete).
 
 Thư mục bài: {thu_muc_bai}
 Tên bài: {ten_bai}
@@ -7,13 +7,13 @@ Thiết kế Canva của bài: {canva_link} (mã {canva_id})
 Slide đang có trong thư mục bài: {so_slide}
 File ghi kết quả Canva: {canva_json}
 
-Công cụ Canva là các công cụ mcp__claude_ai_Canva__* (nạp nền vài giây sau khi phiên mở). Chưa thấy thì ToolSearch tìm "Canva" (chưa có thì sleep 5 rồi tìm lại, tối đa 3 lần). Vẫn không có: dừng, trả lời "Chưa nối được Canva: fen vào claude.ai > Customize > Connectors > Canva bấm Connect rồi bấm lại." và không đổi file nào.
+Công cụ Canva là các công cụ mcp__claude_ai_Canva__* (nạp nền vài giây sau khi phiên mở). Chưa thấy thì ToolSearch tìm "Canva" (chưa có thì chờ 5 giây bằng python -c "import time; time.sleep(5)" rồi tìm lại, tối đa 3 lần). Vẫn không có: dừng, trả lời "Chưa nối được Canva: fen vào claude.ai > Customize > Connectors > Canva bấm Connect rồi bấm lại." và không đổi file nào.
 
 Cách làm:
 1. read-design (fields design_metadata, page_metadata) thiết kế của bài: số trang hiện tại, edit_url, view_url. Link ngắn thì resolve-shortlink trước.
-2. Chuyển slide cũ đi trước khi tải (không xoá hẳn): mkdir -p "{thu_muc_bai}/_to_delete/truoc-canva-<ddmm-hhmm>" rồi mv từng file slide-NN.png đang có vào đó (mỗi lệnh 1 file).
-3. export-design type "png", width 1080, height 1440, mọi trang → mỗi URL tải về bằng 1 lệnh curl -sS -o "{thu_muc_bai}/slide-NN.png" "<url>" (NN 2 chữ số theo đúng thứ tự trang). Tải lỗi thì export lại trang đó, tối đa 3 lần; vẫn lỗi thì chép lại slide cũ tương ứng từ _to_delete về và báo.
-4. Xem lại bằng 1 ảnh ghép: mkdir -p "{thu_muc_bai}/log" rồi python "E:/Social Claude/_bo-dung-design/prep/xem_nhanh.py" "{thu_muc_bai}/log/xem-canva.jpg" "{thu_muc_bai}" rồi Read 1 lần: đúng số trang, không trang trắng / lỗi.
+2. KHÔNG đụng slide đang có trong thư mục bài (app tự đổi sau khi lượt này xong, đủ trang mới đổi; thiếu thì giữ slide cũ). Tạo thư mục tải: mkdir -p "{thu_muc_bai}/_canva-moi"
+3. export-design type "png", width 1080, height 1440, mọi trang → mỗi URL tải về bằng 1 lệnh curl -sS -o "{thu_muc_bai}/_canva-moi/slide-NN.png" "<url>" (NN 2 chữ số theo đúng thứ tự trang: slide-01.png, slide-02.png…). Tải lỗi thì export lại trang đó, tối đa 3 lần; vẫn lỗi thì dừng, báo trang nào lỗi.
+4. Xem lại bằng 1 ảnh ghép: mkdir -p "{thu_muc_bai}/log" rồi python "E:/Social Claude/_bo-dung-design/prep/xem_nhanh.py" "{thu_muc_bai}/log/xem-canva.jpg" "{thu_muc_bai}/_canva-moi" rồi Read 1 lần: đúng số trang, không trang trắng / lỗi.
 5. Ghi lại "{canva_json}" bằng Write, 1 dòng JSON: {"design_id": "<mã D…>", "edit_url": "<edit_url>", "view_url": "<view_url>", "so_trang": <số trang>, "ten": "<tên thiết kế>", "nguon": "<giữ nguồn cũ>", "lay_lai": true}
 caption.txt giữ nguyên.
 
