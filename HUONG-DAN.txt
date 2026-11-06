@@ -143,13 +143,17 @@ LÀM 1 BÀI
      xong bấm để thay slide trong app bằng ảnh mới (đủ trang mới đổi, slide cũ chuyển vào _to_delete/truoc-canva-… của bài;
      tải thiếu thì giữ slide cũ và báo), rồi đăng TikTok như thường.
      Slide Photoshop lên Canva là ảnh phẳng: thêm chữ / hình đè lên được, sửa chữ có sẵn thì không.
-   · Bài mới > "Dựng bằng: Canva": Claude chép trang của thiết kế mẫu kênh sang thiết kế mới, thay chữ + ảnh máy theo brief,
+   · Ô "Canva" trên thanh trên cùng: xanh "đã nối", đỏ "chưa nối", vàng "lỗi". App tự kiểm 1 lần khi mở (quá 12 giờ thì kiểm lại),
+     bấm vào ô để Kiểm lại (1 lượt Claude rất ngắn) và xem cách nối. Lượt Canva nào chạy xong cũng tự cập nhật ô này.
+   · Bài mới > "Làm trên: 🖌 Photoshop / 🎨 Canva" (ngay dưới chọn kênh): Canva thì Claude chép trang của thiết kế mẫu kênh
+     sang thiết kế mới, thay chữ + ảnh máy theo brief,
      xuất slide về thư mục bài, viết caption, agent duyệt soát chữ. Chữ sửa tiếp được trên Canva. Ô Sửa slide của bài
      này sửa thẳng trên thiết kế Canva rồi xuất lại slide. Kênh chưa có mẫu thì chỉ dựng bằng Photoshop.
    · Mẫu: Kiểm máy > Canva, dán link thiết kế mẫu của từng kênh (iPad đang dùng "TIKTOK POLY 2026 tháng 7").
    · Dán link Canva vào brief, chat sửa brief hay ô Sửa: Claude đọc thiết kế đó để làm theo kiểu / lấy ảnh (chỉ đọc).
    · Gói Canva miễn phí: ảnh xuất chất lượng thường; mẫu có hình, font có vương miện (gói Pro) thì không xuất được.
-   · Gửi Telegram / xem bài trên Remote có thêm link Canva của bài.
+   · Gửi Telegram / xem bài trên Remote có thêm link Canva của bài. Brief viết trên Telegram có 2 nút "▶️ Chạy Photoshop"
+     và "🎨 Chạy Canva" (kênh chưa có mẫu Canva thì chỉ có nút Chạy dựng bài).
    · Báo "Chưa nối được Canva": vào claude.ai > Customize > Connectors > Canva bấm Connect lại.
 
 CÀI TIỆN ÍCH POLY TIKTOK (1 lần, cho nút Đăng TikTok)

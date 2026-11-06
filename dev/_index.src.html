@@ -206,6 +206,10 @@ h1{font-size:26px;margin:0 0 4px;font-weight:800;letter-spacing:-.01em}
 .seg button.on .ic{background:var(--g)}
 .seg button[data-k=ipad].on{border-color:var(--y);background:#221c10;box-shadow:inset 0 0 0 1px var(--y)}
 .seg button[data-k=ipad].on .ic{background:var(--y)}
+.seg.segd{margin-bottom:6px}
+.seg button[data-d=canva].on{border-color:#8b5cf6;background:#1d1630;box-shadow:inset 0 0 0 1px #8b5cf6}
+.seg button[data-d=canva].on .ic{background:#8b5cf6}
+.dungghi{margin:0 0 16px;font-size:12.5px;color:var(--mut);max-width:520px}
 .row{display:grid;grid-template-columns:3fr 2fr;gap:12px;margin-bottom:14px}
 .in{width:100%;height:44px;background:var(--input);border:1px solid var(--edge);border-radius:11px;padding:10px 12px;outline:none;transition:border-color .15s,box-shadow .15s}
 .in:focus{border-color:var(--g);box-shadow:0 0 0 3px rgba(31,143,78,.28)}
@@ -473,6 +477,7 @@ details.brief ul{margin:0;padding-left:18px;color:var(--mut)}
   <div class="sp"></div>
   <span class="chip rmc" id="bRm" title="Remote: nhắn việc cho app từ Telegram (viết brief, bấm Chạy, ghi quy tắc, hỏi tình hình). Chỉ nghe khi bật. Bấm chữ Remote để xem mã nối, hướng dẫn."><span class="dot"></span><span class="rml" role="button">📱 Remote</span><span class="kseg rmsw"><button data-rb="0">Tắt</button><button data-rb="1">Bật</button></span></span>
   <button class="chip tgc" id="bQt" title="Ghi quy tắc mới cho mọi bài sau (không sửa bài nào)"><span>📏 Quy tắc</span></button>
+  <button class="chip tgc" id="bCv" title="Canva: Claude đã nối với Canva của fen chưa (bấm để kiểm, xem cách nối)"><span class="dot"></span><span>Canva</span></button>
   <button class="chip tgc" id="bTg" title="Cài / đổi Telegram nhận slide bài Laptop, iPad"><span class="dot"></span><span>Telegram</span></button>
   <span class="chip hcc" id="hc" title="Kiểm máy: tài khoản Claude, plugin, quy tắc" onclick="if (!event.target.closest('button')) kiemMay()"><span class="dot"></span><span>Đang kiểm Claude…</span></span>
 </div>
@@ -726,7 +731,7 @@ async function cvCai(){
   if (!$('#kmCvI')) return;
   $('#kmCvI').value = c.mau.ipad || ''; $('#kmCvL').value = c.mau.laptop || ''; $('#kmCvTm').textContent = c.thu_muc;
   $('#kmCvLuu').onclick = async e => { const b = e.currentTarget; $('#kmCvErr').textContent = ''; b.disabled = true;
-    try { await api('/api/canva-cai', {mau_ipad: $('#kmCvI').value.trim(), mau_laptop: $('#kmCvL').value.trim()}); toast('Đã lưu mẫu Canva'); }
+    try { const r = await api('/api/canva-cai', {mau_ipad: $('#kmCvI').value.trim(), mau_laptop: $('#kmCvL').value.trim()}); S.cvMau = r.mau; if (S._veDung) S._veDung(); toast('Đã lưu mẫu Canva'); }
     catch(err) { $('#kmCvErr').textContent = err.message; } b.disabled = false; };
 }
 async function mdCai(){
@@ -1054,11 +1059,17 @@ function newView(){
   $('#main').innerHTML = `<div class="pad">
     <div id="banner"></div>
     <div class="nhbar"><h1>Bài mới</h1><div class="nhbtn"><button class="btn sm" id="bLuuNhap" title="Cất brief này vào tab Bản nháp ở cột trái, mở trang trống để làm bài khác">💾 Lưu bản nháp</button><button class="btn sm ghost" id="bXoaNhap" title="Bỏ nháp này (cất vào Lịch sử brief, lấy lại được)">🗑 Xoá bản nháp</button></div></div>
-    <p class="lead">Gõ chủ đề để Claude viết brief, hoặc dán brief có sẵn, rồi bấm Chạy. Claude tự biên tập, dựng Photoshop và duyệt, xong hiện ở đây.</p>
+    <p class="lead">Gõ chủ đề để Claude viết brief, hoặc dán brief có sẵn, rồi bấm Chạy. Claude tự biên tập, dựng (Photoshop hoặc Canva) và duyệt, xong hiện ở đây.</p>
     <span class="lbl">Kênh</span>
     <div class="seg" id="seg">
       ${Object.entries(KENH).map(([key, v]) => `<button data-k="${key}" class="${f.kenh === key ? 'on' : ''}"><span class="ic">${v.ic}</span><span><b>${v.ten}</b><span>${v.handle}</span></span></button>`).join('')}
     </div>
+    <span class="lbl">Làm trên</span>
+    <div class="seg segd" id="segDung">
+      <button data-d="" class="${f.dung === 'canva' ? '' : 'on'}"><span class="ic">🖌</span><span><b>Photoshop</b><span>bộ dựng của shop</span></span></button>
+      <button data-d="canva" class="${f.dung === 'canva' ? 'on' : ''}"><span class="ic">🎨</span><span><b>Canva</b><span>theo mẫu, sửa chữ được</span></span></button>
+    </div>
+    <p class="dungghi" id="dungGhi"></p>
     <span class="lbl">Chủ đề <i>(gõ chủ đề, hoặc nhờ kiểu "tìm chủ đề hot mẹo iPad", rồi bấm Viết brief; Claude hiểu ý, viết brief từng slide và dò trùng bài cũ)</i></span>
     <div class="vb"><input class="in" id="fChuDe" placeholder="${esc(CHUDE_PH[f.kenh])}" value="${esc(f.chude || '')}"><button class="btn" id="bVietBrief">✍ Viết brief</button></div>
     <div class="vbst" id="vbSt"></div>
@@ -1074,7 +1085,7 @@ function newView(){
     <div class="mt"><span class="lbl">Ghi chú thêm <i>(vd ảnh số 1 dùng cho bìa)</i></span><textarea class="in small" id="fNote" placeholder="${esc(k.ph.note)}">${esc(f.note || '')}</textarea></div>
     <div class="henbox" id="henBox" hidden><span class="lbl">Hẹn giờ dựng bài <i>(${laMac() ? 'máy Mac' : 'máy shop'} bật, mở app lúc đó; tới giờ app tự chạy, mỗi lần 1 bài, xong báo Telegram)</i></span>
       <div class="henr"><div class="hq" id="henQ"></div><input class="in" type="datetime-local" id="fHen"><button class="btn pri" id="bHenOk">Lên lịch</button><button class="btn ghost" id="bHenX">Thôi</button></div></div>
-    <div class="foot"><button class="btn pri" id="bRun">Chạy</button><button class="btn" id="bHen" title="Chốt brief xong, hẹn giờ cho app tự dựng (làm dần từng bài)">⏰ Hẹn làm</button><label class="mlab" title="Model Claude dựng bài này. Theo cài đặt = Kiểm máy > Model. Sonnet nhanh hơn, Opus kỹ hơn; agent duyệt theo Kiểm máy.">Model ${chonModel('fModel', ['', 'sonnet', 'opus'], f.model || (f.nhanh ? 'sonnet' : ''))}</label><label class="mlab" title="Photoshop: dựng theo bộ dựng của shop (cần mở Photoshop). Canva: Claude dựng trên Canva theo mẫu của kênh (Kiểm máy > Canva), chạy trên mạng, không cần Photoshop; chữ sửa tiếp được trên app Canva.">Dựng bằng <select class="in msel" id="fDung"><option value=""${f.dung === 'canva' ? '' : ' selected'}>Photoshop</option><option value="canva"${f.dung === 'canva' ? ' selected' : ''}>Canva</option></select></label><div><p>Không cần ngồi canh. Tắt app vẫn chạy tiếp, mở lại là thấy.</p><div class="err" id="fWhy"></div><div class="err" id="fErr"></div></div></div>
+    <div class="foot"><button class="btn pri" id="bRun">Chạy</button><button class="btn" id="bHen" title="Chốt brief xong, hẹn giờ cho app tự dựng (làm dần từng bài)">⏰ Hẹn làm</button><label class="mlab" title="Model Claude dựng bài này. Theo cài đặt = Kiểm máy > Model. Sonnet nhanh hơn, Opus kỹ hơn; agent duyệt theo Kiểm máy.">Model ${chonModel('fModel', ['', 'sonnet', 'opus'], f.model || (f.nhanh ? 'sonnet' : ''))}</label><div><p>Không cần ngồi canh. Tắt app vẫn chạy tiếp, mở lại là thấy.</p><div class="err" id="fWhy"></div><div class="err" id="fErr"></div></div></div>
   </div>`;
   renderBanner();
   $('#bLuuNhap').onclick = luuBanNhap; $('#bXoaNhap').onclick = xoaBanNhap;
@@ -1090,13 +1101,21 @@ function newView(){
       return; }
     f.kenh = k; delete f.kb; saveForm();
     document.querySelectorAll('#seg button').forEach(x => x.classList.toggle('on', x === b));
-    const p = KENH[f.kenh].ph; $('#fBrief').placeholder = p.brief; $('#fNote').placeholder = p.note; $('#fChuDe').placeholder = CHUDE_PH[f.kenh]; };
+    const p = KENH[f.kenh].ph; $('#fBrief').placeholder = p.brief; $('#fNote').placeholder = p.note; $('#fChuDe').placeholder = CHUDE_PH[f.kenh]; if (S._veDung) S._veDung(); };
   const map = {fBrief:'brief', fNote:'note', fChuDe:'chude'};   // bỏ ô Tên bài + Ngày đăng (fen 29/10 19h08 "phần này bị thừa")
   Object.keys(map).forEach(id => $('#' + id).oninput = e => { f[map[id]] = e.target.value; saveForm(); if (id === 'fBrief') e.target.classList.remove('bad'); });
   setupPick($('#file'), $('#pick'), f.anh, $('#drop'));
   renderThumbs($('#drop'), f.anh);
   $('#fModel').onchange = e => { f.model = e.target.value; f.nhanh = false; saveForm(); };
-  $('#fDung').onchange = e => { f.dung = e.target.value; saveForm(); };
+  const veDung = () => { const mau = (S.cvMau || {})[f.kenh], cv = f.dung === 'canva';
+    document.querySelectorAll('#segDung button').forEach(x => x.classList.toggle('on', (x.dataset.d === 'canva') === cv));
+    setH($('#dungGhi'), cv && S.cvMau && !mau ? `<span class="stc">Kênh ${esc(KENH[f.kenh].ten)} chưa có mẫu Canva: <a href="#" id="dungMau">dán link mẫu ở Kiểm máy > Canva</a> hoặc chọn Photoshop.</span>`
+      : cv ? 'Claude chép trang mẫu Canva của kênh sang thiết kế mới, thay chữ + ảnh máy, xuất slide về app. Không cần Photoshop; chữ sửa tiếp được trên Canva.'
+      : 'Dựng bằng bộ dựng Photoshop của shop (Photoshop tự chạy ngầm qua hàng chờ).');
+    const dm = $('#dungMau'); if (dm) dm.onclick = ev => { ev.preventDefault(); kiemMay(); setTimeout(() => { const k = $('#kmCv'); if (k) k.scrollIntoView({block: 'center'}); }, 300); }; };
+  document.querySelectorAll('#segDung button').forEach(b => b.onclick = () => { f.dung = b.dataset.d; saveForm(); veDung(); });
+  S._veDung = veDung; veDung();
+  if (!S.cvMau) api('/api/canva-cai').then(c => { S.cvMau = c.mau; if (S._veDung) S._veDung(); }).catch(() => {});
   $('#bRun').onclick = runNew;
   $('#bVietBrief').onclick = vietBrief;
   $('#bHen').onclick = () => { const bx = $('#henBox'); bx.hidden = !bx.hidden; if (bx.hidden) return;
@@ -1822,6 +1841,35 @@ async function lsDialog(){
   $('#lsQ').oninput = e => { q = e.target.value; ve(); };
   ve(); $('#lsQ').focus();
 }
+// ô Canva trên thanh trên cùng (fen 6/11): đã nối / chưa nối, bấm để kiểm lại + xem cách nối
+const CV_TT = {noi: ['ok', 'Canva: đã nối'], chua: ['err', 'Canva: chưa nối'], loi: ['warn', 'Canva: lỗi'], dang: ['run', 'Canva: đang kiểm…'], 'chua-kiem': ['', 'Canva: chưa kiểm']};
+function cvVe(st){
+  S.cv = st; const [d, t] = CV_TT[st.tt] || CV_TT['chua-kiem'];
+  setH($('#bCv'), `<span class="dot ${d}"></span><span>${t}</span>`);
+  const b = $('#cvTt'); if (b) setH(b, cvChu(st));
+  clearTimeout(S._cvT); if (st.tt === 'dang') S._cvT = setTimeout(cvChip, 3000);
+}
+const cvChu = st => `<b>${esc((CV_TT[st.tt] || CV_TT['chua-kiem'])[1])}</b>${st.t ? ` · ${st.tt === 'dang' ? 'bắt đầu' : 'biết lúc'} ${hm(st.t)}${st.nguon ? ' (' + esc(st.nguon) + ')' : ''}` : ''}${st.ghi ? '<br><span class="stc">' + esc(st.ghi) + '</span>' : ''}`;
+async function cvChip(kiem){
+  let st; try { st = await api('/api/canva-tt', kiem ? {kiem: true} : undefined); } catch(e) { if (kiem) toast(e.message, true); return; }
+  // chưa biết hoặc biết từ lâu (quá 12 giờ): tự kiểm 1 lần (1 lượt Claude haiku rất ngắn)
+  if (!kiem && st.tt !== 'dang' && (st.tt === 'chua-kiem' || nowS() - (st.t || 0) > 43200)) return cvChip(true);
+  cvVe(st);
+}
+function cvDialog(){
+  const m = document.createElement('div'); m.className = 'modal on'; m.innerHTML = `<div class="mbox">
+    <h3>Canva</h3>
+    <p id="cvTt">${cvChu(S.cv || {tt: 'chua-kiem'})}</p>
+    <p class="pnote">Claude dùng Canva qua kết nối Canva trong tài khoản Claude đang đăng nhập trên máy (chạy trên mạng, không mở app Canva). "Kiểm lại" chạy 1 lượt Claude rất ngắn gọi thử Canva, khoảng 20–60 giây.</p>
+    <ol><li>Chưa nối: vào <b>claude.ai</b> (đúng tài khoản Claude của máy này) > <b>Customize</b> > <b>Connectors</b>, tìm <b>Canva</b>, bấm <b>Connect</b>, đăng nhập Canva, bấm <b>Allow</b>.</li>
+      <li>Nối xong quay lại đây bấm <b>Kiểm lại</b>.</li></ol>
+    <div class="acts"><button class="btn" id="cvMau">Mẫu Canva</button><button class="btn" id="cvKiem">Kiểm lại</button><button class="btn pri" id="cvDong">Đóng</button></div></div>`;
+  document.body.appendChild(m);
+  const dong = () => m.remove();
+  $('#cvDong').onclick = dong; m.onclick = e => { if (e.target === m) dong(); };
+  $('#cvKiem').onclick = async e => { e.currentTarget.disabled = true; await cvChip(true); setTimeout(() => { const b = $('#cvKiem'); if (b) b.disabled = false; }, 3000); };
+  $('#cvMau').onclick = () => { dong(); kiemMay(); setTimeout(() => { const k = $('#kmCv'); if (k) k.scrollIntoView({block: 'center'}); }, 300); };
+}
 async function tgChip(){
   const st = await api('/api/telegram').catch(() => null); if (!st) return;
   setH($('#bTg'), `<span class="dot ${st.xong ? 'ok' : ''}"></span><span>${st.xong ? 'Telegram: ' + esc(st.ten || '') : 'Cài Telegram'}</span>`);
@@ -1836,6 +1884,7 @@ function inline(s){
 /* ---------- bắt đầu ---------- */
 $('#bNew').onclick = baiMoi;
 $('#bTg').onclick = () => tgDialog(); tgChip();
+$('#bCv').onclick = () => cvDialog(); cvChip();
 $('#bQt').onclick = () => quyTac(); qtTai();
 $('#bRm .rml').onclick = () => remote();
 document.querySelectorAll('#bRm [data-rb]').forEach(b => b.onclick = e => { e.stopPropagation(); const v = b.dataset.rb === '1'; if (S.rm && v === !!S.rm.bat) return; rmBat(v); });

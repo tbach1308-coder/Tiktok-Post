@@ -783,6 +783,9 @@ def handle_line(st, obj, run):
         if obj.get("subtype") == "init":
             st["session_id"] = obj.get("session_id") or st["session_id"]
             st["model"] = obj.get("model") or st["model"]
+            for sv in obj.get("mcp_servers") or []:      # connector Canva của tài khoản Claude (init của agent con có đủ)
+                if isinstance(sv, dict) and sv.get("name") == "claude.ai Canva" and sv.get("status") in CANVA_TT_MA:
+                    st.setdefault("canva_tt", {})[run] = sv["status"]
             if run not in st.setdefault("init_luot", set()):
                 st["init_luot"].add(run)
                 add_event(st, "info", "Claude bắt đầu làm", run)
@@ -965,6 +968,10 @@ def parse_job(jid):
             _doc_luot(st, os.path.join(job_dir(jid), "stream-%d.jsonl" % n), n)
             if run.get("ended"):
                 _danh_dau_ket(st, run)
+        for r in job.get("runs", []):
+            ct = st.get("canva_tt", {}).get(r["n"])
+            if ct and (r.get("started") or 0) > CANVA_TT.get("t", 0):     # lượt mới hơn lần ghi trước mới tính
+                canva_ghi_tt(CANVA_TT_MA[ct], "lượt " + (r.get("label") or r["kind"]), t=r.get("started"))
         changed = False
         if st["folder"] and job.get("thu_muc_bai") != st["folder"]:
             job["thu_muc_bai"] = st["folder"]
@@ -996,6 +1003,8 @@ def parse_job(jid):
                     txt = re.sub(r"^\s*THU_MUC_BAI\s*=.*$", "", (res[-1]["text"] if res else "") or "", flags=re.M).strip()
                     job["status"] = last["ket_qua"] = "loi"
                     last["ly_do"] = job["loi_chay"] = short(txt or "Dựng trên Canva chưa ra slide nào", 300)
+                    if "Chưa nối được Canva" in txt:
+                        canva_ghi_tt("chua", "Dựng bằng Canva", txt)
                 if last.get("kind") == "canva":
                     canva_chot(jid, job, last, res)
                 _danh_dau_ket(st, last)
@@ -2103,6 +2112,87 @@ def doi_kenh(jid, data):
 _CANVA_LINK = re.compile(r"^(?:D[A-Za-z0-9_-]{10}|https://(?:www\.)?canva\.(?:com|link)/\S+)$")
 
 
+# trạng thái kết nối Canva cho ô "Canva" trên thanh trên cùng (fen 6/11 "thanh trạng báo cho biết đã kết nối với canva hay chưa")
+# noi = đã nối, chua = chưa nối / cần đăng nhập lại, loi = kiểm lỗi, dang = đang kiểm, chua-kiem = chưa biết
+CANVA_TT_F = os.path.join(APP, "canva-tt.json")
+CANVA_TT_MA = {"connected": "noi", "needs-auth": "chua", "failed": "loi"}
+CANVA_TT = {"tt": "chua-kiem", "t": 0}
+CANVA_TT.update({k: v for k, v in (read_json(CANVA_TT_F, None) or {}).items() if k in ("tt", "t", "nguon", "ghi") and v != "dang"})
+CANVA_KIEM = ('Kiểm kết nối Canva cho app Poly Dựng Bài. Làm thật nhanh, không đọc file, không làm việc gì khác.\n'
+              '1. Dùng ToolSearch tìm "Canva". Chưa thấy công cụ mcp__claude_ai_Canva__search-designs thì chờ 5 giây bằng lệnh '
+              'python -c "import time; time.sleep(5)" rồi tìm lại, tối đa 3 lần.\n'
+              '2. Có công cụ: gọi search-designs 1 lần (limit 1, sort_by "modified_descending").\n'
+              'Trả lời đúng 1 dòng: CANVA_OK nếu search-designs chạy được; CANVA_CHUA nếu không có công cụ Canva; '
+              'CANVA_CHUA <lỗi ngắn> nếu công cụ báo cần đăng nhập / không có quyền; CANVA_LOI <lỗi ngắn> nếu lỗi khác.')
+
+
+def canva_ghi_tt(tt, nguon, ghi="", t=None):
+    if tt == CANVA_TT.get("tt") and nguon == CANVA_TT.get("nguon") and (t or now()) - CANVA_TT.get("t", 0) < 60:
+        return
+    CANVA_TT.update({"tt": tt, "t": t or now(), "nguon": nguon, "ghi": short(ghi, 200)})
+    if tt != "dang":
+        try:
+            write_json(CANVA_TT_F, dict(CANVA_TT))
+        except OSError as e:
+            log("ghi canva-tt loi: %s" % e)
+
+
+def canva_tt(data=None):
+    """GET: trạng thái Canva. POST {kiem: true}: chạy 1 lượt Claude rất ngắn (haiku) gọi thử Canva."""
+    if data and data.get("kiem"):
+        if CANVA_TT.get("tt") == "dang" and now() - CANVA_TT.get("t", 0) < 200:
+            return dict(CANVA_TT)
+        cmd = resolve_claude()
+        if not cmd:
+            raise ValueError("Không tìm thấy Claude Code trên máy. Bấm Kiểm lại ở góc trên.")
+        canva_ghi_tt("dang", "kiểm", t=now())
+        threading.Thread(target=_canva_kiem_chay, args=(cmd,), daemon=True).start()
+    return dict(CANVA_TT)
+
+
+def _canva_kiem_chay(cmd):
+    args = cmd + ["-p", "--output-format", "stream-json", "--verbose", "--model", "haiku", "--max-turns", "12",
+                  "--allowedTools", "mcp__claude_ai_Canva", "Bash(python *)"]
+    env = env_claude()
+    if IS_MAC:
+        mac_env(env)
+    kw = {"creationflags": CREATE_NO_WINDOW} if IS_WIN else {}
+    kq, ma, ghi = "", None, ""
+    try:
+        p = subprocess.Popen(args, cwd=APP, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env, **kw)
+        try:
+            out, err = p.communicate(CANVA_KIEM.encode("utf-8"), timeout=180)
+        except subprocess.TimeoutExpired:
+            p.kill()
+            out, err = p.communicate()
+            ghi = "kiểm quá 3 phút"
+        for line in (out or b"").decode("utf-8", "replace").splitlines():
+            try:
+                o = json.loads(line)
+            except Exception:
+                continue
+            if o.get("type") == "system" and o.get("subtype") == "init":
+                for sv in o.get("mcp_servers") or []:
+                    if isinstance(sv, dict) and sv.get("name") == "claude.ai Canva" and sv.get("status") in CANVA_TT_MA:
+                        ma = CANVA_TT_MA[sv["status"]]
+            elif o.get("type") == "result":
+                kq = str(o.get("result") or "")
+        if not kq and not ghi:
+            ghi = short(explain_err((err or b"").decode("utf-8", "replace")[-600:]), 200)
+    except Exception as e:
+        log("kiem canva loi: %s" % e)
+        ghi = str(e)
+    m = re.search(r"CANVA_(OK|CHUA|LOI)\b[ :\-]*(.*)", kq)
+    if m:
+        tt = {"OK": "noi", "CHUA": "chua", "LOI": "loi"}[m.group(1)]
+        ghi = m.group(2).strip()
+    else:
+        tt = ma or "loi"
+        ghi = ghi or short(kq, 200) or "không đọc được kết quả"
+    log("kiem canva: %s %s" % (tt, ghi))
+    canva_ghi_tt(tt, "kiểm", ghi, t=now())
+
+
 def canva_mau(kenh):
     return ((CFG.get("canva_mau") or {}).get(kenh) or "").strip()
 
@@ -2205,8 +2295,11 @@ def canva_chot(jid, job, run, res):
             pass
     if loi:
         job["canva_loi"] = short("%s chưa được: %s%s" % (viec, loi, ". Slide cũ giữ nguyên" if lay else ""), 260)
+        if "Chưa nối được Canva" in loi:
+            canva_ghi_tt("chua", viec, loi)
     else:
         job.pop("canva_loi", None)
+        canva_ghi_tt("noi", viec)
     if list_slides(f):
         job["status"] = "xong"
 
@@ -2790,7 +2883,7 @@ def tgl_bam(q):
         bo_nut()
         tgl_gui("✍ Đang viết caption…")
         return threading.Thread(target=tgl_cho_caption, args=(du,), daemon=True).start()
-    if loai in ("chay", "lai", "bo") and re.fullmatch(r"[0-9a-zA-Z_-]{6,64}", du):
+    if loai in ("chay", "chcv", "lai", "bo") and re.fullmatch(r"[0-9a-zA-Z_-]{6,64}", du):
         if loai == "bo":
             with LOCK:
                 j = load_job(du)
@@ -2803,7 +2896,7 @@ def tgl_bam(q):
             tra("Viết lại…")
             bo_nut()
             return tgl_viet_lai(du)
-        return tgl_chay(du, tra, bo_nut)
+        return tgl_chay(du, tra, bo_nut, canva=loai == "chcv")
     tra()
 
 
@@ -2868,7 +2961,7 @@ def tgl_sua_brief(jid, tin, anh=None):
     threading.Thread(target=tgl_cho_viec, args=(r["id"],), daemon=True).start()
 
 
-def tgl_chay(jid, tra, bo_nut):
+def tgl_chay(jid, tra, bo_nut, canva=False):
     with LOCK:
         j = load_job(jid)
         if not j or j.get("loai") != "brief":
@@ -2883,10 +2976,10 @@ def tgl_chay(jid, tra, bo_nut):
             return tra("Brief trống")
         j.setdefault("tg", {})["chay"] = "dang"
         save_job(j)
-    tra("Bắt đầu dựng…")
+    tra("Bắt đầu dựng trên Canva…" if canva else "Bắt đầu dựng…")
     bo_nut()
     try:
-        job = create_job({"kenh": j.get("kenh"), "brief": bv, "tu_tg": True})
+        job = create_job({"kenh": j.get("kenh"), "brief": bv, "tu_tg": True, "dung_bang": "canva" if canva else ""})
     except ValueError as e:
         tgl_gan(jid, {"chay": None})
         return tgl_gui("⚠️ Chưa chạy được: " + str(e).split("|")[-1])
@@ -2981,8 +3074,10 @@ def tgl_bao_brief(jid):
     if cn and not re.match(r"^không có\.?$", cn, re.I):
         ts.append("⚠️ " + cn)
     ts.append("↩️ Reply tin này để sửa")
-    mid = tgl_gui("\n".join(ts), [[{"text": "▶️ Chạy dựng bài", "callback_data": "chay:" + jid}],
-                                  [{"text": "🔄 Viết lại", "callback_data": "lai:" + jid}, {"text": "✖ Bỏ", "callback_data": "bo:" + jid}]])
+    chay = [{"text": "▶️ Chạy Photoshop" if canva_mau(jj.get("kenh")) else "▶️ Chạy dựng bài", "callback_data": "chay:" + jid}]
+    if canva_mau(jj.get("kenh")):     # fen 6/11 "cho nút chọn làm trên canva hoặc photoshop"
+        chay.append({"text": "🎨 Chạy Canva", "callback_data": "chcv:" + jid})
+    mid = tgl_gui("\n".join(ts), [chay, [{"text": "🔄 Viết lại", "callback_data": "lai:" + jid}, {"text": "✖ Bỏ", "callback_data": "bo:" + jid}]])
     tgl_gan(jid, {"msg": mid, "msgs": msgs, "chat": CFG.get("tg_lenh_chat")})
 
 
@@ -4268,6 +4363,8 @@ class H(BaseHTTPRequestHandler):
                 return self.send(200, model_cai())
             if u.path == "/api/canva-cai":
                 return self.send(200, canva_cai())
+            if u.path == "/api/canva-tt":
+                return self.send(200, canva_tt())
             if u.path == "/api/quy-tac":
                 return self.send(200, quy_tac_ds())
             if u.path == "/api/quan-ly":
@@ -4360,6 +4457,8 @@ class H(BaseHTTPRequestHandler):
                 return self.send(200, model_cai(data))
             if u.path == "/api/canva-cai":
                 return self.send(200, canva_cai(data))
+            if u.path == "/api/canva-tt":
+                return self.send(200, canva_tt(data))
             if u.path == "/api/run":
                 job = create_job(data)
                 return self.send(200, {"id": job["id"], "xep_hang": bool(job.get("xep_hang") and job.get("status") == "hen"), "thu": job.get("thu") or 0})
