@@ -149,6 +149,7 @@ LÀM 1 BÀI
      sang thiết kế mới, thay chữ + ảnh máy theo brief,
      xuất slide về thư mục bài, viết caption, agent duyệt soát chữ. Chữ sửa tiếp được trên Canva. Ô Sửa slide của bài
      này sửa thẳng trên thiết kế Canva rồi xuất lại slide. Kênh chưa có mẫu thì chỉ dựng bằng Photoshop.
+   · Mỗi bài có tag "🖌 PS" (Photoshop) hoặc "🎨 Canva" cạnh tên kênh, ở cột trái và đầu trang bài.
    · Mẫu: Kiểm máy > Canva, dán link thiết kế mẫu của từng kênh (iPad đang dùng "TIKTOK POLY 2026 tháng 7").
    · Dán link Canva vào brief, chat sửa brief hay ô Sửa: Claude đọc thiết kế đó để làm theo kiểu / lấy ảnh (chỉ đọc).
    · Gói Canva miễn phí: ảnh xuất chất lượng thường; mẫu có hình, font có vương miện (gói Pro) thì không xuất được.

@@ -186,6 +186,9 @@ a.btn{color:var(--tx);text-decoration:none}
 .ji .jx:hover{color:#fff;background:#7a2222;border-color:#a33}
 .kn{font-size:10.5px;font-weight:800;letter-spacing:.02em;padding:2px 7px;border-radius:6px;background:var(--gbadge);color:var(--gl)}
 .kn.ipad{background:var(--ysoft);color:var(--y)}
+.tgd{font-size:10.5px;font-weight:800;padding:2px 7px;border-radius:6px;white-space:nowrap}
+.tgd.ps{background:#12233a;color:#7cb4ff}
+.tgd.cv{background:#241a3d;color:#b79cff}
 .empty{color:var(--dim);font-size:13px;padding:14px 4px}
 main{flex:1;overflow:auto;min-width:0;position:relative}
 .pad{max-width:1180px;margin:0 auto;padding:26px 28px 40px}
@@ -918,6 +921,9 @@ function renderBanner(){
 }
 
 /* ---------- danh sách bài ---------- */
+// tag "làm bằng" trên bài (fen 6/11 "bài viết làm xong có tag là làm bằng canva hoặc photoshop")
+const tagDung = (j, dai) => j.dung_bang === 'canva' ? `<span class="tgd cv" title="Làm bằng Canva">🎨 Canva</span>`
+  : `<span class="tgd ps" title="Làm bằng Photoshop">🖌 ${dai ? 'Photoshop' : 'PS'}</span>`;
 function unseen(j){ return j.status === 'xong' && j.ended && !S.seen[j.id]; }
 async function loadJobs(){
   try {
@@ -990,7 +996,7 @@ function renderJobs(){
   const item = j => { const g = nhomBai(j), p = dongPhu(j, g);
     return `<button class="ji co-bia ${S.jobId === j.id ? 'on' : ''}" data-id="${j.id}">${j.status !== 'dang-chay' ? `<span class="jx" role="button" data-xj="${j.id}" title="Xoá bài khỏi danh sách (slide trong thư mục bài vẫn giữ)">🗑</span>` : ''}${g === 'cho' ? `<span class="jk" role="button" data-dj="${j.id}" title="Đã đăng bài này (đăng tay, đăng bằng điện thoại): chuyển sang tab Đã đăng">✓ Đã đăng</span>` : g === 'dang' && j.da_dang && j.da_dang.tay ? `<span class="jk" role="button" data-bj="${j.id}" title="Bỏ đánh dấu, đưa bài về Chờ đăng">↩ Chưa đăng</span>` : ''}${j.bia ? `<img class="bia" src="${esc(j.bia)}" loading="lazy" alt="">` : '<span class="bia trong"></span>'}
       <div><div class="t">${esc(j.tieu_de || 'Bài')}</div>${unseen(j) ? '<span class="new">mới</span>' : ''}
-      <div class="m"><span class="kn ${j.kenh}">${esc((KENH[j.kenh]||{}).ten || j.kenh)}</span><span class="dot ${j.status === 'dang-chay' ? 'run' : j.status === 'xong' ? 'ok' : j.status === 'loi' ? 'err' : j.status === 'hen' ? 'hen' : 'warn'}"></span><span class="jl">${esc(jobLine(j))}</span>${j.ngay_dang ? `<span class="nd">đăng ${esc(j.ngay_dang)}</span>` : ''}</div>
+      <div class="m"><span class="kn ${j.kenh}">${esc((KENH[j.kenh]||{}).ten || j.kenh)}</span>${tagDung(j)}<span class="dot ${j.status === 'dang-chay' ? 'run' : j.status === 'xong' ? 'ok' : j.status === 'loi' ? 'err' : j.status === 'hen' ? 'hen' : 'warn'}"></span><span class="jl">${esc(jobLine(j))}</span>${j.ngay_dang ? `<span class="nd">đăng ${esc(j.ngay_dang)}</span>` : ''}</div>
       ${p ? `<div class="mt2 ${p[0]}">${esc(p[1])}</div>` : ''}</div>
     </button>`; };
   const ds = nhom[S.sbTab];
@@ -1330,7 +1336,7 @@ function renderJob(){
     <div class="jh">
       <div class="tt">
         <h1>${esc(j.tieu_de)}</h1>
-        <div class="meta"><span class="kn ${j.kenh}">${esc(k.ten || j.kenh)}</span><span>${esc(k.handle || '')}</span>${j.ngay_dang ? `<span>đăng ${esc(j.ngay_dang)}</span>` : ''}${j.model ? `<span class="fastc" title="Model Claude dựng / sửa bài này">${esc(MODEL_NGAN[j.model] || j.model)}</span>` : ''}<span class="stp" id="stp"></span></div>
+        <div class="meta"><span class="kn ${j.kenh}">${esc(k.ten || j.kenh)}</span>${tagDung(j, true)}<span>${esc(k.handle || '')}</span>${j.ngay_dang ? `<span>đăng ${esc(j.ngay_dang)}</span>` : ''}${j.model ? `<span class="fastc" title="Model Claude dựng / sửa bài này">${esc(MODEL_NGAN[j.model] || j.model)}</span>` : ''}<span class="stp" id="stp"></span></div>
       </div>
       <div class="acts" id="acts"></div>
     </div>

@@ -3923,7 +3923,7 @@ def list_jobs():
                 job, _ = parse_job(jid)
             except Exception:
                 pass
-        it = {k: job.get(k) for k in ("id", "kenh", "tieu_de", "status", "created", "ngay_dang", "hen_luc", "hen_dang", "hen_dang_mo", "da_dang", "xep_hang")}
+        it = {k: job.get(k) for k in ("id", "kenh", "tieu_de", "status", "created", "ngay_dang", "hen_luc", "hen_dang", "hen_dang_mo", "da_dang", "xep_hang", "dung_bang")}
         it["tieu_de"], it["ngay_dang"] = ten_hien(job)
         lr = (job.get("runs") or [{}])[-1]
         it["started"], it["ended"] = lr.get("started"), lr.get("ended")
