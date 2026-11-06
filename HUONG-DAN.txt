@@ -22,6 +22,25 @@ MỞ APP
 - Lượt chạy trừ vào hạn mức của tài khoản đang đăng nhập (dùng chung với chat trên app Claude).
 - Không đặt ANTHROPIC_API_KEY trên máy: có biến này thì Claude Code tính tiền API, không dùng gói.
 
+CÀI LÊN MÁY WINDOWS KHÁC (BỘ CÀI .EXE, 6/11)
+- Tải bộ cài ở https://github.com/tbach1308-coder/Tiktok-Post/releases/latest
+  (file PolyDungBai-Setup-<bản>.exe, khoảng 80 MB). Windows 10/11 64-bit.
+- Nhấp đúp bộ cài. Windows báo "Windows protected your PC" (bộ cài chưa ký số) thì bấm
+  "More info" (Thông tin thêm) → "Run anyway" (Vẫn chạy). Cài cho tài khoản Windows đó, không cần quyền
+  quản trị; Python + thư viện ảnh đi kèm sẵn, không phải cài riêng. Có icon ngoài Desktop + Start.
+- Mở app lần đầu: app tự tạo thư mục "Social Claude" trong thư mục người dùng (C:\Users\<tên>\Social Claude:
+  Laptop, iPad, Anh tai ve, bộ dựng + file quy tắc của shop) và hàng chờ Photoshop
+  (C:\Users\<tên>\Pictures\PolySocial\_tu-chay). Máy shop không bị đổi gì.
+- Chưa có Claude Code: bấm ô góc trên phải (Kiểm máy) → nút "Cài Claude Code": cửa sổ PowerShell mở ra cài
+  Git (nếu thiếu) + Claude Code rồi mở đăng nhập. Đăng nhập tài khoản Claude gói Pro / Max. Xong mở lại app.
+- Làm bằng Canva: tài khoản Claude đó nối Canva (claude.ai > Customize > Connectors > Canva) + gán mẫu Canva
+  cho kênh (Kiểm máy > Canva). Không cần Photoshop.
+- Làm bằng Photoshop: máy phải có Photoshop + các font shop dùng (Source Serif, UTM Avo…).
+- Telegram: máy mới tự nhập bot riêng. Đừng dùng chung 1 bot với máy shop (2 máy cùng nghe 1 bot sẽ giành tin).
+- Có bản mới: tải bộ cài mới, chạy đè lên. Bài, cài đặt, quy tắc của máy đó giữ nguyên.
+- Gỡ: Cài đặt Windows > Ứng dụng > Poly Dựng Bài > Gỡ cài đặt. Bài, cài đặt và thư mục Social Claude vẫn để lại
+  (không xoá dữ liệu); muốn bỏ hẳn thì tự xoá thư mục.
+
 LÀM 1 BÀI
 1. Bấm "+ Bài mới" (luôn ra trang trống; bài đang làm dở tự cất ở tab Bản nháp), chọn kênh Laptop hoặc iPad.
 2. Dán brief từng slide (giống gửi trong tab Design). Không còn ô Tên bài, Ngày đăng (29/10 tối, fen thấy thừa): tên bài

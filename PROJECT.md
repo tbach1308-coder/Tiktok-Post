@@ -110,6 +110,7 @@ Không dùng lại:
 - [ ] Agent bắt lỗi app định kỳ theo checklist. Lần 18h04 bị dừng khi fen gửi tin chen ngang (Claude báo nhầm là đang chạy); chạy lại 19h20 trên bản chụp `snap-1920`.
 
 ## 7. Nhật ký
+- 6/11 15h: fen "có đóng exe dc chưa" → bộ cài `PolyDungBai-Setup-<bản>.exe` cho máy Windows khác (mục 9), phát hành ở GitHub Releases. Thử trong wine: cài, mở máy chủ chế độ máy mới (tự tạo thư mục, bộ canh hàng chờ chạy), gỡ cài giữ dữ liệu. Chưa thử trên máy Windows thật thứ 2.
 - 6/11 13h46: fen gửi ảnh ô Brief từng slide "khung này rộng ra" → `#fBrief` tối thiểu 440px (trước 240px), brief dài tự giãn theo chữ tới 80% chiều cao màn hình (`gianBrief`, gọi khi gõ, khi Claude viết / sửa brief, khi hoàn tác).
 - 6/11 13h44: fen gửi ảnh đầu trang Bài mới "khúc này nhìn bừa bộn quá" → gom 1 hàng: "Bài mới" + nút kênh + nút Photoshop/Canva + (nhắc thiếu mẫu) + "💾 Lưu nháp" "🗑 Xoá nháp" dạt phải (nút viền mờ); bỏ đoạn giới thiệu dài và 2 nhãn KÊNH / LÀM BẰNG (ý nghĩa để ở title khi rê chuột).
 - 6/11 13h41: fen "bài viết làm xong có tag là làm bằng canva hoặc photoshop" → tag `tagDung` cạnh tag kênh: cột trái "🖌 PS" / "🎨 Canva", trang bài "🖌 Photoshop" / "🎨 Canva" (theo `job.dung_bang`, `list_jobs` trả thêm `dung_bang`; bài cũ = Photoshop). Đổi nhãn "Làm trên" thành "Làm bằng".
@@ -190,3 +191,14 @@ Fen chọn: Mac chạy ĐỦ như máy shop (viết brief, dựng bằng Photosh
 | `plugin/poly-carousel/cai-dat/cai-dat-mac.command`, `kiem-may-mac.command` | Cài thư viện ảnh (pip --user), Claude Code (hỏi), thư mục; plugin cho Claude Code gõ tay chỉ khi fen chọn. Kiểm máy + kiểm font trong Photoshop qua hàng chờ. |
 Chưa thử trên Mac thật (sandbox Linux, osascript / open giả): AppleScript `do javascript` với Photoshop thật, hỏi quyền Tự động hoá, Gatekeeper, Chrome `open -na` với hồ sơ, font UTM / Source Serif / Apple Color Emoji trong Photoshop Mac, bash 3.2 của macOS, `claude` cài bằng bộ cài chính thức. Lần đầu fen chạy Mac: xem `~/Pictures/PolySocial/_tu-chay/nhat-ky.txt`, `_mac/server-out.log`, `kiem-may-mac.log`.
 - 30/10 17h: làm bản Mac trên nhánh `macos` (chưa gộp main, chưa lên máy fen).
+
+## 9. Bộ cài Windows cho máy khác (`packaging/`, 6/11)
+Fen chọn (6/11): "Cài trên từng máy", làm sau Canva. Mỗi máy dùng tài khoản Claude Pro/Max riêng; máy shop không đổi gì.
+| Phần | Việc |
+|---|---|
+| `packaging/build.sh` | Chạy trên Linux (`apt-get install nsis mingw-w64`). Python 3.12.7 Windows (python-build-standalone, GitHub) + wheel win_amd64 trong `requirements-win.txt` (pillow, numpy, scipy, opencv headless) giải thẳng vào `Lib/site-packages`; mã app = `git ls-files` trừ packaging/, dev/, file Mac, tài liệu dev; `PHIEN-BAN.txt`; `dist/PolyDungBai-Setup-<YYYY.M.D>.exe` + `.sha256`. |
+| `packaging/installer.nsi` | NSIS 64-bit, tiếng Việt, cài vào `%LOCALAPPDATA%\Programs\PolyDungBai` không cần admin; tắt python của app trước khi chép; thay `python\`, chép đè `app\` (config.json, jobs, _edge không có trong gói nên giữ); icon Desktop + Start; gỡ cài chỉ xoá file của gói (danh sách `go-cai-app.nsh` sinh lúc build), giữ dữ liệu + `~\Social Claude`. |
+| `packaging/launcher.c` | `Poly Dung Bai.exe` (icon app) mở `app\Poly Dung Bai.vbs` bằng wscript; vbs ưu tiên `..\python\pythonw.exe`. |
+| `server.py` (máy mới) | `win_cfg`: không có `E:\Social Claude` và `C:\Users\Dao` = máy mới → `thu_muc_lam_viec` `~\Social Claude`, `tu_chay` `~\Pictures\PolySocial\_tu-chay`, đổi đường dẫn máy shop trong cấu hình + lệnh giao Claude (`doi_goc`), luật chung kèm ghi chú máy này. `win_chuan_bi`: chép `social-claude/` thành `~\Social Claude` nếu chưa có, tạo thư mục, giữ `tu-chay-win.py` chạy. `env_claude` thêm Python đi kèm vào PATH + `POLY_PYTHON`. Nút "Cài Claude Code" (`/api/cai-claude`): PowerShell cài Git (winget, nếu thiếu) + Claude Code (bộ cài chính thức) + `claude auth login`. |
+| `tu-chay-win.py` | Bộ canh hàng chờ Photoshop cho máy mới (bản Windows của `poly-tu-chay-mac.py`): đổi đường dẫn máy shop trong `.jsx`, chạy qua `cscript` + COM `DoJavaScriptFile`, khoá 1 bản (`msvcrt.locking`). |
+Phát hành bản mới: `bash packaging/build.sh` → `gh release create v<bản> dist/PolyDungBai-Setup-<bản>.exe*`. Bộ cài chưa ký số (SmartScreen hỏi "Run anyway"). Thử bằng wine 64-bit: cài/gỡ, máy chủ, thư mục máy mới, Python + thư viện đúng bản (wine thiếu `CopyFile2` nên chép thư mục mẫu phải làm sẵn, Windows thật không bị). Chưa thử: máy Windows thật thứ 2, Photoshop qua `tu-chay-win.py`, nút Cài Claude Code.
