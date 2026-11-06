@@ -206,10 +206,11 @@ h1{font-size:26px;margin:0 0 4px;font-weight:800;letter-spacing:-.01em}
 .seg button.on .ic{background:var(--g)}
 .seg button[data-k=ipad].on{border-color:var(--y);background:#221c10;box-shadow:inset 0 0 0 1px var(--y)}
 .seg button[data-k=ipad].on .ic{background:var(--y)}
-.seg.segd{margin-bottom:6px}
-.seg button[data-d=canva].on{border-color:#8b5cf6;background:#1d1630;box-shadow:inset 0 0 0 1px #8b5cf6}
-.seg button[data-d=canva].on .ic{background:#8b5cf6}
-.dungghi{margin:0 0 16px;font-size:12.5px;color:var(--mut);max-width:520px}
+.dungrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:-4px 0 16px}
+.dungrow .lbl{margin:0}
+.kseg.segd button{padding:4px 12px;font-size:12.5px}
+.kseg.segd button[data-d=canva].on{background:#8b5cf6}
+.dungghi{font-size:12.5px;color:var(--mut)}
 .row{display:grid;grid-template-columns:3fr 2fr;gap:12px;margin-bottom:14px}
 .in{width:100%;height:44px;background:var(--input);border:1px solid var(--edge);border-radius:11px;padding:10px 12px;outline:none;transition:border-color .15s,box-shadow .15s}
 .in:focus{border-color:var(--g);box-shadow:0 0 0 3px rgba(31,143,78,.28)}
@@ -1073,12 +1074,10 @@ function newView(){
     <div class="seg" id="seg">
       ${Object.entries(KENH).map(([key, v]) => `<button data-k="${key}" class="${f.kenh === key ? 'on' : ''}"><span class="ic">${v.ic}</span><span><b>${v.ten}</b><span>${v.handle}</span></span></button>`).join('')}
     </div>
-    <span class="lbl">Làm trên</span>
-    <div class="seg segd" id="segDung">
-      <button data-d="" class="${f.dung === 'canva' ? '' : 'on'}"><span class="ic">🖌</span><span><b>Photoshop</b><span>bộ dựng của shop</span></span></button>
-      <button data-d="canva" class="${f.dung === 'canva' ? 'on' : ''}"><span class="ic">🎨</span><span><b>Canva</b><span>theo mẫu, sửa chữ được</span></span></button>
-    </div>
-    <p class="dungghi" id="dungGhi"></p>
+    <div class="dungrow"><span class="lbl">Làm trên</span><div class="kseg segd" id="segDung">
+      <button data-d="" class="${f.dung === 'canva' ? '' : 'on'}" title="Bộ dựng Photoshop của shop (Photoshop tự chạy ngầm qua hàng chờ)">🖌 Photoshop</button>
+      <button data-d="canva" class="${f.dung === 'canva' ? 'on' : ''}" title="Claude dựng trên Canva theo mẫu của kênh, xuất slide về app; không cần Photoshop, chữ sửa tiếp được trên Canva">🎨 Canva</button>
+    </div><span class="dungghi" id="dungGhi"></span></div>
     <span class="lbl">Chủ đề <i>(gõ chủ đề, hoặc nhờ kiểu "tìm chủ đề hot mẹo iPad", rồi bấm Viết brief; Claude hiểu ý, viết brief từng slide và dò trùng bài cũ)</i></span>
     <div class="vb"><input class="in" id="fChuDe" placeholder="${esc(CHUDE_PH[f.kenh])}" value="${esc(f.chude || '')}"><button class="btn" id="bVietBrief">✍ Viết brief</button></div>
     <div class="vbst" id="vbSt"></div>
@@ -1118,9 +1117,7 @@ function newView(){
   $('#fModel').onchange = e => { f.model = e.target.value; f.nhanh = false; saveForm(); };
   const veDung = () => { const mau = (S.cvMau || {})[f.kenh], cv = f.dung === 'canva';
     document.querySelectorAll('#segDung button').forEach(x => x.classList.toggle('on', (x.dataset.d === 'canva') === cv));
-    setH($('#dungGhi'), cv && S.cvMau && !mau ? `<span class="stc">Kênh ${esc(KENH[f.kenh].ten)} chưa có mẫu Canva: <a href="#" id="dungMau">dán link mẫu ở Kiểm máy > Canva</a> hoặc chọn Photoshop.</span>`
-      : cv ? 'Claude chép trang mẫu Canva của kênh sang thiết kế mới, thay chữ + ảnh máy, xuất slide về app. Không cần Photoshop; chữ sửa tiếp được trên Canva.'
-      : 'Dựng bằng bộ dựng Photoshop của shop (Photoshop tự chạy ngầm qua hàng chờ).');
+    setH($('#dungGhi'), cv && S.cvMau && !mau ? `<span class="stc">${esc(KENH[f.kenh].ten)} chưa có mẫu Canva · <a href="#" id="dungMau">thêm mẫu</a></span>` : '');
     const dm = $('#dungMau'); if (dm) dm.onclick = ev => { ev.preventDefault(); kiemMay(); setTimeout(() => { const k = $('#kmCv'); if (k) k.scrollIntoView({block: 'center'}); }, 300); }; };
   document.querySelectorAll('#segDung button').forEach(b => b.onclick = () => { f.dung = b.dataset.d; saveForm(); veDung(); });
   S._veDung = veDung; veDung();
