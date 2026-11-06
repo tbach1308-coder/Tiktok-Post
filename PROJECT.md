@@ -110,6 +110,7 @@ Không dùng lại:
 - [ ] Agent bắt lỗi app định kỳ theo checklist. Lần 18h04 bị dừng khi fen gửi tin chen ngang (Claude báo nhầm là đang chạy); chạy lại 19h20 trên bản chụp `snap-1920`.
 
 ## 7. Nhật ký
+- 6/11 13h46: fen gửi ảnh ô Brief từng slide "khung này rộng ra" → `#fBrief` tối thiểu 440px (trước 240px), brief dài tự giãn theo chữ tới 80% chiều cao màn hình (`gianBrief`, gọi khi gõ, khi Claude viết / sửa brief, khi hoàn tác).
 - 6/11 13h44: fen gửi ảnh đầu trang Bài mới "khúc này nhìn bừa bộn quá" → gom 1 hàng: "Bài mới" + nút kênh + nút Photoshop/Canva + (nhắc thiếu mẫu) + "💾 Lưu nháp" "🗑 Xoá nháp" dạt phải (nút viền mờ); bỏ đoạn giới thiệu dài và 2 nhãn KÊNH / LÀM BẰNG (ý nghĩa để ở title khi rê chuột).
 - 6/11 13h41: fen "bài viết làm xong có tag là làm bằng canva hoặc photoshop" → tag `tagDung` cạnh tag kênh: cột trái "🖌 PS" / "🎨 Canva", trang bài "🖌 Photoshop" / "🎨 Canva" (theo `job.dung_bang`, `list_jobs` trả thêm `dung_bang`; bài cũ = Photoshop). Đổi nhãn "Làm trên" thành "Làm bằng".
 - 6/11 13h39: fen gửi ảnh ô Kênh (2 thẻ to) "làm gọn cái này luôn" → Kênh + Làm trên chung 1 dòng nút nhỏ: "KÊNH [💻 Laptop | 📱 iPad]  LÀM TRÊN [🖌 Photoshop | 🎨 Canva]" (`#seg` thành `.kseg.segk`, iPad chọn thì vàng, @handle để ở title).

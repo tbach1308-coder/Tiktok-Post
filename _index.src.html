@@ -219,6 +219,7 @@ h1{font-size:26px;margin:0 0 4px;font-weight:800;letter-spacing:-.01em}
 .in.bad{border-color:var(--r);box-shadow:0 0 0 3px rgba(255,78,54,.18)}
 textarea.in{height:auto;resize:vertical;min-height:240px;line-height:1.55;font-size:14px}
 textarea.in.small{min-height:70px}
+#fBrief{min-height:440px}
 .datec{display:flex;gap:8px}
 .datec .q{border:1px solid var(--edge);background:var(--input);border-radius:11px;padding:0 12px;height:44px;font-weight:600;font-size:13px;color:var(--mut)}
 .datec .q:hover{border-color:var(--g);color:var(--text)}
@@ -1066,6 +1067,8 @@ function renderThumbs(drop, arr){
 }
 
 /* ---------- bài mới ---------- */
+// ô Brief từng slide cao hơn (fen 6/11 "khung này rộng ra"): tối thiểu 440px, brief dài thì tự giãn theo chữ (tới 80% màn hình)
+function gianBrief(){ const t = $('#fBrief'); if (!t) return; t.style.height = 'auto'; t.style.height = Math.min(Math.max(t.scrollHeight + 4, 440), Math.round(innerHeight * .8)) + 'px'; }
 function saveForm(f){ (f || S.form).t = Date.now(); luuNhap(); }
 function newView(){
   try { history.replaceState(null, '', location.pathname); } catch(e) {}
@@ -1111,7 +1114,8 @@ function newView(){
     document.querySelectorAll('#seg button').forEach(x => x.classList.toggle('on', x === b));
     const p = KENH[f.kenh].ph; $('#fBrief').placeholder = p.brief; $('#fNote').placeholder = p.note; $('#fChuDe').placeholder = CHUDE_PH[f.kenh]; if (S._veDung) S._veDung(); };
   const map = {fBrief:'brief', fNote:'note', fChuDe:'chude'};   // bỏ ô Tên bài + Ngày đăng (fen 29/10 19h08 "phần này bị thừa")
-  Object.keys(map).forEach(id => $('#' + id).oninput = e => { f[map[id]] = e.target.value; saveForm(); if (id === 'fBrief') e.target.classList.remove('bad'); });
+  Object.keys(map).forEach(id => $('#' + id).oninput = e => { f[map[id]] = e.target.value; saveForm(); if (id === 'fBrief') { e.target.classList.remove('bad'); gianBrief(); } });
+  gianBrief();
   setupPick($('#file'), $('#pick'), f.anh, $('#drop'));
   renderThumbs($('#drop'), f.anh);
   $('#fModel').onchange = e => { f.model = e.target.value; f.nhanh = false; saveForm(); };
@@ -1142,7 +1146,7 @@ function newView(){
 }
 function bindGoiY(){
   document.querySelectorAll('#vbSt [data-laylai]').forEach(a => a.onclick = e => { e.preventDefault(); const f = S.form;
-    if (f.briefTruoc == null) return; const moi = f.brief; f.brief = f.briefTruoc; f.briefTruoc = moi; const t = $('#fBrief'); if (t) t.value = f.brief;
+    if (f.briefTruoc == null) return; const moi = f.brief; f.brief = f.briefTruoc; f.briefTruoc = moi; const t = $('#fBrief'); if (t) { t.value = f.brief; gianBrief(); }
     f.briefNote = '<span class="stc">Đã lấy lại brief cũ.</span> <a href="#" data-laylai>Dùng lại brief Claude vừa viết</a>'; saveForm(f); setH($('#vbSt'), f.briefNote); bindGoiY(); });
   document.querySelectorAll('#vbSt [data-gy]').forEach(b => b.onclick = () => {
     const t = $('#fChuDe'); t.value = b.dataset.gy; S.form.chude = b.dataset.gy; saveForm(); t.focus();
@@ -1206,7 +1210,7 @@ async function pollBrief(f){
   if (j.status === 'xong' && d.brief_viet) {
     const cu = (f.brief || '').trim(); if (cu && cu !== d.brief_viet.trim()) f.briefTruoc = f.brief;
     f.brief = d.brief_viet; f.briefMay = d.brief_viet; f.briefCd = f.briefCdGui || f.chude || ''; if (KENH[j.kenh]) f.kb = j.kenh;
-    const t = hien() && $('#fBrief'); if (t) { t.value = d.brief_viet; t.classList.remove('bad'); }
+    const t = hien() && $('#fBrief'); if (t) { t.value = d.brief_viet; t.classList.remove('bad'); gianBrief(); }
     // báo ngắn + 1 dòng Claude hiểu ý thế nào ("Chủ đề: … · mẹo") để fen thấy đúng ý chưa (30/10)
     const hieu = ls0.find(x => /^Chủ đề\s*:/i.test(x)) || '';
     // lợi ích của bài để fen quyết định chọn hay không (fen 30/10 15h44): dòng LOI_ICH / CAN_NHAC trong câu cuối của Claude
@@ -1227,7 +1231,7 @@ function veChat(f){
   const ds = (f.chat || []).slice(-8);
   setH(L, ds.map((x, i) => `<div class="cm ${x.ai ? 'ai' : 'fen'}">${x.n_anh ? `<span class="cmanh">🖼 ${x.n_anh} ảnh</span>` : ''}<span>${esc(x.text)}</span>${x.ai && x.doi && i === ds.length - 1 && f.briefTruoc != null ? ' <a href="#" id="chatHt">Hoàn tác</a>' : ''}</div>`).join('')
     + (f.chatJob ? `<div class="cm ai cho"><span class="dot run"></span> Claude đang sửa… <a href="#" id="chatDung">Dừng</a></div>` : ''));
-  const ht = $('#chatHt'); if (ht) ht.onclick = e => { e.preventDefault(); const cu = f.brief; f.brief = f.briefTruoc; f.briefTruoc = cu; const t = $('#fBrief'); if (t) t.value = f.brief;
+  const ht = $('#chatHt'); if (ht) ht.onclick = e => { e.preventDefault(); const cu = f.brief; f.brief = f.briefTruoc; f.briefTruoc = cu; const t = $('#fBrief'); if (t) { t.value = f.brief; gianBrief(); }
     f.chat.push({ai: true, text: 'Đã hoàn tác về brief trước đó.', doi: true, t: Date.now()}); saveForm(f); veChat(f); };
   const dg = $('#chatDung'); if (dg) dg.onclick = async e => { e.preventDefault(); await api('/api/job/' + f.chatJob + '/dung', {}).catch(() => {}); };
   const b = $('#chatGui'); if (b) b.disabled = !!(f.chatJob || f.briefJob);
