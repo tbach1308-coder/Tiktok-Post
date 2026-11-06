@@ -1,7 +1,7 @@
 ; Poly Dung Bai - bo cai cho may Windows khac (fen 6/11 "chuyen thanh exe cho nhieu nguoi sai duoc").
 ; Build tren Linux: packaging/build.sh (makensis). Cai cho rieng nguoi dung, khong can quyen admin.
 ; Cai de len ban cu: chi thay file cua app + Python di kem; config.json, jobs\, _edge\ (du lieu may nay) va ~\Social Claude giu nguyen.
-Unicode true
+Target amd64-unicode     ; bộ cài 64-bit (Python đi kèm cũng 64-bit; máy Windows 10/11 đều 64-bit)
 SetCompressor /SOLID lzma
 SetCompressorDictSize 64
 
