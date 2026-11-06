@@ -170,14 +170,12 @@ def mac_cfg(cfg):
 def win_cfg(cfg):
     """Máy Windows không phải máy shop (không có E:\\Social Claude, không có C:\\Users\\Dao): dùng ~\\Social Claude và
     ~\\Pictures\\PolySocial\\_tu-chay, đổi các đường dẫn máy shop trong cấu hình sang máy này. Máy shop không đổi gì."""
+    if os.path.isdir(SHOP_GOC) or os.path.isdir("C:\\Users\\Dao"):     # máy shop: giữ nguyên mọi thứ
+        return cfg
     k = lambda x: os.path.normcase(os.path.normpath(x or ""))
     goc, q = cfg.get("thu_muc_lam_viec") or SHOP_GOC, cfg.get("tu_chay") or SHOP_HANG_CHO
-    moi_goc = k(goc) == k(SHOP_GOC) and not os.path.isdir(SHOP_GOC)
-    moi_q = k(q) == k(SHOP_HANG_CHO) and not os.path.isdir("C:\\Users\\Dao")
-    if not (moi_goc or moi_q):
-        return cfg
-    cfg["thu_muc_lam_viec"] = goc = WIN_GOC if moi_goc else goc
-    cfg["tu_chay"] = q = WIN_HANG_CHO if moi_q else q
+    cfg["thu_muc_lam_viec"] = goc = WIN_GOC if k(goc) == k(SHOP_GOC) else goc
+    cfg["tu_chay"] = q = WIN_HANG_CHO if k(q) == k(SHOP_HANG_CHO) else q
     cfg["_may_moi"] = True
     bang = mac_bang(goc, q)
 
