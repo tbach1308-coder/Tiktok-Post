@@ -1074,7 +1074,7 @@ function newView(){
     <p class="lead">Gõ chủ đề để Claude viết brief, hoặc dán brief có sẵn, rồi bấm Chạy. Claude tự biên tập, dựng (Photoshop hoặc Canva) và duyệt, xong hiện ở đây.</p>
     <div class="dungrow"><span class="grp"><span class="lbl">Kênh</span><div class="kseg segd segk" id="seg">
       ${Object.entries(KENH).map(([key, v]) => `<button data-k="${key}" class="${f.kenh === key ? 'on' : ''}" title="${esc(v.handle)}">${v.ic} ${v.ten}</button>`).join('')}
-    </div></span><span class="grp"><span class="lbl">Làm trên</span><div class="kseg segd" id="segDung">
+    </div></span><span class="grp"><span class="lbl">Làm bằng</span><div class="kseg segd" id="segDung">
       <button data-d="" class="${f.dung === 'canva' ? '' : 'on'}" title="Bộ dựng Photoshop của shop (Photoshop tự chạy ngầm qua hàng chờ)">🖌 Photoshop</button>
       <button data-d="canva" class="${f.dung === 'canva' ? 'on' : ''}" title="Claude dựng trên Canva theo mẫu của kênh, xuất slide về app; không cần Photoshop, chữ sửa tiếp được trên Canva">🎨 Canva</button>
     </div></span><span class="dungghi" id="dungGhi"></span></div>

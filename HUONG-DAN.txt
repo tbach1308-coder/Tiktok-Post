@@ -145,7 +145,7 @@ LÀM 1 BÀI
      Slide Photoshop lên Canva là ảnh phẳng: thêm chữ / hình đè lên được, sửa chữ có sẵn thì không.
    · Ô "Canva" trên thanh trên cùng: xanh "đã nối", đỏ "chưa nối", vàng "lỗi". App tự kiểm 1 lần khi mở (quá 12 giờ thì kiểm lại),
      bấm vào ô để Kiểm lại (1 lượt Claude rất ngắn) và xem cách nối. Lượt Canva nào chạy xong cũng tự cập nhật ô này.
-   · Bài mới > "Làm trên: 🖌 Photoshop / 🎨 Canva" (ngay dưới chọn kênh): Canva thì Claude chép trang của thiết kế mẫu kênh
+   · Bài mới > "Làm bằng: 🖌 Photoshop / 🎨 Canva" (cùng dòng chọn kênh): Canva thì Claude chép trang của thiết kế mẫu kênh
      sang thiết kế mới, thay chữ + ảnh máy theo brief,
      xuất slide về thư mục bài, viết caption, agent duyệt soát chữ. Chữ sửa tiếp được trên Canva. Ô Sửa slide của bài
      này sửa thẳng trên thiết kế Canva rồi xuất lại slide. Kênh chưa có mẫu thì chỉ dựng bằng Photoshop.
