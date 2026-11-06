@@ -53,7 +53,12 @@ DEFAULT_CFG = {
         "PowerShell(python *)", "PowerShell(py *)", "PowerShell(Get-ChildItem *)", "PowerShell(Copy-Item *)",
         "PowerShell(Move-Item *)", "PowerShell(New-Item *)", "PowerShell(Test-Path *)",
         "PowerShell(Get-Content *)", "PowerShell(Start-Sleep *)", "WebSearch", "WebFetch",
+        # connector Canva của tài khoản Claude (claude.ai > Customize > Connectors), fen nối 6/11
+        "mcp__claude_ai_Canva",
     ],
+    # thiết kế mẫu trên Canva cho "Dựng bằng Canva" (link canva.com/design/... hoặc mã D...), đặt ở Kiểm máy > Canva
+    "canva_mau": {"ipad": "", "laptop": ""},
+    "canva_thu_muc": "POLY Dựng Bài",
     "model": "",
     "lenh_claude": [],
     # tài khoản Claude nào đăng nhập cũng làm được: mỗi lượt chạy app tự nạp plugin dựng bài + luật chung,
@@ -576,6 +581,9 @@ def build_prompt_dung(job):
         "thu_muc_kenh": CFG["thu_muc_bai"].get(job["kenh"], ""),
         "job_dir": job_dir(job["id"]),
     }
+    if job.get("dung_bang") == "canva":
+        data.update(canva_bien(job))
+        return fill(read_prompt("dung-canva.txt"), data)
     return fill(read_prompt("dung-bai.txt"), data)
 
 
@@ -614,6 +622,9 @@ def build_prompt_sua(job, text, slides, anh, resumed):
         "ten_bai": ten_hien(job)[0],
         "brief": job.get("brief", "").strip(),
     }
+    if job.get("dung_bang") == "canva":     # bài dựng bằng Canva: sửa trên thiết kế Canva, xuất lại slide
+        data.update(canva_bien(job))
+        return fill(read_prompt("sua-canva.txt"), data)
     tpl = read_prompt("sua-bai.txt" if resumed else "sua-bai-moi.txt")
     return fill(tpl, data)
 
@@ -979,6 +990,8 @@ def parse_job(jid):
                     if not res or res[-1]["ok"]:
                         err = read_text(os.path.join(job_dir(jid), "stderr-%d.txt" % last["n"]))[-800:]
                         last["ly_do"] = "Claude dừng giữa chừng. " + short(explain_err(err), 300)
+                if last.get("kind") == "canva":
+                    canva_chot(jid, job, last, res)
                 _danh_dau_ket(st, last)
                 job.pop("stop_req", None)
                 changed = True
@@ -1263,6 +1276,11 @@ def create_job(data):
     }
     if data.get("tu_tg"):      # fen bấm Chạy trên chat lệnh Telegram: xong / lỗi thì báo cả về chat đó
         job["tu_tg"] = True
+    if data.get("dung_bang") == "canva":     # fen 6/11: dựng trên Canva theo mẫu của kênh, không qua Photoshop
+        if not canva_mau(kenh):
+            raise ValueError("Kênh %s chưa có mẫu Canva: vào Kiểm máy > Canva dán link thiết kế mẫu, hoặc chọn Dựng bằng Photoshop"
+                             % CFG["kenh"].get(kenh, {}).get("ten", kenh))
+        job["dung_bang"] = "canva"
     with open(os.path.join(d, "brief.txt"), "w", encoding="utf-8") as f:
         f.write(brief)
     job["anh"] = save_images(d, data.get("anh") or [])
@@ -2013,6 +2031,9 @@ def _gui_telegram(jid):
             tg_call("sendMessage", {"chat_id": chat, "text": cap}, timeout=30)
         if ghim:
             tg_call("sendMessage", {"chat_id": chat, "text": ghim}, timeout=30)
+        cv = canva_doc(jid)
+        if cv:
+            tg_call("sendMessage", {"chat_id": chat, "text": "🎨 Sửa trên Canva: " + cv["edit_url"]}, timeout=30)
     except (ValueError, OSError) as e:
         m = str(e).split("|")[-1] if isinstance(e, ValueError) else "không đọc được file slide (vừa bị xoá hoặc đổi tên?)"
         if da:  # gửi được phần nào ghi phần đó, báo rõ cho fen
@@ -2061,6 +2082,105 @@ def doi_kenh(jid, data):
             job["kenh"] = kenh
             save_job(job)
     return {"ok": True, "kenh": kenh}
+
+
+# ---------------------------------------------------------------- Canva (fen 6/11 "app có cho thêm kết nối với canva")
+# Claude dùng connector Canva của tài khoản Claude đang đăng nhập (công cụ mcp__claude_ai_Canva__*), chạy trên
+# máy chủ Canva: không mở app Canva, không bấm gì trên máy. Kết quả mỗi bài ghi ở jobs/<id>/canva.json.
+_CANVA_LINK = re.compile(r"^(?:D[A-Za-z0-9_-]{10}|https://(?:www\.)?canva\.(?:com|link)/\S+)$")
+
+
+def canva_mau(kenh):
+    return ((CFG.get("canva_mau") or {}).get(kenh) or "").strip()
+
+
+def canva_doc(jid):
+    """{design_id, edit_url, view_url, so_trang, ten} Claude ghi sau khi đưa lên / dựng trên Canva, chưa có thì None."""
+    d = read_json(os.path.join(job_dir(jid), "canva.json"), None)
+    if not isinstance(d, dict):
+        return None
+    u = str(d.get("edit_url") or d.get("view_url") or "")
+    if not u.startswith("https://") or "canva." not in u:
+        return None
+    d["edit_url"] = u
+    return {k: d.get(k) for k in ("design_id", "edit_url", "view_url", "so_trang", "ten")}
+
+
+def canva_bien(job):
+    """Biến chung cho lệnh mẫu Canva (dựng, sửa, đưa lên)."""
+    cv = canva_doc(job["id"]) or {}
+    mau = canva_mau(job["kenh"])
+    khac = next((canva_mau(k) for k in CFG["kenh"] if k != job["kenh"] and canva_mau(k)), "")
+    return {
+        "mau": mau or "(kênh này chưa có mẫu)",
+        "mau_khung": mau or khac or "(chưa có mẫu nào: search-designs tìm thiết kế cỡ 1080x1440 của fen)",
+        "thu_muc_canva": CFG.get("canva_thu_muc") or "POLY Dựng Bài",
+        "canva_link": cv.get("edit_url") or "(chưa có)",
+        "canva_id": cv.get("design_id") or "(chưa có)",
+        "canva_json": os.path.join(job_dir(job["id"]), "canva.json").replace("\\", "/"),
+    }
+
+
+def canva_cai(data=None):
+    """Kiểm máy > Canva: xem / lưu link thiết kế mẫu của từng kênh."""
+    if data is not None:
+        m = dict(CFG.get("canva_mau") or {})
+        for k in CFG["kenh"]:
+            if "mau_" + k not in data:
+                continue
+            v = (data.get("mau_" + k) or "").strip()
+            if v and not _CANVA_LINK.match(v):
+                raise ValueError("Mẫu %s: dán link thiết kế Canva (https://www.canva.com/design/...) hoặc mã thiết kế bắt đầu bằng D"
+                                 % CFG["kenh"][k].get("ten", k))
+            m[k] = v
+        save_cfg_keys({"canva_mau": m})
+    return {"mau": {k: canva_mau(k) for k in CFG["kenh"]}, "thu_muc": CFG.get("canva_thu_muc") or "POLY Dựng Bài"}
+
+
+def canva_chot(jid, job, run, res):
+    """Lượt "Đưa lên Canva" kết thúc: hỏng thì bài vẫn còn nguyên (status xong, ghi lỗi riêng ở canva_loi)."""
+    p = os.path.join(job_dir(jid), "canva.json")
+    moi = os.path.isfile(p) and os.path.getmtime(p) >= (run.get("started") or 0) and canva_doc(jid)   # Claude ghi trong lượt này
+    if job["status"] == "xong" and moi:
+        job.pop("canva_loi", None)
+    else:
+        txt = (res[-1]["text"] if res else "") or ""
+        txt = re.sub(r"^\s*THU_MUC_BAI\s*=.*$", "", txt, flags=re.M).strip()
+        job["canva_loi"] = "Fen đã dừng" if job["status"] == "dung" else short(txt or run.get("ly_do") or "Claude chưa đưa xong lên Canva", 220)
+    if list_slides(job.get("thu_muc_bai")):
+        job["status"] = "xong"
+
+
+def dua_canva(jid, lay=False):
+    """Nút "Đưa lên Canva": 1 lượt Claude ngắn tải slide lên Canva, gom thành 1 thiết kế (mỗi slide 1 trang).
+    lay=True (nút "Lấy lại từ Canva"): fen sửa trên Canva xong, xuất lại ảnh về thay slide (slide cũ sang _to_delete)."""
+    with LOCK:
+        job, st = parse_job(jid)
+        if not job:
+            raise ValueError("Không thấy bài")
+        if job.get("status") == "dang-chay":
+            raise ValueError("Bài đang chạy, chờ xong rồi đưa lên Canva")
+        f = job.get("thu_muc_bai")
+        sl = list_slides(f)
+        if not sl:
+            raise ValueError("Bài chưa có slide")
+        if not resolve_claude():
+            raise ValueError("Không tìm thấy Claude Code trên máy. Bấm Kiểm lại ở góc trên.")
+        if lay and not canva_doc(jid):
+            raise ValueError("Bài chưa có thiết kế trên Canva")
+        k = CFG["kenh"].get(job["kenh"], {})
+        ten = ten_hien(job)
+        data = canva_bien(job)
+        data.update({
+            "kenh_ten": "%s (%s)" % (k.get("ten", job["kenh"]), k.get("handle", "")),
+            "ten_bai": ten[0], "thu_muc_bai": f.replace("\\", "/"), "so_slide": len(sl),
+            "slides": "\n".join("%d. %s" % (i + 1, x["path"].replace("\\", "/")) for i, x in enumerate(sl)),
+            "ten_canva": short("%s · %s%s" % (k.get("ten", job["kenh"]), ten[0], " · " + ten[1] if ten[1] else ""), 90),
+        })
+        job.pop("canva_loi", None)
+        start_run(job, fill(read_prompt("lay-canva.txt" if lay else "dua-canva.txt"), data), "canva", None,
+                  "Lấy lại từ Canva" if lay else "Đưa lên Canva", model="sonnet")
+    return {"ok": True}
 
 
 def viet_caption(jid, data=None):
@@ -2154,7 +2274,7 @@ def _bao_mot_bai(jid):
         if not job:
             return
     run = job["runs"][-1]
-    if run.get("kind") == "caption":
+    if run.get("kind") in ("caption", "canva"):
         return
     noi = _noi_bao(job)
     if not noi:
@@ -3020,7 +3140,8 @@ def tgl_xem(jid):
     nut = [[{"text": "✅ Đã đăng xong", "callback_data": "dd:" + jid}, {"text": "📮 Bài khác", "callback_data": "bg:cho"}]]
     if not cap:
         nut.insert(0, [{"text": "✍ Viết caption", "callback_data": "cap:" + jid}])
-    tgl_gui("Giữ tin để copy. Đăng xong bấm ✅." if cap else "Chưa có caption.", nut)
+    cv = canva_doc(jid)
+    tgl_gui(("Giữ tin để copy. Đăng xong bấm ✅." if cap else "Chưa có caption.") + ("\n🎨 Canva: " + cv["edit_url"] if cv else ""), nut)
     return True
 
 
@@ -3563,7 +3684,7 @@ def job_view(jid, since=0):
             ly_do = job["loi_chay"]
     return {
         "ly_do": ly_do,
-        "job": dict({k: job.get(k) for k in ("id", "kenh", "tieu_de", "ten_bai", "ngay_dang", "brief", "ghi_chu", "status", "created", "thu_muc_bai", "session_id", "anh", "sua", "model", "hen_luc", "sau_caption", "hen_bao", "nhac", "da_dang", "dang_loi", "hen_dang", "xep_hang")},
+        "job": dict({k: job.get(k) for k in ("id", "kenh", "tieu_de", "ten_bai", "ngay_dang", "brief", "ghi_chu", "status", "created", "thu_muc_bai", "session_id", "anh", "sua", "model", "hen_luc", "sau_caption", "hen_bao", "nhac", "da_dang", "dang_loi", "hen_dang", "xep_hang", "dung_bang", "canva_loi")},
                     **dict(zip(("tieu_de", "ngay_dang"), ten_hien(job)))),
         "run": run and {"n": run["n"], "kind": run["kind"], "started": run["started"], "ended": run.get("ended")},
         "runs": len(job.get("runs", [])),
@@ -3571,7 +3692,7 @@ def job_view(jid, since=0):
         "idle": round(now() - st.get("last_new", now())),
         "events": ev, "next": since + len(ev), "tasks": tasks, "gen": st.get("gen"),
         "final": final, "hoi": hoi, "hoi_luot": run_hoi, "slides": list_slides(job.get("thu_muc_bai")),
-        "caption": read_caption(job), "da_gui": job.get("da_gui") or [], "brand": brand_bai(job),
+        "caption": read_caption(job), "da_gui": job.get("da_gui") or [], "brand": brand_bai(job), "canva": canva_doc(jid),
         "telegram": bool(CFG.get("telegram_token") and CFG.get("telegram_chat")), "telegram_ten": CFG.get("telegram_ten") or "",
         "loai": job.get("loai") or "", "brief_viet": read_text(os.path.join(job_dir(jid), "brief-viet.txt")).replace("\ufeff", "").strip() if job.get("loai") == "brief" else "",
         "now": now(),
@@ -4080,6 +4201,8 @@ class H(BaseHTTPRequestHandler):
                 return self.send(200, tiktok_cai())
             if u.path == "/api/model-cai":
                 return self.send(200, model_cai())
+            if u.path == "/api/canva-cai":
+                return self.send(200, canva_cai())
             if u.path == "/api/quy-tac":
                 return self.send(200, quy_tac_ds())
             if u.path == "/api/quan-ly":
@@ -4170,6 +4293,8 @@ class H(BaseHTTPRequestHandler):
                 return self.send(200, tiktok_cai(data))
             if u.path == "/api/model-cai":
                 return self.send(200, model_cai(data))
+            if u.path == "/api/canva-cai":
+                return self.send(200, canva_cai(data))
             if u.path == "/api/run":
                 job = create_job(data)
                 return self.send(200, {"id": job["id"], "xep_hang": bool(job.get("xep_hang") and job.get("status") == "hen"), "thu": job.get("thu") or 0})
@@ -4186,6 +4311,9 @@ class H(BaseHTTPRequestHandler):
             m = re.fullmatch(r"/api/job/([\w-]+)/viet-caption", u.path)
             if m:
                 return self.send(200, viet_caption(m.group(1), data))
+            m = re.fullmatch(r"/api/job/([\w-]+)/canva", u.path)
+            if m:
+                return self.send(200, dua_canva(m.group(1), bool(data.get("lay"))))
             m = re.fullmatch(r"/api/job/([\w-]+)/hen-dang", u.path)
             if m:
                 return self.send(200, hen_dang_job(m.group(1), data))

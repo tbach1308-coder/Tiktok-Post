@@ -135,6 +135,21 @@ LÀM 1 BÀI
   Lúc Remote tắt vẫn coi bài và bấm ✅ Đã đăng xong được.
   Bài bấm Chạy trên Telegram xong / lỗi thì bot báo về chat đó (kèm ảnh bìa). Đăng TikTok vẫn làm ở app hoặc điện thoại.
   Tin nhắn gửi lúc app tắt / chưa nối: bật lên app bỏ qua (không tự làm việc cũ). Đổi bot Telegram thì phải nối lại.
+- CANVA (6/11): Claude dùng Canva qua kết nối Canva trong tài khoản Claude (claude.ai > Customize > Connectors > Canva,
+  fen nối 1 lần). Chạy trên máy chủ Canva: không mở app Canva, không bấm gì trên máy shop, không cần Photoshop.
+  Thiết kế Claude làm nằm trong thư mục Canva "POLY Dựng Bài"; thiết kế mẫu / thiết kế khác của fen không bị sửa.
+   · Ô Đăng bài > "🎨 Đưa lên Canva": Claude đưa các slide lên Canva thành 1 thiết kế (mỗi slide 1 trang, 3–5 phút).
+     Có rồi thì có "🎨 Mở Canva" (mở thiết kế trên web / app Canva điện thoại) và "⬇ Lấy lại từ Canva": sửa trên Canva
+     xong bấm để thay slide trong app bằng ảnh mới (slide cũ chuyển vào _to_delete của bài), rồi đăng TikTok như thường.
+     Slide Photoshop lên Canva là ảnh phẳng: thêm chữ / hình đè lên được, sửa chữ có sẵn thì không.
+   · Bài mới > "Dựng bằng: Canva": Claude chép trang của thiết kế mẫu kênh sang thiết kế mới, thay chữ + ảnh máy theo brief,
+     xuất slide về thư mục bài, viết caption, agent duyệt soát chữ. Chữ sửa tiếp được trên Canva. Ô Sửa slide của bài
+     này sửa thẳng trên thiết kế Canva rồi xuất lại slide. Kênh chưa có mẫu thì chỉ dựng bằng Photoshop.
+   · Mẫu: Kiểm máy > Canva, dán link thiết kế mẫu của từng kênh (iPad đang dùng "TIKTOK POLY 2026 tháng 7").
+   · Dán link Canva vào brief, chat sửa brief hay ô Sửa: Claude đọc thiết kế đó để làm theo kiểu / lấy ảnh (chỉ đọc).
+   · Gói Canva miễn phí: ảnh xuất chất lượng thường; mẫu có hình, font có vương miện (gói Pro) thì không xuất được.
+   · Gửi Telegram / xem bài trên Remote có thêm link Canva của bài.
+   · Báo "Chưa nối được Canva": vào claude.ai > Customize > Connectors > Canva bấm Connect lại.
 
 CÀI TIỆN ÍCH POLY TIKTOK (1 lần, cho nút Đăng TikTok)
 1. Chrome gõ chrome://extensions , bật "Chế độ dành cho nhà phát triển" (góc trên phải).

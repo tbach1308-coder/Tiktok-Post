@@ -91,6 +91,7 @@ a{color:var(--gl)}
 .btn.bad{color:var(--rtext);border-color:var(--rline);background:var(--rsoft)}
 .btn.bad:hover{background:#3a1d19;border-color:#6b2a22}
 .btn.ghost{background:transparent}
+a.btn{color:var(--tx);text-decoration:none}
 .btn:disabled{pointer-events:none;opacity:.55}
 .btn.pri:disabled{background:var(--panel2);border-color:var(--line2);color:var(--dim);opacity:1}
 .btn.sm{padding:5px 10px;font-size:12px;border-radius:8px}
@@ -702,6 +703,13 @@ function kiemMay(denTT){
       <details><summary>Máy không thấy Chrome: đường dẫn ${laMac() ? 'Google Chrome.app' : 'chrome.exe'}</summary><input class="in" id="kmCh" autocomplete="off" placeholder="${laMac() ? '/Applications/Google Chrome.app' : 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'}"></details>
       <p class="err" id="kmTtErr"></p>
       <div class="acts"><button class="btn sm" id="kmTtThu">Mở thử iPad</button><button class="btn sm" id="kmTtThuL">Mở thử Laptop</button><button class="btn sm pri" id="kmTtLuu">Lưu</button></div></div>
+    <div class="kmtt" id="kmCv"><b>Canva</b>
+      <p class="pnote">Claude dùng Canva qua kết nối Canva trong tài khoản Claude (claude.ai > Customize > Connectors > Canva), chạy trên mạng, không cần mở app Canva. Thiết kế Claude làm nằm trong thư mục Canva "<span id="kmCvTm">POLY Dựng Bài</span>".</p>
+      <label>Mẫu iPad (link thiết kế Canva, trang 1080x1440)<input class="in" id="kmCvI" autocomplete="off" placeholder="https://www.canva.com/design/D.../edit"></label>
+      <label>Mẫu Laptop<input class="in" id="kmCvL" autocomplete="off" placeholder="Chưa có thì bài Laptop chỉ dựng bằng Photoshop"></label>
+      <p class="pnote">Mẫu là thiết kế fen đã làm trên Canva (bìa, trang nội dung, trang cuối). "Dựng bằng Canva" chỉ chép trang mẫu sang thiết kế mới, không sửa bản mẫu.</p>
+      <p class="err" id="kmCvErr"></p>
+      <div class="acts"><button class="btn sm pri" id="kmCvLuu">Lưu</button></div></div>
     <div class="kmtt" id="kmMd"><b>Model từng việc</b>
       <p class="pnote">Opus kỹ nhưng chậm, Sonnet nhanh, Haiku nhanh nhất cho việc nhẹ. Bài mới và ô Sửa bài có chọn riêng cho từng bài. "Mặc định" = model mặc định của tài khoản đang đăng nhập.</p>
       <div id="kmMdL">Đang tải…</div><p class="err" id="kmMdErr"></p></div>
@@ -711,7 +719,15 @@ function kiemMay(denTT){
   $('#kmDong').onclick = dong; m.onclick = e => { if (e.target === m) dong(); };
   $('#kmKiem').onclick = async e => { e.target.disabled = true; await health(true); e.target.disabled = false; };
   $('#kmTk').onclick = e => doiTk(e.target);
-  kmVe(); health(true); ttCai(denTT); mdCai();
+  kmVe(); health(true); ttCai(denTT); mdCai(); cvCai();
+}
+async function cvCai(){
+  let c; try { c = await api('/api/canva-cai'); } catch(e) { $('#kmCvErr').textContent = e.message; return; }
+  if (!$('#kmCvI')) return;
+  $('#kmCvI').value = c.mau.ipad || ''; $('#kmCvL').value = c.mau.laptop || ''; $('#kmCvTm').textContent = c.thu_muc;
+  $('#kmCvLuu').onclick = async e => { const b = e.currentTarget; $('#kmCvErr').textContent = ''; b.disabled = true;
+    try { await api('/api/canva-cai', {mau_ipad: $('#kmCvI').value.trim(), mau_laptop: $('#kmCvL').value.trim()}); toast('Đã lưu mẫu Canva'); }
+    catch(err) { $('#kmCvErr').textContent = err.message; } b.disabled = false; };
 }
 async function mdCai(){
   const VIEC = [['model_dung', 'Dựng, sửa bài', ['', 'sonnet', 'opus']], ['model_brief', 'Viết brief', ['', 'sonnet', 'opus']], ['model_chat', 'Chat sửa brief', ['', 'haiku', 'sonnet', 'opus']],
@@ -1058,7 +1074,7 @@ function newView(){
     <div class="mt"><span class="lbl">Ghi chú thêm <i>(vd ảnh số 1 dùng cho bìa)</i></span><textarea class="in small" id="fNote" placeholder="${esc(k.ph.note)}">${esc(f.note || '')}</textarea></div>
     <div class="henbox" id="henBox" hidden><span class="lbl">Hẹn giờ dựng bài <i>(${laMac() ? 'máy Mac' : 'máy shop'} bật, mở app lúc đó; tới giờ app tự chạy, mỗi lần 1 bài, xong báo Telegram)</i></span>
       <div class="henr"><div class="hq" id="henQ"></div><input class="in" type="datetime-local" id="fHen"><button class="btn pri" id="bHenOk">Lên lịch</button><button class="btn ghost" id="bHenX">Thôi</button></div></div>
-    <div class="foot"><button class="btn pri" id="bRun">Chạy</button><button class="btn" id="bHen" title="Chốt brief xong, hẹn giờ cho app tự dựng (làm dần từng bài)">⏰ Hẹn làm</button><label class="mlab" title="Model Claude dựng bài này. Theo cài đặt = Kiểm máy > Model. Sonnet nhanh hơn, Opus kỹ hơn; agent duyệt theo Kiểm máy.">Model ${chonModel('fModel', ['', 'sonnet', 'opus'], f.model || (f.nhanh ? 'sonnet' : ''))}</label><div><p>Không cần ngồi canh. Tắt app vẫn chạy tiếp, mở lại là thấy.</p><div class="err" id="fWhy"></div><div class="err" id="fErr"></div></div></div>
+    <div class="foot"><button class="btn pri" id="bRun">Chạy</button><button class="btn" id="bHen" title="Chốt brief xong, hẹn giờ cho app tự dựng (làm dần từng bài)">⏰ Hẹn làm</button><label class="mlab" title="Model Claude dựng bài này. Theo cài đặt = Kiểm máy > Model. Sonnet nhanh hơn, Opus kỹ hơn; agent duyệt theo Kiểm máy.">Model ${chonModel('fModel', ['', 'sonnet', 'opus'], f.model || (f.nhanh ? 'sonnet' : ''))}</label><label class="mlab" title="Photoshop: dựng theo bộ dựng của shop (cần mở Photoshop). Canva: Claude dựng trên Canva theo mẫu của kênh (Kiểm máy > Canva), chạy trên mạng, không cần Photoshop; chữ sửa tiếp được trên app Canva.">Dựng bằng <select class="in msel" id="fDung"><option value=""${f.dung === 'canva' ? '' : ' selected'}>Photoshop</option><option value="canva"${f.dung === 'canva' ? ' selected' : ''}>Canva</option></select></label><div><p>Không cần ngồi canh. Tắt app vẫn chạy tiếp, mở lại là thấy.</p><div class="err" id="fWhy"></div><div class="err" id="fErr"></div></div></div>
   </div>`;
   renderBanner();
   $('#bLuuNhap').onclick = luuBanNhap; $('#bXoaNhap').onclick = xoaBanNhap;
@@ -1080,6 +1096,7 @@ function newView(){
   setupPick($('#file'), $('#pick'), f.anh, $('#drop'));
   renderThumbs($('#drop'), f.anh);
   $('#fModel').onchange = e => { f.model = e.target.value; f.nhanh = false; saveForm(); };
+  $('#fDung').onchange = e => { f.dung = e.target.value; saveForm(); };
   $('#bRun').onclick = runNew;
   $('#bVietBrief').onclick = vietBrief;
   $('#bHen').onclick = () => { const bx = $('#henBox'); bx.hidden = !bx.hidden; if (bx.hidden) return;
@@ -1232,7 +1249,7 @@ async function runNew(henLuc){
   if (f.ngay && !/^\d{1,2}\/\d{1,2}$/.test(f.ngay.trim())) f.ngay = '';   // ô Ngày đăng đã bỏ: nháp cũ ghi sai thì bỏ qua
   b.disabled = true; b.dataset.busy = 1; b.textContent = 'Đang gửi…';
   try {
-    const r = await api('/api/run', {kenh:f.kenh, ten_bai:f.ten, ngay_dang:(f.ngay || '').trim(), brief:f.brief, ghi_chu:f.note, anh:f.anh, model: f.model || (f.nhanh ? 'sonnet' : ''), hen_luc: henLuc || undefined});
+    const r = await api('/api/run', {kenh:f.kenh, ten_bai:f.ten, ngay_dang:(f.ngay || '').trim(), brief:f.brief, ghi_chu:f.note, anh:f.anh, model: f.model || (f.nhanh ? 'sonnet' : ''), dung_bang: f.dung === 'canva' ? 'canva' : '', hen_luc: henLuc || undefined});
     if (henLuc) toast('Đã hẹn dựng lúc ' + henTxt(henLuc));
     else if (r.xep_hang) toast('Đang có bài khác dựng: bài này xếp hàng' + (r.thu ? ' thứ ' + r.thu : '') + ', bài trước xong là tự chạy.');
     clearTimeout(f._t); clearTimeout(f._tc); S.nhap.ds = S.nhap.ds.filter(x => x !== f);   // nháp đã thành bài (xem lại ở Lịch sử brief)
@@ -1609,10 +1626,10 @@ function renderPost(){
   const h = `<div class="card mt post"><div class="ph"><b>Đăng bài</b><span class="pn" id="capN"></span></div>
     <textarea class="in cap" id="capT" placeholder="Claude chưa viết caption. Gõ caption ở đây (dòng 1 tối đa 90 ký tự, dòng 2 comment ghim).">
 ${esc(d.caption || '')}</textarea>
-    <div class="pacts"><button class="btn sm pri" id="bDang"${busy ? ' disabled' : ''}>${nut}</button><button class="btn sm ghost" id="bGuiTg"${busy ? ' disabled' : ''} title="Gửi album slide + caption + câu ghim vào Telegram để đăng bằng app TikTok trên điện thoại">Gửi Telegram</button><button class="btn sm ghost" id="bCopy">Chép caption</button><button class="btn sm ghost" id="bVietCap" title="Claude đọc slide, viết caption + câu ghim theo luật hashtag kênh (khoảng 1–2 phút)">${(d.caption || '').trim() ? 'Viết lại caption' : '✍ Viết caption'}</button>${!j.da_dang ? `<button class="btn sm ghost" id="bHenDang" title="Chọn giờ đăng: giờ này hiện sẵn trên nút ⏰ Hẹn giờ ở khung Poly trên trang TikTok">⏰ ${j.hen_dang ? 'Đổi giờ đăng' : 'Hẹn giờ đăng'}</button>` : ''}<button class="btn sm ghost" id="bDaDang" title="Fen tự đăng ngoài tiện ích (vd đăng bằng app TikTok trên điện thoại) xong thì bấm">${j.da_dang ? 'Bỏ đánh dấu đã đăng' : '✓ Đánh dấu đã đăng'}</button></div>
+    <div class="pacts"><button class="btn sm pri" id="bDang"${busy ? ' disabled' : ''}>${nut}</button><button class="btn sm ghost" id="bGuiTg"${busy ? ' disabled' : ''} title="Gửi album slide + caption + câu ghim vào Telegram để đăng bằng app TikTok trên điện thoại">Gửi Telegram</button><button class="btn sm ghost" id="bCopy">Chép caption</button><button class="btn sm ghost" id="bVietCap" title="Claude đọc slide, viết caption + câu ghim theo luật hashtag kênh (khoảng 1–2 phút)">${(d.caption || '').trim() ? 'Viết lại caption' : '✍ Viết caption'}</button>${d.canva ? `<a class="btn sm ghost" id="bCanvaMo" href="${esc(d.canva.edit_url)}" target="_blank" rel="noopener" title="Mở thiết kế của bài trên Canva để chỉnh tiếp (web hoặc app Canva)">🎨 Mở Canva</a><button class="btn sm ghost" id="bCanvaLay"${busy ? ' disabled' : ''} title="Sửa trên Canva xong: Claude xuất lại các trang về thay slide trong app (slide cũ chuyển vào _to_delete), khoảng 1–3 phút">⬇ Lấy lại từ Canva</button>` : ''}${j.dung_bang === 'canva' && d.canva ? '' : `<button class="btn sm ghost" id="bCanva"${busy ? ' disabled' : ''} title="Claude đưa ${sl.length} slide lên Canva của fen thành 1 thiết kế (mỗi slide 1 trang), chạy trên mạng khoảng 3–5 phút">${d.canva ? '🎨 Đưa lại lên Canva' : '🎨 Đưa lên Canva'}</button>`}${!j.da_dang ? `<button class="btn sm ghost" id="bHenDang" title="Chọn giờ đăng: giờ này hiện sẵn trên nút ⏰ Hẹn giờ ở khung Poly trên trang TikTok">⏰ ${j.hen_dang ? 'Đổi giờ đăng' : 'Hẹn giờ đăng'}</button>` : ''}<button class="btn sm ghost" id="bDaDang" title="Fen tự đăng ngoài tiện ích (vd đăng bằng app TikTok trên điện thoại) xong thì bấm">${j.da_dang ? 'Bỏ đánh dấu đã đăng' : '✓ Đánh dấu đã đăng'}</button></div>
     ${(() => { const b = d.brand || {bat: false, nguon: 'mac-dinh'};
       return `<div class="brrow" title="Tiết lộ nội dung → Thương hiệu của bạn (Disclose post content → Your brand). Mặc định tắt như cài đặt gốc TikTok (fen chốt 30/10); bài nào cần thì bấm Bật."><span>Your brand</span><div class="kseg"><button data-br="0" class="${b.bat ? '' : 'on'}">Không bật</button><button data-br="1" class="${b.bat ? 'on' : ''}">Bật</button></div><span>${b.nguon === 'fen' ? 'fen chọn' : 'mặc định'}</span></div>`; })()}
-    <p class="pnote">${'Chrome ' + (ipad ? '' : '(hồ sơ Laptop) ') + 'mở TikTok Studio, tiện ích Poly TikTok gắn slide, tiêu đề, hashtag, chọn nhạc hip hop chưa dùng; Tiết lộ nội dung để tắt như mặc định (chọn Bật ở ô Your brand thì tiện ích bật). Fen kiểm đúng ' + handle + ' rồi tự bấm Post, hoặc bấm ⏰ Hẹn giờ ở khung Poly rồi tự bấm Schedule. <a href="#" id="ttCai">Đổi Chrome / link</a>' + (henD ? `<br><span class="hen">⏰ Giờ hẹn ${esc(henTxt(henD))}: mở TikTok, khung Poly có nút ⏰ Hẹn giờ điền sẵn giờ này, fen bấm nút rồi tự bấm Schedule (máy tắt TikTok vẫn đăng đúng giờ). <a href="#" id="henHuy">Huỷ hẹn</a></span>` : '') + (j.da_dang ? `<br><span class="okc">${j.da_dang.lich ? (j.da_dang.lich > nowS() ? 'Đã hẹn trên TikTok, TikTok sẽ đăng lúc ' : 'TikTok đã đăng lúc ') + esc(henTxt(j.da_dang.lich)) : 'Đã đăng TikTok lúc ' + hm(j.da_dang.t)}${j.da_dang.brand === false && (!d.brand || d.brand.bat) ? ' · <span class="stc">chưa bật Thương hiệu của bạn</span>' : ''}</span>` : j.dang_loi ? `<br><span class="stc">Chưa đăng được: ${esc(j.dang_loi.loi)}</span>` : '') + (j.nhac && j.nhac.ten ? `<br>Nhạc đã chọn: <b>${esc(j.nhac.ten)}</b>${j.nhac.tacgia ? ' · ' + esc(j.nhac.tacgia) : ''}` : '') + `<br>Đăng bằng điện thoại: Gửi Telegram gửi ${sl.length} slide (album), caption và câu ghim vào Telegram ${d.telegram && d.telegram_ten ? esc(d.telegram_ten) : 'của fen'}. <a href="#" id="tgSet">${d.telegram ? 'Đổi Telegram' : 'Cài Telegram'}</a>`}${daGui}</p></div>`;
+    <p class="pnote">${'Chrome ' + (ipad ? '' : '(hồ sơ Laptop) ') + 'mở TikTok Studio, tiện ích Poly TikTok gắn slide, tiêu đề, hashtag, chọn nhạc hip hop chưa dùng; Tiết lộ nội dung để tắt như mặc định (chọn Bật ở ô Your brand thì tiện ích bật). Fen kiểm đúng ' + handle + ' rồi tự bấm Post, hoặc bấm ⏰ Hẹn giờ ở khung Poly rồi tự bấm Schedule. <a href="#" id="ttCai">Đổi Chrome / link</a>' + (henD ? `<br><span class="hen">⏰ Giờ hẹn ${esc(henTxt(henD))}: mở TikTok, khung Poly có nút ⏰ Hẹn giờ điền sẵn giờ này, fen bấm nút rồi tự bấm Schedule (máy tắt TikTok vẫn đăng đúng giờ). <a href="#" id="henHuy">Huỷ hẹn</a></span>` : '') + (j.da_dang ? `<br><span class="okc">${j.da_dang.lich ? (j.da_dang.lich > nowS() ? 'Đã hẹn trên TikTok, TikTok sẽ đăng lúc ' : 'TikTok đã đăng lúc ') + esc(henTxt(j.da_dang.lich)) : 'Đã đăng TikTok lúc ' + hm(j.da_dang.t)}${j.da_dang.brand === false && (!d.brand || d.brand.bat) ? ' · <span class="stc">chưa bật Thương hiệu của bạn</span>' : ''}</span>` : j.dang_loi ? `<br><span class="stc">Chưa đăng được: ${esc(j.dang_loi.loi)}</span>` : '') + (j.nhac && j.nhac.ten ? `<br>Nhạc đã chọn: <b>${esc(j.nhac.ten)}</b>${j.nhac.tacgia ? ' · ' + esc(j.nhac.tacgia) : ''}` : '') + `<br>Đăng bằng điện thoại: Gửi Telegram gửi ${sl.length} slide (album), caption và câu ghim vào Telegram ${d.telegram && d.telegram_ten ? esc(d.telegram_ten) : 'của fen'}. <a href="#" id="tgSet">${d.telegram ? 'Đổi Telegram' : 'Cài Telegram'}</a>`}${daGui}${d.canva ? `<br><span class="okc">🎨 ${j.dung_bang === 'canva' ? 'Dựng trên Canva' : 'Đã có trên Canva'}${d.canva.so_trang ? ' · ' + esc(String(d.canva.so_trang)) + ' trang' : ''}</span>, sửa trên Canva xong bấm ⬇ Lấy lại từ Canva để app đăng bằng ảnh mới.` : ''}${j.canva_loi ? `<br><span class="stc">Đưa lên Canva chưa được: ${esc(j.canva_loi)}</span>` : ''}</p></div>`;
   if (!setH(w, h)) { capCount(); return; }
   capCount();
   $('#capT').oninput = capCount;
@@ -1626,6 +1643,12 @@ ${esc(d.caption || '')}</textarea>
     try { await api('/api/job/' + j.id + '/brand', {bat: v ? true : null}); toast(v ? 'Your brand: bật cho bài này' : 'Your brand: không bật (mặc định)'); reload(); }
     catch(e) { toast(e.message, true); } });
   $('#bVietCap').onclick = e => vietCap(e.currentTarget);
+  const bCv = $('#bCanva'); if (bCv) bCv.onclick = async e => { const b = e.currentTarget;
+    if (d.canva && !confirm('Bài đã có trên Canva. Đưa lại sẽ tạo thêm 1 thiết kế mới (bản cũ vẫn giữ). Đưa lại?')) return;
+    b.disabled = true; try { await api('/api/job/' + j.id + '/canva', {}); toast('Claude đang đưa slide lên Canva, khoảng 3–5 phút'); await reload(); } catch(err) { toast(err.message, true); b.disabled = false; } };
+  const bCl = $('#bCanvaLay'); if (bCl) bCl.onclick = async e => { const b = e.currentTarget;
+    if (!confirm('Thay ' + sl.length + ' slide trong app bằng ảnh xuất từ Canva? Slide cũ chuyển vào thư mục _to_delete của bài.')) return;
+    b.disabled = true; try { await api('/api/job/' + j.id + '/canva', {lay: true}); toast('Claude đang lấy ảnh từ Canva, khoảng 1–3 phút'); await reload(); } catch(err) { toast(err.message, true); b.disabled = false; } };
   const ts = $('#tgSet'); if (ts) ts.onclick = ev => { ev.preventDefault(); tgDialog(); };
   const tc = $('#ttCai'); if (tc) tc.onclick = ev => { ev.preventDefault(); kiemMay(true); };
   const hd = $('#bHenDang'); if (hd) hd.onclick = () => henDangDialog(j);

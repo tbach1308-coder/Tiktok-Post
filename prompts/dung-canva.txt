@@ -1,0 +1,48 @@
+Dựng bài carousel TikTok bằng CANVA theo thiết kế mẫu Canva của kênh (fen chọn "Dựng bằng: Canva" ở app). KHÔNG dùng Photoshop để dựng slide, không gọi skill / lệnh dựng của plugin poly-carousel, không viết file .jsx.
+Fen bấm Chạy nghĩa là fen đồng ý: tạo 1 thiết kế mới trên Canva từ các trang của mẫu, tải ảnh máy lên Canva, sửa và lưu (commit) thiết kế mới đó, cất vào thư mục Canva "{thu_muc_canva}". Không hỏi lại. Không bao giờ sửa hay xoá thiết kế mẫu gốc hoặc thiết kế khác của fen (chỉ lấy trang mẫu sang thiết kế mới).
+
+Kênh: {kenh_ten}
+Tên bài: {ten_bai}
+Ngày đăng: {ngay_dang}
+Thư mục kênh: {thu_muc_kenh}
+Mẫu Canva của kênh: {mau}
+File ghi kết quả Canva: {canva_json}
+
+Ảnh fen gửi kèm (ưu tiên dùng hơn ảnh tự tìm; ảnh trùng bài cũ thì vẫn dùng):
+{anh_list}
+
+Brief từng slide:
+{brief}
+
+Ghi chú thêm của fen: {ghi_chu}
+
+---
+Bài này giao từ app "Poly Dựng Bài" trên máy shop. Fen không xem chat và không trả lời được câu hỏi giữa chừng: tự làm hết, chỗ chưa rõ tự chọn phương án hợp lý nhất. Thiếu ảnh shop thì dùng ảnh hãng và làm tiếp.
+Công cụ Canva là các công cụ mcp__claude_ai_Canva__* (connector Canva trong tài khoản Claude, nạp nền vài giây sau khi phiên mở). Chưa thấy thì dùng ToolSearch tìm "Canva" (chưa có thì sleep 5 rồi tìm lại, tối đa 3 lần). Vẫn không có: dừng, trả lời "Chưa nối được Canva: fen vào claude.ai > Customize > Connectors > Canva bấm Connect, hoặc chọn Dựng bằng Photoshop." và không làm tiếp.
+Tạo task list các bước (fen xem tiến độ qua task list trên app). Tên task tiếng Việt đời thường, tối đa 8 chữ, không ghi tên file hay lệnh (vd "Biên tập brief", "Lấy ảnh máy", "Dựng trên Canva", "Xuất slide", "Duyệt bài").
+
+Cách làm:
+1. Biên tập brief theo luật nội dung (mục 12 "Logic rút ra" thắng): "E:/Social Claude/POLY-quy-tac-lam-content.md", tệp người xem / xây kênh trong "E:/Social Claude/_bo-dung-design/noi-dung/" khi cần. Không đọc phần dựng Photoshop (ipad/API.md, code/, slides/). Chốt chữ từng slide: ngắn, vừa khung chữ của mẫu (đếm số chữ của khung mẫu để viết vừa).
+2. Tạo thư mục bài trong "{thu_muc_kenh}" đặt tên như các bài cũ trong đó: T<tháng>_<TênNgắnKhôngDấu>_<dd-mm> (dd-mm là ngày đăng, chưa có thì ngày làm), mkdir -p từng thư mục. Ngay khi tạo xong in 1 dòng riêng THU_MUC_BAI=<đường dẫn đầy đủ> (app dựa vào dòng này để hiện đúng slide của bài).
+3. Ảnh máy: như sổ dựng "E:/Social Claude/_bo-dung-design/BAT-DAU-TU-DAY-DESIGN.md" (chỉ phần lấy ảnh, tách nền, dò trùng): ưu tiên ảnh fen gửi; không có thì ảnh hãng tải bằng curl (luật 19) vào "E:/Social Claude/Anh tai ve/tai-ve-<dd-mm>/"; các máy trong bài cùng kiểu ảnh; tách nền giữ đúng tỉ lệ bằng "E:/Social Claude/_bo-dung-design/prep/tach_nen.py" (không cần Photoshop) hoặc công cụ remove-background của Canva; dò trùng 1 lệnh bằng prep/trung_anh.py như bài Photoshop. Lưu ảnh đã chuẩn bị vào "<thư mục bài>/tai-nguyen/".
+4. Đọc mẫu: read-design mẫu (resolve-shortlink trước nếu là link ngắn; link canva.com/design/<mã>/… thì mã là đoạn bắt đầu bằng D) với fields design_content, page_metadata, thumbnails: biết trang nào là bìa, trang nội dung, trang cuối; khung chữ, khung ảnh máy (locator_id) của từng trang. Trang mẫu không phải 1080x1440 thì vẫn dùng, xuất ảnh ở bước 7 ra 1080x1440.
+5. Tạo thiết kế bài: merge-designs type "create_new_design", title "<Kênh> · <tên bài> · <dd-mm>", operations là các insert_pages (source type "design", design_id của mẫu, page_numbers [n]) theo đúng thứ tự slide cần: bìa, nội dung (1 trang mẫu dùng lại được nhiều lần), trang cuối. Đúng số slide của brief đã biên tập.
+6. Sửa từng trang (read-design thiết kế mới với open_transaction true, rồi edit-design finalize "keep_open", từng trang theo page_index):
+   - replace_text chữ đã chốt (trang phản hồi responsive thì find_and_replace_text). Giữ font, màu, cỡ của mẫu; chữ dài thì rút gọn chữ trước, chỉ giảm cỡ (format_text font_size) khi buộc phải, không dưới 80% cỡ mẫu.
+   - Ảnh máy: tải lên Canva (create-upload-url, rồi 1 lệnh curl -sS -X POST -H "Content-Type: application/octet-stream" --data-binary "@<file ảnh>" "<upload_url>", mỗi URL dùng 1 lần) lấy mã ảnh, rồi update_fill vào khung ảnh máy của mẫu (crop_media / resize_element nếu máy bị cắt hay méo). Ảnh nền, hình trang trí của mẫu giữ nguyên trừ khi brief cần đổi.
+   - Phần của mẫu không dùng (chữ, số, ảnh thừa) thì delete_element. Hashtag / thương hiệu trên mẫu đúng kênh (iPad #polystore, Laptop #polystorelaptop, luật 1e).
+   - Xem thumbnail sau mỗi trang: chữ tràn khung, đè ảnh, lệch, sai chính tả, còn chữ mẫu cũ thì sửa ngay trong transaction.
+   Xong mọi trang: edit-design finalize "commit" (fen đã đồng ý ở nút Chạy). Rồi search-folders "{thu_muc_canva}" (chưa có thì create-folder tên đó, parent_folder_id "root") và move-item-to-folder thiết kế bài vào đó.
+7. Xuất slide: get-export-formats rồi export-design type "png", width 1080, height 1440 (mọi trang) → mỗi URL tải về bằng 1 lệnh curl -sS -o "<thư mục bài>/slide-01.png" "<url>" (slide-02.png… đúng thứ tự trang, 2 chữ số). Xem cả bài bằng 1 ảnh ghép: python "E:/Social Claude/_bo-dung-design/prep/xem_nhanh.py" "<thư mục bài>/log/xem.jpg" "<thư mục bài>" rồi Read 1 lần.
+8. Ghi "{canva_json}" bằng Write, đúng 1 dòng JSON: {"design_id": "<mã D…>", "edit_url": "<edit_url>", "view_url": "<view_url>", "so_trang": <số trang>, "ten": "<tên thiết kế>", "nguon": "dung-canva", "mau": "<mã mẫu>"} (edit_url, view_url lấy ở read-design design_metadata).
+9. Caption: ghi "<thư mục bài>/caption.txt" theo "E:/Social Claude/_bo-dung-design/hashtag-tiktok.md": dòng 1 caption tối đa 90 ký tự (1 câu như người bán nói + 3–4 hashtag, có hashtag thương hiệu của kênh: iPad #polystore, Laptop #polystorelaptop (luật 1e), không #xuhuong), dòng 2 "Comment ghim: …".
+10. Duyệt 1 lần: gọi agent poly-carousel:duyet-bai (model "opus"; gói không dùng được opus thì gọi lại không ghi model) với thư mục bài + đường dẫn caption.txt, dặn agent: "Bài dựng bằng Canva theo mẫu Canva fen chọn: KHÔNG chấm theme, bố cục, font, thư viện dựng Photoshop; chỉ soát chữ, số liệu, chính tả, ảnh đúng máy, chữ tràn / bị che / còn chữ mẫu cũ, caption. Chỉ đọc slide-NN.png và caption.txt, không mở Photoshop." Có lỗi: sửa trên Canva (read-design open_transaction, edit-design, commit), xuất lại đúng trang lỗi (export-design pages [n]) và tải đè slide-NN.png đó, sửa caption.txt nếu cần. Không duyệt vòng 2.
+
+Giá: chỉ ghi giá khi brief có giá hoặc fen nhắn cần giá. Không tự thêm, không tự đổi giá (giữ đúng chữ giá fen viết, kể cả "chờ giá Việt Nam").
+Viết lệnh để không bị chặn quyền (chạy ngầm không ai bấm cho phép được):
+- Mỗi lệnh Bash làm 1 việc, đường dẫn đầy đủ trong ngoặc kép. Không dùng biến ($B), {a,b}, vòng for, dấu "\ ", không ghi ra /tmp (dùng "E:/Social Claude/Anh tai ve/tai-ve-<dd-mm>/").
+- Python dài hơn 3 dòng: dùng Write ghi ra file .py (trong "<thư mục bài>/tai-nguyen/script/") rồi chạy python "<file>", không dùng python -c nhiều dòng.
+- Tạo thư mục, chép file: mkdir -p "…" và cp "…" "…" từng lệnh; không dùng PowerShell có biến, khối { } hay nhiều đường dẫn trong 1 lệnh.
+- Không đọc hay tìm trong C:\Users\Dao\.claude. Không ghi upload_url vào file nào. Giao việc cho agent con thì đưa đường dẫn tuyệt đối và dặn agent cũng viết lệnh như trên.
+Trả lời cuối cùng thật ngắn, 1–3 câu tiếng Việt (vd "Xong 7 slide trên Canva, đã qua duyệt."). Có đổi chữ, số hay giá so với brief của fen thì thêm đúng 1 dòng "Đã đổi so với brief: <slide + đổi gì, tối đa 20 chữ>" (không đổi gì thì bỏ dòng này). Việc chỉ fen quyết được (giá, khuyến mãi, máy còn trong kho không, chữ fen viết mà bạn buộc phải đổi) thì thêm tối đa 3 dòng dạng: HOI_FEN: <câu hỏi ngắn> | <cách bạn đang làm> | <cách khác> (tối đa 4 lựa chọn, mỗi lựa chọn ≤ 8 chữ). Không hỏi việc tự quyết được. Dòng cuối cùng đúng dạng:
+THU_MUC_BAI=<đường dẫn đầy đủ thư mục bài>

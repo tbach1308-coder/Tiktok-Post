@@ -13,6 +13,12 @@ Quy tắc và cách làm đều là file trên máy. Chỉ đọc file mà lện
 Lệnh của lượt này nói khác thì theo lệnh của lượt này (cách chạy, cách trả lời); luật nội dung / thiết kế thì mục 12 thắng, trừ khi fen nói rõ đổi luật ngay trong lượt này (ghi chú, ô Sửa, "Chung", nút Quy tắc): làm theo fen và ghi luật mới vào mục 12. Brief fen dán vẫn biên tập theo mục 12.
 Mỗi bài chỉ 1 kênh: không trộn nội dung laptop và iPad; mỗi kênh giữ theme riêng.
 
+Canva (fen nối 6/11): công cụ Canva là mcp__claude_ai_Canva__* (connector Canva của tài khoản Claude, nạp nền vài giây sau khi phiên mở; chưa thấy thì ToolSearch "Canva"). Chạy trên máy chủ Canva, không mở app Canva, không bấm gì trên máy.
+- Brief, ô chat sửa brief, ô Sửa có link Canva (canva.com/design/…, canva.com/d/…, canva.link/…): đọc thiết kế đó (resolve-shortlink nếu link ngắn, rồi read-design có thumbnails) để làm theo kiểu / lấy chữ; cần ảnh trang nào thì export-design png (pages [n]) rồi tải về bằng 1 lệnh curl -sS -o "<thư mục bài hoặc thư mục ảnh tải về>/canva-<n>.png" "<url>" và dùng như ảnh fen gửi. Chỉ đọc, không sửa thiết kế fen dán.
+- Chỉ tạo / sửa / tải ảnh lên Canva khi lệnh của lượt này bảo (nút Đưa lên Canva, Dựng bằng Canva, sửa bài dựng bằng Canva) hoặc fen ghi rõ trong brief / ô Sửa. Luôn làm trên thiết kế mới hoặc thiết kế của chính bài; không sửa, không xoá thiết kế mẫu hay thiết kế khác của fen; cất thiết kế mới vào thư mục Canva "POLY Dựng Bài".
+- Tải ảnh lên Canva: create-upload-url rồi 1 lệnh curl -sS -X POST -H "Content-Type: application/octet-stream" --data-binary "@<file>" "<upload_url>" (mỗi URL dùng 1 lần). Không ghi upload_url hay link tải của Canva vào file luật, sổ, caption.
+- Canva báo cần gói Pro (license_required, autofill, brand template, resize) thì làm cách khác được trên gói miễn phí (copy trang, sửa tay từng chữ), không dùng phần tử Pro.
+
 Gói tài khoản khác nhau (Pro / Max): lệnh bảo gọi agent với model "opus" mà Agent báo lỗi model / gói không dùng được thì gọi lại agent đó không ghi model (dùng model mặc định), làm tiếp, không dừng bài; thêm 1 dòng "agent duyệt chạy model mặc định" vào câu trả lời cuối. Hết lượt dùng (usage limit) thì dừng gọn, báo 1 câu.
 
 Không bao giờ:
@@ -20,7 +26,7 @@ Không bao giờ:
 - Đổi cài đặt hệ thống, registry; ghi vào thư mục .claude; đọc hay tìm trong thư mục .claude của user Windows.
 - Nhập mật khẩu, token, API key; vượt captcha.
 - Bấm Đăng / Post trên TikTok hay đăng bài thay fen. Tự bật Your brand / Tiết lộ nội dung (mặc định tắt cho mọi bài; fen tự bấm Bật ở ô Đăng bài của app khi cần; "E:/Social Claude/_bo-dung-design/hashtag-tiktok.md").
-- Upload lên Google Drive hay gửi file ra ngoài (Telegram do app tự gửi, không phải việc của bạn).
+- Upload lên Google Drive hay gửi file ra ngoài (Telegram do app tự gửi, không phải việc của bạn). Ngoại lệ duy nhất: tải slide / ảnh máy lên Canva của fen theo mục Canva ở trên.
 - Ghi tên, số điện thoại khách.
 - Đóng file fen đang mở trong Photoshop.
 - Dùng điều khiển màn hình / computer use / Cowork (chụp màn hình, bấm, gõ) để thao tác Photoshop hay app nào trên máy shop: Photoshop chỉ chạy bằng script nền qua hàng chờ `C:\Users\Dao\Pictures\PolySocial\_tu-chay` (fen đang làm việc trên máy, luật 11b). Ngoại lệ duy nhất: chụp màn hình bài mẹo khi fen đã bấm cho Claude chụp (nút HOI_FEN, "fen rời máy"), luật 11b, 18; lượt dựng bài thì không tự chụp, dùng ảnh fen gửi / ảnh tạm và hỏi bằng dòng HOI_FEN cuối bài.

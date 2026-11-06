@@ -11,14 +11,14 @@ HIỂU Ý FEN GÕ TRƯỚC KHI VIẾT (fen chốt 30/10: "nhận biết nội du
 A. Chủ đề cụ thể (có tên máy, câu hỏi hay ý bài rõ; vd "Pro 12.9 hay Pro 11 M1", "iPad cho sinh viên y", "laptop cho dân code"): viết đúng chủ đề đó.
 B. Nhờ tìm chủ đề (có chữ "tìm", "chủ đề", "gợi ý", "đăng gì", "hot", "trend"): tự chọn 1 chủ đề cụ thể rồi viết luôn, không hỏi lại.
    - Đúng LOẠI BÀI fen nói. "mẹo" = bài mẹo dùng máy (tính năng, cài đặt, thao tác, giữ pin, dọn bộ nhớ, học / vẽ / ghi chú…), gắn với nhu cầu sửa / nâng cấp / lên đời ở shop khi được (quy-tac-xay-kenh mục 3 ý 7); KHÔNG làm bài so sánh hay giới thiệu máy. "so sánh" = 2 máy. "bảng giá" = bảng giá. "sinh viên", "ngành" = chọn máy theo ngành. "tầm X triệu" = phân khúc giá. "lỗi", "hư", "sửa" = lỗi hay gặp + cách xử lý.
-   - Có "hot", "trend", "đang hot", "hôm nay": WebSearch nhanh (tối đa 3 lần, tin khoảng 2 tuần trước hôm nay) xem người xem kênh này đang quan tâm gì (bản iPadOS / Windows mới, máy mới ra hoặc sắp ra, lỗi nhiều người gặp, mùa thi, tựu trường, đợt giảm giá); chọn chủ đề vừa hot vừa dẫn về nhu cầu mua / sửa máy ở shop. Kênh iPad (luật 1d): tin hot được làm, nhưng bìa vẫn là câu hỏi chọn máy / nhu cầu người xem (vd "MINI 7 CÒN ĐÁNG MUA?"), không bìa kiểu bản tin ("MINI 8 RA RỒI"). Tin đồn thì ghi rõ "tin đồn".
-   - Không nói loại bài: chọn theo format đang thắng của kênh (quy-tac-xay-kenh mục 3) và mục "Chưa làm" của danh sách content.
-   - Chủ đề tự chọn phải chưa có bài: kiểu B không bao giờ trả TRUNG, trùng thì tự chọn chủ đề khác.
+   - Mọi lần kiểu B, không cần fen gõ chữ "hot" (luật 1f, fen 03/11): WebSearch nhanh trước khi chọn (tối đa 3 lần, ưu tiên tin trong ngày và vài ngày gần, rộng nhất 2 tuần trước hôm nay) xem hôm nay có gì hot (bản iPadOS / Windows mới, máy mới ra hoặc sắp ra, lỗi nhiều người gặp, mùa thi, tựu trường, đợt giảm giá) và xu hướng tìm kiếm máy ở Việt Nam (dòng máy nào đang được tìm nhiều); chọn chủ đề vừa hot / đang được tìm vừa dẫn về nhu cầu mua / sửa máy ở shop, đúng loại bài fen nói. Số lượt tìm chỉ để chọn chủ đề, không đưa lên bài nếu không có nguồn. Kênh iPad (luật 1d): tin hot được làm, nhưng bìa vẫn là câu hỏi chọn máy / nhu cầu người xem (vd "MINI 7 CÒN ĐÁNG MUA?"), không bìa kiểu bản tin ("MINI 8 RA RỒI"). Tin đồn thì ghi rõ "tin đồn".
+   - Không nói loại bài: chọn loại hợp với điều đang hot; tìm không ra gì rõ thì mới chọn theo format đang thắng của kênh (quy-tac-xay-kenh mục 3) và mục "Chưa làm" của danh sách content.
+   - Chủ đề tự chọn phải chưa có bài: trùng thì tự chọn chủ đề khác (luật 1b).
 C. Chỉ có tên máy hoặc nhóm người xem (vd "iPad Air M2", "dân văn phòng"): chọn góc bài hợp nhất (so sánh, theo nhu cầu, mẹo, lên đời) rồi viết.
 Brief đang có trong ô:
    - Chủ đề lần này KHÁC bài trong ô (khác máy, khác loại bài, khác ý chính; vd ô đang là bài so sánh 2 máy mà fen gõ "mẹo iPad"): BỎ HẲN brief cũ, viết bài mới theo chủ đề lần này, không giữ máy, tiêu đề, cấu trúc, câu chữ của brief cũ.
-   - Kiểu B mà brief trong ô là Claude viết cho đúng lời nhờ này (chủ đề lần trước: "{chu_de_cu}") và fen chưa sửa: fen bấm lại là muốn chủ đề KHÁC, chọn chủ đề khác bài trong ô. Fen đã sửa brief đó thì giữ chủ đề và ý fen sửa, viết lại cho đúng luật.
-   - Cùng chủ đề (kiểu A, C): viết lại cho đúng luật, giữ ý fen đã gõ / đã sửa trong ô.
+   - Không giữ lại chủ đề đã làm (luật 1b, fen 05/11, mọi kiểu A, B, C): brief trong ô là Claude viết lần trước (chủ đề lần trước: "{chu_de_cu}") và fen chưa sửa: fen bấm lại là muốn chủ đề MỚI, chọn chủ đề khác bài trong ô, chưa có bài, gần ý fen nhất. Chủ đề của ô Brief đã có bài cũng bỏ, tìm cái mới như mục Dò trùng.
+   - Fen đã sửa / tự gõ brief trong ô, cùng chủ đề và chủ đề chưa có bài: giữ chủ đề và ý fen, viết lại cho đúng luật; tiêu đề bìa và tiêu đề slide fen đã viết giữ đúng chữ, không tự ý đổi (luật 17d, fen 06/11), chỉ đổi khi sai thông tin.
 
 Đọc 1 lần (không đọc lại):
 - "E:/Social Claude/_bo-dung-design/noi-dung/quy-tac-xay-kenh.md" (mục tiêu comment có nhu cầu, format, cấu trúc bài, giọng người bán, từ cấm, đúng sự thật)
@@ -27,13 +27,8 @@ Brief đang có trong ô:
 
 Dò trùng (bắt buộc, trước khi viết):
 - "E:/Social Claude/_bo-dung-design/noi-dung/danh-sach-content-22-10.md" (bản chụp 22/10) và tên các thư mục bài trong "{thu_muc_kenh}" (mỗi thư mục T<tháng>_<Tên>_<dd-mm> là 1 bài đã làm; xem bằng 1 lần Glob hoặc ls).
-- TRÙNG THÌ KHÔNG LÀM (luật 1b, fen chốt 29/10, kiểu A và C; kiểu B tự chọn chủ đề khác): chủ đề fen gõ đã có bài (cùng câu hỏi chính, cùng cặp máy so sánh, cùng bộ mẹo), đăng bao lâu rồi cũng vậy, thì KHÔNG viết brief, KHÔNG ghi file. Trả lời cuối đúng dạng:
-  TRUNG: <tên 1 bài đã làm trùng nhất, tối đa 8 chữ, không giải thích>
-  GOI_Y: <chủ đề chưa làm 1, tối đa 10 chữ>
-  GOI_Y: <chủ đề chưa làm 2, tối đa 10 chữ>
-  GOI_Y: <chủ đề chưa làm 3, tối đa 10 chữ>
-  (gợi ý lấy từ mục "Chưa làm" của danh sách content, đúng kênh, hợp ý fen, chưa có thư mục bài).
-  Chỉ viết khi chủ đề / ghi chú fen ghi rõ "làm lại". Bài định kỳ (bảng giá tháng, cập nhật bảng giá) mỗi kỳ là chủ đề mới, viết bình thường.
+- TRÙNG THÌ LÀM CÁI KHÁC (luật 1b, fen đổi 03/11, mọi kiểu A, B, C): chủ đề đã có bài (cùng câu hỏi chính, cùng cặp máy so sánh, cùng bộ mẹo), đăng bao lâu rồi cũng vậy, thì tự chọn chủ đề chưa có bài, gần ý fen nhất, đúng kênh, đúng loại bài (xem cả mục "Chưa làm" của danh sách content), rồi viết brief và ghi file luôn, không dừng, không hỏi lại. Dòng 1 câu trả lời cuối thêm " · đổi vì trùng <tên bài đã làm, tối đa 8 chữ>".
+  Chỉ làm lại đúng chủ đề cũ khi chủ đề / ghi chú fen ghi rõ "làm lại". Bài định kỳ (bảng giá tháng, cập nhật bảng giá) mỗi kỳ là chủ đề mới, viết bình thường.
 - Không trùng chủ đề nhưng có ý slide đã dùng ở bài trước: bỏ ý đó, thay ý khác (không cần báo).
 
 Đúng sự thật: thông số, mẹo, đường dẫn menu phải đúng (bài mẹo: tên menu đúng bản iPadOS / Windows hiện hành). Cần thì WebSearch nhanh trang hãng (tối đa 4 lần, ngoài 3 lần tìm hot). Không bịa số, không dùng con số không nguồn. Thông tin đúng mới đưa vào (luật 4c, fen 30/10): ý nào chưa kiểm chứng được ở nguồn chính hãng / tin cậy thì bỏ khỏi brief, không viết né "có thể", "nghe nói"; tin đồn ghi rõ "tin đồn".
@@ -42,11 +37,12 @@ Giá: chỉ ghi giá khi chủ đề / ghi chú / brief của fen có giá hoặ
 Cách viết:
 - 6–7 slide, mỗi slide 1 ý, tối đa 3 dòng nội dung, đọc 2–3 giây. Giọng nhân viên shop nói với khách: câu ngắn, vào thẳng vấn đề, không văn mẫu AI, không gạch ngang dài, tối đa 1 emoji mỗi slide.
 - Bìa (thumbnail) luôn đủ 3 ý NGẮN GỌN, GÂY TÒ MÒ, VÀO THẲNG VẤN ĐỀ (luật 17b, fen chốt 29/10, 30/10): chữ đầu đã là chủ đề / máy / vấn đề người xem gặp, không dạo đầu ("BẠN CÓ BIẾT", "TỔNG HỢP"); để hở 1 điều người xem muốn biết (câu hỏi chọn, "đáng không?", "chênh ở đâu?"), đáp án để slide trong, không giật tít sai sự thật. Tiêu đề VIẾT HOA tối đa 6 chữ (1–2 dòng) + dòng phụ tối đa 6 chữ gợi tò mò, hoặc bỏ dòng phụ (không emoji cuối). Kênh Laptop thêm 1 dòng "👉 <câu móc tối đa 5 chữ>"; kênh iPad bìa không câu móc. Không câu giải thích trên bìa, ý dài để slide 2. Cả bìa khoảng 12 chữ.
+- Title dễ hiểu, ngắn gọn (luật 17b, fen 03/11): tiêu đề bìa và slide giữa đọc 1 lần là hiểu, từ khách hay nói, không thuật ngữ / chơi chữ phải đoán; tiêu đề slide giữa 1 ý, ưu tiên 1 dòng, tối đa 2 dòng. Siết 06/11 (17b): mỗi tiêu đề là 1 câu trọn nghĩa như khách tự nói / tự hỏi, không ghép 2 vế cụt bằng dấu phẩy, hai chấm, chấm hỏi giữa câu (sai: "LAPTOP CHẬM? SOI Ổ CỨNG TRƯỚC"; đúng: "LAPTOP CHẬM DO Ổ CỨNG?"), không ẩn dụ, tiếng lóng; tiêu đề slide giữa nói thẳng việc / ý của slide; dễ hiểu thắng tò mò, ép 6 chữ mà cụt thì đổi cách nói.
 - Slide giữa: dòng đầu "Slide N – <TIÊU ĐỀ VIẾT HOA>", rồi 1–3 dòng nội dung, dòng cuối "👉 <câu móc khớp đúng slide sau>". Bài so sánh: có nhận định / tỉ số cuối slide khi hợp.
 - CÓ ÍCH, CÓ GIÁ TRỊ (luật 1c, fen chốt 30/10): mỗi slide giữa có ít nhất 1 thông tin cụ thể người xem dùng được ngay (số có nguồn, đường dẫn menu / thao tác làm theo được, tên máy + việc chạy được, dấu hiệu tự kiểm tra, cách xử lý); ưu tiên điều người xem chưa biết hoặc hay hiểu sai, điều chỉ người bán / thợ mới biết; không câu khen chung chung, không ý ai cũng biết; bài so sánh / chọn máy phải chốt ai nên lấy máy nào, vì sao.
 - Mỗi máy ghi đúng tên thật + cấu hình chính + "Hợp với …" (không dùng nhãn máy A/B/C).
-- Slide cần ảnh đặc biệt (chụp màn hình Windows, ảnh máy thật ở shop) thì thêm 1 dòng ngắn "Ảnh: …" (lượt dựng từ app không tự chụp màn hình máy shop: dùng ảnh fen gửi, chưa có thì ảnh tạm / dựng lại, cuối bài hỏi fen có cho Claude chụp lúc fen rời máy không; luật 11b, 18, 16i).
-- Slide cuối (luật 16h, fen chốt 30/10): dòng "Slide N – Cuối (chỉ chữ)", rồi câu hỏi chọn ngắn ≤ 2 dòng bắt người xem kể nhu cầu của họ (chọn máy nào, làm việc gì, máy đang dùng); cả 2 kênh KHÔNG có dòng Follow dưới mọi dạng (fen bỏ Follow: iPad 30/10 12h30, Laptop 30/10 15h22, nhắc lại 17h22), chỉ câu hỏi. KHÔNG viết dòng kêu gọi comment kiểu "Comment kèm ngân sách, Poly chọn máy 👇" / "Comment, Poly tư vấn 👇" (fen bỏ 30/10). Không địa chỉ, không thêm dòng khác (không nút Follow, không mũi tên).
+- Slide cần ảnh đặc biệt (chụp màn hình Windows, ảnh máy thật ở shop) thì thêm 1 dòng ngắn "Ảnh: …" (lượt dựng từ app không tự chụp màn hình máy shop: dùng ảnh fen gửi, chưa có thì ảnh tạm / dựng lại, cuối bài hỏi fen có cho Claude chụp lúc fen rời máy không; luật 11b, 18, 16i). Ảnh khác để lượt dựng tìm ảnh thật trên nhiều nguồn, không có mới tự tạo (luật 16l), brief không ghi "tự vẽ", "mockup" trừ khi fen bảo.
+- Slide cuối (luật 16h, fen đổi 03/11, cả 2 kênh): dòng "Slide N – Cuối (chỉ chữ)", rồi 1 câu kêu gọi Follow ngắn ≤ 2 dòng, nêu lợi ích đúng sự thật, hợp bài (vd "Follow Poly để cập nhật giá mỗi tháng"); không còn câu hỏi chọn ở slide cuối (câu hỏi kéo comment để caption / comment ghim). KHÔNG viết dòng kêu gọi comment kiểu "Comment kèm ngân sách, Poly chọn máy 👇" / "Comment, Poly tư vấn 👇" (fen bỏ 30/10). Không địa chỉ, không thêm dòng khác (không nút Follow, không mũi tên).
 - Tự kiểm: đọc lại từng slide như nói ra miệng ở quầy; slide nào người xem không biết thêm được gì thì viết lại hoặc bỏ; bỏ từ cấm; đếm dòng.
 
 Định dạng file (chữ thường, KHÔNG markdown: không **, không #, không gạch đầu dòng), giống ví dụ:
@@ -61,7 +57,7 @@ Chip A20 Pro, chống nước IP67, vẫn dùng Pencil Pro.
 …
 
 Slide 7 – Cuối (chỉ chữ)
-Bạn đợi mini 8 hay lấy mini 7?
+Follow Poly để cập nhật tin iPad mới
 
 Ghi brief ra đúng file "{out}" bằng Write (UTF-8). File chỉ có brief, không có giải thích.
 Viết lệnh để không bị chặn quyền: mỗi lệnh Bash làm 1 việc, đường dẫn đầy đủ trong ngoặc kép, không dùng biến, {a,b}, vòng for, không ghi ra /tmp. Không đọc hay tìm trong C:\Users\Dao\.claude.

@@ -1,0 +1,36 @@
+Đưa bộ slide của 1 bài TikTok đã dựng xong lên Canva của fen, gom thành 1 thiết kế mới (mỗi slide 1 trang, đúng thứ tự) để fen chỉnh tiếp trên app Canva (điện thoại hoặc web).
+Fen bấm nút "Đưa lên Canva" trong app nghĩa là fen đồng ý: tải {so_slide} slide này lên Canva, tạo 1 thiết kế mới, lưu (commit) và cất vào thư mục Canva "{thu_muc_canva}". Không cần hỏi lại. Không sửa, không xoá thiết kế nào khác của fen (thiết kế khung chỉ copy, bản gốc giữ nguyên).
+KHÔNG sửa slide trên máy, không mở Photoshop, không gọi agent con. Làm nhanh (khoảng 3–5 phút).
+
+Kênh: {kenh_ten}
+Tên bài: {ten_bai}
+Thư mục bài: {thu_muc_bai}
+Slide (đúng thứ tự trang):
+{slides}
+Tên thiết kế mới: {ten_canva}
+Thiết kế khung để copy (chỉ mượn trang cỡ 1080x1440): {mau_khung}
+Thiết kế Canva cũ của bài (fen bấm đưa lại thì vẫn tạo thiết kế mới, giữ bản cũ): {canva_link}
+
+Công cụ Canva là các công cụ mcp__claude_ai_Canva__* (connector Canva trong tài khoản Claude, nạp nền vài giây sau khi phiên mở). Chưa thấy thì dùng ToolSearch tìm "Canva" (chưa có thì chờ 5 giây bằng sleep 5 rồi tìm lại, tối đa 3 lần). Vẫn không có: dừng, trả lời đúng 1 câu "Chưa nối được Canva: fen vào claude.ai > Customize > Connectors > Canva bấm Connect rồi bấm lại Đưa lên Canva." và không ghi canva.json.
+
+Cách làm:
+1. Tải slide lên Canva, lần lượt từng slide theo thứ tự:
+   a. Gọi create-upload-url lấy upload_url (mỗi URL dùng đúng 1 lần và hết hạn nhanh: gọi ngay trước khi tải slide đó).
+   b. 1 lệnh Bash: curl -sS -X POST -H "Content-Type: application/octet-stream" --data-binary "@<đường dẫn slide>" "<upload_url>"
+   c. Kết quả trả về mã của ảnh vừa tải (asset / media id): ghi lại theo đúng số slide. Lỗi (URL hết hạn, bị từ chối, không có mã) thì xin URL mới rồi tải lại slide đó, tối đa 3 lần; vẫn lỗi thì dừng, báo slide nào lỗi.
+2. Tạo thiết kế: copy-design thiết kế khung, chỉ lấy trang 1 (page_numbers [1]). Khung là link ngắn (canva.com/d/…, canva.link/…) thì resolve-shortlink trước; link canva.com/design/<mã>/… thì mã là đoạn bắt đầu bằng D. Khung không mở được thì search-designs tìm 1 thiết kế của fen có trang 1080x1440 (xem read-design page_metadata) rồi copy trang 1 của thiết kế đó.
+3. Mở chỉnh sửa: read-design thiết kế mới với open_transaction true (fields design_content, thumbnails) lấy transaction_id, mã trang 1 và các phần tử trên trang 1.
+4. edit-design (finalize "keep_open"):
+   - Trang 1: delete_element mọi phần tử cấp ngoài cùng của trang 1, rồi insert_fill ảnh slide 1 (asset_type image, left 0, top 0, width 1080, height 1440, alt_text "slide 1").
+   - Slide 2 tới {so_slide}: mỗi slide 1 lần add_page (width 1080, height 1440), đọc mã trang mới (read-design với transaction_id, fields design_content, page_indices [số trang mới]), rồi insert_fill ảnh slide đó tràn trang như trên.
+   - update_title: "{ten_canva}".
+   Xem thumbnail trả về sau mỗi trang: đúng slide tương ứng, tràn kín trang, không còn chữ / hình của khung. Sai thì sửa ngay trong transaction.
+5. edit-design finalize "commit" (fen đã đồng ý ở nút bấm).
+6. Cất vào thư mục: search-folders "{thu_muc_canva}" (chưa có thì create-folder tên đó, parent_folder_id "root"), rồi move-item-to-folder thiết kế mới vào đó.
+7. read-design (fields design_metadata, page_metadata) lấy design_id, edit_url, view_url, số trang. Kiểm số trang = {so_slide}; thiếu / thừa thì sửa lại (transaction mới) trước khi ghi.
+8. Ghi file "{canva_json}" bằng Write, đúng 1 dòng JSON:
+   {"design_id": "<mã D…>", "edit_url": "<edit_url>", "view_url": "<view_url>", "so_trang": <số trang>, "ten": "{ten_canva}", "nguon": "dua-slide"}
+
+Viết lệnh để không bị chặn quyền: mỗi lệnh Bash làm 1 việc, đường dẫn đầy đủ trong ngoặc kép, không dùng biến, {a,b}, vòng for, không ghi ra /tmp. Không đọc hay tìm trong C:\Users\Dao\.claude. Không ghi upload_url vào file nào.
+Trả lời cuối cùng 1 câu: "Đã đưa {so_slide} slide lên Canva." (hỏng giữa chừng thì 1 câu nói rõ hỏng ở bước nào, vì sao). Dòng cuối cùng đúng dạng:
+THU_MUC_BAI={thu_muc_bai}

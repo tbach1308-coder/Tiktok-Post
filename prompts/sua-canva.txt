@@ -1,0 +1,33 @@
+Sửa bài carousel TikTok đã dựng bằng CANVA. KHÔNG dùng Photoshop, không gọi skill / lệnh dựng hay sửa của plugin poly-carousel, không viết file .jsx: sửa ngay trên thiết kế Canva của bài rồi xuất lại slide.
+Fen bấm Sửa trong app nghĩa là fen đồng ý sửa và lưu (commit) thiết kế Canva của bài này. Không hỏi lại. Không sửa thiết kế mẫu hay thiết kế khác của fen.
+
+Thư mục bài: {thu_muc_bai}
+Tên bài: {ten_bai}
+Thiết kế Canva của bài: {canva_link} (mã {canva_id})
+Mẫu Canva của kênh (cần thêm trang thì lấy trang từ đây): {mau}
+File ghi kết quả Canva: {canva_json}
+Yêu cầu sửa của fen: {yeu_cau}
+Slide fen chọn: {slides}
+Ảnh mới fen gửi:
+{anh_list}
+
+Brief gốc của bài (để nắm bối cảnh):
+{brief}
+
+---
+Fen có thể ghi sửa cho nhiều slide cùng lúc (dạng "Slide N: … | Slide M: … | Chung: …"): làm HẾT các mục trong lượt này. "Chung (fen nhắc, ghi thành quy tắc)" là fen nhắc trong lúc làm: áp cho cả bài này VÀ ghi thành luật vào "E:/Social Claude/POLY-quy-tac-lam-content.md" (đúng mục, thêm 1 dòng đầu bảng lịch sử, ghi rõ [Laptop] / [iPad] nếu chỉ 1 kênh), rồi sửa các file con theo "E:/Social Claude/_bo-dung-design/SO-DO-LUAT.md". Ảnh tên "slideN-k.*" trong danh sách ảnh mới là ảnh fen dán vào ô sửa của slide N: dùng cho đúng slide N.
+Công cụ Canva là các công cụ mcp__claude_ai_Canva__* (nạp nền vài giây sau khi phiên mở). Chưa thấy thì ToolSearch tìm "Canva" (chưa có thì sleep 5 rồi tìm lại, tối đa 3 lần). Vẫn không có: dừng, trả lời "Chưa nối được Canva: fen vào claude.ai > Customize > Connectors > Canva bấm Connect rồi bấm Sửa lại."
+Thiết kế của bài "(chưa có)" hoặc không mở được: search-designs tìm theo tên bài trong thư mục Canva "{thu_muc_canva}"; không thấy thì dựng lại các trang cần từ mẫu (merge-designs create_new_design + sửa như lúc dựng) và ghi lại "{canva_json}".
+
+Cách làm:
+1. read-design thiết kế của bài với open_transaction true (fields design_content, thumbnails; page_indices các trang cần sửa).
+2. edit-design (finalize "keep_open") từng trang: replace_text / find_and_replace_text (giữ font, màu, cỡ; chữ dài thì rút gọn trước, giảm cỡ không dưới 80%), ảnh mới: tải lên (create-upload-url rồi 1 lệnh curl -sS -X POST -H "Content-Type: application/octet-stream" --data-binary "@<file ảnh>" "<upload_url>", mỗi URL 1 lần) rồi update_fill vào khung ảnh; thêm trang thì add_page hoặc merge-designs modify_existing_design insert_pages từ mẫu; bớt trang bằng merge-designs delete_pages. Xem thumbnail sau mỗi trang, sai thì sửa ngay.
+3. edit-design finalize "commit".
+4. Xuất lại: export-design type "png", width 1080, height 1440, pages = các trang đã đổi (thêm / bớt trang thì xuất cả bài) → tải đè bằng curl -sS -o "<thư mục bài>/slide-NN.png" "<url>" (2 chữ số, đúng số trang). Bớt trang thì chuyển slide thừa vào "<thư mục bài>/_to_delete/" (không xoá hẳn). Xem lại bằng 1 ảnh ghép: python "E:/Social Claude/_bo-dung-design/prep/xem_nhanh.py" "<thư mục bài>/log/xem-sua.jpg" "<thư mục bài>" rồi Read 1 lần.
+5. Cập nhật "{canva_json}" nếu đổi thiết kế hay số trang (cùng dạng JSON 1 dòng: design_id, edit_url, view_url, so_trang, ten, nguon, mau).
+6. caption.txt có thể fen đã tự sửa trong app: chỉ đổi "<thư mục bài>/caption.txt" khi fen yêu cầu hoặc sửa làm đổi hẳn ý bài, giữ nguyên chữ fen viết ở phần không liên quan (luật caption ở "E:/Social Claude/_bo-dung-design/hashtag-tiktok.md").
+Không gọi agent duyệt cho lượt sửa nhỏ; sửa nhiều slide hoặc đổi số liệu thì tự tra lại đúng chỗ đó.
+Giá: chỉ ghi giá khi brief có giá hoặc fen nhắn cần giá. Không tự thêm, không tự đổi giá.
+Viết lệnh để không bị chặn quyền: mỗi lệnh Bash làm 1 việc, đường dẫn đầy đủ trong ngoặc kép, không dùng biến, {a,b}, vòng for, không ghi ra /tmp. Python dài hơn 3 dòng thì Write ra file .py rồi chạy. Không đọc hay tìm trong C:\Users\Dao\.claude. Không ghi upload_url vào file nào.
+Trả lời cuối cùng thật ngắn, 1–3 câu tiếng Việt. Có đổi chữ, số hay giá so với yêu cầu của fen thì thêm đúng 1 dòng "Đã đổi so với brief: <slide + đổi gì, tối đa 20 chữ>". Việc chỉ fen quyết được thì thêm tối đa 3 dòng dạng: HOI_FEN: <câu hỏi ngắn> | <cách bạn đang làm> | <cách khác>. Dòng cuối cùng đúng dạng:
+THU_MUC_BAI=<đường dẫn đầy đủ thư mục bài>
