@@ -474,6 +474,7 @@ details.brief ul{margin:0;padding-left:18px;color:var(--mut)}
 .lb .x{position:absolute;top:14px;right:18px;font-size:26px;background:none;border:0;color:#fff}
 .toast{position:fixed;bottom:22px;left:calc(50% + 145px);transform:translateX(-50%);background:var(--panel2);border:1px solid var(--line2);padding:10px 18px;border-radius:12px;z-index:60;display:none;max-width:560px}
 .toast.on{display:block}
+.uimoi{position:fixed;top:10px;left:50%;transform:translateX(-50%);z-index:70;background:var(--panel2);border:1px solid var(--g);border-radius:12px;padding:8px 14px;display:flex;gap:10px;align-items:center;font-size:13.5px;box-shadow:0 6px 24px #0008;max-width:calc(100vw - 32px)}
 .toast.bad{background:var(--rsoft);border-color:var(--rline);color:var(--rtext)}
 @media (max-width:1280px){.jgrid{grid-template-columns:minmax(0,1fr) 260px}}
 @media (max-width:960px){.jgrid{grid-template-columns:1fr}.jgrid>.pcol{position:static;order:-1;max-height:none}}
@@ -927,7 +928,7 @@ function unseen(j){ return j.status === 'xong' && j.ended && !S.seen[j.id]; }
 async function loadJobs(){
   try {
     const j = await api('/api/jobs'); S.fail = 0; $('#offline')?.remove();
-    if (j.ui) { if (!S.ui) S.ui = j.ui; else if (j.ui !== S.ui && canReload()) { location.hash = S.jobId ? 'bai=' + S.jobId : 'moi'; location.reload(); return; } }
+    if (j.ui) { if (!S.ui) S.ui = j.ui; else if (j.ui !== S.ui) { if (canReload()) { taiLaiUi(); return; } uiMoiBao(); } }
     rmChip(j.remote);
     const old = new Map(S.jobs.map(x => [x.id, x.status])); S.jobs = j.jobs || [];
     S.jobs.forEach(x => { if (old.get(x.id) === 'dang-chay' && x.status !== 'dang-chay' && x.id !== S.jobId) notify(x); });
@@ -935,6 +936,14 @@ async function loadJobs(){
   } catch(e) { offline(); }
 }
 // có bản giao diện mới: chỉ tự tải lại khi fen không đang gõ / chưa gửi dở
+// app có bản mới mà đang dở tay (gõ chữ, ảnh chưa gửi) nên chưa tự tải lại: hiện thanh nhắc (fen 6/11 không thấy nút mới vì trang chưa tải lại)
+function taiLaiUi(){ location.hash = S.jobId ? 'bai=' + S.jobId : 'moi'; location.reload(); }
+function uiMoiBao(){
+  if ($('#uiMoi')) return;
+  const d = document.createElement('div'); d.id = 'uiMoi'; d.className = 'uimoi';
+  d.innerHTML = '🔄 App vừa có bản mới. <button class="btn sm pri" id="uiMoiTai">Tải lại</button> <span class="stc">ảnh đang gắn chưa gửi sẽ mất, chữ nháp vẫn giữ</span>';
+  document.body.appendChild(d); $('#uiMoiTai').onclick = taiLaiUi;
+}
 function canReload(){
   const a = document.activeElement;
   if (a && (a.tagName === 'INPUT' || a.tagName === 'TEXTAREA' || a.isContentEditable)) return false;

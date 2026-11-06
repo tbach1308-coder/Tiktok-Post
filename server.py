@@ -971,7 +971,7 @@ def parse_job(jid):
         for r in job.get("runs", []):
             ct = st.get("canva_tt", {}).get(r["n"])
             if ct and (r.get("started") or 0) > CANVA_TT.get("t", 0):     # lượt mới hơn lần ghi trước mới tính
-                canva_ghi_tt(CANVA_TT_MA[ct], "lượt " + (r.get("label") or r["kind"]), t=r.get("started"))
+                canva_ghi_tt(CANVA_TT_MA[ct], "lượt " + short(r.get("label") or r["kind"], 30), t=r.get("started"))
         changed = False
         if st["folder"] and job.get("thu_muc_bai") != st["folder"]:
             job["thu_muc_bai"] = st["folder"]
