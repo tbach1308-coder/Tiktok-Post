@@ -215,8 +215,10 @@ h1{font-size:26px;margin:0 0 4px;font-weight:800;letter-spacing:-.01em}
 .seg button.on .ic{background:var(--g)}
 .seg button[data-k=ipad].on{border-color:var(--y);background:#221c10;box-shadow:inset 0 0 0 1px var(--y)}
 .seg button[data-k=ipad].on .ic{background:var(--y)}
-.dungrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:-4px 0 16px}
+.dungrow{display:flex;align-items:center;gap:8px 22px;flex-wrap:wrap;margin:0 0 16px}
+.dungrow .grp{display:inline-flex;align-items:center;gap:10px}
 .dungrow .lbl{margin:0}
+.kseg.segk button[data-k=ipad].on{background:var(--y);color:#1d1600}
 .kseg.segd button{padding:4px 12px;font-size:12.5px}
 .kseg.segd button[data-d=canva].on{background:#8b5cf6}
 .dungghi{font-size:12.5px;color:var(--mut)}
@@ -1079,14 +1081,12 @@ function newView(){
     <div id="banner"></div>
     <div class="nhbar"><h1>Bài mới</h1><div class="nhbtn"><button class="btn sm" id="bLuuNhap" title="Cất brief này vào tab Bản nháp ở cột trái, mở trang trống để làm bài khác">💾 Lưu bản nháp</button><button class="btn sm ghost" id="bXoaNhap" title="Bỏ nháp này (cất vào Lịch sử brief, lấy lại được)">🗑 Xoá bản nháp</button></div></div>
     <p class="lead">Gõ chủ đề để Claude viết brief, hoặc dán brief có sẵn, rồi bấm Chạy. Claude tự biên tập, dựng (Photoshop hoặc Canva) và duyệt, xong hiện ở đây.</p>
-    <span class="lbl">Kênh</span>
-    <div class="seg" id="seg">
-      ${Object.entries(KENH).map(([key, v]) => `<button data-k="${key}" class="${f.kenh === key ? 'on' : ''}"><span class="ic">${v.ic}</span><span><b>${v.ten}</b><span>${v.handle}</span></span></button>`).join('')}
-    </div>
-    <div class="dungrow"><span class="lbl">Làm trên</span><div class="kseg segd" id="segDung">
+    <div class="dungrow"><span class="grp"><span class="lbl">Kênh</span><div class="kseg segd segk" id="seg">
+      ${Object.entries(KENH).map(([key, v]) => `<button data-k="${key}" class="${f.kenh === key ? 'on' : ''}" title="${esc(v.handle)}">${v.ic} ${v.ten}</button>`).join('')}
+    </div></span><span class="grp"><span class="lbl">Làm trên</span><div class="kseg segd" id="segDung">
       <button data-d="" class="${f.dung === 'canva' ? '' : 'on'}" title="Bộ dựng Photoshop của shop (Photoshop tự chạy ngầm qua hàng chờ)">🖌 Photoshop</button>
       <button data-d="canva" class="${f.dung === 'canva' ? 'on' : ''}" title="Claude dựng trên Canva theo mẫu của kênh, xuất slide về app; không cần Photoshop, chữ sửa tiếp được trên Canva">🎨 Canva</button>
-    </div><span class="dungghi" id="dungGhi"></span></div>
+    </div></span><span class="dungghi" id="dungGhi"></span></div>
     <span class="lbl">Chủ đề <i>(gõ chủ đề, hoặc nhờ kiểu "tìm chủ đề hot mẹo iPad", rồi bấm Viết brief; Claude hiểu ý, viết brief từng slide và dò trùng bài cũ)</i></span>
     <div class="vb"><input class="in" id="fChuDe" placeholder="${esc(CHUDE_PH[f.kenh])}" value="${esc(f.chude || '')}"><button class="btn" id="bVietBrief">✍ Viết brief</button></div>
     <div class="vbst" id="vbSt"></div>
