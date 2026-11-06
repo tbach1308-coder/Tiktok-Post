@@ -41,12 +41,26 @@ VIAddVersionKey /LANG=0 "LegalCopyright" "POLY Store"
 !define MUI_FINISHPAGE_SHOWREADME_NOTCHECKED
 
 !insertmacro MUI_PAGE_WELCOME
-!insertmacro MUI_PAGE_DIRECTORY
 !insertmacro MUI_PAGE_INSTFILES
 !insertmacro MUI_PAGE_FINISH
 !insertmacro MUI_UNPAGE_CONFIRM
 !insertmacro MUI_UNPAGE_INSTFILES
 !insertmacro MUI_LANGUAGE "Vietnamese"
+
+; Khong cho chon thu muc cai (nguoi dung chon nham "C:\" thi xoa "python" se dong toi thu muc khac):
+; luon cai vao thu muc rieng ten PolyDungBai, ke ca khi chay voi /D=...
+Function .onInit
+  StrCpy $0 $INSTDIR "" -12
+  StrCmp $0 "\PolyDungBai" +2
+    StrCpy $INSTDIR "$INSTDIR\PolyDungBai"
+FunctionEnd
+
+Function un.onInit
+  StrCpy $0 $INSTDIR "" -12
+  StrCmp $0 "\PolyDungBai" +3
+    MessageBox MB_ICONSTOP "Bộ gỡ cài không nằm trong thư mục PolyDungBai, không gỡ."
+    Abort
+FunctionEnd
 
 ; tat app dang chay tu thu muc cai (may chu Python + bo canh hang cho Photoshop) de thay duoc file
 !macro TatApp
@@ -94,6 +108,7 @@ Section "Uninstall"
   RMDir /r "$INSTDIR\python"
   Delete "$INSTDIR\Poly Dung Bai.exe"
   !include "${BUILD}\go-cai-app.nsh"
+  RMDir "$INSTDIR\app"   ; chi bo khi trong (khong con du lieu may nay)
   Delete "$DESKTOP\${APPNAME}.lnk"
   RMDir /r "$SMPROGRAMS\${APPNAME}"
   DeleteRegKey HKCU "${UNINSTKEY}"
