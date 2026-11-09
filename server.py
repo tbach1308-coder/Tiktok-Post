@@ -1210,6 +1210,7 @@ def start_run(job, prompt, kind, resume=None, label=None, model=None, them_dir=N
     them = list(CFG.get("cho_phep_them") or [])
     if "mcp__claude_ai_Canva" not in them:   # config.json fen tự ghi cho_phep_them riêng: vẫn cho công cụ Canva
         them.append("mcp__claude_ai_Canva")
+    them += [t for t in POLY_DOC if t not in them]     # kho Polysto: chỉ 2 công cụ đọc
     args += ["--allowedTools"] + them
     if resume:
         args += ["--resume", resume]
@@ -1394,7 +1395,7 @@ def create_job(data):
 
 
 NHAP_KHOA = ("id", "kenh", "ten", "ngay", "brief", "note", "chude", "briefJob", "briefT", "briefNote", "nhanh", "t",
-             "chat", "chatJob", "chatT", "briefTruoc", "kb", "model", "briefCd", "briefCdGui", "briefMay", "dung")
+             "chat", "chatJob", "chatT", "briefTruoc", "kb", "model", "briefCd", "briefCdGui", "briefMay", "dung", "kho")
 
 
 def _sach_nhap(x):
@@ -1582,6 +1583,7 @@ def viet_brief(data):
         "ghi_chu": (data.get("ghi_chu") or "").strip() or "(không)",
         "brief_cu": bcu or "(trống)",
         "thu_muc_kenh": (CFG["thu_muc_bai"].get(kenh, "") or "").replace("\\", "/"),
+        "kho": kho_khoi(data.get("kho"), kenh),
         "out": out.replace("\\", "/"),
     })
     job = {"id": jid, "kenh": kenh, "loai": "brief", "brief": "", "ten_bai": "", "tieu_de": "Viết brief: " + short(chu_de, 60),
@@ -1595,6 +1597,30 @@ def viet_brief(data):
             save_job(job)
             raise ValueError(str(e))
     return {"id": jid}
+
+
+# Kho Polysto qua connector POLY của tài khoản Claude (fen 9/11 "thêm chỗ nhập link kho để lấy thông tin máy",
+# "chỉ lấy thông tin máy và giá làm bài"): chỉ cho 2 công cụ ĐỌC (tìm máy, số liệu 1 máy). Công cụ khác của POLY
+# (khách, đăng bài, ghi kết quả) không có trong --allowedTools nên lượt chạy không gọi được.
+POLY_DOC = ["mcp__claude_ai_POLY__tim_may", "mcp__claude_ai_POLY__du_lieu_may"]
+KHO_LINK = "https://app.polystorevn.com/kho-may"
+KHO_HANG = {"laptop": "Dell, ThinkPad, Lenovo, Legion, Asus, ROG, HP, MSI, Acer, MacBook, Surface, LG gram, Razer",
+            "ipad": "iPad Pro, iPad Air, iPad mini, iPad Gen"}
+
+
+def kho_khoi(kho, kenh):
+    """Đoạn lệnh "KHO POLYSTO" cho Viết brief / chat sửa brief: fen dán link kho / seri ở ô Kho thì lấy máy + giá thật."""
+    kho = re.sub(r"\s+", " ", str(kho or "")).strip()[:1500]
+    dau = ('KHO POLYSTO: fen dán ở ô Kho: "%s" = fen muốn lấy máy thật đang có trong kho kèm giá bán để làm bài '
+           '(fen 09/11: chỉ lấy thông tin máy và giá).' % kho) if kho else \
+          "KHO POLYSTO: ô Kho trống. Chỉ đọc kho khi chủ đề / tin của fen nhắc kho, seri hay link kho Polysto."
+    return dau + """
+Cách đọc kho: connector POLY của tài khoản Claude, CHỈ 2 công cụ đọc: mcp__claude_ai_POLY__tim_may (tu_khoa = tên hoặc seri; chỉ máy còn hàng) và mcp__claude_ai_POLY__du_lieu_may (seri = số liệu 1 máy: tên, cấu hình, pin, ngoại hình, bảo hành, giá bán). Chưa thấy thì ToolSearch "POLY" (chưa có thì chờ 5 giây bằng python -c "import time; time.sleep(5)" rồi tìm lại, tối đa 3 lần).
+- Có seri (gõ thẳng, hoặc trong link kiểu kho-anh?q=SERI): du_lieu_may từng seri.
+- Link cả kho (%s) hay chỉ nói "kho": tim_may lần lượt theo hãng / dòng của kênh (%s), gom các dòng "Máy …" còn hàng, chọn máy hợp chủ đề, rồi du_lieu_may từng máy chọn.
+- Brief chỉ dùng số có trong du_lieu_may; giá bán ghi đúng số kho (vd 38.800.000đ hoặc 38,8 triệu), không làm tròn khác đi. Không ghi seri, không lấy giá vốn, tên khách / nhân viên; không dùng công cụ POLY nào khác (không ghi, không sửa, không đăng gì trong Polysto).
+- Không đọc được kho: không bịa máy, không đổi máy trong brief; câu trả lời cuối nói "Chưa đọc được kho: fen nối lại connector POLY trong claude.ai (Customize > Connectors)".""" % (
+        KHO_LINK, KHO_HANG.get(kenh) or KHO_HANG["laptop"])
 
 
 def _chep_anh_chat_cu(kenh, x, d, da_co=0):
@@ -1668,6 +1694,7 @@ def chat_brief(data):
         "chu_de": (data.get("chu_de") or "").strip() or "(chưa gõ)",
         "brief": (data.get("brief") or "").strip()[:20000] or "(trống)",
         "lich_su": "\n".join(ls) or "(chưa có)", "tin": tin_gui,
+        "kho": kho_khoi(data.get("kho"), kenh),
         "out": out.replace("\\", "/"),
     })
     job = {"id": jid, "kenh": kenh, "loai": "brief", "chat": True, "brief": "", "ten_bai": "", "tieu_de": "Chat brief: " + short(tin or "(ảnh)", 60), "anh": anh,

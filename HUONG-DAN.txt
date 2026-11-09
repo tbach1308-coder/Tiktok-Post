@@ -41,6 +41,15 @@ CÀI LÊN MÁY WINDOWS KHÁC (BỘ CÀI .EXE, 6/11)
 - Gỡ: Cài đặt Windows > Ứng dụng > Poly Dựng Bài > Gỡ cài đặt. Bài, cài đặt và thư mục Social Claude vẫn để lại
   (không xoá dữ liệu); muốn bỏ hẳn thì tự xoá thư mục.
 
+LẤY MÁY + GIÁ TỪ KHO POLYSTO (Ô KHO, 9/11)
+- Ô "📦 Kho" dưới ô Chủ đề: dán link kho (https://app.polystorevn.com/kho-may, hoặc bấm "Cả kho") hoặc seri máy
+  (vd JJRNZ54 FNDSSV3). Bấm Viết brief / chat sửa brief: Claude lấy máy thật đang tồn kho + giá bán để viết bài.
+  Trong chat nhắn "lấy máy trong kho", "dùng seri ..." cũng được.
+- Claude đọc kho qua kết nối POLY của tài khoản Claude (claude.ai > Customize > Connectors > POLY). Báo "Chưa đọc
+  được kho" thì vào đó bấm Connect lại.
+- Chỉ lấy thông tin máy và giá bán (fen 9/11). Không lấy giá vốn, HH, ghi chú, tên khách; không ghi, không sửa gì
+  trong Polysto (app chỉ cho Claude 2 lệnh đọc: tìm máy, số liệu 1 máy). Seri không ghi vào bài.
+
 LÀM 1 BÀI
 1. Bấm "+ Bài mới" (luôn ra trang trống; bài đang làm dở tự cất ở tab Bản nháp), chọn kênh Laptop hoặc iPad.
 2. Dán brief từng slide (giống gửi trong tab Design). Không còn ô Tên bài, Ngày đăng (29/10 tối, fen thấy thừa): tên bài

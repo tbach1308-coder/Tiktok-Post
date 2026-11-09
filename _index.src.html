@@ -148,6 +148,10 @@ a.btn{color:var(--tx);text-decoration:none}
 .vb{display:flex;gap:8px;margin-bottom:6px}
 .vb .in{flex:1}
 .vb .btn{white-space:nowrap}
+.khor{display:flex;gap:8px;align-items:center;margin:0 0 12px}
+.khor .lbl{margin:0;white-space:nowrap;cursor:help}
+.khor .in{flex:1;padding:7px 10px;font-size:13px}
+.khor .btn{white-space:nowrap}
 .vbst{font-size:12.5px;color:var(--mut);line-height:1.5;margin:0 0 12px;min-height:4px}
 .vbst a{color:var(--gl)}
 .vbst .vbtr{color:var(--ytext);margin-top:3px}
@@ -511,10 +515,10 @@ const S = {view:'new', jobId:null, jobs:[], jobsH:'', since:0, events:[], data:n
 const store = {get(k, d){ try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch(e) { return d; } },
                set(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch(e) {} }};
 /* nháp Bài mới: mỗi nháp 1 brief riêng (bấm qua lại không mất), lưu trên máy (nhap.json) + bản phụ trong trình duyệt */
-const NHAP_K = ['id', 'kenh', 'ten', 'ngay', 'brief', 'note', 'chude', 'briefJob', 'briefT', 'briefNote', 'nhanh', 't', 'chat', 'chatJob', 'chatT', 'briefTruoc', 'kb', 'model', 'briefCd', 'briefCdGui', 'briefMay', 'dung'];   // kb: kênh lúc Claude viết / sửa brief; briefCd: chủ đề lúc Claude viết brief trong ô; briefMay: chữ Claude viết (so ra fen có sửa không)
+const NHAP_K = ['id', 'kenh', 'ten', 'ngay', 'brief', 'note', 'chude', 'briefJob', 'briefT', 'briefNote', 'nhanh', 't', 'chat', 'chatJob', 'chatT', 'briefTruoc', 'kb', 'model', 'briefCd', 'briefCdGui', 'briefMay', 'dung', 'kho'];   // kb: kênh lúc Claude viết / sửa brief; briefCd: chủ đề lúc Claude viết brief trong ô; briefMay: chữ Claude viết (so ra fen có sửa không)
 const nhapMoi = o => Object.assign({id: 'n' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), kenh: (S.form && KENH[S.form.kenh] && S.form.kenh) || 'laptop', t: Date.now()}, o || {}, {anh: []});
 const nhapGon = x => { const o = {}; for (const k of NHAP_K) if (x[k] != null && x[k] !== '') o[k] = x[k]; return o; };
-const nhapRong = x => !(x.brief || '').trim() && !(x.chude || '').trim() && !(x.ten || '').trim() && !(x.note || '').trim() && !(x.anh || []).length && !x.briefJob && !x.chatJob && !(x.chat || []).length;
+const nhapRong = x => !(x.brief || '').trim() && !(x.chude || '').trim() && !(x.ten || '').trim() && !(x.note || '').trim() && !(x.kho || '').trim() && !(x.anh || []).length && !x.briefJob && !x.chatJob && !(x.chat || []).length;
 function nhapDat(ds, cur){
   // brief Claude viết cho kênh nào thì nháp thuộc kênh đó (fen 29/10 18h16: "ipad bị dính bài laptop")
   ds = (ds || []).filter(x => x && x.id).map(x => Object.assign(x, {anh: x.anh || [], kenh: KENH[x.kb] ? x.kb : KENH[x.kenh] ? x.kenh : 'laptop'}));
@@ -1093,6 +1097,7 @@ function newView(){
     <span class="lbl">Chủ đề <i>(gõ chủ đề, hoặc nhờ kiểu "tìm chủ đề hot mẹo iPad", rồi bấm Viết brief; Claude hiểu ý, viết brief từng slide và dò trùng bài cũ)</i></span>
     <div class="vb"><input class="in" id="fChuDe" placeholder="${esc(CHUDE_PH[f.kenh])}" value="${esc(f.chude || '')}"><button class="btn" id="bVietBrief">✍ Viết brief</button></div>
     <div class="vbst" id="vbSt"></div>
+    <div class="khor"><span class="lbl" title="Claude đọc kho Polysto qua kết nối POLY của tài khoản Claude, chỉ lấy thông tin máy và giá bán (không lấy giá vốn, HH, ghi chú, tên khách)">📦 Kho</span><input class="in" id="fKho" autocomplete="off" placeholder="Dán link kho Polysto hoặc seri máy: Claude lấy máy + giá thật trong kho để viết brief" value="${esc(f.kho || '')}"><button class="btn sm ghost" id="bKhoCa" title="Lấy máy trong cả kho (${esc(KHO_LINK)})">Cả kho</button></div>
     <span class="lbl">Brief từng slide</span>
     <textarea class="in" id="fBrief" placeholder="${esc(k.ph.brief)}">${esc(f.brief || '')}</textarea>
     <div class="chatb" id="chatB"><div class="chatl" id="chatL"></div>
@@ -1122,7 +1127,7 @@ function newView(){
     f.kenh = k; delete f.kb; saveForm();
     document.querySelectorAll('#seg button').forEach(x => x.classList.toggle('on', x === b));
     const p = KENH[f.kenh].ph; $('#fBrief').placeholder = p.brief; $('#fNote').placeholder = p.note; $('#fChuDe').placeholder = CHUDE_PH[f.kenh]; if (S._veDung) S._veDung(); };
-  const map = {fBrief:'brief', fNote:'note', fChuDe:'chude'};   // bỏ ô Tên bài + Ngày đăng (fen 29/10 19h08 "phần này bị thừa")
+  const map = {fBrief:'brief', fNote:'note', fChuDe:'chude', fKho:'kho'};   // bỏ ô Tên bài + Ngày đăng (fen 29/10 19h08 "phần này bị thừa")
   Object.keys(map).forEach(id => $('#' + id).oninput = e => { f[map[id]] = e.target.value; saveForm(); if (id === 'fBrief') { e.target.classList.remove('bad'); gianBrief(); } });
   gianBrief();
   setupPick($('#file'), $('#pick'), f.anh, $('#drop'));
@@ -1137,6 +1142,7 @@ function newView(){
   if (!S.cvMau) api('/api/canva-cai').then(c => { S.cvMau = c.mau; if (S._veDung) S._veDung(); }).catch(() => {});
   $('#bRun').onclick = runNew;
   $('#bVietBrief').onclick = vietBrief;
+  $('#bKhoCa').onclick = () => { const t = $('#fKho'); t.value = KHO_LINK; f.kho = KHO_LINK; saveForm(); t.focus(); };
   $('#bHen').onclick = () => { const bx = $('#henBox'); bx.hidden = !bx.hidden; if (bx.hidden) return;
     const gy = henGoiY((f.ngay || '').trim()); $('#fHen').value = dtLocal(gy[0][1]); $('#fHen').min = dtLocal(new Date());
     setH($('#henQ'), gy.map(([t, d], i) => `<button class="q" data-hq="${i}">${esc(t)}</button>`).join(''));
@@ -1166,6 +1172,7 @@ function bindGoiY(){
 const MODEL_TEN = {'': 'Theo cài đặt', opus: 'Opus · kỹ, chậm', sonnet: 'Sonnet · nhanh', haiku: 'Haiku · nhanh nhất, việc nhẹ'};
 const MODEL_NGAN = {opus: 'Opus', sonnet: 'Sonnet', haiku: 'Haiku', 'mặc định': 'mặc định'};
 const chonModel = (id, ds, v, dauTen) => `<select class="in msel" id="${id}">${ds.map(m => `<option value="${m}" ${m === (v || '') ? 'selected' : ''}>${m ? MODEL_TEN[m] : (dauTen || MODEL_TEN[''])}</option>`).join('')}</select>`;
+const KHO_LINK = 'https://app.polystorevn.com/kho-may';   // fen 9/11 "link kho laptop"
 const CHUDE_PH = {laptop: 'VD: máy trạm cho dân kiến trúc tầm 20–30 triệu · hoặc: tìm chủ đề hot mẹo laptop', ipad: 'VD: iPad cho sinh viên y, vẽ và ghi chú · hoặc: tìm chủ đề hot mẹo iPad'};
 async function vietBrief(){
   const f = S.form, st = $('#vbSt'), b = $('#bVietBrief');
@@ -1177,7 +1184,7 @@ async function vietBrief(){
   const bcu = (f.brief || '').trim(), may = (f.briefMay || '').trim();
   b.disabled = true; b.textContent = 'Đang gửi…';
   try {
-    const r = await api('/api/viet-brief', {kenh: f.kenh, chu_de: f.chude, ngay_dang: (f.ngay || '').trim(), ghi_chu: f.note || '', brief: f.brief || '',
+    const r = await api('/api/viet-brief', {kenh: f.kenh, chu_de: f.chude, ngay_dang: (f.ngay || '').trim(), ghi_chu: f.note || '', brief: f.brief || '', kho: (f.kho || '').trim(),
       chu_de_cu: f.briefCd || '', brief_cua: !bcu ? '' : (may || /Đã viết brief/.test(f.briefNote || '') ? 'claude' : 'fen'), fen_sua: !!(bcu && may && bcu !== may)});
     f.briefJob = r.id; f.briefT = Date.now(); f.briefNote = ''; f.briefCdGui = f.chude; saveForm(f); pollBrief(f);
   } catch(e) { setH(st, `<span class="err">${esc(e.message)}</span>`); b.disabled = false; b.textContent = '✍ Viết brief'; }
@@ -1259,7 +1266,7 @@ async function guiChat(f){
   f.brief = $('#fBrief').value; f.chude = ($('#fChuDe').value || '').trim();
   f.chat = f.chat || []; f.chat.push({ai: false, text: tin || '(ảnh)', n_anh: anh.length || undefined, t: Date.now()}); o.value = '';
   f._chatAnh = []; veChatAnh(f);
-  try { const r = await api('/api/chat-brief', {kenh: f.kenh, chu_de: f.chude, brief: f.brief || '', tin, anh, lich_su: f.chat.slice(-21, -1)});   // fen 9/11 "ghi nhớ trò chuyện để làm cho đúng": gửi 20 tin trước (trước 8)
+  try { const r = await api('/api/chat-brief', {kenh: f.kenh, chu_de: f.chude, brief: f.brief || '', kho: (f.kho || '').trim(), tin, anh, lich_su: f.chat.slice(-21, -1)});   // fen 9/11 "ghi nhớ trò chuyện để làm cho đúng": gửi 20 tin trước (trước 8)
     f.chatJob = r.id; f.chatT = Date.now(); saveForm(f); veChat(f); pollChat(f); }
   catch(e) { f.chat.push({ai: true, text: 'Chưa gửi được: ' + e.message, t: Date.now()}); saveForm(f); veChat(f); }
 }

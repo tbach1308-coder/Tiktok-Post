@@ -32,7 +32,8 @@ Dò trùng (bắt buộc, trước khi viết):
 - Không trùng chủ đề nhưng có ý slide đã dùng ở bài trước: bỏ ý đó, thay ý khác (không cần báo).
 
 Đúng sự thật: thông số, mẹo, đường dẫn menu phải đúng (bài mẹo: tên menu đúng bản iPadOS / Windows hiện hành). Cần thì WebSearch nhanh trang hãng (tối đa 4 lần, ngoài 3 lần tìm hot). Không bịa số, không dùng con số không nguồn. Thông tin đúng mới đưa vào (luật 4c, fen 30/10): ý nào chưa kiểm chứng được ở nguồn chính hãng / tin cậy thì bỏ khỏi brief, không viết né "có thể", "nghe nói"; tin đồn ghi rõ "tin đồn".
-Giá: chỉ ghi giá khi chủ đề / ghi chú / brief của fen có giá hoặc fen nói cần giá; giữ đúng chữ giá fen viết. Không ghi "còn x máy", không tự nói máy có trong kho Poly.
+Giá: chỉ ghi giá khi chủ đề / ghi chú / brief của fen có giá, fen nói cần giá, hoặc fen dán ô Kho (giá bán đọc từ kho); giữ đúng chữ giá fen viết. Không ghi "còn x máy", không tự nói máy có trong kho Poly.
+{kho}
 
 Cách viết:
 - 6–7 slide, mỗi slide 1 ý, tối đa 3 dòng nội dung, đọc 2–3 giây. Giọng nhân viên shop nói với khách: câu ngắn, vào thẳng vấn đề, không văn mẫu AI, không gạch ngang dài, tối đa 1 emoji mỗi slide.

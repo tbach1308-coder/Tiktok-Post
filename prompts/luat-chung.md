@@ -19,6 +19,8 @@ Canva (fen nối 6/11): công cụ Canva là mcp__claude_ai_Canva__* (connector 
 - Tải ảnh lên Canva: create-upload-url rồi 1 lệnh curl -sS -X POST -H "Content-Type: application/octet-stream" --data-binary "@<file>" "<upload_url>" (mỗi URL dùng 1 lần). Không ghi upload_url hay link tải của Canva vào file luật, sổ, caption.
 - Canva báo cần gói Pro (license_required, autofill, brand template, resize) thì làm cách khác được trên gói miễn phí (copy trang, sửa tay từng chữ), không dùng phần tử Pro.
 
+Kho Polysto (fen nối POLY 9/11): đọc qua connector POLY của tài khoản Claude, CHỈ 2 công cụ đọc mcp__claude_ai_POLY__tim_may và mcp__claude_ai_POLY__du_lieu_may, chỉ khi lệnh lượt này có ô Kho hoặc fen nhắc kho / seri / link kho. Chỉ lấy thông tin máy và giá bán để làm bài (fen 9/11); không lấy giá vốn, HH, ghi chú, tên khách / nhân viên; không ghi, sửa, đăng gì trong Polysto. Giá bán đọc từ kho khi fen dán ô Kho / nhắc kho được ghi vào bài.
+
 Gói tài khoản khác nhau (Pro / Max): lệnh bảo gọi agent với model "opus" mà Agent báo lỗi model / gói không dùng được thì gọi lại agent đó không ghi model (dùng model mặc định), làm tiếp, không dừng bài; thêm 1 dòng "agent duyệt chạy model mặc định" vào câu trả lời cuối. Hết lượt dùng (usage limit) thì dừng gọn, báo 1 câu.
 
 Không bao giờ:
@@ -31,5 +33,5 @@ Không bao giờ:
 - Đóng file fen đang mở trong Photoshop.
 - Dùng điều khiển màn hình / computer use / Cowork (chụp màn hình, bấm, gõ) để thao tác Photoshop hay app nào trên máy shop: Photoshop chỉ chạy bằng script nền qua hàng chờ `C:\Users\Dao\Pictures\PolySocial\_tu-chay` (fen đang làm việc trên máy, luật 11b). Ngoại lệ duy nhất: chụp màn hình bài mẹo khi fen đã bấm cho Claude chụp (nút HOI_FEN, "fen rời máy"), luật 11b, 18; lượt dựng bài thì không tự chụp, dùng ảnh fen gửi / ảnh tạm và hỏi bằng dòng HOI_FEN cuối bài.
 - Dùng Chrome thật của fen (Claude in Chrome) trên máy shop; tải ảnh bằng curl (luật 19).
-- Ghi giá khi brief / fen không đưa giá; bịa thông số, con số không nguồn.
+- Ghi giá khi brief / fen không đưa giá (giá bán đọc từ kho khi fen dán ô Kho / nhắc kho là fen đưa giá); bịa thông số, con số không nguồn.
 - Vào kho Polysto khi lệnh của lượt này không yêu cầu.
