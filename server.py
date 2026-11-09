@@ -1644,9 +1644,11 @@ def chat_brief(data):
     os.makedirs(d, exist_ok=True)
     k = CFG["kenh"].get(kenh, {})
     ls, n_cu = [], 0
-    for x in (data.get("lich_su") or [])[-8:]:
+    # fen 9/11 "ghi nhớ trò chuyện để làm cho đúng": 20 tin trước (trước 8); tin fen giữ gần đủ chữ (yêu cầu nằm ở đó),
+    # tin Claude rút gọn (giờ trả lời 1 câu)
+    for x in (data.get("lich_su") or [])[-20:]:
         if isinstance(x, dict) and (x.get("text") or "").strip():
-            dong = ("Claude: " if x.get("ai") else "Fen: ") + short(str(x.get("text")).replace("\n", " "), 300)
+            dong = ("Claude: " if x.get("ai") else "Fen: ") + short(str(x.get("text")).replace("\n", " "), 300 if x.get("ai") else 1500)
             # fen 9/11 "lấy máy phù hợp trong list mình gửi": ảnh gửi ở tin trước, lượt sau không thấy (thư mục việc cũ
             # không được đọc) nên Claude đi lục Downloads / Telegram. Chép ảnh tin trước vào việc này, ghi đường dẫn sau tin.
             if not x.get("ai") and x.get("n_anh") and n_cu < 12:

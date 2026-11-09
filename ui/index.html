@@ -1268,7 +1268,7 @@ async function guiChat(f){
   f.brief = $('#fBrief').value; f.chude = ($('#fChuDe').value || '').trim();
   f.chat = f.chat || []; f.chat.push({ai: false, text: tin || '(ảnh)', n_anh: anh.length || undefined, t: Date.now()}); o.value = '';
   f._chatAnh = []; veChatAnh(f);
-  try { const r = await api('/api/chat-brief', {kenh: f.kenh, chu_de: f.chude, brief: f.brief || '', tin, anh, lich_su: f.chat.slice(-9, -1)});
+  try { const r = await api('/api/chat-brief', {kenh: f.kenh, chu_de: f.chude, brief: f.brief || '', tin, anh, lich_su: f.chat.slice(-21, -1)});   // fen 9/11 "ghi nhớ trò chuyện để làm cho đúng": gửi 20 tin trước (trước 8)
     f.chatJob = r.id; f.chatT = Date.now(); saveForm(f); veChat(f); pollChat(f); }
   catch(e) { f.chat.push({ai: true, text: 'Chưa gửi được: ' + e.message, t: Date.now()}); saveForm(f); veChat(f); }
 }
