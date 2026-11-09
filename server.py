@@ -1597,6 +1597,39 @@ def viet_brief(data):
     return {"id": jid}
 
 
+def _chep_anh_chat_cu(kenh, x, d, da_co=0):
+    """Tìm việc chat của 1 tin fen gửi trước (cùng kênh, cùng tin, tạo ngay sau lúc gửi) và chép ảnh tin đó vào
+    <d>/anh-tin-truoc để lượt chat mới Read được. Không thấy thì trả []."""
+    try:
+        t = float(x.get("t") or 0) / 1000.0
+    except (TypeError, ValueError):
+        return []
+    if t <= 0 or not os.path.isdir(JOBS):
+        return []
+    td = "Chat brief: " + short(str(x.get("text") or "").strip() or "(ảnh)", 60)
+    goc = []
+    for jid in sorted(os.listdir(JOBS), reverse=True)[:400]:
+        j = read_json(os.path.join(JOBS, jid, "job.json"))
+        if not j:
+            continue
+        c = j.get("created") or 0
+        if c < t - 120:
+            break
+        if j.get("chat") and j.get("kenh") == kenh and j.get("tieu_de") == td and c <= t + 600:
+            goc = [a for a in (j.get("anh") or []) if isinstance(a, str) and os.path.isfile(a)]
+            break
+    out = []
+    for a in goc[: max(0, 12 - da_co)]:
+        dst = os.path.join(d, "anh-tin-truoc", "%02d-%s" % (da_co + len(out) + 1, os.path.basename(a)))
+        try:
+            os.makedirs(os.path.dirname(dst), exist_ok=True)
+            shutil.copy2(a, dst)
+            out.append(dst)
+        except OSError:
+            pass
+    return out
+
+
 def chat_brief(data):
     """Ô chat dưới Brief (fen 29/10 17h23 "có thêm phần chat sửa idea"): 1 lượt Claude ngắn sửa brief theo tin fen gõ.
     Việc ẩn loai=brief (như Viết brief): sửa thì ghi brief-viet.txt, chỉ hỏi / góp ý thì không ghi, câu trả lời ở final."""
@@ -1610,10 +1643,18 @@ def chat_brief(data):
     d = job_dir(jid)
     os.makedirs(d, exist_ok=True)
     k = CFG["kenh"].get(kenh, {})
-    ls = []
+    ls, n_cu = [], 0
     for x in (data.get("lich_su") or [])[-8:]:
         if isinstance(x, dict) and (x.get("text") or "").strip():
-            ls.append(("Claude: " if x.get("ai") else "Fen: ") + short(str(x.get("text")).replace("\n", " "), 300))
+            dong = ("Claude: " if x.get("ai") else "Fen: ") + short(str(x.get("text")).replace("\n", " "), 300)
+            # fen 9/11 "lấy máy phù hợp trong list mình gửi": ảnh gửi ở tin trước, lượt sau không thấy (thư mục việc cũ
+            # không được đọc) nên Claude đi lục Downloads / Telegram. Chép ảnh tin trước vào việc này, ghi đường dẫn sau tin.
+            if not x.get("ai") and x.get("n_anh") and n_cu < 12:
+                ch = _chep_anh_chat_cu(kenh, x, d, n_cu)
+                if ch:
+                    n_cu += len(ch)
+                    dong += " (kèm %d ảnh, xem bằng Read: %s)" % (len(ch), ", ".join('"%s"' % a.replace("\\", "/") for a in ch))
+            ls.append(dong)
     out = os.path.join(d, "brief-viet.txt")
     # fen 3/11 12h22 "cho dán hình vào chat": ảnh dán / kéo vào ô chat lưu trong việc này, Claude xem bằng Read
     anh = save_images(d, data.get("anh") or [], "anh-chat")
