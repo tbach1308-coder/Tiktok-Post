@@ -1411,7 +1411,9 @@ def _sach_nhap(x):
     if "chatJob" in o:
         o["chatJob"] = str(o["chatJob"])[:64]
     if "chat" in o:
-        o["chat"] = [{"ai": bool(x.get("ai")), "text": str(x.get("text") or "")[:3000], "doi": bool(x.get("doi")), "t": x.get("t")}
+        # n_anh: số ảnh fen gửi kèm tin (9/11: trước bị bỏ khi lưu nháp nên tải lại trang là mất dấu ảnh)
+        o["chat"] = [dict({"ai": bool(x.get("ai")), "text": str(x.get("text") or "")[:3000], "doi": bool(x.get("doi")), "t": x.get("t")},
+                          **({"n_anh": x["n_anh"]} if isinstance(x.get("n_anh"), int) and 0 < x["n_anh"] < 100 else {}))
                      for x in (o["chat"] if isinstance(o["chat"], list) else []) if isinstance(x, dict)][-30:]
     o["id"] = re.sub(r"[^\w-]", "", str(x.get("id") or ""))[:40] or uuid.uuid4().hex[:8]
     o["kenh"] = x.get("kenh") if x.get("kenh") in CFG["kenh"] else "laptop"
@@ -1615,35 +1617,55 @@ def kho_khoi(kho, kenh):
            '(fen 09/11: chỉ lấy thông tin máy và giá).' % kho) if kho else \
           "KHO POLYSTO: ô Kho trống. Chỉ đọc kho khi chủ đề / tin của fen nhắc kho, seri hay link kho Polysto."
     return dau + """
-Cách đọc kho: connector POLY của tài khoản Claude, CHỈ 2 công cụ đọc: mcp__claude_ai_POLY__tim_may (tu_khoa = tên hoặc seri; chỉ máy còn hàng) và mcp__claude_ai_POLY__du_lieu_may (seri = số liệu 1 máy: tên, cấu hình, pin, ngoại hình, bảo hành, giá bán). Chưa thấy thì ToolSearch "POLY" (chưa có thì chờ 5 giây bằng python -c "import time; time.sleep(5)" rồi tìm lại, tối đa 3 lần).
+Cách đọc kho: connector POLY của tài khoản Claude, CHỈ 2 công cụ đọc: mcp__claude_ai_POLY__tim_may (tu_khoa = tên hoặc seri; chỉ máy còn hàng) và mcp__claude_ai_POLY__du_lieu_may (seri = số liệu 1 máy: tên, cấu hình, pin, ngoại hình, bảo hành, giá bán). Công cụ POLY nạp nền sau khi phiên mở (có khi 10–20 giây): ToolSearch "POLY" chưa thấy thì PHẢI chờ 5 giây bằng python -c "import time; time.sleep(5)" rồi ToolSearch lại, đủ 4 lần mới được coi là không đọc được.
 - Có seri (gõ thẳng, hoặc trong link kiểu kho-anh?q=SERI): du_lieu_may từng seri.
 - Link cả kho (%s) hay chỉ nói "kho": tim_may lần lượt theo hãng / dòng của kênh (%s), gom các dòng "Máy …" còn hàng, chọn máy hợp chủ đề, rồi du_lieu_may từng máy chọn.
 - Brief chỉ dùng số có trong du_lieu_may; giá bán ghi đúng số kho (vd 38.800.000đ hoặc 38,8 triệu), không làm tròn khác đi. Không ghi seri, không lấy giá vốn, tên khách / nhân viên; không dùng công cụ POLY nào khác (không ghi, không sửa, không đăng gì trong Polysto).
-- Không đọc được kho: không bịa máy, không đổi máy trong brief; câu trả lời cuối nói "Chưa đọc được kho: fen nối lại connector POLY trong claude.ai (Customize > Connectors)".""" % (
+- Không đọc được kho: không bịa máy, không đổi máy trong brief; câu trả lời cuối nói "Chưa đọc được kho (Claude trên máy này chưa nạp được POLY), fen thử lại sau ít phút"."""  % (
         KHO_LINK, KHO_HANG.get(kenh) or KHO_HANG["laptop"])
 
 
-def _chep_anh_chat_cu(kenh, x, d, da_co=0):
-    """Tìm việc chat của 1 tin fen gửi trước (cùng kênh, cùng tin, tạo ngay sau lúc gửi) và chép ảnh tin đó vào
-    <d>/anh-tin-truoc để lượt chat mới Read được. Không thấy thì trả []."""
-    try:
-        t = float(x.get("t") or 0) / 1000.0
-    except (TypeError, ValueError):
-        return []
-    if t <= 0 or not os.path.isdir(JOBS):
-        return []
-    td = "Chat brief: " + short(str(x.get("text") or "").strip() or "(ảnh)", 60)
-    goc = []
+def _anh_chat_cu(kenh, ls):
+    """Ảnh fen gửi ở các tin chat trước: {thời điểm gửi (giây): [ảnh]} của việc chat cùng kênh, cùng tin, tạo ngay sau lúc gửi.
+    1 lượt quét thư mục jobs cho cả lịch sử. Không cần dấu n_anh (nháp lưu trước 9/11 không có)."""
+    ts = []
+    for x in ls:
+        try:
+            t = float(x.get("t") or 0) / 1000.0
+        except (TypeError, ValueError):
+            t = 0
+        if t > 0 and not x.get("ai"):
+            ts.append(t)
+    if not ts or not os.path.isdir(JOBS):
+        return {}
+    moc, viec = min(ts), {}
     for jid in sorted(os.listdir(JOBS), reverse=True)[:400]:
         j = read_json(os.path.join(JOBS, jid, "job.json"))
         if not j:
             continue
         c = j.get("created") or 0
-        if c < t - 120:
+        if c < moc - 120:
             break
-        if j.get("chat") and j.get("kenh") == kenh and j.get("tieu_de") == td and c <= t + 600:
-            goc = [a for a in (j.get("anh") or []) if isinstance(a, str) and os.path.isfile(a)]
-            break
+        if j.get("chat") and j.get("kenh") == kenh and j.get("anh"):
+            viec.setdefault(j.get("tieu_de") or "", []).append((c, j.get("anh")))
+    out = {}
+    for x in ls:
+        if x.get("ai"):
+            continue
+        try:
+            t = float(x.get("t") or 0) / 1000.0
+        except (TypeError, ValueError):
+            continue
+        td = "Chat brief: " + short(str(x.get("text") or "").strip() or "(ảnh)", 60)
+        for c, anh in viec.get(td, []):
+            if t - 120 <= c <= t + 600:
+                out[t] = [a for a in anh if isinstance(a, str) and os.path.isfile(a)]
+                break
+    return out
+
+
+def _chep_anh(goc, d, da_co=0):
+    """Chép ảnh tin trước vào <d>/anh-tin-truoc để lượt chat mới Read được (thư mục việc cũ không được đọc)."""
     out = []
     for a in goc[: max(0, 12 - da_co)]:
         dst = os.path.join(d, "anh-tin-truoc", "%02d-%s" % (da_co + len(out) + 1, os.path.basename(a)))
@@ -1672,13 +1694,23 @@ def chat_brief(data):
     ls, n_cu = [], 0
     # fen 9/11 "ghi nhớ trò chuyện để làm cho đúng": 20 tin trước (trước 8); tin fen giữ gần đủ chữ (yêu cầu nằm ở đó),
     # tin Claude rút gọn (giờ trả lời 1 câu)
-    for x in (data.get("lich_su") or [])[-20:]:
-        if isinstance(x, dict) and (x.get("text") or "").strip():
+    ds = [x for x in (data.get("lich_su") or [])[-20:] if isinstance(x, dict)]
+    try:
+        anh_cu = _anh_chat_cu(kenh, ds)
+    except Exception as e:      # dò ảnh tin trước lỗi thì vẫn chạy lượt chat
+        log("do anh tin truoc loi: %s" % e)
+        anh_cu = {}
+    for x in ds:
+        if (x.get("text") or "").strip():
             dong = ("Claude: " if x.get("ai") else "Fen: ") + short(str(x.get("text")).replace("\n", " "), 300 if x.get("ai") else 1500)
             # fen 9/11 "lấy máy phù hợp trong list mình gửi": ảnh gửi ở tin trước, lượt sau không thấy (thư mục việc cũ
             # không được đọc) nên Claude đi lục Downloads / Telegram. Chép ảnh tin trước vào việc này, ghi đường dẫn sau tin.
-            if not x.get("ai") and x.get("n_anh") and n_cu < 12:
-                ch = _chep_anh_chat_cu(kenh, x, d, n_cu)
+            try:
+                t = float(x.get("t") or 0) / 1000.0
+            except (TypeError, ValueError):
+                t = 0
+            if not x.get("ai") and anh_cu.get(t) and n_cu < 12:
+                ch = _chep_anh(anh_cu[t], d, n_cu)
                 if ch:
                     n_cu += len(ch)
                     dong += " (kèm %d ảnh, xem bằng Read: %s)" % (len(ch), ", ".join('"%s"' % a.replace("\\", "/") for a in ch))
