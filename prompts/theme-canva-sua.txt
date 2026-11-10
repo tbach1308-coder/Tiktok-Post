@@ -1,0 +1,28 @@
+{viec} theme Canva cho kho theme của app Poly Dựng Bài. Fen bấm nút trong app nghĩa là fen đồng ý: được copy thiết kế, sửa và lưu (commit) đúng thiết kế ghi dưới đây, di chuyển vào thư mục ghi dưới đây. Không hỏi lại. Không đụng thiết kế nào khác của fen. Không gọi agent con.
+
+Theme gốc: {link} (mã {ma}), tên "{ten}"
+Thư mục kho theme trên Canva: "{thu_muc}"
+Thư mục cất bản cũ: "{thu_muc_cu}"
+Tên theme sau khi xong: "{ten_moi}"
+File ảnh xem trước: {anh}
+
+Fen muốn chỉnh (chỉ làm đúng các ý này, giữ nguyên bố cục, ảnh, font, cỡ chữ, phần còn lại của mẫu):
+{yeu_cau}
+
+Công cụ Canva là các công cụ mcp__claude_ai_Canva__* (nạp nền vài giây sau khi phiên mở). Chưa thấy thì ToolSearch tìm "Canva" (chưa có thì chờ 5 giây bằng python -c "import time; time.sleep(5)" rồi tìm lại, đủ 4 lần). Vẫn không có: trả lời đúng 1 dòng "THEME_LOI Chưa nối được Canva" và dừng.
+
+Cách làm:
+1. {buoc1}
+2. Thiết kế cần sửa gọi là X (mã ở bước 1). Có ý cần chỉnh thì: read-design X với open_transaction true, fields design_content, page_metadata, thumbnails (mọi trang). Rồi edit-design finalize "keep_open" từng trang (page_index):
+   - Đổi màu chủ đạo / màu nhấn: recolor_element các hình, khung, nhãn đang mang màu chủ đạo cũ (màu nổi bật lặp lại nhiều trang, không phải trắng / đen / xám / ảnh), format_text color cho chữ đang mang màu đó. Không đổi màu ảnh chụp.
+   - Đổi màu nền: phần nền là hình phủ cả trang thì recolor_element hình đó; nền là ảnh thì giữ nguyên ảnh, chỉ đổi nếu có lớp màu phủ.
+   - Thay chữ: find_and_replace_text (trang responsive) hoặc replace_text đúng ô đang chứa chữ cũ, mọi trang có chữ đó.
+   - Ý khác trong ghi chú: làm bằng các thao tác edit-design có sẵn (format_text, resize_element, position_element, delete_element, update_opacity…); ý không làm được bằng công cụ thì bỏ qua và ghi vào dòng cuối.
+   Xem thumbnail sau mỗi trang: lệch, tràn chữ, mất chữ thì sửa ngay trong transaction. Xong: edit-design finalize "commit".
+   Không có ý nào cần chỉnh thì bỏ qua bước này.
+3. Đặt tên X là "{ten_moi}" (edit-design update_title trong transaction ở bước 2, hoặc mở transaction riêng rồi commit) nếu tên khác tên hiện tại.
+4. Ảnh xem trước: get-export-formats rồi export-design X type "png", pages [1], width 360. Tải về: curl -sS -o "{anh}" "<url trang 1>"
+5. Trả lời cuối cùng đúng 2 dòng, không thêm chữ nào khác:
+THEME_OK {"ma": "<mã X>", "so_trang": <số trang X>}
+GHI: <đã đổi gì, tối đa 25 chữ; ý nào không làm được thì nói>
+Lỗi không làm được (không mở được theme, copy lỗi) thì: THEME_LOI <lý do, tối đa 15 chữ>

@@ -108,6 +108,15 @@ a.btn{color:var(--tx);text-decoration:none}
 .thform{display:grid;gap:8px;border:1px solid var(--line2);border-radius:10px;padding:12px;background:var(--panel2);margin-top:8px}
 .thdb{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:4px 0 2px}
 .thlink{margin-top:4px}.thlink summary{cursor:pointer;color:var(--mut);font-size:13px}
+.thed[hidden]{display:none}
+.thed{display:grid;gap:8px;border:1px solid #8b5cf6;border-radius:10px;padding:12px;background:#1b1530;margin-top:10px}
+.thed .edmau{display:flex;gap:18px;flex-wrap:wrap;font-size:13px;color:var(--tx)}
+.thed .edmau label{display:inline-flex;align-items:center;gap:6px;cursor:pointer}
+.thed .edmau input[type=color]{width:34px;height:24px;border:0;background:none;padding:0;cursor:pointer}
+.thed .edthay{align-items:center}.thed .edthay span{color:var(--mut)}
+.thed a{font-size:12.5px}
+.thed textarea.in{min-height:56px;height:64px;resize:vertical}
+.thc .thst{font-size:12px}.thc .thst.run{color:#b79cff}.thc .thst.err{color:var(--r)}.thc .thst.ok{color:var(--gl)}
 .thdang{display:flex;flex-wrap:wrap;gap:6px}
 .thdang button,.thpick button{font:inherit;font-size:12.5px;border:1px solid var(--line2);border-radius:99px;background:var(--panel);color:var(--mut);padding:4px 11px;cursor:pointer}
 .thdang button.on,.thpick button.on{border-color:#8b5cf6;color:#e3d8ff;background:#241a3d}
@@ -1998,6 +2007,7 @@ async function khoTheme(){
       <div class="acts" style="margin-top:2px"><button class="btn sm" id="thHuy" style="display:none">Huỷ sửa</button><button class="btn sm pri" id="thLuu">＋ Thêm theme</button></div>
       </div></details>
     <p class="err" id="thErr"></p>
+    <div class="thed" id="thEd" hidden></div>
     <div class="thg" id="thG">Đang tải…</div>
     <div class="acts"><button class="btn pri" id="thDong">Đóng</button></div></div>`;
   document.body.appendChild(m);
@@ -2016,22 +2026,49 @@ async function khoTheme(){
     $('#thDbSt').textContent = db.tt === 'dang' ? 'Đang lấy từ thư mục ' + (r.thu_muc || '') + '…'
       : db.tt === 'ok' ? `Thư mục ${r.thu_muc}: ${db.so || 0} thiết kế${db.moi ? ' · mới thêm ' + db.moi : ''} · lúc ${new Date(db.t * 1000).toLocaleTimeString('vi-VN', {hour: '2-digit', minute: '2-digit'})}`
       : db.tt === 'loi' ? 'Chưa lấy được: ' + (db.ghi || '') : '';
-    setH($('#thG'), ds.length ? ds.map(t => { const x = t.xem || {};
+    setH($('#thG'), ds.length ? ds.map(t => { const x = t.xem || {}, sx = t.sua || {}, ban = sx.tt === 'dang';
       const anh = t.anh ? `<img src="${esc(t.anh)}" alt="">` : `<span>${x.tt === 'dang' ? 'Đang lấy ảnh xem trước…' : x.tt === 'loi' ? 'Chưa lấy được ảnh: ' + esc(x.ghi || '') : 'Chưa có ảnh xem trước'}</span>`;
+      const tt = ban ? `<small class="thst run">${sx.kieu === 'nhan-ban' ? 'Đang nhân bản trên Canva…' : 'Đang chỉnh trên Canva…'} (2–5 phút)</small>`
+        : sx.tt === 'loi' && nowS() - sx.t < 3600 ? `<small class="thst err">${sx.kieu === 'nhan-ban' ? 'Nhân bản' : 'Chỉnh'} chưa được: ${esc(sx.ghi || '')}</small>`
+        : sx.tt === 'ok' && nowS() - sx.t < 3600 ? `<small class="thst ok">${sx.kieu === 'nhan-ban' ? 'Đã nhân bản' : 'Đã chỉnh'}${sx.ghi ? ': ' + esc(sx.ghi) : ''}</small>` : '';
       return `<div class="thc"><div class="tha">${anh}</div><b>${esc(t.ten)}</b>
-        <small>${t.kenh ? esc(KENH[t.kenh].ten) : 'Cả 2 kênh'}${(t.dang || []).length ? ' · ' + t.dang.map(tenDang).map(esc).join(', ') : ''}${t.so_trang ? ' · ' + t.so_trang + ' trang' : ''}</small>
-        <div class="thb"><a class="btn sm ghost" href="${esc(t.link)}" target="_blank" rel="noopener">Mở Canva</a><button class="btn sm ghost" data-xem="${t.id}"${x.tt === 'dang' ? ' disabled' : ''}>${t.anh ? 'Làm mới ảnh' : 'Lấy ảnh'}</button><button class="btn sm ghost" data-sua="${t.id}">Sửa</button><button class="btn sm ghost" data-xoa="${t.id}">Bỏ</button></div></div>`; }).join('')
+        <small>${t.kenh ? esc(KENH[t.kenh].ten) : 'Cả 2 kênh'}${(t.dang || []).length ? ' · ' + t.dang.map(tenDang).map(esc).join(', ') : ''}${t.so_trang ? ' · ' + t.so_trang + ' trang' : ''}${t.goc ? ' · bản nhân' : ''}</small>${tt}
+        <div class="thb"><button class="btn sm" data-chinh="${t.id}"${ban ? ' disabled' : ''} title="Đổi màu, thay chữ… ngay trong app, Claude làm trên Canva (bản cũ được cất lại)">✏️ Chỉnh</button><button class="btn sm" data-nb="${t.id}"${ban ? ' disabled' : ''} title="Tạo theme mới từ theme này, chỉnh luôn nếu muốn">⧉ Nhân bản</button><a class="btn sm ghost" href="${esc(t.link)}" target="_blank" rel="noopener">Mở Canva</a><button class="btn sm ghost" data-sua="${t.id}" title="Đổi tên, kênh, dạng bài trong kho (không đụng thiết kế)">Thông tin</button><button class="btn sm ghost" data-xem="${t.id}"${x.tt === 'dang' ? ' disabled' : ''}>${t.anh ? 'Làm mới ảnh' : 'Lấy ảnh'}</button><button class="btn sm ghost" data-xoa="${t.id}">Bỏ</button></div></div>`; }).join('')
       : '<p class="pnote">Kho trống. Dán link thiết kế Canva ở trên để thêm theme đầu tiên.</p>');
-    clearInterval(m._t); if (db.tt === 'dang' || ds.some(t => (t.xem || {}).tt === 'dang')) m._t = setInterval(tai, 4000);
+    clearInterval(m._t); if (db.tt === 'dang' || ds.some(t => (t.xem || {}).tt === 'dang' || (t.sua || {}).tt === 'dang')) m._t = setInterval(tai, 5000);
   };
   const tai = async () => { try { ve(await api('/api/theme-canva')); } catch(e) { $('#thErr').textContent = e.message; } };
   $('#thG').onclick = async e => { const b = e.target.closest('button'); if (!b) return; $('#thErr').textContent = '';
     try {
       if (b.dataset.xem) ve(await api('/api/theme-canva', {xem: b.dataset.xem}));
       else if (b.dataset.xoa) { const t = ds.find(x => x.id === b.dataset.xoa); if (confirm('Bỏ theme "' + (t ? t.ten : '') + '" khỏi kho? (Thiết kế trên Canva vẫn còn nguyên.)')) ve(await api('/api/theme-canva', {xoa: b.dataset.xoa})); }
-      else if (b.dataset.sua) { const t = ds.find(x => x.id === b.dataset.sua); if (!t) return; sua = t.id; $('#thLink').value = t.link; $('#thLink').disabled = true; $('#thTen').value = t.ten; $('#thKenh').value = t.kenh || ''; chon.clear(); (t.dang || []).forEach(k => chon.add(k)); veDang(); $('#thLuu').textContent = 'Lưu theme'; $('#thHuy').style.display = ''; $('#thTen').focus(); }
+      else if (b.dataset.chinh || b.dataset.nb) moChinh(ds.find(x => x.id === (b.dataset.chinh || b.dataset.nb)), !!b.dataset.nb);
+      else if (b.dataset.sua) { const t = ds.find(x => x.id === b.dataset.sua); $('details.thlink').open = true; if (!t) return; sua = t.id; $('#thLink').value = t.link; $('#thLink').disabled = true; $('#thTen').value = t.ten; $('#thKenh').value = t.kenh || ''; chon.clear(); (t.dang || []).forEach(k => chon.add(k)); veDang(); $('#thLuu').textContent = 'Lưu theme'; $('#thHuy').style.display = ''; $('#thTen').focus(); }
     } catch(err) { $('#thErr').textContent = err.message; } };
   $('#thHuy').onclick = trongForm;
+  // ô chỉnh / nhân bản theme (fen 10/11 13h20 "cho custom theme trong kho": tạo theme mới từ theme có sẵn + chỉnh cơ bản ngay trong app)
+  const moChinh = (t, nb) => { if (!t) return; const e = $('#thEd'); e.hidden = false;
+    setH(e, `<b>${nb ? '⧉ Nhân bản' : '✏️ Chỉnh'} theme "${esc(t.ten)}"</b>
+      <p class="pnote">${nb ? 'Tạo thiết kế mới trên Canva từ theme này (theme gốc giữ nguyên), vào thư mục POLY Theme, thêm vào kho.' : 'Claude sửa thẳng thiết kế trên Canva. Bản cũ được copy cất vào thư mục "POLY Theme cũ" trước khi sửa.'} Chỉ chỉnh những ô fen điền, Claude làm khoảng 2–5 phút.</p>
+      <div class="row1"><input class="in" id="edTen" placeholder="Tên theme" value="${esc(nb ? t.ten + ' (bản 2)' : t.ten)}">${nb ? `<select class="in" id="edKenh" style="width:auto"><option value="">Cả 2 kênh</option>${Object.entries(KENH).map(([k, v]) => `<option value="${k}" ${t.kenh === k ? 'selected' : ''}>${v.ten}</option>`).join('')}</select>` : ''}</div>
+      <div class="edmau"><label><input type="checkbox" id="edMcOn"> Màu chủ đạo <input type="color" id="edMc" value="#1f8f4e"></label><label><input type="checkbox" id="edMnOn"> Màu nền <input type="color" id="edMn" value="#111111"></label></div>
+      <div id="edThay"></div><a href="#" id="edThem">＋ Thay chữ</a>
+      <textarea class="in" id="edGhi" rows="2" placeholder="Chỉnh thêm (tuỳ ý): vd bìa chữ to hơn, bỏ logo góc trên, đổi @poly.store thành @polystorelaptop"></textarea>
+      <div class="acts"><button class="btn sm" id="edHuy">Huỷ</button><button class="btn sm pri" id="edOk">${nb ? '⧉ Nhân bản' : '✏️ Chỉnh trên Canva'}</button></div>`);
+    const dong = () => { e.hidden = true; setH(e, ''); };
+    const themDong = (a = '', b = '') => { const d = document.createElement('div'); d.className = 'row1 edthay'; d.innerHTML = `<input class="in" placeholder="Chữ cũ" value="${esc(a)}"><span>→</span><input class="in" placeholder="Chữ mới" value="${esc(b)}">`; $('#edThay').appendChild(d); };
+    ['#edMc', '#edMn'].forEach(id => $(id).oninput = () => { $(id + 'On').checked = true; });
+    $('#edThem').onclick = ev => { ev.preventDefault(); themDong(); };
+    $('#edHuy').onclick = dong;
+    $('#edOk').onclick = async ev => { const b = ev.currentTarget; $('#thErr').textContent = '';
+      const x = {id: t.id, ten: $('#edTen').value.trim(), ghi: $('#edGhi').value.trim(),
+        thay_chu: [...document.querySelectorAll('#edThay .edthay')].map(r => [...r.querySelectorAll('input')].map(i => i.value.trim())).filter(r => r[0]),
+        mau_chinh: $('#edMcOn').checked ? $('#edMc').value : '', mau_nen: $('#edMnOn').checked ? $('#edMn').value : ''};
+      if (nb) x.kenh = $('#edKenh').value;
+      b.disabled = true;
+      try { ve(await api('/api/theme-canva', nb ? {nhan_ban: x} : {chinh: x})); toast(nb ? 'Đang nhân bản theme trên Canva' : 'Đang chỉnh theme trên Canva'); dong(); }
+      catch(err) { $('#thErr').textContent = err.message; b.disabled = false; } };
+    e.scrollIntoView({block: 'nearest'}); $('#edTen').focus(); };
   $('#thLuu').onclick = async e => { const b = e.currentTarget; $('#thErr').textContent = ''; b.disabled = true;
     const x = {link: $('#thLink').value.trim(), ten: $('#thTen').value.trim(), kenh: $('#thKenh').value, dang: [...chon]};
     try { ve(await api('/api/theme-canva', sua ? {sua: Object.assign(x, {id: sua})} : {them: x})); toast(sua ? 'Đã lưu theme' : 'Đã thêm theme, đang lấy ảnh xem trước'); trongForm(); }

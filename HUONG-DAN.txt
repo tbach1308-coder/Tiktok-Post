@@ -59,6 +59,10 @@ KHO THEME CANVA (10/11)
   Dán link thiết kế (https://www.canva.com/design/D…/edit), đặt tên, chọn kênh (hoặc cả 2) và dạng bài → Thêm theme.
   App tự lấy ảnh xem trước (1 lượt Claude ngắn, chỉ đọc + xuất trang 1, không sửa gì trên Canva). Sửa / Bỏ theme ở từng ô.
 - Mẫu có sẵn của Canva: mở mẫu trên Canva, bấm dùng mẫu để có bản trong Canva của mình, rồi dán link bản đó.
+- Chỉnh theme ngay trong app (10/11): mỗi theme có "✏️ Chỉnh" và "⧉ Nhân bản". Điền ô cần đổi: tên, màu chủ đạo, màu nền,
+  thay chữ (chữ cũ → chữ mới, vd @poly.store → @polystorelaptop), ghi chú tự do (vd bìa chữ to hơn). Claude làm trên Canva 2–5 phút.
+  Nhân bản: tạo thiết kế mới trong POLY Theme, theme gốc giữ nguyên. Chỉnh: sửa thẳng thiết kế, bản cũ copy cất vào "POLY Theme cũ".
+  "Thông tin" chỉ đổi tên / kênh / dạng bài trong kho, không đụng thiết kế.
 - Bài mới: chọn "🎨 Canva" → hàng "Theme Canva" hiện ra: "Mẫu kênh" (mẫu ở Kiểm máy > Canva) hoặc 1 theme trong kho;
   theme hợp dạng bài (đoán từ chủ đề: top 5 / hay / giá / mẹo…) có chữ "gợi ý". Claude lấy trang của theme, chỉ thay ảnh + chữ.
 - Máy khác / tài khoản Canva khác: theme phải là thiết kế người đó mở được (fen chia sẻ link). Kho theme lưu riêng từng máy (theme-canva.json).

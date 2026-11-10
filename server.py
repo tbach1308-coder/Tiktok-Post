@@ -2540,6 +2540,121 @@ THEME_XEM = {}      # id -> {"tt": dang|ok|loi, "t", "ghi"}
 # fen 10/11 13h11 "kho theme không lấy về luôn được hả hay phải nhập link": thư mục Canva "POLY Theme" = kho theme.
 # Fen bỏ thiết kế (mẫu có sẵn đã bấm dùng, hay tự làm) vào thư mục đó, app tự lấy về (mở Kho theme quá 30 phút thì tự đồng bộ).
 THEME_DB = {"tt": "", "t": 0, "ghi": "", "moi": 0}
+# fen 10/11 13h20 "cho custom theme trong kho": nhân bản theme thành theme mới + chỉnh cơ bản ngay trong app (màu chủ đạo, màu nền,
+# thay chữ, ghi chú) -> 1 lượt Claude (sonnet) làm trên Canva. Chỉnh theme có sẵn: copy bản cũ vào thư mục "POLY Theme cũ" trước.
+THEME_SUA = {}      # id theme gốc -> {"tt": dang|ok|loi, "t", "ghi", "kieu": nhan-ban|sua}
+_HEX = re.compile(r"^#[0-9A-Fa-f]{6}$")
+
+
+def _theme_yeu_cau(data):
+    ds = []
+    if _HEX.match(str(data.get("mau_chinh") or "")):
+        ds.append("- Màu chủ đạo / màu nhấn (khung nhãn, nút, gạch trang trí, chữ tiêu đề có màu): đổi sang %s." % data["mau_chinh"])
+    if _HEX.match(str(data.get("mau_nen") or "")):
+        ds.append("- Màu nền các trang: đổi sang %s." % data["mau_nen"])
+    for x in (data.get("thay_chu") or [])[:12]:
+        if isinstance(x, (list, tuple)) and len(x) == 2 and str(x[0]).strip():
+            ds.append('- Thay chữ "%s" thành "%s" ở mọi trang.' % (short(str(x[0]).strip(), 80), short(str(x[1]).strip(), 120)))
+    ghi = re.sub(r"\s+", " ", str(data.get("ghi") or "")).strip()[:600]
+    if ghi:
+        ds.append("- Ghi chú của fen: " + ghi)
+    return ds
+
+
+def theme_sua(data):
+    """POST /api/theme-canva {nhan_ban|chinh: {id, ten, kenh, dang, mau_chinh, mau_nen, thay_chu: [[cũ, mới]], ghi}}."""
+    kieu = "nhan-ban" if data.get("nhan_ban") else "sua"
+    x = data.get("nhan_ban") or data.get("chinh") or {}
+    t = theme_cv_tim(x.get("id"))
+    if not t:
+        raise ValueError("Không thấy theme")
+    if (THEME_SUA.get(t["id"]) or {}).get("tt") == "dang" and now() - THEME_SUA[t["id"]].get("t", 0) < 1200:
+        raise ValueError("Theme này đang được chỉnh, chờ xong đã")
+    yc = _theme_yeu_cau(x)
+    if kieu == "sua" and not yc and not (x.get("ten") or "").strip():
+        raise ValueError("Chưa chọn chỉnh gì")
+    cmd = resolve_claude()
+    if not cmd:
+        raise ValueError("Không tìm thấy Claude Code trên máy. Bấm Kiểm lại ở góc trên.")
+    ten_moi = short(str(x.get("ten") or "").strip(), 60) or (t["ten"] + (" (bản 2)" if kieu == "nhan-ban" else ""))
+    kenh = x.get("kenh") if x.get("kenh") in CFG["kenh"] else ("" if "kenh" in x else t.get("kenh", ""))
+    dang = [d for d in (x.get("dang") or t.get("dang") or []) if d in dict(THEME_DANG)]
+    THEME_SUA[t["id"]] = {"tt": "dang", "t": now(), "ghi": "", "kieu": kieu}
+    threading.Thread(target=_theme_sua_chay, args=(cmd, dict(t), kieu, yc, ten_moi, kenh, dang), daemon=True).start()
+
+
+def _theme_sua_chay(cmd, t, kieu, yc, ten_moi, kenh, dang):
+    os.makedirs(THEME_CV_ANH, exist_ok=True)
+    id_moi = ("t" + uuid.uuid4().hex[:8]) if kieu == "nhan-ban" else t["id"]
+    anh = os.path.join(THEME_CV_ANH, "%s.png" % id_moi)
+    tm = CFG.get("theme_thu_muc") or "POLY Theme"
+    if kieu == "nhan-ban":
+        viec, b1 = "Nhân bản", ('copy-design mã %s (mọi trang) ra thiết kế mới X. search-folders "%s" (ownership owned; chưa có thì create-folder tên đó, '
+                                'parent_folder_id "root") rồi move-item-to-folder X vào đó. Theme gốc giữ nguyên, không sửa.' % (t["ma"], tm))
+    else:
+        viec, b1 = "Chỉnh", ('Cất bản cũ trước khi sửa: copy-design mã %s ra bản sao, search-folders "%s cũ" (chưa có thì create-folder tên đó, parent '
+                             '"root"), move-item-to-folder bản sao vào đó, đặt tên bản sao "%s (bản cũ %s)". X là chính thiết kế %s.'
+                             % (t["ma"], tm, t.get("ten") or "theme", time.strftime("%d-%m %H:%M"), t["ma"]))
+    lenh = fill(read_prompt("theme-canva-sua.txt"), {
+        "viec": viec, "buoc1": b1, "link": t["link"], "ma": t["ma"], "ten": t.get("ten") or "", "thu_muc": tm, "thu_muc_cu": tm + " cũ",
+        "ten_moi": ten_moi, "anh": anh.replace("\\", "/"), "yeu_cau": "\n".join(yc) or "(không chỉnh gì, chỉ " + ("nhân bản" if kieu == "nhan-ban" else "đổi tên") + ")"})
+    args = cmd + ["-p", "--output-format", "stream-json", "--verbose", "--model", "sonnet", "--max-turns", "80",
+                  "--allowedTools", "mcp__claude_ai_Canva", "Bash(curl *)", "Bash(python *)"]
+    env = env_claude()
+    if IS_MAC:
+        mac_env(env)
+    kw = {"creationflags": CREATE_NO_WINDOW} if IS_WIN else {}
+    kq, ghi = "", ""
+    try:
+        p = subprocess.Popen(args, cwd=APP, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env, **kw)
+        try:
+            out, _ = p.communicate(lenh.encode("utf-8"), timeout=1200)
+        except subprocess.TimeoutExpired:
+            p.kill()
+            out, _ = p.communicate()
+            ghi = "quá 20 phút"
+        for line in (out or b"").decode("utf-8", "replace").splitlines():
+            try:
+                o = json.loads(line)
+            except Exception:
+                continue
+            if o.get("type") == "result":
+                kq = str(o.get("result") or "")
+    except Exception as e:
+        ghi = str(e)
+    m = re.search(r"THEME_OK\s*(\{.*?\})", kq)
+    info = {}
+    if m:
+        try:
+            info = json.loads(m.group(1))
+        except Exception:
+            info = {}
+    ma = str(info.get("ma") or "")
+    gm = re.search(r"GHI\s*:\s*(.+)", kq)
+    if not re.fullmatch(r"D[A-Za-z0-9_-]{10}", ma):
+        hm = han_muc_text(kq)
+        loi = ghi or (han_muc_ly_do() if hm else "") or (re.sub(r"^.*THEME_LOI\s*", "", kq, flags=re.S).strip()[:160] if "THEME_LOI" in kq else short(kq or "Claude không trả kết quả", 160))
+        if hm:
+            han_muc_ghi(hm[0], hm[1])
+        THEME_SUA[t["id"]] = {"tt": "loi", "t": now(), "ghi": loi, "kieu": kieu}
+        log("theme %s %s loi: %s" % (t["id"], kieu, loi))
+        return
+    with THEME_KHOA:
+        doc = _theme_doc()
+        if kieu == "nhan-ban":
+            doc["ds"].append({"id": id_moi, "ma": ma, "link": "https://www.canva.com/design/%s/edit" % ma, "ten": ten_moi, "kenh": kenh,
+                              "dang": dang, "so_trang": info.get("so_trang") if isinstance(info.get("so_trang"), int) else t.get("so_trang"),
+                              "t": now(), "nguon": "nhan-ban", "goc": t["id"]})
+        else:
+            for y in doc["ds"]:
+                if y.get("id") == t["id"]:
+                    y["ten"] = ten_moi
+                    if isinstance(info.get("so_trang"), int):
+                        y["so_trang"] = info["so_trang"]
+                    y["sua_luc"] = now()
+        write_json(THEME_CV_FILE, doc)
+    THEME_SUA[t["id"]] = {"tt": "ok", "t": now(), "ghi": short(gm.group(1).strip(), 200) if gm else "", "kieu": kieu, "moi": id_moi}
+    log("theme %s %s xong -> %s" % (t["id"], kieu, ma))
 
 
 def _doan_dang(x):
@@ -2672,6 +2787,8 @@ def _theme_ra(t):
     f = os.path.join(THEME_CV_ANH, "%s.png" % t.get("id"))
     o["anh"] = ("/api/theme-canva/anh/%s?t=%d" % (t["id"], int(os.path.getmtime(f)))) if os.path.isfile(f) else ""
     o["xem"] = THEME_XEM.get(t.get("id"))
+    o["sua"] = THEME_SUA.get(t.get("id"))
+    o["goc"] = t.get("goc")
     return o
 
 
@@ -2719,6 +2836,8 @@ def theme_cv(data=None):
         _theme_xem_bat(t)
     elif data.get("dong_bo"):
         theme_dong_bo_bat(ep=data.get("dong_bo") == "ep")
+    elif data.get("nhan_ban") or data.get("chinh"):
+        theme_sua(data)
     return {"ds": [_theme_ra(t) for t in theme_cv_ds()], "dang": THEME_DANG, "db": dict(THEME_DB),
             "thu_muc": CFG.get("theme_thu_muc") or "POLY Theme"}
 
