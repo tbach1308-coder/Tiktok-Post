@@ -271,6 +271,8 @@ select.in.msel option{background:var(--panel);color:var(--tx)}
 .kb .kl{font-size:12.5px;color:var(--mut);margin-right:8px}
 .vbli{margin:6px 0 2px;padding:8px 12px 8px 26px;border:1px solid var(--line2);border-radius:10px;background:var(--panel2);font-size:12.5px;color:var(--tx);display:grid;gap:3px}
 .vbli li.cn{color:var(--y)}
+.vbli li.dg{font-weight:700;list-style:none;margin-left:-14px}
+.vbli li.dg.ok{color:var(--gl)}.vbli li.dg.warn{color:var(--y)}.vbli li.dg.bad{color:var(--r)}
 .kxn{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:8px;padding:8px 10px;border:1px solid #f59e0b66;background:#f59e0b14;border-radius:10px;font-size:13px}
 .kxn span{flex:1 1 220px}
 .brrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12.5px;color:var(--mut);margin:10px 0 2px}
@@ -1246,9 +1248,14 @@ async function pollBrief(f){
     const hieu = ls0.find(x => /^Chủ đề\s*:/i.test(x)) || '';
     // lợi ích của bài để fen quyết định chọn hay không (fen 30/10 15h44): dòng LOI_ICH / CAN_NHAC trong câu cuối của Claude
     const sach = x => esc(x.replace(/[*_`]/g, '').trim());
+    // 10/11 fen "cái nào cũng hiển thị chung chung": đổi sang nhận định để quyết — DANH_GIA (Nên làm / Cân nhắc / Nên bỏ) + VI_SAO
+    // (số liệu) + KHAC_BAI_CU + RUI_RO; vẫn đọc được LOI_ICH / CAN_NHAC của brief cũ
+    const lay = k => (ls0.find(x => new RegExp('^' + k + '\\s*:', 'i').test(x)) || '').replace(new RegExp('^' + k + '\\s*:\\s*', 'i'), '').trim();
+    const dg = lay('DANH_GIA'), vs = lay('VI_SAO'), kc = lay('KHAC_BAI_CU'), rr = lay('RUI_RO') || lay('CAN_NHAC');
     const li = ls0.filter(x => /^LOI_ICH\s*:/i.test(x)).map(x => x.replace(/^LOI_ICH\s*:\s*/i, '')).filter(Boolean);
-    const cn = (ls0.find(x => /^CAN_NHAC\s*:/i.test(x)) || '').replace(/^CAN_NHAC\s*:\s*/i, '').trim();
-    const loiIch = li.length || (cn && !/^không có\.?$/i.test(cn)) ? `<ul class="vbli">${li.map(x => `<li>${sach(x)}</li>`).join('')}${cn && !/^không có\.?$/i.test(cn) ? `<li class="cn">Cân nhắc: ${sach(cn)}</li>` : ''}</ul>` : '';
+    const coRr = rr && !/^không có\.?$/i.test(rr);
+    const dgCls = /^nên làm/i.test(dg) ? 'ok' : /^nên bỏ/i.test(dg) ? 'bad' : 'warn';
+    const loiIch = dg || vs || kc || li.length || coRr ? `<ul class="vbli">${dg ? `<li class="dg ${dgCls}">${sach(dg)}</li>` : ''}${vs ? `<li>Vì sao: ${sach(vs)}</li>` : ''}${kc ? `<li>Khác bài cũ: ${sach(kc)}</li>` : ''}${li.map(x => `<li>${sach(x)}</li>`).join('')}${coRr ? `<li class="cn">Rủi ro: ${sach(rr)}</li>` : ''}</ul>` : '';
     f.briefNote = `<span class="okc">✓ ${hieu ? esc(hieu.replace(/[*_`]/g, '')) + '. ' : ''}Brief ở ô dưới, fen đọc và sửa rồi bấm Chạy.</span>`
       + (cu && cu !== d.brief_viet.trim() ? ' <a href="#" data-laylai>Lấy lại brief cũ</a>' : '') + loiIch;
     toast(hien() ? 'Claude đã viết brief' : 'Claude đã viết brief cho nháp "' + tenNhap(f).slice(0, 40) + '"');

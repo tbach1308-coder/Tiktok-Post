@@ -62,10 +62,11 @@ Follow Poly để cập nhật tin iPad mới
 
 Ghi brief ra đúng file "{out}" bằng Write (UTF-8). File chỉ có brief, không có giải thích.
 Viết lệnh để không bị chặn quyền: mỗi lệnh Bash làm 1 việc, đường dẫn đầy đủ trong ngoặc kép, không dùng biến, {a,b}, vòng for, không ghi ra /tmp. Không đọc hay tìm trong C:\Users\Dao\.claude.
-Trả lời cuối cùng đúng 5 dòng (fen chốt 30/10 15h44: "cho thêm phần lợi ích của content để mình quyết định nên chọn hay không"), không markdown:
+Trả lời cuối cùng đúng 5 dòng (fen chốt 30/10 15h44: "cho thêm phần lợi ích của content để mình quyết định nên chọn hay không"; fen 10/11: "cái nào cũng hiển thị chung chung" → mỗi dòng phải là nhận định RIÊNG cho bài này, có số liệu, đọc là quyết được làm hay bỏ), không markdown:
 Dòng 1: "Chủ đề: <chủ đề bài đã viết, tối đa 12 chữ> · <loại bài: mẹo / so sánh / bảng giá / theo ngành / phân khúc giá / lỗi / lên đời / giới thiệu máy>"; kiểu B có tìm hot thì thêm " · hot vì <tối đa 8 chữ>". Vd "Chủ đề: Giữ pin iPad bền mùa thi · mẹo".
-Dòng 2: "LOI_ICH: Người xem: <ai cần bài này, tối đa 15 chữ>" (theo tệp người xem của kênh).
-Dòng 3: "LOI_ICH: Comment: <người xem sẽ comment kể gì về họ, tối đa 15 chữ>".
-Dòng 4: "LOI_ICH: Bán / sửa: <bài dẫn về nhu cầu mua máy gì / sửa, nâng cấp gì ở shop, tối đa 15 chữ>"; format này đang thắng / đang yếu của kênh thì ghi kèm (theo quy-tac-xay-kenh mục 1, 3).
-Dòng 5: "CAN_NHAC: <1 điểm trừ thật, tối đa 15 chữ>" (vd đời máy cũ ít người tìm, gần chủ đề bài X đã làm, cần ảnh chụp ở shop, mẹo chung chung ít comment); không có thì ghi "CAN_NHAC: không có".
+Dòng 2: "DANH_GIA: <Nên làm | Cân nhắc | Nên bỏ> · <lý do chính, tối đa 15 chữ>". Chấm theo số liệu kênh trong tep-nguoi-xem.md và danh-sach-content (format đang thắng / thua, bài cùng dạng gần nhất được bao nhiêu view), kho (máy còn nhiều hay không), mùa. Vd "DANH_GIA: Nên làm · so sánh 2 máy đang thắng, Air 5 kho còn 8 máy".
+Dòng 3: "VI_SAO: <bằng chứng cụ thể, tối đa 20 chữ>": trích đúng số đã đọc: view bài cùng dạng (vd "A16 hay Air 5 12,2K view, Mini 8 tin đồn 177"), số đơn / máy bán gần đây, số máy trong kho, giá RAM tăng… Không có số nào thì ghi vì sao không có và dựa vào gì.
+Dòng 4: "KHAC_BAI_CU: <bài gần nhất cùng máy / chủ đề (tên + ngày) và bài này khác ở đâu, tối đa 20 chữ>"; chưa có bài nào gần thì ghi "chưa có bài nào về <X>".
+Dòng 5: "RUI_RO: <1 rủi ro riêng của bài này, tối đa 15 chữ>" (vd "Air 5 đã 4 bài trong 3 tuần, dễ chán", "giá RAM đổi từng tuần, số có thể cũ lúc đăng"); không có thì ghi "RUI_RO: không có".
+CẤM chữ mẫu lặp bài nào cũng giống: "học sinh, sinh viên, phụ huynh", "kể máy đang dùng", "hỏi giá", "dẫn về mua máy", "cần ảnh máy thật ở shop", "mẹo chung chung", "format đang thắng" mà không kèm số. Ai xem / họ comment gì / bán gì chỉ ghi khi bài này có điểm khác tệp chung của kênh.
 Mỗi dòng đúng sự thật, dựa trên file đã đọc; không bịa số view, không ghi giá. Không giải thích đã đọc gì, đổi gì, trùng ý nào; không hỏi lại fen (chỗ chưa chắc tự chọn cách an toàn nhất, không ghi giá).

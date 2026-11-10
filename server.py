@@ -3369,8 +3369,17 @@ def tgl_bao_brief(jid):
                        [[{"text": "🔄 Viết lại", "callback_data": "lai:" + jid}]])
     msgs = tgl_gui_dai("📝 Brief %s%s:\n\n%s" % (tk, " (đã sửa)" if jj.get("chat") else "", bv))
     hieu = next((re.sub(r"[*_`]+", "", x).strip() for x in ls if re.match(r"^\W*Chủ đề\s*:", x, re.I)), "")
-    li, cn = _tgl_dong(ls, "LOI_ICH"), (_tgl_dong(ls, "CAN_NHAC") or [""])[0]
+    # 10/11: DANH_GIA / VI_SAO / KHAC_BAI_CU / RUI_RO (brief cũ: LOI_ICH / CAN_NHAC)
+    mot = lambda k: (_tgl_dong(ls, k) or [""])[0]
+    dg, vs, kc, cn = mot("DANH_GIA"), mot("VI_SAO"), mot("KHAC_BAI_CU"), mot("RUI_RO") or mot("CAN_NHAC")
+    li = _tgl_dong(ls, "LOI_ICH")
     ts = ["✓ " + (hieu or ("Đã sửa: " + short(re.sub(r"[*_`]+", "", v.get("final") or ""), 300) if jj.get("chat") else "Brief xong"))]
+    if dg:
+        ts.append(("🟢 " if re.match(r"^nên làm", dg, re.I) else "🔴 " if re.match(r"^nên bỏ", dg, re.I) else "🟡 ") + dg)
+    if vs:
+        ts.append("• Vì sao: " + vs)
+    if kc:
+        ts.append("• Khác bài cũ: " + kc)
     ts += ["• " + x for x in li]
     if cn and not re.match(r"^không có\.?$", cn, re.I):
         ts.append("⚠️ " + cn)
