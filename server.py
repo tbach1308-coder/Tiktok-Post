@@ -60,6 +60,9 @@ DEFAULT_CFG = {
     "canva_mau": {"ipad": "", "laptop": ""},
     "canva_thu_muc": "POLY Dựng Bài",
     "theme_thu_muc": "POLY Theme",       # kho theme Canva tự lấy mọi thiết kế trong thư mục Canva này (fen 10/11)
+    # kho theme chung trên Google Drive (fen 10/11 15h51 "cài link đó làm kho mặc định, các app cài máy khác tự update"):
+    # link chia sẻ công khai của file kho-theme-canva.json; máy nào cài cũng có sẵn, tự tải lại khi mở app và mỗi 2 giờ
+    "kho_chung_link": "",
     "model": "",
     "lenh_claude": [],
     # tài khoản Claude nào đăng nhập cũng làm được: mỗi lượt chạy app tự nạp plugin dựng bài + luật chung,
@@ -2721,6 +2724,7 @@ def _theme_sua_chay(cmd, t, kieu, yc, ten_moi, kenh, dang):
             dt["het"] = True
             write_json(ft, dt)
     THEME_SUA[t["id"]] = {"tt": "ok", "t": now(), "ghi": short(gm.group(1).strip(), 200) if gm else "", "kieu": kieu, "moi": id_moi}
+    _kho_chung_doi()
     log("theme %s %s xong -> %s" % (t["id"], kieu, ma))
 
 
@@ -2840,6 +2844,7 @@ def _theme_dong_bo_chay(cmd):
         write_json(THEME_CV_FILE, doc)
     THEME_DB.update({"tt": "ok", "t": now(), "ghi": "", "moi": moi, "so": len(trong)})
     log("theme dong bo: %d thiet ke trong thu muc, %d moi" % (len(trong), moi))
+    _kho_chung_doi()
     threading.Thread(target=_theme_anh_thieu, daemon=True).start()      # ảnh xem trước: xuất trang 1 từng theme
 
 
@@ -2968,6 +2973,10 @@ def theme_cv(data=None):
         theme_sua(data)
     elif data.get("trang"):
         return theme_trang_bat(str(data["trang"]), ep=bool(data.get("ep")))
+    if data.get("them") or data.get("sua") or data.get("xoa") or data.get("hien"):
+        _kho_chung_doi()
+    elif not data:
+        kho_chung_tu_tai()        # mở Kho theme / Bài mới: máy khác tự lấy kho chung mới (tối đa 30 phút 1 lần)
     return {"ds": [_theme_ra(t) for t in theme_cv_ds()], "dang": THEME_DANG, "db": dict(THEME_DB),
             "bo_ds": [{"id": t["id"], "ten": t.get("ten") or ""} for t in theme_cv_ds(ca_an=True) if t.get("an") and t.get("bo")],
             "thu_muc": CFG.get("theme_thu_muc") or "POLY Theme"}
@@ -3023,7 +3032,7 @@ def _kho_chung_url(link):
 def kho_chung_ra():
     d = kho_chung_dir()
     f = os.path.join(d, KHO_CHUNG_TEN) if d else ""
-    return {"link": CFG.get("kho_chung_link") or "", "dir": d, "file": f, "co_drive": bool(d),
+    return {"link": CFG.get("kho_chung_link") or "", "dir": d, "file": f, "co_drive": bool(d), "chu": bool(CFG.get("kho_chung_chu")),
             "co_file": bool(f and os.path.isfile(f)), "tai": dict(KHO_CHUNG_TT["tai"]), "dua": dict(KHO_CHUNG_TT["dua"])}
 
 
@@ -3037,9 +3046,20 @@ def kho_chung(data=None):
         save_cfg_keys({"kho_chung_link": v})
     if data.get("dua"):
         kho_chung_dua(data["dua"])
+        if not CFG.get("kho_chung_chu"):
+            save_cfg_keys({"kho_chung_chu": True})      # máy fen bấm đưa lên = máy chính: từ giờ kho đổi là tự đưa
+            CFG["kho_chung_chu"] = True
     if data.get("tai"):
         kho_chung_tai()
     return kho_chung_ra()
+
+
+def _kho_chung_doi():
+    """Kho theme máy này vừa đổi: máy chính thì tự đưa lên Drive."""
+    try:
+        kho_chung_tu_dua()
+    except Exception:
+        pass
 
 
 def kho_chung_dua(chon):
@@ -3048,7 +3068,7 @@ def kho_chung_dua(chon):
         raise ValueError("Máy này chưa có Google Drive cho máy tính (ổ Google Drive). Đưa lên kho chung làm ở máy shop.")
     os.makedirs(d, exist_ok=True)
     f = os.path.join(d, KHO_CHUNG_TEN)
-    cu = read_json(f, None) if os.path.isfile(f) else None
+    cu = read_json(f, None) if (os.path.isfile(f) and chon is not True) else None     # True: kho chung = đúng kho máy này
     ds = [x for x in ((cu or {}).get("ds") or []) if isinstance(x, dict) and x.get("ma")]
     theo_ma = {x["ma"]: x for x in ds}
     them = 0
@@ -3073,6 +3093,49 @@ def kho_chung_dua(chon):
         json.dump(out, fh, ensure_ascii=False)
     KHO_CHUNG_TT["dua"] = {"tt": "ok", "t": now(), "so": len(ds), "moi": them, "chua_chia_se": sum(1 for x in ds if not x.get("chia_se"))}
     log("kho chung dua: %d theme (%d moi) -> %s" % (len(ds), them, f))
+
+
+KHO_CHUNG_HEN = {"t": None}
+
+
+def kho_chung_tu_tai(ep=False):
+    """Máy cài app (không phải máy chính của kho chung): tự tải kho chung, tối đa 1 lần / 30 phút (ép thì tải ngay)."""
+    if CFG.get("kho_chung_chu") or not _kho_chung_url(CFG.get("kho_chung_link") or ""):
+        return
+    tt = KHO_CHUNG_TT.get("tai") or {}
+    if tt.get("tt") == "dang" and now() - tt.get("t", 0) < 120:
+        return
+    if not ep and now() - tt.get("t", 0) < 1800:
+        return
+    KHO_CHUNG_TT["tai"] = dict(tt, tt="dang", t=now())
+
+    def chay():
+        try:
+            kho_chung_tai()
+        except Exception as e:
+            if (KHO_CHUNG_TT.get("tai") or {}).get("tt") == "dang":
+                KHO_CHUNG_TT["tai"] = {"tt": "loi", "t": now(), "ghi": short(str(e), 160)}
+            log("kho chung tu tai loi: %s" % e)
+    threading.Thread(target=chay, daemon=True).start()
+
+
+def kho_chung_tu_dua():
+    """Máy chính của kho chung (máy fen đã bấm Đưa kho lên Drive): kho đổi là tự đưa lên Drive, gom các thay đổi trong 15 giây."""
+    if not CFG.get("kho_chung_chu") or not kho_chung_dir():
+        return
+    if KHO_CHUNG_HEN["t"] is not None:
+        KHO_CHUNG_HEN["t"].cancel()
+
+    def chay():
+        KHO_CHUNG_HEN["t"] = None
+        try:
+            kho_chung_dua(True)
+        except Exception as e:
+            KHO_CHUNG_TT["dua"] = {"tt": "loi", "t": now(), "ghi": short(str(e), 160)}
+            log("kho chung tu dua loi: %s" % e)
+    KHO_CHUNG_HEN["t"] = threading.Timer(15, chay)
+    KHO_CHUNG_HEN["t"].daemon = True
+    KHO_CHUNG_HEN["t"].start()
 
 
 def kho_chung_tai():
@@ -3202,6 +3265,8 @@ def _theme_xem_chay(cmd, t):
         han_muc_ghi(hm[0], hm[1])
     loi = ghi or (han_muc_ly_do() if hm else "") or (re.sub(r"^.*THEME_LOI\s*", "", kq, flags=re.S).strip()[:160] if "THEME_LOI" in kq else "") or ("" if ok else short(kq or "không ra ảnh", 160))
     THEME_XEM[t["id"]] = {"tt": "ok" if ok else "loi", "t": now(), "ghi": "" if ok else loi}
+    if ok:
+        _kho_chung_doi()          # ảnh bìa mới
     if "Chưa nối được Canva" in kq:
         canva_ghi_tt("chua", "Lấy ảnh theme", kq)
     log("theme canva %s xem: %s %s" % (t["id"], "ok" if ok else "loi", "" if ok else loi))
@@ -4579,6 +4644,8 @@ def _chay_lich():
 
 def _chay_lich_1():
     _han_muc_chay_lai()
+    if now() - (KHO_CHUNG_TT.get("tai") or {}).get("t", 0) > 7200:
+        kho_chung_tu_tai()
     jobs = []
     for jid in sorted(os.listdir(JOBS)) if os.path.isdir(JOBS) else []:
         j = read_json(os.path.join(JOBS, jid, "job.json"))
