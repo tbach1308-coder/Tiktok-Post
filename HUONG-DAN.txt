@@ -53,6 +53,9 @@ HẾT HẠN MỨC CLAUDE + TỰ BẬT APP (10/11)
 
 KHO THEME CANVA (10/11)
 - Cột trái → "🎨 Kho theme". Theme Canva = 1 thiết kế Canva làm mẫu (1080x1440, mỗi trang 1 kiểu slide: bìa, nội dung, cuối).
+- CÁCH NHANH (không dán link): trên Canva bỏ thiết kế vào thư mục "POLY Theme" (https://www.canva.com/folder/FAHafvH4ENw).
+  Mở Kho theme là app tự lấy về (ảnh, tên, số trang; đoán kênh + dạng bài theo tên), bấm "🔄 Lấy từ Canva" để lấy ngay.
+  Đưa thiết kế ra khỏi thư mục thì theme tự ẩn. Mẫu có sẵn của Canva: bấm dùng mẫu trước rồi Di chuyển bản đó vào thư mục.
   Dán link thiết kế (https://www.canva.com/design/D…/edit), đặt tên, chọn kênh (hoặc cả 2) và dạng bài → Thêm theme.
   App tự lấy ảnh xem trước (1 lượt Claude ngắn, chỉ đọc + xuất trang 1, không sửa gì trên Canva). Sửa / Bỏ theme ở từng ô.
 - Mẫu có sẵn của Canva: mở mẫu trên Canva, bấm dùng mẫu để có bản trong Canva của mình, rồi dán link bản đó.

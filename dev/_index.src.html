@@ -105,7 +105,9 @@ a.btn{color:var(--tx);text-decoration:none}
 .side .new .row2 .btn{padding:7px 4px}
 .side .new .thbtn{width:100%;margin-top:8px;padding:7px 4px}
 .thbox{width:min(980px,94vw);max-height:90vh;overflow:auto}
-.thform{display:grid;gap:8px;border:1px solid var(--line2);border-radius:10px;padding:12px;background:var(--panel2)}
+.thform{display:grid;gap:8px;border:1px solid var(--line2);border-radius:10px;padding:12px;background:var(--panel2);margin-top:8px}
+.thdb{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:4px 0 2px}
+.thlink{margin-top:4px}.thlink summary{cursor:pointer;color:var(--mut);font-size:13px}
 .thdang{display:flex;flex-wrap:wrap;gap:6px}
 .thdang button,.thpick button{font:inherit;font-size:12.5px;border:1px solid var(--line2);border-radius:99px;background:var(--panel);color:var(--mut);padding:4px 11px;cursor:pointer}
 .thdang button.on,.thpick button.on{border-color:#8b5cf6;color:#e3d8ff;background:#241a3d}
@@ -1985,13 +1987,17 @@ async function khoTheme(){
   const m = document.createElement('div'); m.className = 'modal on'; m.id = 'thM';
   m.innerHTML = `<div class="mbox thbox"><h3>Kho theme</h3>
     <div class="kseg segd" style="margin-bottom:10px"><button class="on">🎨 Canva</button><button disabled title="Làm sau">🖌 Photoshop · sắp làm</button></div>
-    <p class="pnote">Theme Canva = 1 thiết kế Canva làm mẫu, cỡ 1080×1440, mỗi trang 1 kiểu slide (bìa, nội dung, cuối). Dùng mẫu có sẵn của Canva: mở mẫu, bấm dùng mẫu để có bản trong Canva của fen, rồi dán link bản đó vào đây. Bài mới chọn <b>Làm bằng Canva</b> rồi chọn theme: Claude lấy trang của theme, chỉ thay ảnh và chữ, không sửa thiết kế gốc.</p>
+    <p class="pnote">Theme Canva = 1 thiết kế Canva làm mẫu, cỡ 1080×1440, mỗi trang 1 kiểu slide (bìa, nội dung, cuối). Bài mới chọn <b>Làm bằng Canva</b> rồi chọn theme: Claude lấy trang của theme, chỉ thay ảnh và chữ, không sửa thiết kế gốc.</p>
+    <div class="thdb"><button class="btn sm pri" id="thDb">🔄 Lấy từ Canva</button><span id="thDbSt" class="pnote"></span></div>
+    <p class="pnote">Không cần dán link: trên Canva, bỏ thiết kế vào thư mục <b id="thTm">POLY Theme</b> (mẫu có sẵn của Canva thì bấm dùng mẫu trước, rồi Di chuyển vào thư mục đó). App tự lấy về, kèm ảnh và số trang. Đưa ra khỏi thư mục thì theme tự ẩn khỏi kho.</p>
+    <details class="thlink"><summary>Hoặc dán link 1 thiết kế</summary>
     <div class="thform">
       <input class="in" id="thLink" placeholder="Link thiết kế Canva: https://www.canva.com/design/D…/edit">
       <div class="row1"><input class="in" id="thTen" placeholder="Tên theme, vd So sánh nền tối"><select class="in" id="thKenh" style="width:auto"><option value="">Cả 2 kênh</option><option value="ipad">iPad</option><option value="laptop">Laptop</option></select></div>
       <div class="thdang" id="thDang"></div>
       <div class="acts" style="margin-top:2px"><button class="btn sm" id="thHuy" style="display:none">Huỷ sửa</button><button class="btn sm pri" id="thLuu">＋ Thêm theme</button></div>
-      <p class="err" id="thErr"></p></div>
+      </div></details>
+    <p class="err" id="thErr"></p>
     <div class="thg" id="thG">Đang tải…</div>
     <div class="acts"><button class="btn pri" id="thDong">Đóng</button></div></div>`;
   document.body.appendChild(m);
@@ -2005,13 +2011,18 @@ async function khoTheme(){
   const trongForm = () => { sua = null; $('#thLink').value = ''; $('#thLink').disabled = false; $('#thTen').value = ''; $('#thKenh').value = ''; chon.clear(); veDang(); $('#thLuu').textContent = '＋ Thêm theme'; $('#thHuy').style.display = 'none'; };
   const ve = r => {
     ds = r.ds || []; dang = r.dang || dang; S.themeCv = ds; S.themeDang = dang; veDang();
+    const db = r.db || {}; if (r.thu_muc) $('#thTm').textContent = r.thu_muc;
+    $('#thDb').disabled = db.tt === 'dang';
+    $('#thDbSt').textContent = db.tt === 'dang' ? 'Đang lấy từ thư mục ' + (r.thu_muc || '') + '…'
+      : db.tt === 'ok' ? `Thư mục ${r.thu_muc}: ${db.so || 0} thiết kế${db.moi ? ' · mới thêm ' + db.moi : ''} · lúc ${new Date(db.t * 1000).toLocaleTimeString('vi-VN', {hour: '2-digit', minute: '2-digit'})}`
+      : db.tt === 'loi' ? 'Chưa lấy được: ' + (db.ghi || '') : '';
     setH($('#thG'), ds.length ? ds.map(t => { const x = t.xem || {};
       const anh = t.anh ? `<img src="${esc(t.anh)}" alt="">` : `<span>${x.tt === 'dang' ? 'Đang lấy ảnh xem trước…' : x.tt === 'loi' ? 'Chưa lấy được ảnh: ' + esc(x.ghi || '') : 'Chưa có ảnh xem trước'}</span>`;
       return `<div class="thc"><div class="tha">${anh}</div><b>${esc(t.ten)}</b>
         <small>${t.kenh ? esc(KENH[t.kenh].ten) : 'Cả 2 kênh'}${(t.dang || []).length ? ' · ' + t.dang.map(tenDang).map(esc).join(', ') : ''}${t.so_trang ? ' · ' + t.so_trang + ' trang' : ''}</small>
         <div class="thb"><a class="btn sm ghost" href="${esc(t.link)}" target="_blank" rel="noopener">Mở Canva</a><button class="btn sm ghost" data-xem="${t.id}"${x.tt === 'dang' ? ' disabled' : ''}>${t.anh ? 'Làm mới ảnh' : 'Lấy ảnh'}</button><button class="btn sm ghost" data-sua="${t.id}">Sửa</button><button class="btn sm ghost" data-xoa="${t.id}">Bỏ</button></div></div>`; }).join('')
       : '<p class="pnote">Kho trống. Dán link thiết kế Canva ở trên để thêm theme đầu tiên.</p>');
-    clearInterval(m._t); if (ds.some(t => (t.xem || {}).tt === 'dang')) m._t = setInterval(tai, 4000);
+    clearInterval(m._t); if (db.tt === 'dang' || ds.some(t => (t.xem || {}).tt === 'dang')) m._t = setInterval(tai, 4000);
   };
   const tai = async () => { try { ve(await api('/api/theme-canva')); } catch(e) { $('#thErr').textContent = e.message; } };
   $('#thG').onclick = async e => { const b = e.target.closest('button'); if (!b) return; $('#thErr').textContent = '';
@@ -2025,7 +2036,9 @@ async function khoTheme(){
     const x = {link: $('#thLink').value.trim(), ten: $('#thTen').value.trim(), kenh: $('#thKenh').value, dang: [...chon]};
     try { ve(await api('/api/theme-canva', sua ? {sua: Object.assign(x, {id: sua})} : {them: x})); toast(sua ? 'Đã lưu theme' : 'Đã thêm theme, đang lấy ảnh xem trước'); trongForm(); }
     catch(err) { $('#thErr').textContent = err.message; } b.disabled = false; };
-  veDang(); tai();
+  $('#thDb').onclick = async () => { $('#thErr').textContent = ''; try { ve(await api('/api/theme-canva', {dong_bo: 'ep'})); } catch(err) { $('#thErr').textContent = err.message; } };
+  veDang();
+  try { ve(await api('/api/theme-canva', {dong_bo: true})); } catch(e) { tai(); }   // mở kho là tự lấy (quá 30 phút mới lấy lại)
 }
 health(); Promise.all([loadJobs(), loadNhap()]).then(() => { const h = (location.hash.match(/bai=([\w-]+)/) || [])[1], moi = location.hash === '#moi'; const r = !moi && ((h && S.jobs.find(j => j.id === h)) || S.jobs.find(j => j.status === 'dang-chay')); r ? openJob(r.id) : newView(); });
 setInterval(loadJobs, 5000); setInterval(() => health(), 120000);

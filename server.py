@@ -59,6 +59,7 @@ DEFAULT_CFG = {
     # thiết kế mẫu trên Canva cho "Dựng bằng Canva" (link canva.com/design/... hoặc mã D...), đặt ở Kiểm máy > Canva
     "canva_mau": {"ipad": "", "laptop": ""},
     "canva_thu_muc": "POLY Dựng Bài",
+    "theme_thu_muc": "POLY Theme",       # kho theme Canva tự lấy mọi thiết kế trong thư mục Canva này (fen 10/11)
     "model": "",
     "lenh_claude": [],
     # tài khoản Claude nào đăng nhập cũng làm được: mỗi lượt chạy app tự nạp plugin dựng bài + luật chung,
@@ -2536,6 +2537,118 @@ THEME_CV_ANH = os.path.join(APP, "theme-canva")
 THEME_DANG = [["so-sanh", "So sánh 2 máy"], ["top", "Top / danh sách máy"], ["meo", "Mẹo / lỗi"], ["gia", "Giới thiệu máy / bảng giá"], ["khac", "Khác"]]
 THEME_KHOA = threading.Lock()
 THEME_XEM = {}      # id -> {"tt": dang|ok|loi, "t", "ghi"}
+# fen 10/11 13h11 "kho theme không lấy về luôn được hả hay phải nhập link": thư mục Canva "POLY Theme" = kho theme.
+# Fen bỏ thiết kế (mẫu có sẵn đã bấm dùng, hay tự làm) vào thư mục đó, app tự lấy về (mở Kho theme quá 30 phút thì tự đồng bộ).
+THEME_DB = {"tt": "", "t": 0, "ghi": "", "moi": 0}
+
+
+def _doan_dang(x):
+    x = (x or "").lower()
+    if re.search(r"\btop\s*\d|danh sách|\b\d+\s*(máy|laptop|ipad)\b", x):
+        return "top"
+    if re.search(r"\bhay\b|\bvs\b|so sánh|compare", x):
+        return "so-sanh"
+    if re.search(r"bảng giá|\bgiá\b|giới thiệu|review|price|product", x):
+        return "gia"
+    if re.search(r"mẹo|cách|lỗi|trick|tip|thủ thuật|how to", x):
+        return "meo"
+    return ""
+
+
+def theme_dong_bo_bat(ep=False):
+    if THEME_DB.get("tt") == "dang" and now() - THEME_DB.get("t", 0) < 300:
+        return
+    if not ep and now() - THEME_DB.get("t", 0) < 1800 and THEME_DB.get("tt") == "ok":
+        return
+    cmd = resolve_claude()
+    if not cmd:
+        THEME_DB.update({"tt": "loi", "t": now(), "ghi": "chưa có Claude Code"})
+        return
+    THEME_DB.update({"tt": "dang", "t": now(), "ghi": "", "moi": 0})
+    threading.Thread(target=_theme_dong_bo_chay, args=(cmd,), daemon=True).start()
+
+
+def _theme_dong_bo_chay(cmd):
+    """1 lượt haiku: liệt kê thiết kế trong thư mục Canva "POLY Theme" + tải ảnh thu nhỏ; thêm theme mới, bỏ theme đã rời thư mục."""
+    os.makedirs(THEME_CV_ANH, exist_ok=True)
+    tm = CFG.get("theme_thu_muc") or "POLY Theme"
+    lenh = fill(read_prompt("theme-canva-dong-bo.txt"), {"thu_muc": tm, "anh_dir": THEME_CV_ANH.replace("\\", "/")})
+    args = cmd + ["-p", "--output-format", "stream-json", "--verbose", "--model", "haiku", "--max-turns", "40",
+                  "--allowedTools", "mcp__claude_ai_Canva", "Bash(curl *)", "Bash(mkdir *)", "Bash(python *)"]
+    env = env_claude()
+    if IS_MAC:
+        mac_env(env)
+    kw = {"creationflags": CREATE_NO_WINDOW} if IS_WIN else {}
+    kq, ghi = "", ""
+    try:
+        p = subprocess.Popen(args, cwd=APP, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env, **kw)
+        try:
+            out, _ = p.communicate(lenh.encode("utf-8"), timeout=300)
+        except subprocess.TimeoutExpired:
+            p.kill()
+            out, _ = p.communicate()
+            ghi = "quá 5 phút"
+        for line in (out or b"").decode("utf-8", "replace").splitlines():
+            try:
+                o = json.loads(line)
+            except Exception:
+                continue
+            if o.get("type") == "result":
+                kq = str(o.get("result") or "")
+    except Exception as e:
+        ghi = str(e)
+    m = re.search(r"THEME_DS\s*(\[.*\])", kq, re.S)
+    ds = None
+    if m:
+        try:
+            ds = json.loads(m.group(1))
+        except Exception:
+            ds = None
+    if not isinstance(ds, list):
+        loi = ghi or (re.sub(r"^.*THEME_LOI\s*", "", kq, flags=re.S).strip()[:160] if "THEME_LOI" in kq else short(kq or "không đọc được thư mục", 160))
+        THEME_DB.update({"tt": "loi", "t": now(), "ghi": loi})
+        if "Chưa nối được Canva" in kq:
+            canva_ghi_tt("chua", "Lấy kho theme", kq)
+        log("theme dong bo loi: %s" % loi)
+        return
+    moi = 0
+    with THEME_KHOA:
+        doc = _theme_doc()
+        co = {}
+        for t in doc["ds"]:
+            co.setdefault(t.get("ma"), t)
+        trong = set()
+        for x in ds:
+            ma = str((x or {}).get("ma") or "")
+            if not re.fullmatch(r"D[A-Za-z0-9_-]{10}", ma):
+                continue
+            trong.add(ma)
+            ten = short(str(x.get("ten") or "Theme"), 60)
+            t = co.get(ma)
+            if t is None:
+                dg = _doan_dang(ten)
+                t = {"id": "t" + uuid.uuid4().hex[:8], "ma": ma, "link": "https://www.canva.com/design/%s/edit" % ma, "ten": ten,
+                     "kenh": "ipad" if re.search(r"ipad", ten, re.I) else "laptop" if re.search(r"laptop|macbook", ten, re.I) else "",
+                     "dang": [dg] if dg else [], "t": now(), "nguon": "thu-muc"}
+                doc["ds"].append(t)
+                moi += 1
+            elif t.get("an") and t.get("nguon") == "thu-muc":
+                t.pop("an", None)        # fen bỏ lại vào thư mục
+                moi += 1
+            if isinstance(x.get("so_trang"), int):
+                t["so_trang"] = x["so_trang"]
+            src = os.path.join(THEME_CV_ANH, ma + ".png")
+            if os.path.isfile(src) and os.path.getsize(src) > 200:
+                try:
+                    os.replace(src, os.path.join(THEME_CV_ANH, t["id"] + ".png"))
+                except OSError:
+                    pass
+        for t in doc["ds"]:      # theme lấy từ thư mục mà fen đã đưa ra khỏi thư mục: ẩn (không xoá)
+            if t.get("nguon") == "thu-muc" and t.get("ma") not in trong and not t.get("an"):
+                t["an"] = now()
+        write_json(THEME_CV_FILE, doc)
+    THEME_DB.update({"tt": "ok", "t": now(), "ghi": "", "moi": moi, "so": len(trong)})
+    log("theme dong bo: %d thiet ke trong thu muc, %d moi" % (len(trong), moi))
 
 
 def _theme_doc():
@@ -2604,7 +2717,10 @@ def theme_cv(data=None):
         if not t:
             raise ValueError("Không thấy theme")
         _theme_xem_bat(t)
-    return {"ds": [_theme_ra(t) for t in theme_cv_ds()], "dang": THEME_DANG}
+    elif data.get("dong_bo"):
+        theme_dong_bo_bat(ep=data.get("dong_bo") == "ep")
+    return {"ds": [_theme_ra(t) for t in theme_cv_ds()], "dang": THEME_DANG, "db": dict(THEME_DB),
+            "thu_muc": CFG.get("theme_thu_muc") or "POLY Theme"}
 
 
 def _theme_xem_bat(t):
