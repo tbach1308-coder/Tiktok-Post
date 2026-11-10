@@ -2764,8 +2764,8 @@ def _theme_dong_bo_chay(cmd):
                      "dang": [dg] if dg else [], "t": now(), "nguon": "thu-muc"}
                 doc["ds"].append(t)
                 moi += 1
-            elif t.get("an") and t.get("nguon") == "thu-muc":
-                t.pop("an", None)        # fen bỏ lại vào thư mục
+            elif t.get("an") and t.get("nguon") == "thu-muc" and not t.get("bo"):
+                t.pop("an", None)        # fen bỏ lại vào thư mục (theme fen bấm Bỏ thì không tự hiện lại)
                 moi += 1
             if isinstance(x.get("so_trang"), int):
                 t["so_trang"] = x["so_trang"]
@@ -2837,6 +2837,7 @@ def _theme_ra(t):
     o["goc"] = t.get("goc")
     o["nguon"] = t.get("nguon") or ""
     o["link_chia_se"] = t.get("link_chia_se") or ""
+    o["chia_se"] = bool(t.get("link_chia_se") or t.get("chia_se"))
     return o
 
 
@@ -2848,6 +2849,7 @@ def theme_cv(data=None):
         kenh = x.get("kenh") if x.get("kenh") in CFG["kenh"] else ""
         dang = [d for d in (x.get("dang") or []) if d in dict(THEME_DANG)]
         ten = short(str(x.get("ten") or "").strip(), 60)
+        hien_lai = False
         with THEME_KHOA:
             doc = _theme_doc()
             if data.get("them"):
@@ -2857,9 +2859,19 @@ def theme_cv(data=None):
                     raise ValueError("Dán link thiết kế Canva (https://www.canva.com/design/D…/…)")
                 if any(t.get("ma") == m.group(0) and not t.get("an") for t in doc["ds"]):
                     raise ValueError("Thiết kế này đã có trong kho theme")
-                t = {"id": "t" + uuid.uuid4().hex[:8], "ma": m.group(0), "link": "https://www.canva.com/design/%s/edit" % m.group(0),
-                     "ten": ten or "Theme %d" % (len(doc["ds"]) + 1), "kenh": kenh, "dang": dang, "t": now()}
-                doc["ds"].append(t)
+                cu = next((t for t in doc["ds"] if t.get("ma") == m.group(0)), None)
+                if cu is not None:                  # theme fen đã bỏ: hiện lại
+                    cu.pop("an", None)
+                    cu.pop("bo", None)
+                    if ten:
+                        cu["ten"] = ten
+                    cu["kenh"], cu["dang"] = kenh, dang
+                    hien_lai = True
+                    t = cu
+                if not hien_lai:
+                    t = {"id": "t" + uuid.uuid4().hex[:8], "ma": m.group(0), "link": "https://www.canva.com/design/%s/edit" % m.group(0),
+                         "ten": ten or "Theme %d" % (len(doc["ds"]) + 1), "kenh": kenh, "dang": dang, "t": now()}
+                    doc["ds"].append(t)
             else:
                 t = next((y for y in doc["ds"] if y.get("id") == x.get("id") and not y.get("an")), None)
                 if not t:
@@ -2881,6 +2893,15 @@ def theme_cv(data=None):
             for t in doc["ds"]:
                 if t.get("id") == data["xoa"]:
                     t["an"] = now()          # không xoá hẳn: còn trong theme-canva.json
+                    t["bo"] = True           # fen bấm Bỏ: lấy từ thư mục / kho chung cũng không tự hiện lại
+            write_json(THEME_CV_FILE, doc)
+    elif data.get("hien"):
+        with THEME_KHOA:
+            doc = _theme_doc()
+            for t in doc["ds"]:
+                if t.get("id") == data["hien"]:
+                    t.pop("an", None)
+                    t.pop("bo", None)
             write_json(THEME_CV_FILE, doc)
     elif data.get("xem"):
         t = theme_cv_tim(data["xem"])
@@ -2894,6 +2915,7 @@ def theme_cv(data=None):
     elif data.get("trang"):
         return theme_trang_bat(str(data["trang"]), ep=bool(data.get("ep")))
     return {"ds": [_theme_ra(t) for t in theme_cv_ds()], "dang": THEME_DANG, "db": dict(THEME_DB),
+            "bo_ds": [{"id": t["id"], "ten": t.get("ten") or ""} for t in theme_cv_ds(ca_an=True) if t.get("an") and t.get("bo")],
             "thu_muc": CFG.get("theme_thu_muc") or "POLY Theme"}
 
 
@@ -2995,7 +3017,7 @@ def kho_chung_dua(chon):
     out = {"ver": 1, "t": now(), "ds": ds}
     with open(f, "w", encoding="utf-8") as fh:      # ghi đè tại chỗ: Drive giữ nguyên mã file nên link chia sẻ không đổi
         json.dump(out, fh, ensure_ascii=False)
-    KHO_CHUNG_TT["dua"] = {"tt": "ok", "t": now(), "so": len(ds), "moi": them}
+    KHO_CHUNG_TT["dua"] = {"tt": "ok", "t": now(), "so": len(ds), "moi": them, "chua_chia_se": sum(1 for x in ds if not x.get("chia_se"))}
     log("kho chung dua: %d theme (%d moi) -> %s" % (len(ds), them, f))
 
 
@@ -3036,7 +3058,9 @@ def kho_chung_tai():
                 t = {"id": "t" + uuid.uuid4().hex[:8], "ma": x["ma"], "t": now(), "nguon": "kho-chung"}
                 doc["ds"].append(t)
                 moi += 1
-            t.pop("an", None)
+            if not t.get("bo"):
+                t.pop("an", None)
+            t["chia_se"] = bool(x.get("chia_se"))
             t.update({"ten": short(str(x.get("ten") or "Theme"), 60), "link": lk, "kenh": x.get("kenh") if x.get("kenh") in CFG["kenh"] else "",
                       "dang": [k for k in (x.get("dang") or []) if k in dict(THEME_DANG)]})
             if isinstance(x.get("so_trang"), int):
