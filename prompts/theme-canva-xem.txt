@@ -1,0 +1,12 @@
+Lấy ảnh xem trước 1 thiết kế Canva để làm theme trong kho theme của app Poly Dựng Bài. CHỈ ĐỌC và XUẤT ẢNH: không sửa, không copy, không di chuyển, không xoá gì trên Canva. Làm nhanh, không gọi agent con.
+
+Thiết kế: {link} (mã {ma})
+File ảnh xem trước: {anh}
+
+Công cụ Canva là các công cụ mcp__claude_ai_Canva__* (nạp nền vài giây sau khi phiên mở). Chưa thấy thì ToolSearch tìm "Canva" (chưa có thì chờ 5 giây bằng python -c "import time; time.sleep(5)" rồi tìm lại, đủ 4 lần). Vẫn không có: trả lời đúng 1 dòng "THEME_LOI Chưa nối được Canva" và dừng.
+
+1. read-design mã {ma}, fields design_metadata và page_metadata: tên thiết kế, số trang, cỡ trang (rộng x cao).
+2. get-export-formats rồi export-design type "png", pages [1], width 360 (giữ tỉ lệ, không đặt height). Tải trang 1 về bằng 1 lệnh: curl -sS -o "{anh}" "<url trang 1>"
+3. Trả lời cuối cùng đúng 1 dòng, không thêm chữ nào khác:
+THEME_OK {"ten": "<tên thiết kế>", "so_trang": <số trang>, "rong": <rộng px>, "cao": <cao px>}
+Không mở được thiết kế (không có quyền, link sai) thì: THEME_LOI <lý do, tối đa 15 chữ>

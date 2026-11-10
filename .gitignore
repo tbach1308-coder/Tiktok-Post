@@ -26,3 +26,5 @@ canva-tt.json
 packaging/.cache/
 dist/
 _win/
+theme-canva.json
+theme-canva/

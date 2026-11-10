@@ -1496,7 +1496,10 @@ def create_job(data):
     if data.get("tu_tg"):      # fen bấm Chạy trên chat lệnh Telegram: xong / lỗi thì báo cả về chat đó
         job["tu_tg"] = True
     if data.get("dung_bang") == "canva":     # fen 6/11: dựng trên Canva theo mẫu của kênh, không qua Photoshop
-        if not canva_mau(kenh):
+        th = theme_cv_tim(data.get("theme_canva"))
+        if th:      # fen 10/11: chọn theme trong kho theme Canva thay cho mẫu của kênh
+            job["theme_canva"] = {"id": th["id"], "ten": th.get("ten"), "link": th["link"]}
+        if not th and not canva_mau(kenh):
             raise ValueError("Kênh %s chưa có mẫu Canva: vào Kiểm máy > Canva dán link thiết kế mẫu, hoặc chọn Dựng bằng Photoshop"
                              % CFG["kenh"].get(kenh, {}).get("ten", kenh))
         job["dung_bang"] = "canva"
@@ -1536,7 +1539,7 @@ def create_job(data):
 
 
 NHAP_KHOA = ("id", "kenh", "ten", "ngay", "brief", "note", "chude", "briefJob", "briefT", "briefNote", "nhanh", "t",
-             "chat", "chatJob", "chatT", "briefTruoc", "kb", "model", "briefCd", "briefCdGui", "briefMay", "dung", "kho")
+             "chat", "chatJob", "chatT", "briefTruoc", "kb", "model", "briefCd", "briefCdGui", "briefMay", "dung", "kho", "theme")
 
 
 def _sach_nhap(x):
@@ -2525,13 +2528,158 @@ def canva_doc(jid):
             "nguon": str(d.get("nguon") or "")[:30], "lay_lai": d.get("lay_lai") is True}
 
 
+# ---------------------------------------------------------------- kho theme Canva (fen 10/11 "thêm trong app kho canva theme")
+# Theme = 1 thiết kế Canva làm mẫu (fen tự làm, hoặc mẫu Canva có sẵn đã mở / copy về Canva của mình). Dựng bằng Canva mà chọn theme
+# thì Claude lấy trang của theme thay cho mẫu của kênh. Lưu ở theme-canva.json (riêng từng máy, không lên git); ảnh xem trước ở theme-canva/.
+THEME_CV_FILE = os.path.join(APP, "theme-canva.json")
+THEME_CV_ANH = os.path.join(APP, "theme-canva")
+THEME_DANG = [["so-sanh", "So sánh 2 máy"], ["top", "Top / danh sách máy"], ["meo", "Mẹo / lỗi"], ["gia", "Giới thiệu máy / bảng giá"], ["khac", "Khác"]]
+THEME_KHOA = threading.Lock()
+THEME_XEM = {}      # id -> {"tt": dang|ok|loi, "t", "ghi"}
+
+
+def _theme_doc():
+    d = read_json(THEME_CV_FILE, None)
+    return d if isinstance(d, dict) and isinstance(d.get("ds"), list) else {"ds": []}
+
+
+def theme_cv_ds(kenh=None, ca_an=False):
+    ds = [t for t in _theme_doc()["ds"] if isinstance(t, dict) and (ca_an or not t.get("an"))]
+    if kenh:
+        ds = [t for t in ds if not t.get("kenh") or t.get("kenh") == kenh]
+    return ds
+
+
+def theme_cv_tim(tid):
+    return next((t for t in theme_cv_ds() if t.get("id") == tid), None) if tid else None
+
+
+def _theme_ra(t):
+    o = {k: t.get(k) for k in ("id", "ten", "link", "ma", "kenh", "dang", "so_trang", "rong", "cao", "t")}
+    f = os.path.join(THEME_CV_ANH, "%s.png" % t.get("id"))
+    o["anh"] = ("/api/theme-canva/anh/%s?t=%d" % (t["id"], int(os.path.getmtime(f)))) if os.path.isfile(f) else ""
+    o["xem"] = THEME_XEM.get(t.get("id"))
+    return o
+
+
+def theme_cv(data=None):
+    """GET: {ds, dang}. POST {them:{link,ten,kenh,dang}} | {sua:{id,...}} | {xoa:id} | {xem:id} (lấy ảnh xem trước)."""
+    data = data or {}
+    if data.get("them") or data.get("sua"):
+        x = data.get("them") or data.get("sua")
+        kenh = x.get("kenh") if x.get("kenh") in CFG["kenh"] else ""
+        dang = [d for d in (x.get("dang") or []) if d in dict(THEME_DANG)]
+        ten = short(str(x.get("ten") or "").strip(), 60)
+        with THEME_KHOA:
+            doc = _theme_doc()
+            if data.get("them"):
+                link = _la_link_canva(str(x.get("link") or "").strip())
+                m = _CANVA_ID.search(link)
+                if not link or not m:
+                    raise ValueError("Dán link thiết kế Canva (https://www.canva.com/design/D…/…)")
+                if any(t.get("ma") == m.group(0) and not t.get("an") for t in doc["ds"]):
+                    raise ValueError("Thiết kế này đã có trong kho theme")
+                t = {"id": "t" + uuid.uuid4().hex[:8], "ma": m.group(0), "link": "https://www.canva.com/design/%s/edit" % m.group(0),
+                     "ten": ten or "Theme %d" % (len(doc["ds"]) + 1), "kenh": kenh, "dang": dang, "t": now()}
+                doc["ds"].append(t)
+            else:
+                t = next((y for y in doc["ds"] if y.get("id") == x.get("id") and not y.get("an")), None)
+                if not t:
+                    raise ValueError("Không thấy theme")
+                if ten:
+                    t["ten"] = ten
+                t["kenh"], t["dang"] = kenh, dang
+            write_json(THEME_CV_FILE, doc)
+        if data.get("them"):
+            _theme_xem_bat(t)       # thêm xong tự lấy ảnh xem trước
+    elif data.get("xoa"):
+        with THEME_KHOA:
+            doc = _theme_doc()
+            for t in doc["ds"]:
+                if t.get("id") == data["xoa"]:
+                    t["an"] = now()          # không xoá hẳn: còn trong theme-canva.json
+            write_json(THEME_CV_FILE, doc)
+    elif data.get("xem"):
+        t = theme_cv_tim(data["xem"])
+        if not t:
+            raise ValueError("Không thấy theme")
+        _theme_xem_bat(t)
+    return {"ds": [_theme_ra(t) for t in theme_cv_ds()], "dang": THEME_DANG}
+
+
+def _theme_xem_bat(t):
+    x = THEME_XEM.get(t["id"]) or {}
+    if x.get("tt") == "dang" and now() - x.get("t", 0) < 240:
+        return
+    cmd = resolve_claude()
+    if not cmd:
+        THEME_XEM[t["id"]] = {"tt": "loi", "t": now(), "ghi": "chưa có Claude Code"}
+        return
+    THEME_XEM[t["id"]] = {"tt": "dang", "t": now(), "ghi": ""}
+    threading.Thread(target=_theme_xem_chay, args=(cmd, dict(t)), daemon=True).start()
+
+
+def _theme_xem_chay(cmd, t):
+    """1 lượt haiku: đọc tên / số trang và xuất trang 1 làm ảnh xem trước (chỉ đọc + xuất, không sửa gì trên Canva)."""
+    os.makedirs(THEME_CV_ANH, exist_ok=True)
+    anh = os.path.join(THEME_CV_ANH, "%s.png" % t["id"])
+    lenh = fill(read_prompt("theme-canva-xem.txt"), {"link": t["link"], "ma": t["ma"], "anh": anh.replace("\\", "/")})
+    args = cmd + ["-p", "--output-format", "stream-json", "--verbose", "--model", "haiku", "--max-turns", "15",
+                  "--allowedTools", "mcp__claude_ai_Canva", "Bash(curl *)", "Bash(python *)"]
+    env = env_claude()
+    if IS_MAC:
+        mac_env(env)
+    kw = {"creationflags": CREATE_NO_WINDOW} if IS_WIN else {}
+    kq, ghi = "", ""
+    try:
+        p = subprocess.Popen(args, cwd=APP, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env, **kw)
+        try:
+            out, _ = p.communicate(lenh.encode("utf-8"), timeout=240)
+        except subprocess.TimeoutExpired:
+            p.kill()
+            out, _ = p.communicate()
+            ghi = "quá 4 phút"
+        for line in (out or b"").decode("utf-8", "replace").splitlines():
+            try:
+                o = json.loads(line)
+            except Exception:
+                continue
+            if o.get("type") == "result":
+                kq = str(o.get("result") or "")
+    except Exception as e:
+        ghi = str(e)
+    m = re.search(r"THEME_OK\s*(\{.*\})", kq)
+    if m:
+        try:
+            info = json.loads(m.group(1))
+        except Exception:
+            info = {}
+        with THEME_KHOA:
+            doc = _theme_doc()
+            for y in doc["ds"]:
+                if y.get("id") == t["id"]:
+                    for k in ("so_trang", "rong", "cao"):
+                        if isinstance(info.get(k), (int, float)):
+                            y[k] = int(info[k])
+                    if info.get("ten") and y.get("ten", "").startswith("Theme "):
+                        y["ten"] = short(str(info["ten"]), 60)
+            write_json(THEME_CV_FILE, doc)
+    ok = bool(m) and os.path.isfile(anh)
+    loi = ghi or (re.sub(r"^.*THEME_LOI\s*", "", kq, flags=re.S).strip()[:160] if "THEME_LOI" in kq else "") or ("" if ok else short(kq or "không ra ảnh", 160))
+    THEME_XEM[t["id"]] = {"tt": "ok" if ok else "loi", "t": now(), "ghi": "" if ok else loi}
+    if "Chưa nối được Canva" in kq:
+        canva_ghi_tt("chua", "Lấy ảnh theme", kq)
+    log("theme canva %s xem: %s %s" % (t["id"], "ok" if ok else "loi", "" if ok else loi))
+
+
 def canva_bien(job):
     """Biến chung cho lệnh mẫu Canva (dựng, sửa, đưa lên)."""
     cv = canva_doc(job["id"]) or {}
-    mau = canva_mau(job["kenh"])
+    th = job.get("theme_canva") if isinstance(job.get("theme_canva"), dict) else None
+    mau = (th or {}).get("link") or canva_mau(job["kenh"])
     khac = next((canva_mau(k) for k in CFG["kenh"] if k != job["kenh"] and canva_mau(k)), "")
     return {
-        "mau": mau or "(kênh này chưa có mẫu)",
+        "mau": (mau + (' (theme "%s" fen chọn trong kho theme)' % th.get("ten") if th else "")) if mau else "(kênh này chưa có mẫu)",
         "mau_khung": mau or khac or "(chưa có mẫu nào: search-designs tìm thiết kế cỡ 1080x1440 của fen)",
         "thu_muc_canva": CFG.get("canva_thu_muc") or "POLY Dựng Bài",
         "canva_link": cv.get("edit_url") or "(chưa có)",
@@ -4155,7 +4303,7 @@ def job_view(jid, since=0):
             ly_do = job["loi_chay"]
     return {
         "ly_do": ly_do,
-        "job": dict({k: job.get(k) for k in ("id", "kenh", "tieu_de", "ten_bai", "ngay_dang", "brief", "ghi_chu", "status", "created", "thu_muc_bai", "session_id", "anh", "sua", "model", "hen_luc", "sau_caption", "hen_bao", "nhac", "da_dang", "dang_loi", "hen_dang", "xep_hang", "dung_bang", "canva_loi")},
+        "job": dict({k: job.get(k) for k in ("id", "kenh", "tieu_de", "ten_bai", "ngay_dang", "brief", "ghi_chu", "status", "created", "thu_muc_bai", "session_id", "anh", "sua", "model", "hen_luc", "sau_caption", "hen_bao", "nhac", "da_dang", "dang_loi", "hen_dang", "xep_hang", "dung_bang", "canva_loi", "theme_canva")},
                     **dict(zip(("tieu_de", "ngay_dang"), ten_hien(job)))),
         "run": run and {"n": run["n"], "kind": run["kind"], "started": run["started"], "ended": run.get("ended")},
         "runs": len(job.get("runs", [])),
@@ -4295,7 +4443,7 @@ def list_jobs():
                 job, _ = parse_job(jid)
             except Exception:
                 pass
-        it = {k: job.get(k) for k in ("id", "kenh", "tieu_de", "status", "created", "ngay_dang", "hen_luc", "hen_dang", "hen_dang_mo", "da_dang", "xep_hang", "dung_bang")}
+        it = {k: job.get(k) for k in ("id", "kenh", "tieu_de", "status", "created", "ngay_dang", "hen_luc", "hen_dang", "hen_dang_mo", "da_dang", "xep_hang", "dung_bang", "theme_canva")}
         it["tieu_de"], it["ngay_dang"] = ten_hien(job)
         lr = (job.get("runs") or [{}])[-1]
         it["started"], it["ended"] = lr.get("started"), lr.get("ended")
@@ -4895,6 +5043,15 @@ class H(BaseHTTPRequestHandler):
                 return self.send(200, model_cai())
             if u.path == "/api/canva-cai":
                 return self.send(200, canva_cai())
+            if u.path == "/api/theme-canva":
+                return self.send(200, theme_cv())
+            m = re.fullmatch(r"/api/theme-canva/anh/(t[0-9a-f]{8})", u.path)
+            if m:
+                f = os.path.join(THEME_CV_ANH, m.group(1) + ".png")
+                if not os.path.isfile(f):
+                    return self.send(404, {"err": "chưa có ảnh"})
+                with open(f, "rb") as fh:
+                    return self.send(200, fh.read(), "image/png", {"Cache-Control": "max-age=86400"})
             if u.path == "/api/canva-tt":
                 return self.send(200, canva_tt())
             if u.path == "/api/quy-tac":
@@ -4991,6 +5148,8 @@ class H(BaseHTTPRequestHandler):
                 return self.send(200, model_cai(data))
             if u.path == "/api/don-thang":
                 return self.send(200, don_thang(data))
+            if u.path == "/api/theme-canva":
+                return self.send(200, theme_cv(data))
             if u.path == "/api/canva-cai":
                 return self.send(200, canva_cai(data))
             if u.path == "/api/canva-tt":

@@ -51,6 +51,16 @@ HẾT HẠN MỨC CLAUDE + TỰ BẬT APP (10/11)
   là máy chủ tự chạy ngầm sau 15 giây (không mở cửa sổ; bấm icon Desktop khi cần). Tắt: config.json "tu_bat": false.
   Xem trạng thái ở Kiểm máy > "Tự bật app khi mở máy".
 
+KHO THEME CANVA (10/11)
+- Cột trái → "🎨 Kho theme". Theme Canva = 1 thiết kế Canva làm mẫu (1080x1440, mỗi trang 1 kiểu slide: bìa, nội dung, cuối).
+  Dán link thiết kế (https://www.canva.com/design/D…/edit), đặt tên, chọn kênh (hoặc cả 2) và dạng bài → Thêm theme.
+  App tự lấy ảnh xem trước (1 lượt Claude ngắn, chỉ đọc + xuất trang 1, không sửa gì trên Canva). Sửa / Bỏ theme ở từng ô.
+- Mẫu có sẵn của Canva: mở mẫu trên Canva, bấm dùng mẫu để có bản trong Canva của mình, rồi dán link bản đó.
+- Bài mới: chọn "🎨 Canva" → hàng "Theme Canva" hiện ra: "Mẫu kênh" (mẫu ở Kiểm máy > Canva) hoặc 1 theme trong kho;
+  theme hợp dạng bài (đoán từ chủ đề: top 5 / hay / giá / mẹo…) có chữ "gợi ý". Claude lấy trang của theme, chỉ thay ảnh + chữ.
+- Máy khác / tài khoản Canva khác: theme phải là thiết kế người đó mở được (fen chia sẻ link). Kho theme lưu riêng từng máy (theme-canva.json).
+- Kho theme Photoshop: làm sau. Không chọn theme thì Photoshop / Canva dựng như cũ.
+
 DỌN BÀI THÁNG CŨ (10/11)
 - Kiểm máy → "Dọn bài tháng cũ" → chọn tháng → Dọn. Thư mục bài T<tháng>_… của cả 2 kênh chuyển vào
   Social Claude\_to_delete\don-T<tháng>-<lúc>\, bài tháng đó ẩn khỏi danh sách app / Quản lý / Telegram. Không xoá hẳn.
