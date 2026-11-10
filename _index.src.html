@@ -118,6 +118,22 @@ a.btn{color:var(--tx);text-decoration:none}
 .thed .edthay{align-items:center}.thed .edthay span{color:var(--mut)}
 .thed a{font-size:12.5px}
 .thed textarea.in{min-height:56px;height:64px;resize:vertical}
+.thed .etst{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:13px;color:var(--mut)}
+.thed .etg{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
+.thed .etp{position:relative;border:1px solid var(--line2);border-radius:10px;background:var(--panel2);padding:8px;display:grid;gap:6px;align-content:start}
+.thed .etp .eta{position:relative;container-type:inline-size;aspect-ratio:3/4;border-radius:7px;background:#151515;overflow:hidden;display:flex;align-items:center;justify-content:center;color:var(--dim);font-size:12px}
+.thed .etp .eta img{position:absolute;inset:0;width:100%;height:100%;object-fit:fill}
+.thed .eto{position:absolute;box-sizing:border-box;border:1px dashed transparent;border-radius:3px;cursor:text}
+.thed .eta:hover .eto{border-color:rgba(167,139,250,.6)}
+.thed .eto:hover,.thed .eto.on{border:1px solid #a78bfa;background:rgba(139,92,246,.14)}
+.thed .eto span{display:none}
+.thed .eto.doi{border:1px solid #8b5cf6}
+.thed .eto.doi span{display:block;position:absolute;inset:-1px;background:rgba(17,12,30,.93);color:var(--cl);font-size:var(--fs);line-height:var(--lh);font-weight:var(--fw);text-align:var(--al);white-space:pre-wrap;overflow:hidden;padding:0 1px}
+.thed .etf{position:absolute;z-index:5;font-size:14px;line-height:1.4;min-height:0;padding:6px 8px;border:2px solid #8b5cf6;background:#120d22;color:#fff;box-shadow:0 8px 24px rgba(0,0,0,.6);resize:none}
+.thed .etp b{font-size:12.5px;color:var(--mut)}
+.thed .etp textarea.in{min-height:0;height:auto;font-size:13px;line-height:1.35;padding:6px 8px;resize:vertical}
+.thed .etp textarea.in.doi{border-color:#8b5cf6;background:#241a3d}
+.thed .etp small{color:var(--dim);font-size:11.5px}
 .thc .thst{font-size:12px}.thc .thst.run{color:#b79cff}.thc .thst.err{color:var(--r)}.thc .thst.ok{color:var(--gl)}
 .thdang{display:flex;flex-wrap:wrap;gap:6px}
 .thdang button,.thpick button{font:inherit;font-size:12.5px;border:1px solid var(--line2);border-radius:99px;background:var(--panel);color:var(--mut);padding:4px 11px;cursor:pointer}
@@ -1376,7 +1392,7 @@ async function runNew(henLuc){
 
 /* ---------- trang bài ---------- */
 // mỗi lần mở lại / tải lại tăng S.gen: vòng hỏi cũ đang chờ mạng tự bỏ, không chạy 2 vòng song song
-function stopPoll(){ clearTimeout(S.timer); S.timer = null; S.gen = (S.gen || 0) + 1; clearInterval(S._thT); }
+function stopPoll(){ clearTimeout(S.timer); S.timer = null; S.gen = (S.gen || 0) + 1; clearInterval(S._thT); clearInterval(S._thTr); }
 function draft(){ const id = S.jobId; if (!S.drafts[id]) S.drafts[id] = {text:'', slides:new Set(), anh:[], per:{}, perAnh:{}}; return S.drafts[id]; }
 async function openJob(id){
   try { history.replaceState(null, '', '#bai=' + id); } catch(e) {}
@@ -2056,20 +2072,55 @@ async function khoTheme(){
   // ô chỉnh / nhân bản theme (fen 10/11 13h20 "cho custom theme trong kho": tạo theme mới từ theme có sẵn + chỉnh cơ bản ngay trong app)
   const moChinh = (t, nb) => { if (!t) return; const e = $('#thEd'); e.hidden = false;
     setH(e, `<b>${nb ? '⧉ Nhân bản' : '✏️ Chỉnh'} theme "${esc(t.ten)}"</b>
-      <p class="pnote">${nb ? 'Tạo thiết kế mới trên Canva từ theme này (theme gốc giữ nguyên), vào thư mục POLY Theme, thêm vào kho.' : 'Claude sửa thẳng thiết kế trên Canva. Bản cũ được copy cất vào thư mục "POLY Theme cũ" trước khi sửa.'} Chỉ chỉnh những ô fen điền, Claude làm khoảng 2–5 phút.</p>
+      <p class="pnote">${nb ? 'Tạo thiết kế mới trên Canva từ theme này (theme gốc giữ nguyên), vào thư mục POLY Theme, thêm vào kho.' : 'Claude sửa thẳng thiết kế trên Canva. Bản cũ được copy cất vào thư mục "POLY Theme cũ" trước khi sửa.'} Chỉ chỉnh chữ fen đổi + màu fen tick, Claude làm khoảng 2–5 phút.</p>
       <div class="row1"><input class="in" id="edTen" placeholder="Tên theme" value="${esc(nb ? t.ten + ' (bản 2)' : t.ten)}">${nb ? `<select class="in" id="edKenh" style="width:auto"><option value="">Cả 2 kênh</option>${Object.entries(KENH).map(([k, v]) => `<option value="${k}" ${t.kenh === k ? 'selected' : ''}>${v.ten}</option>`).join('')}</select>` : ''}</div>
       <div class="edmau"><label><input type="checkbox" id="edMcOn"> Màu chủ đạo <input type="color" id="edMc" value="#1f8f4e"></label><label><input type="checkbox" id="edMnOn"> Màu nền <input type="color" id="edMn" value="#111111"></label></div>
-      <div id="edThay"></div><a href="#" id="edThem">＋ Thay chữ</a>
+      <div class="etst" id="edTrSt"></div>
+      <div class="etg" id="edTr"></div>
       <textarea class="in" id="edGhi" rows="2" placeholder="Chỉnh thêm (tuỳ ý): vd bìa chữ to hơn, bỏ logo góc trên, đổi @poly.store thành @polystorelaptop"></textarea>
       <div class="acts"><button class="btn sm" id="edHuy">Huỷ</button><button class="btn sm pri" id="edOk">${nb ? '⧉ Nhân bản' : '✏️ Chỉnh trên Canva'}</button></div>`);
-    const dong = () => { e.hidden = true; setH(e, ''); };
-    const themDong = (a = '', b = '') => { const d = document.createElement('div'); d.className = 'row1 edthay'; d.innerHTML = `<input class="in" placeholder="Chữ cũ" value="${esc(a)}"><span>→</span><input class="in" placeholder="Chữ mới" value="${esc(b)}">`; $('#edThay').appendChild(d); };
+    const dong = () => { clearInterval(S._thTr); e.hidden = true; setH(e, ''); };
     ['#edMc', '#edMn'].forEach(id => $(id).oninput = () => { $(id + 'On').checked = true; });
-    $('#edThem').onclick = ev => { ev.preventDefault(); themDong(); };
     $('#edHuy').onclick = dong;
+    // các trang của theme: ảnh + từng ô chữ, sửa thẳng (fen 10/11 14h59 "không load template để sửa trực tiếp được hả")
+    const veTrang = r => { if (!$('#edTr') || e.dataset.tid !== t.id) return;
+      const st = $('#edTrSt'), g = $('#edTr'), co = (r.trang || []).length;
+      clearInterval(S._thTr);
+      if (r.tt === 'dang') { setH(st, `<span>⏳ Đang tải các trang từ Canva… (khoảng 1 phút)</span>`); if (!co) setH(g, ''); S._thTr = setInterval(async () => { try { veTrang(await api('/api/theme-canva/trang/' + t.id)); } catch(err) {} }, 4000); return; }
+      setH(st, r.tt === 'loi' ? `<span class="err">Chưa tải được các trang: ${esc(r.ghi || '')}</span><a href="#" id="edTrLai">Thử lại</a>`
+        : co ? `<span>Bấm thẳng vào chữ trên trang để sửa (hoặc sửa ở ô dưới trang). Chữ đã đổi hiện ngay trên trang, viền tím. ${nb ? 'Chữ sửa áp vào bản nhân bản.' : ''}</span><a href="#" id="edTrLai">Tải lại trang</a>` : '');
+      const la = $('#edTrLai'); if (la) la.onclick = async ev => { ev.preventDefault(); try { veTrang(await api('/api/theme-canva', {trang: t.id, ep: true})); } catch(err) { $('#thErr').textContent = err.message; } };
+      if (!co) return;
+      const cu = {}; g.querySelectorAll('textarea[data-o]').forEach(x => { if (x.value !== x.dataset.cu) cu[x.dataset.o] = x.value; });
+      const pc = (v, t) => (Math.max(0, +v || 0) / t * 100).toFixed(2) + '%';
+      setH(g, r.trang.map(tr => { const R = tr.rong || 1080, C = tr.cao || 1440, os = tr.o || [];
+        const hop = os.filter(o => o.w && o.h).map(o => `<div class="eto" data-h="${esc(o.id)}" title="Bấm để sửa chữ" style="left:${pc(o.left, R)};top:${pc(o.top, C)};width:${pc(o.w, R)};height:${pc(o.h, C)};--fs:${((o.co || 30) / R * 100).toFixed(3)}cqw;--lh:${+o.dong || 1.2};--fw:${o.dam ? 800 : 500};--al:${o.can === 'center' ? 'center' : o.can === 'end' ? 'right' : 'left'};--cl:${/^#[0-9a-f]{6}$/i.test(o.mau || '') ? o.mau : '#fff'}"><span></span></div>`).join('');
+        return `<div class="etp"><div class="eta" style="aspect-ratio:${R}/${C}">${tr.anh ? `<img src="${esc(tr.anh)}" alt="" loading="lazy">` : 'Chưa có ảnh trang'}${hop}</div><b>Trang ${tr.so}</b>${os.length ? os.map(o => `<textarea class="in" rows="${Math.min(6, Math.max(o.chu.split('\n').length, Math.ceil(o.chu.length / 30)))}" data-p="${tr.so}" data-o="${esc(o.id)}" data-cu="${esc(o.chu)}" spellcheck="false">${esc(o.chu)}</textarea>`).join('') : '<small>Trang này không có chữ</small>'}</div>`; }).join(''));
+      const hopCua = x => [...g.querySelectorAll('.eto')].find(h => h.dataset.h === x.dataset.o);
+      g.querySelectorAll('textarea[data-o]').forEach(x => { if (cu[x.dataset.o] != null) x.value = cu[x.dataset.o];
+        const h = hopCua(x);
+        const d = () => { const doi = x.value !== x.dataset.cu; x.classList.toggle('doi', doi); if (h) { h.classList.toggle('doi', doi); h.firstChild.textContent = x.value; } };
+        x.oninput = d; d();
+        if (h) { x.onfocus = () => h.classList.add('on'); x.onblur = () => h.classList.remove('on'); } });
+      // bấm thẳng vào chữ trên trang: ô sửa nổi ngay chỗ đó, gõ tới đâu trang + ô dưới đổi theo tới đó
+      g.onclick = ev => { const h = ev.target.closest('.eto'); if (!h) return;
+        const x = [...g.querySelectorAll('textarea[data-o]')].find(t => t.dataset.o === h.dataset.h); if (!x) return;
+        g.querySelectorAll('.etf').forEach(f => f.remove());
+        const p = h.closest('.etp'), rp = p.getBoundingClientRect(), rh = h.getBoundingClientRect();
+        const f = document.createElement('textarea'); f.className = 'in etf'; f.value = x.value; f.spellcheck = false;
+        const w = Math.min(Math.max(rh.width, 220), rp.width - 16);
+        f.style.left = Math.max(8, Math.min(rh.left - rp.left, rp.width - w - 8)) + 'px'; f.style.top = (rh.top - rp.top) + 'px'; f.style.width = w + 'px';
+        const cao = () => { f.style.height = 'auto'; f.style.height = Math.min(f.scrollHeight + 4, 220) + 'px'; };
+        p.appendChild(f); cao(); h.classList.add('on');
+        f.oninput = () => { x.value = f.value; x.oninput(); cao(); };
+        const xong = () => { h.classList.remove('on'); f.remove(); };
+        f.onblur = xong; f.onkeydown = k => { if (k.key === 'Escape' || (k.key === 'Enter' && (k.ctrlKey || k.metaKey))) { k.preventDefault(); f.blur(); } };
+        f.focus(); f.setSelectionRange(f.value.length, f.value.length); }; };
+    e.dataset.tid = t.id; setH($('#edTrSt'), '<span>⏳ Đang mở các trang…</span>');
+    api('/api/theme-canva', {trang: t.id}).then(veTrang).catch(err => setH($('#edTrSt'), `<span class="err">${esc(err.message)}</span>`));
     $('#edOk').onclick = async ev => { const b = ev.currentTarget; $('#thErr').textContent = '';
       const x = {id: t.id, ten: $('#edTen').value.trim(), ghi: $('#edGhi').value.trim(),
-        thay_chu: [...document.querySelectorAll('#edThay .edthay')].map(r => [...r.querySelectorAll('input')].map(i => i.value.trim())).filter(r => r[0]),
+        sua_o: [...document.querySelectorAll('#edTr textarea[data-o]')].filter(x => x.value !== x.dataset.cu).map(x => ({trang: +x.dataset.p, id: x.dataset.o, cu: x.dataset.cu, moi: x.value})),
         mau_chinh: $('#edMcOn').checked ? $('#edMc').value : '', mau_nen: $('#edMnOn').checked ? $('#edMn').value : ''};
       if (nb) x.kenh = $('#edKenh').value;
       b.disabled = true;

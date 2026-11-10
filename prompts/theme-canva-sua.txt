@@ -17,6 +17,7 @@ Cách làm:
    - Đổi màu chủ đạo / màu nhấn: recolor_element các hình, khung, nhãn đang mang màu chủ đạo cũ (màu nổi bật lặp lại nhiều trang, không phải trắng / đen / xám / ảnh), format_text color cho chữ đang mang màu đó. Không đổi màu ảnh chụp.
    - Đổi màu nền: phần nền là hình phủ cả trang thì recolor_element hình đó; nền là ảnh thì giữ nguyên ảnh, chỉ đổi nếu có lớp màu phủ.
    - Thay chữ: find_and_replace_text (trang responsive) hoặc replace_text đúng ô đang chứa chữ cũ, mọi trang có chữ đó.
+   - "Trang N, ô chữ <mã ô>: đổi thành đúng "…"": chỉ sửa đúng ô đó trên trang N, chữ mới giữ nguyên từng ký tự, xuống dòng (\n) fen gõ. Ô chỉ có 1 đoạn định dạng: replace_text locator_id đó. Ô có nhiều đoạn màu / cỡ khác nhau: find_and_replace_text từng phần đổi để giữ màu từng đoạn (không làm được thì replace_text). Không thấy mã ô (bản nhân bản có mã khác): dùng ô trên trang N đang có đúng chữ cũ.
    - Ý khác trong ghi chú: làm bằng các thao tác edit-design có sẵn (format_text, resize_element, position_element, delete_element, update_opacity…); ý không làm được bằng công cụ thì bỏ qua và ghi vào dòng cuối.
    Xem thumbnail sau mỗi trang: lệch, tràn chữ, mất chữ thì sửa ngay trong transaction. Xong: edit-design finalize "commit".
    Không có ý nào cần chỉnh thì bỏ qua bước này.

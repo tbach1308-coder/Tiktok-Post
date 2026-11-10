@@ -1,0 +1,13 @@
+Đọc các trang của 1 thiết kế Canva cho ô "Chỉnh theme" của app Poly Dựng Bài. CHỈ ĐỌC: không sửa, không lưu (commit), không copy, không di chuyển, không xoá gì trên Canva. Làm nhanh, không gọi agent con, không tải file nào.
+
+Thiết kế: {link} (mã {ma}), số trang: {so_trang}
+
+Công cụ Canva là các công cụ mcp__claude_ai_Canva__* (nạp nền vài giây sau khi phiên mở). Chưa thấy thì ToolSearch tìm "Canva" (chưa có thì chờ 5 giây bằng python -c "import time; time.sleep(5)" rồi tìm lại, đủ 4 lần). Vẫn không có: trả lời đúng 1 dòng "THEME_LOI Chưa nối được Canva" và dừng.
+
+1. read-design mã {ma}, filter fields ["page_metadata"] để biết số trang N.
+2. read-design mã {ma}, filter fields ["page_metadata", "thumbnails"], page_indices và thumbnail_pages là mọi trang [1, 2, …, N].
+3. read-design mã {ma}, open_transaction true, filter fields ["design_content"], page_indices [1, 2, 3]. Rồi gọi tiếp read-design với transaction_id vừa có, mỗi lần tối đa 3 trang ([4, 5, 6], [7, 8, 9]…) tới trang N.
+4. edit-design transaction_id đó, finalize "cancel" (huỷ, không lưu gì).
+App tự đọc kết quả các lần gọi công cụ ở trên, không cần chép lại nội dung.
+5. Trả lời cuối cùng đúng 1 dòng, không thêm chữ nào khác: TRANG_OK <N>
+Không mở được thiết kế (không có quyền, link sai) thì: THEME_LOI <lý do, tối đa 15 chữ>

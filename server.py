@@ -2555,6 +2555,14 @@ def _theme_yeu_cau(data):
     for x in (data.get("thay_chu") or [])[:12]:
         if isinstance(x, (list, tuple)) and len(x) == 2 and str(x[0]).strip():
             ds.append('- Thay chữ "%s" thành "%s" ở mọi trang.' % (short(str(x[0]).strip(), 80), short(str(x[1]).strip(), 120)))
+    for x in (data.get("sua_o") or [])[:80]:       # ô chữ fen sửa thẳng trong app (bảng các trang)
+        if not isinstance(x, dict) or not isinstance(x.get("trang"), int) or not str(x.get("id") or "").strip():
+            continue
+        cu, moi = str(x.get("cu") or ""), str(x.get("moi") or "")
+        if cu == moi:
+            continue
+        ds.append('- Trang %d, ô chữ %s: đổi thành đúng %s (chữ cũ: %s).' % (
+            x["trang"], short(str(x["id"]).strip(), 60), json.dumps(moi[:400], ensure_ascii=False), json.dumps(cu[:400], ensure_ascii=False)))
     ghi = re.sub(r"\s+", " ", str(data.get("ghi") or "")).strip()[:600]
     if ghi:
         ds.append("- Ghi chú của fen: " + ghi)
@@ -2653,6 +2661,12 @@ def _theme_sua_chay(cmd, t, kieu, yc, ten_moi, kenh, dang):
                         y["so_trang"] = info["so_trang"]
                     y["sua_luc"] = now()
         write_json(THEME_CV_FILE, doc)
+    if kieu != "nhan-ban":
+        ft = os.path.join(_theme_trang_dir(t["id"]), "trang.json")
+        dt = read_json(ft, None)
+        if isinstance(dt, dict) and dt.get("trang"):
+            dt["het"] = True
+            write_json(ft, dt)
     THEME_SUA[t["id"]] = {"tt": "ok", "t": now(), "ghi": short(gm.group(1).strip(), 200) if gm else "", "kieu": kieu, "moi": id_moi}
     log("theme %s %s xong -> %s" % (t["id"], kieu, ma))
 
@@ -2868,6 +2882,8 @@ def theme_cv(data=None):
         theme_dong_bo_bat(ep=data.get("dong_bo") == "ep")
     elif data.get("nhan_ban") or data.get("chinh"):
         theme_sua(data)
+    elif data.get("trang"):
+        return theme_trang_bat(str(data["trang"]), ep=bool(data.get("ep")))
     return {"ds": [_theme_ra(t) for t in theme_cv_ds()], "dang": THEME_DANG, "db": dict(THEME_DB),
             "thu_muc": CFG.get("theme_thu_muc") or "POLY Theme"}
 
@@ -2935,6 +2951,175 @@ def _theme_xem_chay(cmd, t):
     if "Chưa nối được Canva" in kq:
         canva_ghi_tt("chua", "Lấy ảnh theme", kq)
     log("theme canva %s xem: %s %s" % (t["id"], "ok" if ok else "loi", "" if ok else loi))
+
+
+# ---- Chỉnh theme: tải đủ các trang (ảnh + từng ô chữ) để fen sửa chữ ngay trong app
+# (fen 10/11 14h59 "không load template để sửa trực tiếp được hả" → chọn: tải trang, sửa chữ trong app).
+# 1 lượt haiku chỉ đọc: read-design thumbnails + design_content (mở transaction rồi huỷ). App đọc thẳng kết quả công cụ
+# trong stream-json, Claude không phải chép lại. Lưu ở theme-canva/<id>/trang.json + pNN.png.
+THEME_TRANG = {}
+
+
+def _theme_trang_dir(tid):
+    return os.path.join(THEME_CV_ANH, tid)
+
+
+def _theme_o_chu(els, ra):
+    """Các ô chữ của 1 trang (cả ô nằm trong nhóm), theo thứ tự trên xuống, trái sang."""
+    for e in els or []:
+        if not isinstance(e, dict):
+            continue
+        if e.get("type") == "text" and e.get("locator_id"):
+            vung = [r for r in (e.get("textRegions") or []) if isinstance(r, dict)]
+            chu = "".join(str(r.get("characters") or "") for r in vung)
+            if chu.strip():
+                f = (vung[0].get("formatting") or {}) if vung else {}
+                ra.append({"id": str(e["locator_id"]), "chu": chu, "vung": len(vung), "top": e.get("top") or 0, "left": e.get("left") or 0,
+                           "w": e.get("width") or 0, "h": e.get("height") or 0, "co": f.get("fontSize"), "mau": f.get("color") or "",
+                           "dam": f.get("fontWeight") == "bold", "can": f.get("textAlign") or "start", "dong": f.get("lineHeight")})
+        for k in ("elements", "children"):
+            if isinstance(e.get(k), list):
+                _theme_o_chu(e[k], ra)
+    return ra
+
+
+def theme_trang_ra(tid):
+    """GET /api/theme-canva/trang/<id>: {tt, ghi, het, trang: [{so, anh, o: [{id, chu, vung}]}]}."""
+    x = dict(THEME_TRANG.get(tid) or {})
+    d = read_json(os.path.join(_theme_trang_dir(tid), "trang.json"), None) or {}
+    ds = []
+    for tr in d.get("trang") or []:
+        f = os.path.join(_theme_trang_dir(tid), "p%02d.png" % tr.get("so", 0))
+        anh = ("/api/theme-canva/trang-anh/%s/%d?t=%d" % (tid, tr["so"], int(os.path.getmtime(f)))) if os.path.isfile(f) and _la_anh(f) else ""
+        ds.append({"so": tr.get("so"), "anh": anh, "rong": tr.get("rong") or 1080, "cao": tr.get("cao") or 1440, "o": tr.get("o") or []})
+    return {"tt": x.get("tt") or ("ok" if ds else ""), "ghi": x.get("ghi") or "", "t": d.get("t") or 0, "het": bool(d.get("het")), "trang": ds}
+
+
+def theme_trang_bat(tid, ep=False):
+    t = theme_cv_tim(tid)
+    if not t:
+        raise ValueError("Không thấy theme")
+    x = THEME_TRANG.get(tid) or {}
+    if x.get("tt") == "dang" and now() - x.get("t", 0) < 300:
+        return theme_trang_ra(tid)
+    d = read_json(os.path.join(_theme_trang_dir(tid), "trang.json"), None) or {}
+    if d.get("trang") and not d.get("het") and not ep:
+        return theme_trang_ra(tid)
+    cmd = resolve_claude()
+    if not cmd:
+        raise ValueError("Không tìm thấy Claude Code trên máy. Bấm Kiểm lại ở góc trên.")
+    THEME_TRANG[tid] = {"tt": "dang", "t": now(), "ghi": ""}
+    threading.Thread(target=_theme_trang_chay, args=(cmd, dict(t)), daemon=True).start()
+    return theme_trang_ra(tid)
+
+
+def _theme_tai_anh(url, f):
+    import urllib.request
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 PolyDungBai"})
+        with urllib.request.urlopen(req, timeout=30) as r:
+            b = r.read()
+        tam = f + ".tam"
+        with open(tam, "wb") as fh:
+            fh.write(b)
+        if _la_anh(tam):
+            os.replace(tam, f)
+            return True
+        os.remove(tam)
+    except Exception as e:
+        log("theme trang tai anh loi: %s" % e)
+    return False
+
+
+def _theme_trang_chay(cmd, t):
+    tid = t["id"]
+    d = _theme_trang_dir(tid)
+    os.makedirs(d, exist_ok=True)
+    lenh = fill(read_prompt("theme-canva-trang.txt"), {"link": t["link"], "ma": t["ma"], "so_trang": t.get("so_trang") or "chưa biết"})
+    args = cmd + ["-p", "--output-format", "stream-json", "--verbose", "--model", "haiku", "--max-turns", "25",
+                  "--allowedTools", "mcp__claude_ai_Canva", "Bash(python *)"]
+    env = env_claude()
+    if IS_MAC:
+        mac_env(env)
+    kw = {"creationflags": CREATE_NO_WINDOW} if IS_WIN else {}
+    kq, ghi = "", ""
+    trang_id, anh, noi, co_trang = {}, {}, {}, {}     # id trang -> số trang; số trang -> url ảnh / danh sách ô / (rộng, cao)
+    try:
+        p = subprocess.Popen(args, cwd=APP, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env, **kw)
+        try:
+            out, _ = p.communicate(lenh.encode("utf-8"), timeout=300)
+        except subprocess.TimeoutExpired:
+            p.kill()
+            out, _ = p.communicate()
+            ghi = "quá 5 phút"
+        ket = []                                  # mọi kết quả công cụ (JSON) theo thứ tự
+        for line in (out or b"").decode("utf-8", "replace").splitlines():
+            try:
+                o = json.loads(line)
+            except Exception:
+                continue
+            if o.get("type") == "result":
+                kq = str(o.get("result") or "")
+            if o.get("type") != "user":
+                continue
+            for b in ((o.get("message") or {}).get("content") or []):
+                if not isinstance(b, dict) or b.get("type") != "tool_result":
+                    continue
+                res = b.get("content")
+                if isinstance(res, list):
+                    res = "".join(x.get("text", "") for x in res if isinstance(x, dict) and x.get("type") == "text")
+                try:
+                    j = json.loads(str(res or ""))
+                except Exception:
+                    continue
+                if isinstance(j, dict):
+                    ket.append(j)
+        for j in ket:                              # lượt 1: số trang theo id trang + ảnh từng trang
+            pm = j.get("page_metadata")
+            if isinstance(pm, list):
+                for x in pm:
+                    if isinstance(x, dict) and x.get("id") and isinstance(x.get("index"), int):
+                        trang_id[x["id"]] = x["index"]
+            for x in j.get("thumbnails") or []:
+                if isinstance(x, dict) and isinstance(x.get("page"), int) and re.match(r"https?://", str(x.get("url") or "")):
+                    anh[x["page"]] = x["url"]
+        for j in ket:                              # lượt 2: ô chữ (design_content trong transaction)
+            dc = j.get("design_content")
+            if not isinstance(dc, dict):
+                continue
+            pm = dc.get("page_metadata") or j.get("page_metadata")
+            chiso = pm.get("returned_page_indices") if isinstance(pm, dict) else None
+            for i, pg in enumerate(dc.get("pages") or []):
+                if not isinstance(pg, dict):
+                    continue
+                so = trang_id.get(pg.get("id")) or (chiso[i] if isinstance(chiso, list) and i < len(chiso) and isinstance(chiso[i], int) else None)
+                if not so:
+                    continue
+                o = _theme_o_chu(pg.get("elements"), [])
+                o.sort(key=lambda z: (round(float(z["top"] or 0) / 20), float(z["left"] or 0)))
+                dim = pg.get("dimensions") if isinstance(pg.get("dimensions"), dict) else {}
+                co_trang[so] = (dim.get("width") or 1080, dim.get("height") or 1440)
+                noi[so] = [{k: (round(z[k], 1) if isinstance(z[k], float) else z[k]) for k in ("id", "chu", "vung", "top", "left", "w", "h", "co", "mau", "dam", "can", "dong")} for z in o]
+    except Exception as e:
+        ghi = str(e)
+    so_ds = sorted(set(noi) | set(anh))
+    if not noi:
+        hm = han_muc_text(kq)
+        loi = ghi or (han_muc_ly_do() if hm else "") or (re.sub(r"^.*THEME_LOI\s*", "", kq, flags=re.S).strip()[:160] if "THEME_LOI" in kq else short(kq or "không đọc được các trang", 160))
+        if hm:
+            han_muc_ghi(hm[0], hm[1])
+        if "Chưa nối được Canva" in kq:
+            canva_ghi_tt("chua", "Tải trang theme", kq)
+        THEME_TRANG[tid] = {"tt": "loi", "t": now(), "ghi": loi}
+        log("theme %s trang loi: %s" % (tid, loi))
+        return
+    for so in so_ds:
+        if anh.get(so):
+            _theme_tai_anh(anh[so], os.path.join(d, "p%02d.png" % so))
+    write_json(os.path.join(d, "trang.json"), {"t": now(), "ma": t["ma"], "trang": [{"so": so, "rong": (co_trang.get(so) or (1080, 1440))[0],
+                                                                                      "cao": (co_trang.get(so) or (1080, 1440))[1], "o": noi.get(so) or []} for so in so_ds]})
+    THEME_TRANG[tid] = {"tt": "ok", "t": now(), "ghi": ""}
+    log("theme %s trang: %d trang, %d o chu" % (tid, len(so_ds), sum(len(v) for v in noi.values())))
 
 
 def canva_bien(job):
@@ -5310,6 +5495,16 @@ class H(BaseHTTPRequestHandler):
                 return self.send(200, canva_cai())
             if u.path == "/api/theme-canva":
                 return self.send(200, theme_cv())
+            m = re.fullmatch(r"/api/theme-canva/trang/(t[0-9a-f]{8})", u.path)
+            if m:
+                return self.send(200, theme_trang_ra(m.group(1)))
+            m = re.fullmatch(r"/api/theme-canva/trang-anh/(t[0-9a-f]{8})/(\d{1,2})", u.path)
+            if m:
+                f = os.path.join(_theme_trang_dir(m.group(1)), "p%02d.png" % int(m.group(2)))
+                if not os.path.isfile(f) or not _la_anh(f):
+                    return self.send(404, {"err": "chưa có ảnh"})
+                with open(f, "rb") as fh:
+                    return self.send(200, fh.read(), "image/png", {"Cache-Control": "max-age=86400"})
             m = re.fullmatch(r"/api/theme-canva/anh/(t[0-9a-f]{8})", u.path)
             if m:
                 f = os.path.join(THEME_CV_ANH, m.group(1) + ".png")

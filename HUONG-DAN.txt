@@ -65,6 +65,8 @@ KHO THEME CANVA (10/11)
   "Thông tin" chỉ đổi tên / kênh / dạng bài trong kho, không đụng thiết kế.
 - Bài mới: chọn "🎨 Canva" → hàng "Theme Canva" hiện ra: "Mẫu kênh" (mẫu ở Kiểm máy > Canva) hoặc 1 theme trong kho;
   theme hợp dạng bài (đoán từ chủ đề: top 5 / hay / giá / mẹo…) có chữ "gợi ý". Claude lấy trang của theme, chỉ thay ảnh + chữ.
+- ✏️ Chỉnh / ⧉ Nhân bản: app tải đủ các trang của theme (khoảng 1 phút). Bấm thẳng vào chữ trên trang để sửa (hoặc ô dưới
+  trang), chữ đổi hiện ngay trên trang. Tick màu chủ đạo / màu nền nếu muốn, bấm "Chỉnh trên Canva": Claude lưu lên Canva (2–5 phút).
 - Máy khác / tài khoản Canva khác: theme phải là thiết kế người đó mở được (fen chia sẻ link). Kho theme lưu riêng từng máy (theme-canva.json).
 - Kho theme Photoshop: làm sau. Không chọn theme thì Photoshop / Canva dựng như cũ.
 
