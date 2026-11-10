@@ -144,6 +144,7 @@ a.btn{color:var(--tx);text-decoration:none}
 .thc .tha img{width:100%;height:100%;object-fit:cover}
 .thc b{font-size:13.5px}.thc small{color:var(--mut);font-size:12px}
 .thc .thb{display:flex;flex-wrap:wrap;gap:5px}.thc .thb .btn{padding:3px 8px;font-size:12px}
+.thc .thb [data-dung]{flex:1 1 100%;padding:6px 8px;font-size:12.5px}
 .thpick{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:-4px 0 12px}
 .thpick .lbl{margin:0 4px 0 0}
 .thpick button{display:inline-flex;align-items:center;gap:6px}
@@ -2020,7 +2021,7 @@ async function khoTheme(){
   m.innerHTML = `<div class="pad thpage">
     <div class="nhbar"><h1>Kho theme</h1>
     <div class="kseg segd"><button class="on">🎨 Canva</button><button disabled title="Làm sau">🖌 Photoshop · sắp làm</button></div></div>
-    <p class="pnote">Theme Canva = 1 thiết kế Canva làm mẫu, cỡ 1080×1440, mỗi trang 1 kiểu slide (bìa, nội dung, cuối). Bài mới chọn <b>Làm bằng Canva</b> rồi chọn theme: Claude lấy trang của theme, chỉ thay ảnh và chữ, không sửa thiết kế gốc.</p>
+    <p class="pnote">Theme Canva = 1 thiết kế Canva làm mẫu, cỡ 1080×1440, mỗi trang 1 kiểu slide (bìa, nội dung, cuối). Làm bài: bấm <b>▶ Làm bài với theme này</b> ở theme muốn dùng (hoặc ở Bài mới chọn theme ở hàng 🎨 Theme), viết brief rồi chạy như thường. Claude lấy trang của theme, chỉ thay ảnh và chữ, không sửa thiết kế gốc.</p>
     <div class="thdb"><button class="btn sm pri" id="thDb">🔄 Lấy từ Canva</button><span id="thDbSt" class="pnote"></span></div>
     <p class="pnote">Không cần dán link: trên Canva, bỏ thiết kế vào thư mục <b id="thTm">POLY Theme</b> (mẫu có sẵn của Canva thì bấm dùng mẫu trước, rồi Di chuyển vào thư mục đó). App tự lấy về, kèm ảnh và số trang. Đưa ra khỏi thư mục thì theme tự ẩn khỏi kho.</p>
     <details class="thlink"><summary>Hoặc dán link 1 thiết kế</summary>
@@ -2056,13 +2057,15 @@ async function khoTheme(){
         : sx.tt === 'ok' && nowS() - sx.t < 3600 ? `<small class="thst ok">${sx.kieu === 'nhan-ban' ? 'Đã nhân bản' : 'Đã chỉnh'}${sx.ghi ? ': ' + esc(sx.ghi) : ''}</small>` : '';
       return `<div class="thc"><div class="tha">${anh}</div><b>${esc(t.ten)}</b>
         <small>${t.kenh ? esc(KENH[t.kenh].ten) : 'Cả 2 kênh'}${(t.dang || []).length ? ' · ' + t.dang.map(tenDang).map(esc).join(', ') : ''}${t.so_trang ? ' · ' + t.so_trang + ' trang' : ''}${t.goc ? ' · bản nhân' : ''}</small>${tt}
-        <div class="thb"><button class="btn sm" data-chinh="${t.id}"${ban ? ' disabled' : ''} title="Đổi màu, thay chữ… ngay trong app, Claude làm trên Canva (bản cũ được cất lại)">✏️ Chỉnh</button><button class="btn sm" data-nb="${t.id}"${ban ? ' disabled' : ''} title="Tạo theme mới từ theme này, chỉnh luôn nếu muốn">⧉ Nhân bản</button><a class="btn sm ghost" href="${esc(t.link)}" target="_blank" rel="noopener">Mở Canva</a><button class="btn sm ghost" data-sua="${t.id}" title="Đổi tên, kênh, dạng bài trong kho (không đụng thiết kế)">Thông tin</button><button class="btn sm ghost" data-xem="${t.id}"${x.tt === 'dang' ? ' disabled' : ''}>${t.anh ? 'Làm mới ảnh' : 'Lấy ảnh'}</button><button class="btn sm ghost" data-xoa="${t.id}">Bỏ</button></div></div>`; }).join('')
+        <div class="thb"><button class="btn sm pri" data-dung="${t.id}" title="Mở Bài mới với theme này, làm bằng Canva">▶ Làm bài với theme này</button><button class="btn sm" data-chinh="${t.id}"${ban ? ' disabled' : ''} title="Đổi màu, thay chữ… ngay trong app, Claude làm trên Canva (bản cũ được cất lại)">✏️ Chỉnh</button><button class="btn sm" data-nb="${t.id}"${ban ? ' disabled' : ''} title="Tạo theme mới từ theme này, chỉnh luôn nếu muốn">⧉ Nhân bản</button><a class="btn sm ghost" href="${esc(t.link)}" target="_blank" rel="noopener">Mở Canva</a><button class="btn sm ghost" data-sua="${t.id}" title="Đổi tên, kênh, dạng bài trong kho (không đụng thiết kế)">Thông tin</button><button class="btn sm ghost" data-xem="${t.id}"${x.tt === 'dang' ? ' disabled' : ''}>${t.anh ? 'Làm mới ảnh' : 'Lấy ảnh'}</button><button class="btn sm ghost" data-xoa="${t.id}">Bỏ</button></div></div>`; }).join('')
       : '<p class="pnote">Kho trống. Dán link thiết kế Canva ở trên để thêm theme đầu tiên.</p>');
     clearInterval(S._thT); if (db.tt === 'dang' || ds.some(t => (t.xem || {}).tt === 'dang' || (t.sua || {}).tt === 'dang')) S._thT = setInterval(tai, 5000);
   };
   const tai = async () => { if (!dangXem()) return clearInterval(S._thT); try { ve(await api('/api/theme-canva')); } catch(e) { if (dangXem()) $('#thErr').textContent = e.message; } };
   $('#thG').onclick = async e => { const b = e.target.closest('button'); if (!b) return; $('#thErr').textContent = '';
     try {
+      if (b.dataset.dung) { const t = ds.find(x => x.id === b.dataset.dung); if (!t) return; const f = S.form;   // fen 10/11 15h06 "h muốn chọn mẫu để chạy thì làm sao"
+        f.theme = t.id; f.dung = 'canva'; if (t.kenh && KENH[t.kenh]) f.kenh = t.kenh; saveForm(); newView(); toast('Đã chọn theme "' + t.ten + '", làm bằng Canva'); return; }
       if (b.dataset.xem) ve(await api('/api/theme-canva', {xem: b.dataset.xem}));
       else if (b.dataset.xoa) { const t = ds.find(x => x.id === b.dataset.xoa); if (confirm('Bỏ theme "' + (t ? t.ten : '') + '" khỏi kho? (Thiết kế trên Canva vẫn còn nguyên.)')) ve(await api('/api/theme-canva', {xoa: b.dataset.xoa})); }
       else if (b.dataset.chinh || b.dataset.nb) moChinh(ds.find(x => x.id === (b.dataset.chinh || b.dataset.nb)), !!b.dataset.nb);
