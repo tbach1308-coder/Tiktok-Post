@@ -171,6 +171,8 @@ a.btn{color:var(--tx);text-decoration:none}
 .thpick button i{font-style:normal;font-size:11px;color:var(--gl)}
 .thpick a{font-size:12.5px}
 .thpick .thmot{font-size:12px;color:var(--dim)}
+.thpick button b.thx{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;margin:0 -4px 0 2px;border-radius:50%;background:#3a2c5c;color:#e3d8ff;font-size:11px;font-weight:700}
+.thpick button b.thx:hover{background:var(--r);color:#fff}
 .sbtabs{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:10px 10px 6px;border-bottom:1px solid var(--line)}
 .sbtabs button{border:0;background:none;color:var(--mut);font:inherit;font-size:12px;font-weight:600;padding:7px 2px;border-radius:8px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;line-height:1.15}
 .sbtabs button b{font-size:14px;color:var(--tx)}
@@ -1233,7 +1235,7 @@ function newView(){
     const dg = doanDang((f.chude || '') + ' ' + (f.brief || '').split('\n')[0]);
     // fen 10/11 13h31 "chỗ làm bài mới cho chọn theme để chạy bài viết": hàng theme luôn hiện; bấm 1 theme là chuyển sang làm bằng Canva
     const thCo = cv && f.theme;
-    setH($('#thPick'), `<div class="thpick"><span class="lbl">🎨 Theme</span><button data-th="-" class="${thCo ? '' : 'on'}" title="${cv ? 'Canva dùng mẫu của kênh (Kiểm máy > Canva)' : 'Photoshop tự vẽ theo bộ dựng của shop'}">${cv ? 'Mẫu kênh' : 'Không theme'}</button>${ths.map(t => `<button data-th="${t.id}" class="${thCo && f.theme === t.id ? 'on' : ''}" title="${esc(t.ten)}${t.so_trang ? ' · ' + t.so_trang + ' trang' : ''} · làm bằng Canva${thCo && f.theme === t.id ? ' · bấm lần nữa để bỏ chọn' : ''}">${t.anh ? `<img src="${esc(t.anh)}" alt="">` : ''}${esc(tenGon(t))}${dg && (t.dang || []).includes(dg) ? ' <i>gợi ý</i>' : ''}</button>`).join('')}${thCo ? '<span class="thmot">chỉ dùng 1 theme · bấm lại để bỏ</span>' : ''}<a href="#" id="thMo">${ths.length ? 'Kho theme' : '＋ Kho theme đang trống, thêm theme'}</a></div>`);
+    setH($('#thPick'), `<div class="thpick"><span class="lbl">🎨 Theme</span><button data-th="-" class="${thCo ? '' : 'on'}" title="${cv ? 'Canva dùng mẫu của kênh (Kiểm máy > Canva)' : 'Photoshop tự vẽ theo bộ dựng của shop'}">${cv ? 'Mẫu kênh' : 'Không theme'}</button>${ths.map(t => `<button data-th="${t.id}" class="${thCo && f.theme === t.id ? 'on' : ''}" title="${esc(t.ten)}${t.so_trang ? ' · ' + t.so_trang + ' trang' : ''} · làm bằng Canva${thCo && f.theme === t.id ? ' · bấm lần nữa để bỏ chọn' : ''}">${t.anh ? `<img src="${esc(t.anh)}" alt="">` : ''}${esc(tenGon(t))}${dg && (t.dang || []).includes(dg) ? ' <i>gợi ý</i>' : ''}${thCo && f.theme === t.id ? '<b class="thx" title="Bỏ chọn theme">✕</b>' : ''}</button>`).join('')}${thCo ? '<span class="thmot">chỉ dùng 1 theme · bấm ✕ để bỏ</span>' : ''}<a href="#" id="thMo">${ths.length ? 'Kho theme' : '＋ Kho theme đang trống, thêm theme'}</a></div>`);
     document.querySelectorAll('#thPick [data-th]').forEach(b => b.onclick = () => { if (b.dataset.th === '-' || (thCo && f.theme === b.dataset.th)) f.theme = ''; else { f.theme = b.dataset.th; f.dung = 'canva'; } saveForm(); veDung(); });   // fen 10/11 15h11 "lỡ chọn nhiều là xóa không được hả": chỉ chọn 1 theme, bấm lại theme đang chọn là bỏ chọn
     const tm = $('#thMo'); if (tm) tm.onclick = ev => { ev.preventDefault(); khoTheme(); };
     setH($('#dungGhi'), cv && S.cvMau && !mau && !f.theme ? `<span class="stc">${esc(KENH[f.kenh].ten)} chưa có mẫu Canva · <a href="#" id="dungMau">thêm mẫu</a> hoặc chọn theme</span>` : '');
