@@ -51,6 +51,12 @@ HẾT HẠN MỨC CLAUDE + TỰ BẬT APP (10/11)
   là máy chủ tự chạy ngầm sau 15 giây (không mở cửa sổ; bấm icon Desktop khi cần). Tắt: config.json "tu_bat": false.
   Xem trạng thái ở Kiểm máy > "Tự bật app khi mở máy".
 
+DỌN BÀI THÁNG CŨ (10/11)
+- Kiểm máy → "Dọn bài tháng cũ" → chọn tháng → Dọn. Thư mục bài T<tháng>_… của cả 2 kênh chuyển vào
+  Social Claude\_to_delete\don-T<tháng>-<lúc>\, bài tháng đó ẩn khỏi danh sách app / Quản lý / Telegram. Không xoá hẳn.
+- Tên bài đã dọn ghi vào _bo-dung-design\noi-dung\danh-sach-content-da-don.md để Claude vẫn dò trùng được.
+- Lấy lại: chuyển thư mục về chỗ cũ; bài trong app thì mở jobs\<id>\job.json bỏ dòng "an".
+
 LẤY MÁY + GIÁ TỪ KHO POLYSTO (Ô KHO, 9/11)
 - Ô "📦 Kho" dưới ô Chủ đề: dán link kho (https://app.polystorevn.com/kho-may, hoặc bấm "Cả kho") hoặc seri máy
   (vd JJRNZ54 FNDSSV3). Bấm Viết brief / chat sửa brief: Claude lấy máy thật đang tồn kho + giá bán để viết bài.

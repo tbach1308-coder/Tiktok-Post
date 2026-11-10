@@ -3409,7 +3409,7 @@ def _tgl_so_lieu(chi_tiet=True):
     hom_nay = time.strftime("%Y-%m-%d")
     for jid in (sorted(os.listdir(JOBS), reverse=True)[:300] if os.path.isdir(JOBS) else []):
         j = read_json(os.path.join(JOBS, jid, "job.json"))
-        if not j:
+        if not j or j.get("an"):
             continue
         k, s = j.get("kenh"), j.get("status")
         if j.get("loai") in VIEC_AN:
@@ -3563,7 +3563,7 @@ def tgl_ds_cho():
     ds = []
     for jid in (sorted(os.listdir(JOBS), reverse=True)[:300] if os.path.isdir(JOBS) else []):
         j = read_json(os.path.join(JOBS, jid, "job.json"))
-        if j and j.get("loai") not in VIEC_AN and j.get("status") == "xong" and not j.get("da_dang"):
+        if j and j.get("loai") not in VIEC_AN and not j.get("an") and j.get("status") == "xong" and not j.get("da_dang"):
             ds.append(j)
     if not ds:
         return tgl_gui("📮 Không có bài chờ đăng.")
@@ -3980,7 +3980,7 @@ def quan_ly():
     base = "/file?p="
     for jid in (sorted(os.listdir(JOBS), reverse=True)[:300] if os.path.isdir(JOBS) else []):
         j = read_json(os.path.join(JOBS, jid, "job.json"))
-        if not j or j.get("loai") in VIEC_AN:
+        if not j or j.get("loai") in VIEC_AN or j.get("an"):
             continue
         sl = list_slides(j.get("thu_muc_bai")) if j.get("status") == "xong" else []
         ten, ngay = ten_hien(j)
@@ -3999,7 +3999,7 @@ def _bai_theo_ngay(kenh, tru=""):
         if jid == tru:
             continue
         j = read_json(os.path.join(JOBS, jid, "job.json"))
-        if not j or j.get("kenh") != kenh or j.get("loai") in VIEC_AN:
+        if not j or j.get("kenh") != kenh or j.get("loai") in VIEC_AN or j.get("an"):
             continue
         dd = j.get("da_dang") or {}
         t = dd.get("lich") or dd.get("t") or j.get("hen_dang")
@@ -4221,13 +4221,74 @@ def ten_hien(job):
     return (ten or ten_tu_brief(job.get("brief")) or job.get("tieu_de") or "Bài mới"), ngay
 
 
+# ---------------------------------------------------------------- dọn bài tháng cũ (fen 10/11 "các bài post của tháng 10 xoá đi")
+# Không xoá hẳn: thư mục bài T<tháng>_* chuyển vào <thư mục làm việc>/_to_delete/don-T<tháng>-<lúc>/<Kênh>/; bài trong app đánh dấu
+# "an" (ẩn khỏi danh sách, Quản lý, Telegram, bài có sẵn), muốn xem lại thì bỏ cờ "an" trong jobs/<id>/job.json.
+def don_thang(data):
+    thang = int(data.get("thang") or 0)
+    if not 1 <= thang <= 12:
+        raise ValueError("Chọn tháng 1–12")
+    nam = int(data.get("nam") or time.localtime().tm_year)
+    lt = time.localtime()
+    if (nam, thang) >= (lt.tm_year, lt.tm_mon):
+        raise ValueError("Chỉ dọn tháng đã qua")
+    tien = "T%d_" % thang
+    luc = time.strftime("%d%m-%H%M%S")
+    goc = os.path.join(CFG.get("thu_muc_lam_viec") or APP, "_to_delete", "don-T%d-%s" % (thang, luc))
+    da_chuyen, loi, ghi_da_don = [], [], []
+    for kenh, root in (CFG.get("thu_muc_bai") or {}).items():
+        if not root or not os.path.isdir(root):
+            continue
+        for fn in sorted(os.listdir(root)):
+            f = os.path.join(root, fn)
+            if not fn.startswith(tien) or not os.path.isdir(f):
+                continue
+            dst = os.path.join(goc, os.path.basename(root.rstrip("\\/")), fn)
+            try:
+                os.makedirs(os.path.dirname(dst), exist_ok=True)
+                shutil.move(f, dst)
+                da_chuyen.append(f)
+                ten, ngay = ten_thu_muc(fn)
+                ghi_da_don.append("- %s · %s (%s)" % (ngay or "T%d" % thang, ten, CFG["kenh"].get(kenh, {}).get("ten", kenh)))
+            except OSError as e:
+                loi.append("%s: %s" % (fn, e))
+    # bài trong app: thư mục bài bắt đầu T<tháng>_ (kể cả đã chuyển) hoặc tạo trong tháng đó cùng năm
+    n_an = 0
+    with LOCK:
+        for jid in (os.listdir(JOBS) if os.path.isdir(JOBS) else []):
+            j = load_job(jid)
+            if not j or j.get("an") or j.get("status") == "dang-chay":
+                continue
+            tm = os.path.basename((j.get("thu_muc_bai") or "").rstrip("\\/"))
+            c = time.localtime(j.get("created") or 0)
+            if tm.startswith(tien) or (c.tm_year, c.tm_mon) == (nam, thang):
+                j["an"] = {"luc": now(), "ly_do": "dọn tháng %d" % thang}
+                save_job(j)
+                n_an += 1
+    # tên bài đã dọn vẫn phải có trong danh sách content (Claude dò trùng bằng tên thư mục): ghi thêm vào noi-dung/danh-sach-content-da-don.md
+    if ghi_da_don:
+        try:
+            nd = os.path.join(CFG.get("thu_muc_lam_viec") or APP, "_bo-dung-design", "noi-dung")
+            os.makedirs(nd, exist_ok=True)
+            fp = os.path.join(nd, "danh-sach-content-da-don.md")
+            moi = not os.path.exists(fp)
+            with open(fp, "a", encoding="utf-8") as fh:
+                if moi:
+                    fh.write("# Bài đã dọn khỏi thư mục kênh (vẫn là bài ĐÃ LÀM, dò trùng như danh sách content)\n\n")
+                fh.write("\n## Dọn tháng %d/%d (lúc %s)\n%s\n" % (thang, nam, time.strftime("%H:%M %d/%m/%Y"), "\n".join(ghi_da_don)))
+        except OSError as e:
+            loi.append("ghi danh sách đã dọn: %s" % e)
+    log("don thang %d: chuyen %d thu muc -> %s, an %d bai%s" % (thang, len(da_chuyen), goc, n_an, (" | loi: " + "; ".join(loi)) if loi else ""))
+    return {"ok": True, "thu_muc": len(da_chuyen), "bai": n_an, "den": goc if da_chuyen else "", "loi": loi}
+
+
 def list_jobs():
     out = []
     if not os.path.isdir(JOBS):
         return out
     for jid in sorted(os.listdir(JOBS), reverse=True)[:200]:
         job = read_json(os.path.join(JOBS, jid, "job.json"))
-        if not job or job.get("loai") in VIEC_AN:   # việc "Viết brief", "Ghi quy tắc" không phải bài
+        if not job or job.get("loai") in VIEC_AN or job.get("an"):   # việc "Viết brief", "Ghi quy tắc" không phải bài; "an": đã dọn
             continue
         if job.get("status") == "dang-chay":
             try:
@@ -4928,6 +4989,8 @@ class H(BaseHTTPRequestHandler):
                 return self.send(200, tiktok_cai(data))
             if u.path == "/api/model-cai":
                 return self.send(200, model_cai(data))
+            if u.path == "/api/don-thang":
+                return self.send(200, don_thang(data))
             if u.path == "/api/canva-cai":
                 return self.send(200, canva_cai(data))
             if u.path == "/api/canva-tt":

@@ -26,7 +26,7 @@ Brief đang có trong ô:
 - "E:/Social Claude/POLY-quy-tac-lam-content.md": chỉ mục 1, mục 4 và mục 12 "Logic rút ra" (mục 12 thắng mọi luật khác, kể cả lệnh này khi lệch)
 
 Dò trùng (bắt buộc, trước khi viết):
-- "E:/Social Claude/_bo-dung-design/noi-dung/danh-sach-content-22-10.md" (bản chụp 22/10) và tên các thư mục bài trong "{thu_muc_kenh}" (mỗi thư mục T<tháng>_<Tên>_<dd-mm> là 1 bài đã làm; xem bằng 1 lần Glob hoặc ls).
+- "E:/Social Claude/_bo-dung-design/noi-dung/danh-sach-content-22-10.md" (bản chụp 22/10), "E:/Social Claude/_bo-dung-design/noi-dung/danh-sach-content-da-don.md" nếu có (bài tháng cũ fen đã dọn khỏi thư mục kênh, vẫn là bài đã làm) và tên các thư mục bài trong "{thu_muc_kenh}" (mỗi thư mục T<tháng>_<Tên>_<dd-mm> là 1 bài đã làm; xem bằng 1 lần Glob hoặc ls).
 - TRÙNG THÌ LÀM CÁI KHÁC (luật 1b, fen đổi 03/11, mọi kiểu A, B, C): chủ đề đã có bài (cùng câu hỏi chính, cùng cặp máy so sánh, cùng bộ mẹo), đăng bao lâu rồi cũng vậy, thì tự chọn chủ đề chưa có bài, gần ý fen nhất, đúng kênh, đúng loại bài (xem cả mục "Chưa làm" của danh sách content), rồi viết brief và ghi file luôn, không dừng, không hỏi lại. Dòng 1 câu trả lời cuối thêm " · đổi vì trùng <tên bài đã làm, tối đa 8 chữ>".
   Chỉ làm lại đúng chủ đề cũ khi chủ đề / ghi chú fen ghi rõ "làm lại". Bài định kỳ (bảng giá tháng, cập nhật bảng giá) mỗi kỳ là chủ đề mới, viết bình thường.
 - Không trùng chủ đề nhưng có ý slide đã dùng ở bài trước: bỏ ý đó, thay ý khác (không cần báo).

@@ -751,6 +751,10 @@ function kiemMay(denTT){
     <div class="kmtt" id="kmMd"><b>Model từng việc</b>
       <p class="pnote">Opus kỹ nhưng chậm, Sonnet nhanh, Haiku nhanh nhất cho việc nhẹ. Bài mới và ô Sửa bài có chọn riêng cho từng bài. "Mặc định" = model mặc định của tài khoản đang đăng nhập.</p>
       <div id="kmMdL">Đang tải…</div><p class="err" id="kmMdErr"></p></div>
+    <div class="kmtt" id="kmDon"><b>Dọn bài tháng cũ</b>
+      <p class="pnote">Chuyển thư mục bài của tháng đó (T&lt;tháng&gt;_…) vào <b>_to_delete</b> trong thư mục Social Claude và ẩn bài khỏi danh sách app. Không xoá hẳn, muốn lấy lại thì chuyển thư mục về chỗ cũ.</p>
+      <div class="acts" style="margin-top:6px"><select class="in" id="kmDonT" style="width:auto"></select><button class="btn sm" id="kmDonB">Dọn tháng này</button></div>
+      <p class="err" id="kmDonErr"></p><p class="okc" id="kmDonOk"></p></div>
     <div class="acts"><button class="btn" id="kmKiem">Kiểm lại</button><button class="btn" id="kmTk">Đổi tài khoản</button><button class="btn pri" id="kmDong">Đóng</button></div></div>`;
   document.body.appendChild(m);
   const dong = () => { m.remove(); };
@@ -763,6 +767,15 @@ async function cvCai(){
   let c; try { c = await api('/api/canva-cai'); } catch(e) { $('#kmCvErr').textContent = e.message; return; }
   if (!$('#kmCvI')) return;
   $('#kmCvI').value = c.mau.ipad || ''; $('#kmCvL').value = c.mau.laptop || ''; $('#kmCvTm').textContent = c.thu_muc;
+  // dọn bài tháng cũ (fen 10/11 "các bài post của tháng 10 xoá đi")
+  (() => { const sel = $('#kmDonT'); if (!sel) return; const d = new Date(); let y = d.getFullYear(), mo = d.getMonth();   // tháng trước trở về
+    const ops = []; for (let i = 0; i < 6; i++) { if (mo < 1) { mo = 12; y--; } ops.push([mo, y]); mo--; }
+    sel.innerHTML = ops.map(([m, yy]) => `<option value="${m}|${yy}">Tháng ${m}/${yy}</option>`).join('');
+    $('#kmDonB').onclick = async e => { const [m, yy] = sel.value.split('|'); $('#kmDonErr').textContent = ''; $('#kmDonOk').textContent = '';
+      if (!confirm(`Chuyển mọi thư mục bài tháng ${m}/${yy} vào _to_delete và ẩn khỏi app?`)) return;
+      const b = e.currentTarget; b.disabled = true;
+      try { const r = await api('/api/don-thang', {thang: +m, nam: +yy}); $('#kmDonOk').textContent = `Đã chuyển ${r.thu_muc} thư mục${r.den ? ' vào ' + r.den : ''}, ẩn ${r.bai} bài.` + (r.loi.length ? ' Lỗi: ' + r.loi.join('; ') : ''); loadJobs(); }
+      catch(err) { $('#kmDonErr').textContent = err.message; } b.disabled = false; }; })();
   $('#kmCvLuu').onclick = async e => { const b = e.currentTarget; $('#kmCvErr').textContent = ''; b.disabled = true;
     try { const r = await api('/api/canva-cai', {mau_ipad: $('#kmCvI').value.trim(), mau_laptop: $('#kmCvL').value.trim()}); S.cvMau = r.mau; if (S._veDung) S._veDung(); toast('Đã lưu mẫu Canva'); }
     catch(err) { $('#kmCvErr').textContent = err.message; } b.disabled = false; };
