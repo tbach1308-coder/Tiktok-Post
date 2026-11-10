@@ -1199,8 +1199,10 @@ function newView(){
     const ths = (S.themeCv || []).filter(t => !t.kenh || t.kenh === f.kenh);
     if (f.theme && !ths.some(t => t.id === f.theme)) f.theme = '';
     const dg = doanDang((f.chude || '') + ' ' + (f.brief || '').split('\n')[0]);
-    setH($('#thPick'), cv ? `<div class="thpick"><span class="lbl">🎨 Theme Canva</span><button data-th="" class="${f.theme ? '' : 'on'}" title="Dùng mẫu Canva của kênh (Kiểm máy > Canva)">Mẫu kênh</button>${ths.map(t => `<button data-th="${t.id}" class="${f.theme === t.id ? 'on' : ''}" title="${esc(t.ten)}${t.so_trang ? ' · ' + t.so_trang + ' trang' : ''}">${t.anh ? `<img src="${esc(t.anh)}" alt="">` : ''}${esc(t.ten)}${dg && (t.dang || []).includes(dg) ? ' <i>gợi ý</i>' : ''}</button>`).join('')}<a href="#" id="thMo">${ths.length ? 'Kho theme' : '＋ Thêm theme vào kho'}</a></div>` : '');
-    document.querySelectorAll('#thPick [data-th]').forEach(b => b.onclick = () => { f.theme = b.dataset.th; saveForm(); veDung(); });
+    // fen 10/11 13h31 "chỗ làm bài mới cho chọn theme để chạy bài viết": hàng theme luôn hiện; bấm 1 theme là chuyển sang làm bằng Canva
+    const thCo = cv && f.theme;
+    setH($('#thPick'), `<div class="thpick"><span class="lbl">🎨 Theme</span><button data-th="-" class="${thCo ? '' : 'on'}" title="${cv ? 'Canva dùng mẫu của kênh (Kiểm máy > Canva)' : 'Photoshop tự vẽ theo bộ dựng của shop'}">${cv ? 'Mẫu kênh' : 'Không theme'}</button>${ths.map(t => `<button data-th="${t.id}" class="${thCo && f.theme === t.id ? 'on' : ''}" title="${esc(t.ten)}${t.so_trang ? ' · ' + t.so_trang + ' trang' : ''} · làm bằng Canva">${t.anh ? `<img src="${esc(t.anh)}" alt="">` : ''}${esc(t.ten)}${dg && (t.dang || []).includes(dg) ? ' <i>gợi ý</i>' : ''}</button>`).join('')}<a href="#" id="thMo">${ths.length ? 'Kho theme' : '＋ Kho theme đang trống, thêm theme'}</a></div>`);
+    document.querySelectorAll('#thPick [data-th]').forEach(b => b.onclick = () => { if (b.dataset.th === '-') f.theme = ''; else { f.theme = b.dataset.th; f.dung = 'canva'; } saveForm(); veDung(); });
     const tm = $('#thMo'); if (tm) tm.onclick = ev => { ev.preventDefault(); khoTheme(); };
     setH($('#dungGhi'), cv && S.cvMau && !mau && !f.theme ? `<span class="stc">${esc(KENH[f.kenh].ten)} chưa có mẫu Canva · <a href="#" id="dungMau">thêm mẫu</a> hoặc chọn theme</span>` : '');
     const dm = $('#dungMau'); if (dm) dm.onclick = ev => { ev.preventDefault(); kiemMay(); setTimeout(() => { const k = $('#kmCv'); if (k) k.scrollIntoView({block: 'center'}); }, 300); }; };
