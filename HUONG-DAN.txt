@@ -67,6 +67,11 @@ KHO THEME CANVA (10/11)
   theme hợp dạng bài (đoán từ chủ đề: top 5 / hay / giá / mẹo…) có chữ "gợi ý". Claude lấy trang của theme, chỉ thay ảnh + chữ.
 - ✏️ Chỉnh / ⧉ Nhân bản: app tải đủ các trang của theme (khoảng 1 phút). Bấm thẳng vào chữ trên trang để sửa (hoặc ô dưới
   trang), chữ đổi hiện ngay trên trang. Tick màu chủ đạo / màu nền nếu muốn, bấm "Chỉnh trên Canva": Claude lưu lên Canva (2–5 phút).
+- Làm bài: bấm "▶ Làm bài với theme này" (hoặc chọn ở hàng 🎨 Theme của Bài mới; bấm lại theme đang chọn là bỏ chọn).
+- KHO CHUNG (Google Drive): máy shop bấm "⬆ Đưa kho lên Drive" → file "POLY Kho Theme\kho-theme-canva.json" trong Google Drive.
+  Lần đầu: chuột phải file đó → Chia sẻ → "Bất kỳ ai có đường liên kết" → Sao chép đường liên kết, dán vào ô Link kho chung.
+  Máy khác: dán link đó 1 lần → "⬇ Tải kho chung" là có theme. Theme muốn dùng ở tài khoản Canva khác: trên Canva mở theme →
+  Chia sẻ → "Bất kỳ ai có liên kết", dán link vào nút Thông tin của theme rồi đưa lên lại.
 - Máy khác / tài khoản Canva khác: theme phải là thiết kế người đó mở được (fen chia sẻ link). Kho theme lưu riêng từng máy (theme-canva.json).
 - Kho theme Photoshop: làm sau. Không chọn theme thì Photoshop / Canva dựng như cũ.
 

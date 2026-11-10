@@ -2578,6 +2578,8 @@ def theme_sua(data):
         raise ValueError("Không thấy theme")
     if (THEME_SUA.get(t["id"]) or {}).get("tt") == "dang" and now() - THEME_SUA[t["id"]].get("t", 0) < 1200:
         raise ValueError("Theme này đang được chỉnh, chờ xong đã")
+    if kieu == "sua" and t.get("nguon") == "kho-chung":
+        raise ValueError("Theme lấy từ kho chung là thiết kế của fen: bấm Nhân bản để có bản riêng rồi chỉnh bản đó")
     yc = _theme_yeu_cau(x)
     if kieu == "sua" and not yc and not (x.get("ten") or "").strip():
         raise ValueError("Chưa chọn chỉnh gì")
@@ -2833,6 +2835,8 @@ def _theme_ra(t):
     o["xem"] = THEME_XEM.get(t.get("id"))
     o["sua"] = THEME_SUA.get(t.get("id"))
     o["goc"] = t.get("goc")
+    o["nguon"] = t.get("nguon") or ""
+    o["link_chia_se"] = t.get("link_chia_se") or ""
     return o
 
 
@@ -2863,6 +2867,11 @@ def theme_cv(data=None):
                 if ten:
                     t["ten"] = ten
                 t["kenh"], t["dang"] = kenh, dang
+                if "link_chia_se" in x:
+                    v = _la_link_canva(str(x.get("link_chia_se") or "").strip()) if str(x.get("link_chia_se") or "").strip() else ""
+                    if str(x.get("link_chia_se") or "").strip() and not v:
+                        raise ValueError("Link chia sẻ: dán link Canva (https://www.canva.com/design/…)")
+                    t["link_chia_se"] = v
             write_json(THEME_CV_FILE, doc)
         if data.get("them"):
             _theme_xem_bat(t)       # thêm xong tự lấy ảnh xem trước
@@ -2886,6 +2895,170 @@ def theme_cv(data=None):
         return theme_trang_bat(str(data["trang"]), ep=bool(data.get("ep")))
     return {"ds": [_theme_ra(t) for t in theme_cv_ds()], "dang": THEME_DANG, "db": dict(THEME_DB),
             "thu_muc": CFG.get("theme_thu_muc") or "POLY Theme"}
+
+
+# ---- Kho theme chung trên Google Drive (fen 10/11 15h05 "lấy gg drive làm kho theme trực tiếp, ai cần bấm tải về trong app rồi là sài luôn";
+# chọn: danh sách theme Canva chung). Theme vẫn nằm trên Canva; Drive giữ 1 file kho-theme-canva.json (tên, kênh, dạng, số trang,
+# link Canva, ảnh bìa nhỏ). Máy fen (có Google Drive for Desktop) ghi thẳng vào thư mục Drive; máy khác tải bằng link chia sẻ
+# công khai của file đó (không cần đăng nhập, không tốn lượt Claude).
+KHO_CHUNG_TEN = "kho-theme-canva.json"
+KHO_CHUNG_TM = "POLY Kho Theme"
+KHO_CHUNG_TT = {"tai": {}, "dua": {}}
+
+
+def kho_chung_drive():
+    """Thư mục Google Drive trên máy (Drive for Desktop): <ổ>:\\My Drive (hoặc "Drive của tôi"), Mac ~/Library/CloudStorage/GoogleDrive-*."""
+    cs = []
+    if CFG.get("kho_chung_dir"):
+        cs.append(os.path.dirname(CFG["kho_chung_dir"].rstrip("\\/")))
+    if IS_WIN:
+        for c in "GHIJKLMNOPQRSTUVWXYZDEF":
+            for ten in ("My Drive", "Drive của tôi"):
+                cs.append("%s:\\%s" % (c, ten))
+    elif IS_MAC:
+        import glob
+        for g in sorted(glob.glob(os.path.expanduser("~/Library/CloudStorage/GoogleDrive-*"))):
+            cs += [os.path.join(g, "My Drive"), os.path.join(g, "Drive của tôi")]
+    for c in cs:
+        try:
+            if c and os.path.isdir(c):
+                return c
+        except OSError:
+            continue
+    return ""
+
+
+def kho_chung_dir():
+    if CFG.get("kho_chung_dir") and os.path.isdir(os.path.dirname(CFG["kho_chung_dir"].rstrip("\\/"))):
+        return CFG["kho_chung_dir"]
+    d = kho_chung_drive()
+    return os.path.join(d, KHO_CHUNG_TM) if d else ""
+
+
+def _kho_chung_url(link):
+    link = (link or "").strip()
+    m = re.search(r"drive\.google\.com/(?:file/d/|open\?id=|uc\?(?:[^#]*&)?id=)([A-Za-z0-9_-]{20,})", link) or \
+        re.search(r"drive\.usercontent\.google\.com/.*[?&]id=([A-Za-z0-9_-]{20,})", link)
+    if m:
+        return "https://drive.usercontent.google.com/download?id=%s&export=download&confirm=t" % m.group(1)
+    return link if re.match(r"https?://", link) else ""
+
+
+def kho_chung_ra():
+    d = kho_chung_dir()
+    f = os.path.join(d, KHO_CHUNG_TEN) if d else ""
+    return {"link": CFG.get("kho_chung_link") or "", "dir": d, "file": f, "co_drive": bool(d),
+            "co_file": bool(f and os.path.isfile(f)), "tai": dict(KHO_CHUNG_TT["tai"]), "dua": dict(KHO_CHUNG_TT["dua"])}
+
+
+def kho_chung(data=None):
+    """GET /api/kho-chung. POST {link} lưu link | {tai: true} tải về kho máy này | {dua: [id…] | true} đưa theme lên Drive."""
+    data = data or {}
+    if "link" in data:
+        v = str(data.get("link") or "").strip()
+        if v and not _kho_chung_url(v):
+            raise ValueError("Dán link chia sẻ của file %s trên Google Drive (https://drive.google.com/file/d/…)" % KHO_CHUNG_TEN)
+        save_cfg_keys({"kho_chung_link": v})
+    if data.get("dua"):
+        kho_chung_dua(data["dua"])
+    if data.get("tai"):
+        kho_chung_tai()
+    return kho_chung_ra()
+
+
+def kho_chung_dua(chon):
+    d = kho_chung_dir()
+    if not d:
+        raise ValueError("Máy này chưa có Google Drive cho máy tính (ổ Google Drive). Đưa lên kho chung làm ở máy shop.")
+    os.makedirs(d, exist_ok=True)
+    f = os.path.join(d, KHO_CHUNG_TEN)
+    cu = read_json(f, None) if os.path.isfile(f) else None
+    ds = [x for x in ((cu or {}).get("ds") or []) if isinstance(x, dict) and x.get("ma")]
+    theo_ma = {x["ma"]: x for x in ds}
+    them = 0
+    for t in theme_cv_ds():
+        if t.get("nguon") == "kho-chung" or (chon is not True and t.get("id") not in (chon or [])):
+            continue
+        anh = ""
+        fa = os.path.join(THEME_CV_ANH, "%s.png" % t["id"])
+        if os.path.isfile(fa) and _la_anh(fa) and os.path.getsize(fa) < 900000:
+            with open(fa, "rb") as fh:
+                anh = base64.b64encode(fh.read()).decode("ascii")
+        x = {"ma": t["ma"], "ten": t.get("ten") or "", "kenh": t.get("kenh") or "", "dang": t.get("dang") or [], "so_trang": t.get("so_trang"),
+             "link": t.get("link_chia_se") or t.get("link"), "chia_se": bool(t.get("link_chia_se")), "anh": anh, "t": now()}
+        if t["ma"] not in theo_ma:
+            ds.append(x)
+            them += 1
+        else:
+            theo_ma[t["ma"]].clear()
+            theo_ma[t["ma"]].update(x)
+    out = {"ver": 1, "t": now(), "ds": ds}
+    with open(f, "w", encoding="utf-8") as fh:      # ghi đè tại chỗ: Drive giữ nguyên mã file nên link chia sẻ không đổi
+        json.dump(out, fh, ensure_ascii=False)
+    KHO_CHUNG_TT["dua"] = {"tt": "ok", "t": now(), "so": len(ds), "moi": them}
+    log("kho chung dua: %d theme (%d moi) -> %s" % (len(ds), them, f))
+
+
+def kho_chung_tai():
+    url = _kho_chung_url(CFG.get("kho_chung_link") or "")
+    if not url:
+        raise ValueError("Chưa có link kho chung. Dán link file %s (fen gửi) vào ô Link kho chung." % KHO_CHUNG_TEN)
+    import urllib.request
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 PolyDungBai"})
+        with urllib.request.urlopen(req, timeout=40) as r:
+            b = r.read(30 * 1024 * 1024)
+    except Exception as e:
+        KHO_CHUNG_TT["tai"] = {"tt": "loi", "t": now(), "ghi": "không tải được: %s" % short(str(e), 120)}
+        raise ValueError("Không tải được kho chung (mạng hoặc link sai)")
+    try:
+        kho = json.loads(b.decode("utf-8-sig"))
+    except Exception:
+        KHO_CHUNG_TT["tai"] = {"tt": "loi", "t": now(), "ghi": "link chưa mở công khai"}
+        raise ValueError("Link kho chung chưa mở cho mọi người: trên Google Drive, file %s → Chia sẻ → \"Bất kỳ ai có đường liên kết\"." % KHO_CHUNG_TEN)
+    ds = [x for x in (kho.get("ds") or []) if isinstance(x, dict) and re.fullmatch(r"D[A-Za-z0-9_-]{10}", str(x.get("ma") or ""))]
+    os.makedirs(THEME_CV_ANH, exist_ok=True)
+    moi, co = 0, set()
+    with THEME_KHOA:
+        doc = _theme_doc()
+        theo_ma = {}
+        for t in doc["ds"]:
+            theo_ma.setdefault(t.get("ma"), t)
+        for x in ds:
+            co.add(x["ma"])
+            t = theo_ma.get(x["ma"])
+            if t is not None and t.get("nguon") != "kho-chung":
+                continue                 # thiết kế của chính máy này (thư mục POLY Theme / tự thêm): giữ bản của máy
+            lk = str(x.get("link") or "")
+            if not lk.startswith("https://www.canva.com/"):
+                lk = "https://www.canva.com/design/%s/view" % x["ma"]
+            if t is None:
+                t = {"id": "t" + uuid.uuid4().hex[:8], "ma": x["ma"], "t": now(), "nguon": "kho-chung"}
+                doc["ds"].append(t)
+                moi += 1
+            t.pop("an", None)
+            t.update({"ten": short(str(x.get("ten") or "Theme"), 60), "link": lk, "kenh": x.get("kenh") if x.get("kenh") in CFG["kenh"] else "",
+                      "dang": [k for k in (x.get("dang") or []) if k in dict(THEME_DANG)]})
+            if isinstance(x.get("so_trang"), int):
+                t["so_trang"] = x["so_trang"]
+            if x.get("anh"):
+                try:
+                    raw = base64.b64decode(x["anh"])
+                    fa = os.path.join(THEME_CV_ANH, "%s.png" % t["id"])
+                    with open(fa + ".tam", "wb") as fh:
+                        fh.write(raw)
+                    if _la_anh(fa + ".tam"):
+                        os.replace(fa + ".tam", fa)
+                    else:
+                        os.remove(fa + ".tam")
+                except Exception:
+                    pass
+        for t in doc["ds"]:              # theme fen đã bỏ khỏi kho chung: ẩn (không xoá)
+            if t.get("nguon") == "kho-chung" and t.get("ma") not in co and not t.get("an"):
+                t["an"] = now()
+        write_json(THEME_CV_FILE, doc)
+    KHO_CHUNG_TT["tai"] = {"tt": "ok", "t": now(), "so": len(ds), "moi": moi}
+    log("kho chung tai: %d theme, %d moi" % (len(ds), moi))
 
 
 def _theme_xem_bat(t):
@@ -5495,6 +5668,8 @@ class H(BaseHTTPRequestHandler):
                 return self.send(200, canva_cai())
             if u.path == "/api/theme-canva":
                 return self.send(200, theme_cv())
+            if u.path == "/api/kho-chung":
+                return self.send(200, kho_chung())
             m = re.fullmatch(r"/api/theme-canva/trang/(t[0-9a-f]{8})", u.path)
             if m:
                 return self.send(200, theme_trang_ra(m.group(1)))
@@ -5610,6 +5785,8 @@ class H(BaseHTTPRequestHandler):
                 return self.send(200, don_thang(data))
             if u.path == "/api/theme-canva":
                 return self.send(200, theme_cv(data))
+            if u.path == "/api/kho-chung":
+                return self.send(200, kho_chung(data))
             if u.path == "/api/canva-cai":
                 return self.send(200, canva_cai(data))
             if u.path == "/api/canva-tt":
