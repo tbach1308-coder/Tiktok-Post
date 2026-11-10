@@ -41,6 +41,16 @@ CÀI LÊN MÁY WINDOWS KHÁC (BỘ CÀI .EXE, 6/11)
 - Gỡ: Cài đặt Windows > Ứng dụng > Poly Dựng Bài > Gỡ cài đặt. Bài, cài đặt và thư mục Social Claude vẫn để lại
   (không xoá dữ liệu); muốn bỏ hẳn thì tự xoá thư mục.
 
+HẾT HẠN MỨC CLAUDE + TỰ BẬT APP (10/11)
+- Gói Pro / Max có hạn mức 5 giờ và hạn mức tuần. Hết hạn mức thì Claude trả "You've hit your weekly limit · resets 6am":
+  app nhận ra, thanh trên cùng hiện "Hết hạn mức Claude · reset <giờ>", bài báo rõ lý do, báo Telegram 1 lần.
+  Bài dựng / sửa / chạy tiếp bị dính sẽ TỰ CHẠY LẠI sau giờ reset (mỗi 15 giây xét 1 bài). Chat + Viết brief thì gõ lại sau.
+- Đỡ tốn hạn mức (từ 10/11): Dựng bài + Viết brief dùng Opus; Sửa bài, Chạy tiếp, Chat sửa brief, Caption dùng Sonnet
+  (1 lượt Sửa bằng Opus ngốn ~12 USD hạn mức). Lần sửa khó: chọn Opus ngay ở ô Sửa bài. Đổi mặc định: Kiểm máy > Model.
+- Tự bật app khi mở máy (Windows): app tự ghi lối tắt "Poly Dung Bai" vào thư mục Startup của tài khoản Windows, mở máy
+  là máy chủ tự chạy ngầm sau 15 giây (không mở cửa sổ; bấm icon Desktop khi cần). Tắt: config.json "tu_bat": false.
+  Xem trạng thái ở Kiểm máy > "Tự bật app khi mở máy".
+
 LẤY MÁY + GIÁ TỪ KHO POLYSTO (Ô KHO, 9/11)
 - Ô "📦 Kho" dưới ô Chủ đề: dán link kho (https://app.polystorevn.com/kho-may, hoặc bấm "Cả kho") hoặc seri máy
   (vd JJRNZ54 FNDSSV3). Bấm Viết brief / chat sửa brief: Claude lấy máy thật đang tồn kho + giá bán để viết bài.

@@ -505,10 +505,13 @@ def mac_cho_claude(home):
 # ---------------------------------------------------------------- model từng việc (fen 29/10 19h31 "trong app khi làm fen tự chuyển model cần thiết")
 MODEL_OK = ("", "opus", "sonnet", "haiku")        # "" = model mặc định của tài khoản
 MODEL_VIEC = {   # khoá config: (mặc định, các model cho chọn). Fen chốt 29/10 19h47: "chọn opus mặc định đi, chậm xíu mà kĩ"
-    "model_dung": ("opus", ("", "opus", "sonnet")),       # dựng bài, sửa bài, chạy tiếp, trả lời câu hỏi
+    # fen 10/11 (hết hạn mức tuần 9/11, 1 lượt Sửa Opus ~12 USD): Dựng bài + Viết brief giữ Opus, Sửa / Chạy tiếp / Chat / Caption
+    # mặc định Sonnet; ô Sửa bài vẫn có chọn Opus cho lần sửa khó
+    "model_dung": ("opus", ("", "opus", "sonnet")),       # dựng bài
+    "model_sua": ("sonnet", ("", "opus", "sonnet")),      # sửa bài, chạy tiếp, trả lời câu hỏi Claude hỏi
     "model_brief": ("opus", ("", "opus", "sonnet")),      # Viết brief
-    "model_chat": ("opus", ("", "opus", "sonnet", "haiku")),     # Chat sửa brief
-    "model_caption": ("opus", ("", "opus", "sonnet", "haiku")),  # Viết caption
+    "model_chat": ("sonnet", ("", "opus", "sonnet", "haiku")),     # Chat sửa brief
+    "model_caption": ("sonnet", ("", "opus", "sonnet", "haiku")),  # Viết caption
     "model_duyet": ("opus", ("", "opus", "sonnet")),      # agent duyệt + thiết kế ("" = theo phiên chính)
     "model_quytac": ("opus", ("", "opus", "sonnet")),     # nút Quy tắc: ghi luật mới vào file quy tắc (30/10)
 }
@@ -949,6 +952,125 @@ def handle_line(st, obj, run):
             add_event(st, "error", SUB_VI.get(r["subtype"]) or ("Claude dừng vì lỗi: " + short(explain_err(r["text"] or r["subtype"] or ""), 200)), run)
 
 
+# ---------------------------------------------------------------- hết hạn mức Claude (fen 10/11)
+# 9/11 16h35 tài khoản hết hạn mức tuần: Claude trả "You've hit your weekly limit · resets 6am (Asia/Bangkok)" rồi thoát mã 1,
+# app chỉ báo "lỗi" chung. Giờ: nhận ra, ghi lý do rõ + giờ reset, báo Telegram 1 lần, bài dựng / sửa tự chạy lại sau giờ reset.
+HAN_MUC = {"het": False, "chu": "", "reset": "", "reset_t": None, "t": 0, "bao": False}
+HAN_MUC_RE = re.compile(r"hit your (weekly |daily |5-hour |session )?(usage )?limit|usage limit (has been )?reached|out of (extra )?usage|"
+                        r"weekly limit|exceeded your .{0,20}limit", re.I)
+HAN_MUC_FILE = os.path.join(APP, "han-muc.json")
+
+
+def han_muc_text(txt):
+    """Chữ Claude trả có phải báo hết hạn mức không. Trả (loại, chữ reset) hoặc None."""
+    t = (txt or "").strip()
+    if len(t) > 400 or not HAN_MUC_RE.search(t):
+        return None
+    loai = "tuần" if re.search(r"weekly", t, re.I) else "ngày" if re.search(r"daily", t, re.I) else "5 giờ" if re.search(r"5-hour|session", t, re.I) else ""
+    m = re.search(r"resets?\s*(?:at|on|in)?\s*([^\n·(]+)", t, re.I)
+    return loai, (m.group(1).strip(" .") if m else "")
+
+
+def han_muc_reset_t(chu):
+    """'6am' / '3:30pm' / 'Nov 12 at 6am' / '12 Nov, 6am' -> mốc giây sắp tới. Không hiểu thì None."""
+    m = re.search(r"(\d{1,2})(?::(\d{2}))?\s*(am|pm)", chu, re.I)
+    if not m:
+        return None
+    h, mi = int(m.group(1)) % 12 + (12 if m.group(3).lower() == "pm" else 0), int(m.group(2) or 0)
+    lt = time.localtime()
+    y, mo, d = lt.tm_year, lt.tm_mon, lt.tm_mday
+    md = re.search(r"(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\.?\s+(\d{1,2})|(\d{1,2})\s+(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)", chu, re.I)
+    if md:
+        thang = (md.group(1) or md.group(4)).lower()[:3]
+        mo = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"].index(thang) + 1
+        d = int(md.group(2) or md.group(3))
+        if mo < lt.tm_mon:
+            y += 1
+    t = time.mktime((y, mo, d, h, mi, 0, 0, 0, -1))
+    if not md and t <= time.time():
+        t += 86400
+    return t
+
+
+def han_muc_ghi(loai, chu, jid=None):
+    """Ghi trạng thái hết hạn mức; báo Telegram 1 lần cho mỗi đợt."""
+    rt = han_muc_reset_t(chu)
+    moi = not HAN_MUC["het"]
+    HAN_MUC.update({"het": True, "chu": loai, "reset": chu, "reset_t": rt, "t": now()})
+    write_json(HAN_MUC_FILE, HAN_MUC)
+    if moi and not HAN_MUC.get("bao"):
+        HAN_MUC["bao"] = True
+        msg = "⛔ Hết hạn mức Claude%s%s. Bài dựng / sửa đang dở sẽ tự chạy lại sau đó." % (
+            " (" + loai + ")" if loai else "", (" · reset " + han_muc_gio()) if rt or chu else "")
+        if CFG.get("telegram_token") and (CFG.get("tg_lenh_chat") or CFG.get("telegram_chat")):
+            threading.Thread(target=_bao_tg, args=(msg,), kwargs={"chats": [c for c in (CFG.get("tg_lenh_chat"), CFG.get("telegram_chat")) if c]}, daemon=True).start()
+    log("het han muc Claude (%s) reset %s%s" % (loai or "?", chu or "?", (" bai " + jid) if jid else ""))
+
+
+def han_muc_gio():
+    rt = HAN_MUC.get("reset_t")
+    if rt:
+        lt = time.localtime(rt)
+        hom = time.localtime()
+        return time.strftime("%H:%M", lt) + ("" if (lt.tm_mday, lt.tm_mon) == (hom.tm_mday, hom.tm_mon) else time.strftime(" %d/%m", lt))
+    return HAN_MUC.get("reset") or ""
+
+
+def han_muc_ly_do():
+    return "Hết hạn mức Claude%s%s. Bài tự chạy lại sau giờ đó (hoặc bấm Chạy lại)." % (
+        " (" + HAN_MUC["chu"] + ")" if HAN_MUC.get("chu") else "", " · reset " + han_muc_gio() if han_muc_gio() else "")
+
+
+def han_muc_xoa():
+    if HAN_MUC["het"]:
+        HAN_MUC.update({"het": False, "bao": False})
+        write_json(HAN_MUC_FILE, HAN_MUC)
+        log("han muc Claude da reset")
+
+
+def han_muc_tt():
+    """Cho /api/health, /api/jobs: {het, chu, reset, reset_t, gio}."""
+    return {"het": HAN_MUC["het"], "chu": HAN_MUC.get("chu"), "reset": HAN_MUC.get("reset"), "reset_t": HAN_MUC.get("reset_t"), "gio": han_muc_gio() if HAN_MUC["het"] else ""}
+
+
+def _han_muc_chay_lai():
+    """Qua giờ reset: chạy lại các bài đã đánh dấu cho_han_muc (dựng / sửa / chạy tiếp), mỗi lúc 1 bài (như hẹn giờ)."""
+    if not HAN_MUC["het"]:
+        return
+    rt = HAN_MUC.get("reset_t")
+    if not rt or now() < rt + 90:
+        return
+    han_muc_xoa()
+    for jid in sorted(os.listdir(JOBS)) if os.path.isdir(JOBS) else []:
+        j = read_json(os.path.join(JOBS, jid, "job.json"))
+        if not j or not j.get("cho_han_muc") or j.get("status") == "dang-chay":
+            continue
+        with LOCK:
+            jj = load_job(jid)
+            if not jj or jj.get("status") == "dang-chay":
+                continue
+            jj.pop("cho_han_muc", None)
+            jj.pop("loi_chay", None)
+            try:
+                chay_lai_job(jj)
+                log("het han muc: chay lai bai %s" % jid)
+            except Exception as e:
+                jj["status"], jj["loi_chay"] = "loi", str(e)
+                save_job(jj)
+        return      # 1 bài / lượt 15 giây: không dội cả loạt
+
+
+def chay_lai_job(job, tiep=True):
+    """Chạy lại 1 bài (nút Chạy lại / Chạy tiếp, và tự chạy lại sau hết hạn mức): còn phiên thì chạy tiếp, không thì dựng lại."""
+    STATE.pop(job["id"], None)
+    job.pop("loi_chay", None)
+    sid = job.get("session_id")
+    if sid and tiep:
+        start_run(job, read_prompt("chay-tiep-canva.txt" if job.get("dung_bang") == "canva" else "chay-tiep.txt"), "tiep", sid)
+    else:
+        start_run(job, build_prompt_dung(job), "dung")
+
+
 def _luot_xong(st, run):
     """Lượt đã kết thúc có tính là XONG không: result cuối ok, sau result đó Claude không làm gì thêm
     (CLI có thể ra result giữa chừng khi chờ agent nền), mã thoát 0 nếu biết, fen không bấm Dừng."""
@@ -957,6 +1079,8 @@ def _luot_xong(st, run):
     if not res or not res[-1]["ok"] or st.setdefault("sau_kq", {}).get(n):
         return False
     if run.get("exit") not in (None, 0) or run.get("ket_qua") == "dung":
+        return False
+    if han_muc_text(res[-1]["text"]):      # "You've hit your weekly limit" ra dạng result success + thoát mã 1
         return False
     return True
 
@@ -1041,6 +1165,14 @@ def parse_job(jid):
         if runs and job.get("status") == "dang-chay":
             last = runs[-1]
             if not pid_alive(last.get("pid"), last.get("started")):
+                # _reap ghi mã thoát ~0,5 giây sau khi tiến trình chết rồi mới gọi parse_job; trang hỏi đúng lúc đó thì
+                # chưa có "exit" -> trước đây coi như 0 (10/11: lượt hết hạn mức thành "xong"). Chờ _reap tối đa 5 giây.
+                if "exit" not in last:
+                    if not st.get("chet_luc"):
+                        st["chet_luc"] = now()
+                    if now() - st["chet_luc"] < 5:
+                        return job, st
+                st.pop("chet_luc", None)
                 time.sleep(0.2)
                 parse_tail(jid, st, job)
                 res = [r for r in st["results"] if r["run"] == last["n"]]
@@ -1049,9 +1181,16 @@ def parse_job(jid):
                     job["status"] = last["ket_qua"] = "dung"
                 elif _luot_xong(st, last):
                     job["status"] = last["ket_qua"] = "xong"
+                    han_muc_xoa()        # chạy được = hạn mức còn
                 else:
                     job["status"] = last["ket_qua"] = "loi"
-                    if not res or res[-1]["ok"]:
+                    hm = han_muc_text(res[-1]["text"]) if res else None
+                    if hm:
+                        han_muc_ghi(hm[0], hm[1], jid)
+                        last["ly_do"] = job["loi_chay"] = han_muc_ly_do()
+                        if last.get("kind") in ("dung", "sua", "tiep") and job.get("loai") not in VIEC_AN:
+                            job["cho_han_muc"] = True
+                    elif not res or res[-1]["ok"]:
                         err = read_text(os.path.join(job_dir(jid), "stderr-%d.txt" % last["n"]))[-800:]
                         last["ly_do"] = "Claude dừng giữa chừng. " + short(explain_err(err), 300)
                 if job["status"] == "xong" and job.get("dung_bang") == "canva" and last.get("kind") in ("dung", "tiep") \
@@ -1104,7 +1243,7 @@ def explain_err(err):
     if "not logged in" in low or "/login" in low or "api key" in low or "authenticat" in low or "401" in low:
         return "Claude Code trên máy chưa đăng nhập. Bấm Đăng nhập, chọn tài khoản Claude của fen 1 lần là xong."
     if "rate limit" in low or "usage limit" in low or "limit reached" in low:
-        return "Hết lượt dùng Claude tạm thời, chờ một lúc rồi bấm Chạy lại."
+        return "Hết hạn mức Claude tạm thời (gói Pro / Max tính theo 5 giờ và theo tuần), chờ tới giờ reset rồi bấm Chạy lại."
     if "not found" in low and "command" in low:
         return "Không tìm thấy lệnh plugin poly-carousel. Kiểm tra plugin đã cài: claude plugin list."
     return e.strip() or "Không có thông báo lỗi."
@@ -1201,6 +1340,8 @@ def start_run(job, prompt, kind, resume=None, label=None, model=None, them_dir=N
             model = job.get("model") if job.get("model") is not None else model_viec("model_brief")
         elif kind == "quy-tac":
             model = model_viec("model_quytac")
+        elif kind in ("sua", "tiep"):
+            model = job.get("model") or model_viec("model_sua")
         else:
             model = job.get("model") or model_viec("model_dung")
     if model not in MODEL_OK:
@@ -3574,6 +3715,7 @@ def _chay_lich():
 
 
 def _chay_lich_1():
+    _han_muc_chay_lai()
     jobs = []
     for jid in sorted(os.listdir(JOBS)) if os.path.isdir(JOBS) else []:
         j = read_json(os.path.join(JOBS, jid, "job.json"))
@@ -4418,6 +4560,41 @@ def mac_canh_hang_cho():
         time.sleep(CFG.get("mac_canh_giay") or 30)
 
 
+# ---------------------------------------------------------------- tự bật app khi mở máy (fen 10/11: máy khởi động lại, app không tự lên)
+TU_BAT_LNK = os.path.join(os.environ.get("APPDATA", ""), r"Microsoft\Windows\Start Menu\Programs\Startup", "Poly Dung Bai.lnk") if IS_WIN else ""
+
+
+def tu_bat_tt():
+    return {"bat": bool(CFG.get("tu_bat", True)), "co": bool(TU_BAT_LNK and os.path.isfile(TU_BAT_LNK)), "lnk": TU_BAT_LNK}
+
+
+def win_tu_bat():
+    """Ghi / xoá lối tắt trong thư mục Startup của tài khoản Windows (không cần admin): mở máy là app tự chạy ngầm
+    (vbs với tham số "ngam": chỉ bật máy chủ, không mở cửa sổ). config.json "tu_bat": false thì xoá lối tắt."""
+    if not TU_BAT_LNK:
+        return
+    vbs = os.path.join(APP, "Poly Dung Bai.vbs")
+    muon = bool(CFG.get("tu_bat", True)) and os.path.isfile(vbs)
+    co = os.path.isfile(TU_BAT_LNK)
+    if muon == co:
+        return
+    try:
+        if not muon:
+            os.remove(TU_BAT_LNK)
+            log("tu bat: da xoa loi tat Startup")
+            return
+        os.makedirs(os.path.dirname(TU_BAT_LNK), exist_ok=True)
+        ps = ("$s = (New-Object -ComObject WScript.Shell).CreateShortcut('%s'); $s.TargetPath = 'wscript.exe'; "
+              "$s.Arguments = '//nologo \"%s\" ngam'; $s.WorkingDirectory = '%s'; $s.IconLocation = '%s'; "
+              "$s.Description = 'Poly Dung Bai - tu bat khi mo may'; $s.Save()") % (
+            TU_BAT_LNK.replace("'", "''"), vbs.replace("'", "''"), APP.replace("'", "''"), os.path.join(APP, "ui", "poly.ico").replace("'", "''"))
+        subprocess.run(["powershell", "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-Command", ps],
+                       capture_output=True, timeout=30, creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
+        log("tu bat: %s loi tat Startup" % ("da ghi" if os.path.isfile(TU_BAT_LNK) else "KHONG ghi duoc"))
+    except Exception as e:
+        log("tu bat loi: %s" % e)
+
+
 def win_chuan_bi():
     """Windows máy mới (cài bằng file .exe), như mac_chuan_bi: ghi 2 thư mục gốc vào config.json, chép bộ luật (social-claude
     của app) thành ~\\Social Claude nếu chưa có, tạo Laptop / iPad / hàng chờ, bật bộ canh hàng chờ Photoshop."""
@@ -4629,6 +4806,7 @@ class H(BaseHTTPRequestHandler):
                     "mode": CFG.get("che_do_quyen"), "kenh": CFG["kenh"],
                     "tk": ci.get("tk") or {}, "san_sang": san_sang(),
                     "os": "mac" if IS_MAC else "win" if IS_WIN else "khac",   # giao diện đổi chữ hướng dẫn theo máy (⌘, Terminal…)
+                    "han_muc": han_muc_tt(), "tu_bat": tu_bat_tt() if IS_WIN else None,
                 })
             m = re.fullmatch(r"/api/tiktok/([\w-]+)", u.path)
             if m:
@@ -4661,7 +4839,7 @@ class H(BaseHTTPRequestHandler):
                     uiv = int(os.path.getmtime(os.path.join(UI, "index.html")))
                 except OSError:
                     uiv = 0
-                return self.send(200, {"jobs": list_jobs(), "ui": uiv,
+                return self.send(200, {"jobs": list_jobs(), "ui": uiv, "han_muc": han_muc_tt(),
                                        "remote": {"bat": bool(CFG.get("tg_lenh")), "noi": tgl_noi(), "loi": bool(tgl_trang_thai()["loi"])}})
             m = re.fullmatch(r"/api/job/([\w-]+)", u.path)
             if m:
@@ -4796,13 +4974,8 @@ class H(BaseHTTPRequestHandler):
                         job = load_job(jid)
                         if job.get("status") == "dang-chay":
                             raise ValueError("Bài đang chạy")
-                        STATE.pop(jid, None)
-                        job.pop("loi_chay", None)
-                        sid = job.get("session_id")
-                        if sid and data.get("tiep") is not False:
-                            start_run(job, read_prompt("chay-tiep-canva.txt" if job.get("dung_bang") == "canva" else "chay-tiep.txt"), "tiep", sid)
-                        else:
-                            start_run(job, build_prompt_dung(job), "dung")
+                        job.pop("cho_han_muc", None)
+                        chay_lai_job(job, data.get("tiep") is not False)
                     return self.send(200, {"ok": True})
                 if act == "mo":
                     job = load_job(jid)
@@ -4857,6 +5030,12 @@ def main():
         mac_chuan_bi()
     elif CFG.get("_may_moi"):     # Windows máy mới (cài bằng file .exe): như Mac
         win_chuan_bi()
+    if IS_WIN:
+        threading.Thread(target=win_tu_bat, daemon=True).start()
+    hm = read_json(HAN_MUC_FILE, None)
+    if isinstance(hm, dict) and hm.get("het") and (hm.get("reset_t") or 0) > now():   # mở lại app giữa đợt hết hạn mức: nhớ tiếp
+        HAN_MUC.update({k: hm.get(k) for k in ("het", "chu", "reset", "reset_t", "t")})
+        HAN_MUC["bao"] = True
     log("mo app cong %d" % port)
     print("Poly Dung Bai: http://127.0.0.1:%d" % port)
     threading.Thread(target=claude_info, daemon=True).start()

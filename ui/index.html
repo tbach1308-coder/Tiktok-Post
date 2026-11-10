@@ -683,6 +683,7 @@ async function health(force){
     else if (h.login && thieu.length) { cls = 'err'; txt = 'Thiếu ' + thieu.map(x => x.ten).join(', '); }
     else if (h.login === false) { cls = 'warn'; txt = 'Chưa đăng nhập Claude'; btn = `<button class="btn sm pri" onclick="login(this)">Đăng nhập</button>`; }
     else if (h.login == null) { cls = 'warn'; txt = 'Chưa kiểm được đăng nhập'; }
+    else if (h.han_muc && h.han_muc.het) { cls = 'warn'; txt = 'Hết hạn mức Claude' + (h.han_muc.gio ? ' · reset ' + h.han_muc.gio : ''); }
     const el = $('#hc'); el.title = 'Bấm để kiểm máy' + (v ? ' · Claude Code ' + v : '') + (tk ? ' · tài khoản ' + tk : '');
     setH(el, `<span class="dot ${cls}"></span><span>${esc(txt)}</span>${h.login && tk ? `<span class="tk">· ${esc(tk)}</span>` : ''}${btn}`);
     if ($('#kmL')) kmVe();
@@ -717,6 +718,9 @@ function kmVe(){
     h.login ? [tk.email || 'đã đăng nhập', goi && 'gói ' + goi, tk.to_chuc && !/'s Organization$/i.test(tk.to_chuc) && tk.to_chuc].filter(Boolean).join(' · ') + (tk.kieu === 'api_key' ? ' · đang dùng API key (tính tiền API, không dùng gói)' : '')
       : h.login === false ? 'chưa đăng nhập' : 'chưa kiểm được');
   for (const x of (h.san_sang || [])) html += row(x.ok ? true : x.can ? false : null, x.ten, x.ghi);
+  const hm = h.han_muc || {};
+  if (hm.het) html += row(false, 'Hạn mức Claude', 'hết hạn mức' + (hm.chu ? ' ' + hm.chu : '') + (hm.gio ? ' · reset ' + hm.gio : '') + '. Bài dựng / sửa dở sẽ tự chạy lại sau đó.');
+  if (h.tu_bat) html += row(h.tu_bat.bat ? (h.tu_bat.co ? true : null) : null, 'Tự bật app khi mở máy', h.tu_bat.bat ? (h.tu_bat.co ? 'đang bật (lối tắt trong Startup)' : 'đang ghi lối tắt…') : 'tắt (config.json "tu_bat": false)');
   setH(L, html);
   const b = $('#kmTk'); if (b && !b.dataset.cho && !b.dataset.chac) b.textContent = h.login ? 'Đổi tài khoản' : 'Đăng nhập';
 }
@@ -762,7 +766,7 @@ async function cvCai(){
     catch(err) { $('#kmCvErr').textContent = err.message; } b.disabled = false; };
 }
 async function mdCai(){
-  const VIEC = [['model_dung', 'Dựng, sửa bài', ['', 'sonnet', 'opus']], ['model_brief', 'Viết brief', ['', 'sonnet', 'opus']], ['model_chat', 'Chat sửa brief', ['', 'haiku', 'sonnet', 'opus']],
+  const VIEC = [['model_dung', 'Dựng bài', ['', 'sonnet', 'opus']], ['model_sua', 'Sửa bài, chạy tiếp', ['', 'sonnet', 'opus']], ['model_brief', 'Viết brief', ['', 'sonnet', 'opus']], ['model_chat', 'Chat sửa brief', ['', 'haiku', 'sonnet', 'opus']],
                 ['model_caption', 'Viết caption', ['', 'haiku', 'sonnet', 'opus']], ['model_duyet', 'Agent duyệt + thiết kế', ['', 'sonnet', 'opus']], ['model_quytac', 'Ghi quy tắc', ['', 'sonnet', 'opus']]];
   let c; try { c = await api('/api/model-cai'); } catch(e) { $('#kmMdErr').textContent = e.message; return; }
   const el = $('#kmMdL'); if (!el) return;
@@ -931,6 +935,7 @@ function renderBanner(){
   else if (h && h.login === false) html = `<div class="banner"><p><b>Claude Code trên máy chưa đăng nhập.</b> Bấm Đăng nhập, trình duyệt mở ra thì chọn tài khoản Claude của fen (gói Max). Chỉ làm 1 lần.</p><button class="btn pri sm" onclick="login(this)">Đăng nhập</button><button class="btn sm" onclick="recheck(this)">Kiểm lại</button></div>`;
   else if (h && (h.san_sang || []).some(x => x.can && !x.ok)) { const x = h.san_sang.find(x => x.can && !x.ok);
     html = `<div class="banner red"><p><b>Thiếu ${esc(x.ten)}</b> (${esc(x.ghi)}). Không có thì Claude không biết cách dựng bài. ${laMac() ? 'Kiểm thư mục Social Claude (mở lại app là tự chép)' : 'Kiểm ổ E'} rồi bấm Kiểm lại.</p><button class="btn sm" onclick="recheck(this)">Kiểm lại</button></div>`; }
+  else if (h && h.han_muc && h.han_muc.het) html = `<div class="banner"><p><b>Tài khoản Claude hết hạn mức${h.han_muc.chu ? ' ' + esc(h.han_muc.chu) : ''}</b>${h.han_muc.gio ? ', reset lúc <b>' + esc(h.han_muc.gio) + '</b>' : ''}. Bài dựng / sửa đang dở sẽ tự chạy lại sau giờ đó; bài bấm Chạy bây giờ cũng sẽ chờ tới lúc đó. Chat và viết brief cũng chưa chạy được.</p><button class="btn sm" onclick="recheck(this)">Kiểm lại</button></div>`;
   else if (h && h.cwd_ok === false) html = `<div class="banner red"><p>Không thấy thư mục <b>${esc(h.cwd)}</b>. ${laMac() ? 'Mở lại app là tự tạo (đổi thư mục trong config.json).' : 'Kiểm tra ổ E.'}</p><button class="btn sm" onclick="recheck(this)">Kiểm lại</button></div>`;
   setH(el, html);
   const b = $('#bRun'); if (b && !b.dataset.busy) b.disabled = !canRun();
@@ -950,6 +955,7 @@ async function loadJobs(){
     const j = await api('/api/jobs'); S.fail = 0; $('#offline')?.remove();
     if (j.ui) { if (!S.ui) S.ui = j.ui; else if (j.ui !== S.ui) { if (canReload()) { taiLaiUi(); return; } uiMoiBao(); } }
     rmChip(j.remote);
+    if (j.han_muc && S.health && (!!S.health.han_muc?.het !== !!j.han_muc.het || (S.health.han_muc || {}).gio !== j.han_muc.gio)) { S.health.han_muc = j.han_muc; health(); }
     const old = new Map(S.jobs.map(x => [x.id, x.status])); S.jobs = j.jobs || [];
     S.jobs.forEach(x => { if (old.get(x.id) === 'dang-chay' && x.status !== 'dang-chay' && x.id !== S.jobId) notify(x); });
     renderJobs();

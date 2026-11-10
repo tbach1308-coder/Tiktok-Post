@@ -1,7 +1,10 @@
 ' POLY Dung Bai - mo app nhap brief, bam Chay (Claude Code + plugin poly-carousel tu dung slide)
 ' Bat may chu nho (pythonw server.py, chi chay tren may nay, cong 8777) neu chua chay, roi mo cua so app bang Edge.
 Option Explicit
-Dim sh, fso, app, py, url, i, edge, prof
+Dim sh, fso, app, py, url, i, edge, prof, ngam
+' "ngam": chay tu Startup khi mo may (fen 10/11): chi bat may chu, khong mo cua so app
+ngam = (WScript.Arguments.Count > 0)
+If ngam Then ngam = (LCase(WScript.Arguments(0)) = "ngam")
 Set sh = CreateObject("WScript.Shell")
 Set fso = CreateObject("Scripting.FileSystemObject")
 app = fso.GetParentFolderName(WScript.ScriptFullName)
@@ -20,6 +23,7 @@ Function Song()
   On Error GoTo 0
 End Function
 
+If ngam Then WScript.Sleep 15000   ' doi Windows len han, mang / o E san sang
 If Not Song() Then
   ' goi Python bang duong dan day du (PATH may shop hay bi phan mem khac lam hong)
   ' ban cai bang file Setup .exe: Python di kem nam canh thu muc app (<thu muc cai>\python)
@@ -33,11 +37,13 @@ If Not Song() Then
     If Song() Then Exit For
   Next
   If Not Song() Then
+    If ngam Then WScript.Quit
     MsgBox "Khong bat duoc app Poly Dung Bai." & vbCrLf & "Xem file " & app & "\app-log.txt roi chup man hinh gui Claude.", 48, "Poly Dung Bai"
     WScript.Quit
   End If
 End If
 
+If ngam Then WScript.Quit
 edge = "C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"
 If Not fso.FileExists(edge) Then edge = "C:\Program Files\Microsoft\Edge\Application\msedge.exe"
 If fso.FileExists(edge) Then
