@@ -2684,12 +2684,13 @@ def theme_dong_bo_bat(ep=False):
 
 
 def _theme_dong_bo_chay(cmd):
-    """1 lượt haiku: liệt kê thiết kế trong thư mục Canva "POLY Theme" + tải ảnh thu nhỏ; thêm theme mới, bỏ theme đã rời thư mục."""
+    """1 lượt haiku: liệt kê thiết kế trong thư mục Canva "POLY Theme"; thêm theme mới, bỏ theme đã rời thư mục.
+    Ảnh xem trước lấy sau, từng theme (xuất trang 1): ảnh thu nhỏ của list-folder-items là link trang web, không phải ảnh."""
     os.makedirs(THEME_CV_ANH, exist_ok=True)
     tm = CFG.get("theme_thu_muc") or "POLY Theme"
-    lenh = fill(read_prompt("theme-canva-dong-bo.txt"), {"thu_muc": tm, "anh_dir": THEME_CV_ANH.replace("\\", "/")})
+    lenh = fill(read_prompt("theme-canva-dong-bo.txt"), {"thu_muc": tm})
     args = cmd + ["-p", "--output-format", "stream-json", "--verbose", "--model", "haiku", "--max-turns", "40",
-                  "--allowedTools", "mcp__claude_ai_Canva", "Bash(curl *)", "Bash(mkdir *)", "Bash(python *)"]
+                  "--allowedTools", "mcp__claude_ai_Canva", "Bash(python *)"]
     env = env_claude()
     if IS_MAC:
         mac_env(env)
@@ -2752,10 +2753,15 @@ def _theme_dong_bo_chay(cmd):
                 moi += 1
             if isinstance(x.get("so_trang"), int):
                 t["so_trang"] = x["so_trang"]
-            src = os.path.join(THEME_CV_ANH, ma + ".png")
-            if os.path.isfile(src) and os.path.getsize(src) > 200:
+            src = os.path.join(THEME_CV_ANH, ma + ".png")      # bản cũ của lệnh có tải ảnh thu nhỏ: chỉ nhận khi đúng là ảnh
+            if os.path.isfile(src):
                 try:
-                    os.replace(src, os.path.join(THEME_CV_ANH, t["id"] + ".png"))
+                    if _la_anh(src):
+                        os.replace(src, os.path.join(THEME_CV_ANH, t["id"] + ".png"))
+                    else:
+                        bo = os.path.join(APP, "_to_delete", "theme-canva-loi")
+                        os.makedirs(bo, exist_ok=True)
+                        shutil.move(src, os.path.join(bo, "%s-%d.html" % (ma, int(now()))))
                 except OSError:
                     pass
         for t in doc["ds"]:      # theme lấy từ thư mục mà fen đã đưa ra khỏi thư mục: ẩn (không xoá)
@@ -2764,6 +2770,30 @@ def _theme_dong_bo_chay(cmd):
         write_json(THEME_CV_FILE, doc)
     THEME_DB.update({"tt": "ok", "t": now(), "ghi": "", "moi": moi, "so": len(trong)})
     log("theme dong bo: %d thiet ke trong thu muc, %d moi" % (len(trong), moi))
+    threading.Thread(target=_theme_anh_thieu, daemon=True).start()      # ảnh xem trước: xuất trang 1 từng theme
+
+
+def _la_anh(f):
+    """File đúng là ảnh (PNG / JPG / WebP)? 10/11: ảnh thu nhỏ của list-folder-items là link design.canva.ai, tải về ra trang HTML."""
+    try:
+        with open(f, "rb") as fh:
+            h = fh.read(12)
+    except OSError:
+        return False
+    return h.startswith(b"\x89PNG") or h[:3] == b"\xff\xd8\xff" or (h[:4] == b"RIFF" and h[8:12] == b"WEBP")
+
+
+def _theme_anh_thieu():
+    """Theme chưa có ảnh xem trước đúng: lấy lần lượt từng cái (xuất trang 1 qua export-design), không chạy song song."""
+    cmd = resolve_claude()
+    if not cmd:
+        return
+    ds = [t for t in theme_cv_ds() if not _la_anh(os.path.join(THEME_CV_ANH, "%s.png" % t["id"])) and (THEME_XEM.get(t["id"]) or {}).get("tt") != "dang"]
+    for t in ds:
+        THEME_XEM[t["id"]] = {"tt": "dang", "t": now(), "ghi": ""}
+    for t in ds:
+        THEME_XEM[t["id"]]["t"] = now()
+        _theme_xem_chay(cmd, dict(t))
 
 
 def _theme_doc():
@@ -2785,7 +2815,7 @@ def theme_cv_tim(tid):
 def _theme_ra(t):
     o = {k: t.get(k) for k in ("id", "ten", "link", "ma", "kenh", "dang", "so_trang", "rong", "cao", "t")}
     f = os.path.join(THEME_CV_ANH, "%s.png" % t.get("id"))
-    o["anh"] = ("/api/theme-canva/anh/%s?t=%d" % (t["id"], int(os.path.getmtime(f)))) if os.path.isfile(f) else ""
+    o["anh"] = ("/api/theme-canva/anh/%s?t=%d" % (t["id"], int(os.path.getmtime(f)))) if os.path.isfile(f) and _la_anh(f) else ""
     o["xem"] = THEME_XEM.get(t.get("id"))
     o["sua"] = THEME_SUA.get(t.get("id"))
     o["goc"] = t.get("goc")
@@ -2899,7 +2929,7 @@ def _theme_xem_chay(cmd, t):
                     if info.get("ten") and y.get("ten", "").startswith("Theme "):
                         y["ten"] = short(str(info["ten"]), 60)
             write_json(THEME_CV_FILE, doc)
-    ok = bool(m) and os.path.isfile(anh)
+    ok = bool(m) and os.path.isfile(anh) and _la_anh(anh)
     loi = ghi or (re.sub(r"^.*THEME_LOI\s*", "", kq, flags=re.S).strip()[:160] if "THEME_LOI" in kq else "") or ("" if ok else short(kq or "không ra ảnh", 160))
     THEME_XEM[t["id"]] = {"tt": "ok" if ok else "loi", "t": now(), "ghi": "" if ok else loi}
     if "Chưa nối được Canva" in kq:
@@ -5283,7 +5313,7 @@ class H(BaseHTTPRequestHandler):
             m = re.fullmatch(r"/api/theme-canva/anh/(t[0-9a-f]{8})", u.path)
             if m:
                 f = os.path.join(THEME_CV_ANH, m.group(1) + ".png")
-                if not os.path.isfile(f):
+                if not os.path.isfile(f) or not _la_anh(f):
                     return self.send(404, {"err": "chưa có ảnh"})
                 with open(f, "rb") as fh:
                     return self.send(200, fh.read(), "image/png", {"Cache-Control": "max-age=86400"})

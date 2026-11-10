@@ -1,9 +1,8 @@
-Lấy danh sách theme từ thư mục Canva "{thu_muc}" của fen cho kho theme của app Poly Dựng Bài. CHỈ ĐỌC: không sửa, không copy, không di chuyển, không xoá thiết kế nào. Việc ghi duy nhất được làm: tạo thư mục "{thu_muc}" nếu chưa có. Làm nhanh, không gọi agent con.
+Lấy danh sách theme từ thư mục Canva "{thu_muc}" của fen cho kho theme của app Poly Dựng Bài. CHỈ ĐỌC: không sửa, không copy, không di chuyển, không xoá thiết kế nào. Không tải ảnh (app tự lấy ảnh xem trước sau). Việc ghi duy nhất được làm: tạo thư mục "{thu_muc}" nếu chưa có. Làm nhanh, không gọi agent con.
 
 Công cụ Canva là các công cụ mcp__claude_ai_Canva__* (nạp nền vài giây sau khi phiên mở). Chưa thấy thì ToolSearch tìm "Canva" (chưa có thì chờ 5 giây bằng python -c "import time; time.sleep(5)" rồi tìm lại, đủ 4 lần). Vẫn không có: trả lời đúng 1 dòng "THEME_LOI Chưa nối được Canva" và dừng.
 
 1. search-folders query "{thu_muc}", ownership "owned". Lấy thư mục tên đúng "{thu_muc}". Không có thì create-folder tên "{thu_muc}", parent_folder_id "root", rồi trả lời "THEME_DS []" và dừng.
 2. list-folder-items thư mục đó, item_types ["design"], sort_by "modified_descending" (có continuation thì gọi tiếp tới hết, tối đa 60 thiết kế).
-3. Mỗi thiết kế có thumbnail.url: tải ảnh bằng 1 lệnh curl -sSL -o "{anh_dir}/<mã thiết kế>.png" "<thumbnail.url>" (mỗi thiết kế 1 lệnh, mkdir -p "{anh_dir}" trước 1 lần).
-4. Trả lời cuối cùng đúng 1 dòng, không thêm chữ nào khác (JSON 1 dòng, tên giữ nguyên):
+3. Trả lời cuối cùng đúng 1 dòng, không thêm chữ nào khác (JSON 1 dòng, tên giữ nguyên):
 THEME_DS [{"ma": "<mã D…>", "ten": "<title>", "so_trang": <page_count>}, ...]

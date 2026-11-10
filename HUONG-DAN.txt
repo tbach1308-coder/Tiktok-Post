@@ -52,7 +52,7 @@ HẾT HẠN MỨC CLAUDE + TỰ BẬT APP (10/11)
   Xem trạng thái ở Kiểm máy > "Tự bật app khi mở máy".
 
 KHO THEME CANVA (10/11)
-- Cột trái → "🎨 Kho theme". Theme Canva = 1 thiết kế Canva làm mẫu (1080x1440, mỗi trang 1 kiểu slide: bìa, nội dung, cuối).
+- Cột trái → "🎨 Kho theme" (mở thành trang riêng như Bài mới). Theme Canva = 1 thiết kế Canva làm mẫu (1080x1440, mỗi trang 1 kiểu slide: bìa, nội dung, cuối).
 - CÁCH NHANH (không dán link): trên Canva bỏ thiết kế vào thư mục "POLY Theme" (https://www.canva.com/folder/FAHafvH4ENw).
   Mở Kho theme là app tự lấy về (ảnh, tên, số trang; đoán kênh + dạng bài theo tên), bấm "🔄 Lấy từ Canva" để lấy ngay.
   Đưa thiết kế ra khỏi thư mục thì theme tự ẩn. Mẫu có sẵn của Canva: bấm dùng mẫu trước rồi Di chuyển bản đó vào thư mục.
