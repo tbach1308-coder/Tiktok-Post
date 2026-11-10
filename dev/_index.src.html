@@ -831,11 +831,12 @@ async function cvCai(){
     catch(err) { $('#kmCvErr').textContent = err.message; } b.disabled = false; };
 }
 async function mdCai(){
-  const VIEC = [['model_dung', 'Dựng bài', ['', 'sonnet', 'opus']], ['model_sua', 'Sửa bài, chạy tiếp', ['', 'sonnet', 'opus']], ['model_brief', 'Viết brief', ['', 'sonnet', 'opus']], ['model_chat', 'Chat sửa brief', ['', 'haiku', 'sonnet', 'opus']],
-                ['model_caption', 'Viết caption', ['', 'haiku', 'sonnet', 'opus']], ['model_duyet', 'Agent duyệt + thiết kế', ['', 'sonnet', 'opus']], ['model_quytac', 'Ghi quy tắc', ['', 'sonnet', 'opus']]];
+  const VIEC = [['model_brief', 'Viết brief', ['', 'sonnet', 'opus']], ['model_chat', 'Chat sửa brief', ['', 'haiku', 'sonnet', 'opus']], ['model_dung', 'Dựng bài Photoshop', ['', 'sonnet', 'opus']], ['model_dung_canva', 'Dựng bài Canva', ['', 'sonnet', 'opus']],
+                ['model_duyet', 'Agent duyệt + thiết kế (Photoshop)', ['', 'sonnet', 'opus']], ['model_duyet_canva', 'Agent duyệt bài Canva', ['', 'sonnet', 'opus']], ['model_sua', 'Sửa bài, chạy tiếp', ['', 'sonnet', 'opus']],
+                ['model_caption', 'Viết caption', ['', 'haiku', 'sonnet', 'opus']], ['model_quytac', 'Ghi quy tắc', ['', 'sonnet', 'opus']]];
   let c; try { c = await api('/api/model-cai'); } catch(e) { $('#kmMdErr').textContent = e.message; return; }
   const el = $('#kmMdL'); if (!el) return;
-  el.innerHTML = VIEC.map(([k, t, ds]) => `<label>${t}<select class="in" data-mk="${k}">${ds.map(m => `<option value="${m}" ${m === (c[k] || '') ? 'selected' : ''}>${m ? MODEL_TEN[m] : (k === 'model_duyet' ? 'Theo phiên chính' : 'Mặc định của tài khoản')}</option>`).join('')}</select></label>`).join('');
+  el.innerHTML = VIEC.map(([k, t, ds]) => `<label>${t}<select class="in" data-mk="${k}">${ds.map(m => `<option value="${m}" ${m === (c[k] || '') ? 'selected' : ''}>${m ? MODEL_TEN[m] : (k.startsWith('model_duyet') ? 'Theo phiên chính' : 'Mặc định của tài khoản')}</option>`).join('')}</select></label>`).join('');
   el.querySelectorAll('[data-mk]').forEach(o => o.onchange = async () => { $('#kmMdErr').textContent = '';
     try { await api('/api/model-cai', {[o.dataset.mk]: o.value}); toast('Đã đổi model: ' + o.closest('label').firstChild.textContent + ' → ' + o.selectedOptions[0].textContent); }
     catch(e) { $('#kmMdErr').textContent = e.message; } });
@@ -1192,7 +1193,7 @@ function newView(){
     <div class="mt"><span class="lbl">Ghi chú thêm <i>(vd ảnh số 1 dùng cho bìa)</i></span><textarea class="in small" id="fNote" placeholder="${esc(k.ph.note)}">${esc(f.note || '')}</textarea></div>
     <div class="henbox" id="henBox" hidden><span class="lbl">Hẹn giờ dựng bài <i>(${laMac() ? 'máy Mac' : 'máy shop'} bật, mở app lúc đó; tới giờ app tự chạy, mỗi lần 1 bài, xong báo Telegram)</i></span>
       <div class="henr"><div class="hq" id="henQ"></div><input class="in" type="datetime-local" id="fHen"><button class="btn pri" id="bHenOk">Lên lịch</button><button class="btn ghost" id="bHenX">Thôi</button></div></div>
-    <div class="foot"><button class="btn pri" id="bRun">Chạy</button><button class="btn" id="bHen" title="Chốt brief xong, hẹn giờ cho app tự dựng (làm dần từng bài)">⏰ Hẹn làm</button><label class="mlab" title="Model Claude dựng bài này. Theo cài đặt = Kiểm máy > Model. Sonnet nhanh hơn, Opus kỹ hơn; agent duyệt theo Kiểm máy.">Model ${chonModel('fModel', ['', 'sonnet', 'opus'], f.model || (f.nhanh ? 'sonnet' : ''))}</label><div><p>Không cần ngồi canh. Tắt app vẫn chạy tiếp, mở lại là thấy.</p><div class="err" id="fWhy"></div><div class="err" id="fErr"></div></div></div>
+    <div class="foot"><button class="btn pri" id="bRun">Chạy</button><button class="btn" id="bHen" title="Chốt brief xong, hẹn giờ cho app tự dựng (làm dần từng bài)">⏰ Hẹn làm</button><label class="mlab" title="Model Claude dựng bài này. Theo cài đặt = Kiểm máy > Model (Photoshop: Opus, Canva: Sonnet). Sonnet nhanh hơn, Opus kỹ hơn; agent duyệt theo Kiểm máy.">Model ${chonModel('fModel', ['', 'sonnet', 'opus'], f.model || (f.nhanh ? 'sonnet' : ''))}</label><div><p>Không cần ngồi canh. Tắt app vẫn chạy tiếp, mở lại là thấy.</p><div class="err" id="fWhy"></div><div class="err" id="fErr"></div></div></div>
   </div>`;
   renderBanner();
   $('#bLuuNhap').onclick = luuBanNhap; $('#bXoaNhap').onclick = xoaBanNhap;
@@ -1276,7 +1277,7 @@ async function vietBrief(){
   const bcu = (f.brief || '').trim(), may = (f.briefMay || '').trim();
   b.disabled = true; b.textContent = 'Đang gửi…';
   try {
-    const r = await api('/api/viet-brief', {kenh: f.kenh, chu_de: f.chude, ngay_dang: (f.ngay || '').trim(), ghi_chu: f.note || '', brief: f.brief || '', kho: (f.kho || '').trim(),
+    const r = await api('/api/viet-brief', {kenh: f.kenh, chu_de: f.chude, ngay_dang: (f.ngay || '').trim(), ghi_chu: f.note || '', brief: f.brief || '', kho: (f.kho || '').trim(), theme_canva: f.dung === 'canva' ? (f.theme || '') : '',
       chu_de_cu: f.briefCd || '', brief_cua: !bcu ? '' : (may || /Đã viết brief/.test(f.briefNote || '') ? 'claude' : 'fen'), fen_sua: !!(bcu && may && bcu !== may)});
     f.briefJob = r.id; f.briefT = Date.now(); f.briefNote = ''; f.briefCdGui = f.chude; saveForm(f); pollBrief(f);
   } catch(e) { setH(st, `<span class="err">${esc(e.message)}</span>`); b.disabled = false; b.textContent = '✍ Viết brief'; }
@@ -1363,7 +1364,7 @@ async function guiChat(f){
   f.brief = $('#fBrief').value; f.chude = ($('#fChuDe').value || '').trim();
   f.chat = f.chat || []; f.chat.push({ai: false, text: tin || '(ảnh)', n_anh: anh.length || undefined, t: Date.now()}); o.value = '';
   f._chatAnh = []; veChatAnh(f);
-  try { const r = await api('/api/chat-brief', {kenh: f.kenh, chu_de: f.chude, brief: f.brief || '', kho: (f.kho || '').trim(), tin, anh, lich_su: f.chat.slice(-21, -1)});   // fen 9/11 "ghi nhớ trò chuyện để làm cho đúng": gửi 20 tin trước (trước 8)
+  try { const r = await api('/api/chat-brief', {kenh: f.kenh, chu_de: f.chude, brief: f.brief || '', kho: (f.kho || '').trim(), theme_canva: f.dung === 'canva' ? (f.theme || '') : '', tin, anh, lich_su: f.chat.slice(-21, -1)});   // fen 9/11 "ghi nhớ trò chuyện để làm cho đúng": gửi 20 tin trước (trước 8)
     f.chatJob = r.id; f.chatT = Date.now(); saveForm(f); veChat(f); pollChat(f); }
   catch(e) { f.chat.push({ai: true, text: 'Chưa gửi được: ' + e.message, t: Date.now()}); saveForm(f); veChat(f); }
 }
@@ -1388,6 +1389,10 @@ async function runNew(henLuc){
   if (typeof henLuc !== 'number') henLuc = 0;
   if (!f.brief || f.brief.trim().length < 5) { const t = $('#fBrief'); t.classList.add('bad'); t.scrollIntoView({block:'center', behavior:'smooth'}); t.focus(); $('#fErr').textContent = 'Dán brief từng slide vào ô Brief trước đã.'; return; }
   if (!henLuc && !canRun()) { renderBanner(); $('#main').scrollTo({top:0, behavior:'smooth'}); return; }
+  if (f.dung === 'canva' && S.cv && S.cv.tt === 'chua') {   // fen 10/11 15h24: Canva chưa nối thì báo ngay, không để chạy mấy phút rồi mới lỗi
+    setH($('#fErr'), 'Canva đang <b>chưa nối</b>: bài Canva sẽ không chạy được. <a href="#" id="fCvKiem">Kiểm lại Canva</a> (nối rồi thì bấm Chạy lại), hoặc chọn 🖌 Photoshop.');
+    $('#fCvKiem').onclick = ev => { ev.preventDefault(); $('#fErr').textContent = 'Đang kiểm Canva…'; cvChip(true).then(() => { $('#fErr').textContent = S.cv && S.cv.tt === 'chua' ? 'Canva vẫn chưa nối: vào claude.ai > Customize > Connectors > Canva bấm Connect.' : 'Đang kiểm Canva, xong bấm Chạy lại.'; }); };
+    return; }
   if (f.ngay && !/^\d{1,2}\/\d{1,2}$/.test(f.ngay.trim())) f.ngay = '';   // ô Ngày đăng đã bỏ: nháp cũ ghi sai thì bỏ qua
   b.disabled = true; b.dataset.busy = 1; b.textContent = 'Đang gửi…';
   try {
@@ -1447,7 +1452,7 @@ function renderJob(){
     <div class="jh">
       <div class="tt">
         <h1>${esc(j.tieu_de)}</h1>
-        <div class="meta"><span class="kn ${j.kenh}">${esc(k.ten || j.kenh)}</span>${tagDung(j, true)}<span>${esc(k.handle || '')}</span>${j.ngay_dang ? `<span>đăng ${esc(j.ngay_dang)}</span>` : ''}${j.model ? `<span class="fastc" title="Model Claude dựng / sửa bài này">${esc(MODEL_NGAN[j.model] || j.model)}</span>` : ''}<span class="stp" id="stp"></span></div>
+        <div class="meta"><span class="kn ${j.kenh}">${esc(k.ten || j.kenh)}</span>${tagDung(j, true)}<span>${esc(k.handle || '')}</span>${j.ngay_dang ? `<span>đăng ${esc(j.ngay_dang)}</span>` : ''}${j.model ? `<span class="fastc" title="Model Claude dựng bài này (sửa theo Kiểm máy > Model hoặc ô Model ở Sửa bài)">${esc(MODEL_NGAN[j.model] || j.model)}</span>` : ''}<span class="stp" id="stp"></span></div>
       </div>
       <div class="acts" id="acts"></div>
     </div>
@@ -1649,7 +1654,7 @@ function renderFix(){
     <div class="drop mt" id="fdrop" style="min-height:60px"><div class="hint">Ảnh mới (nếu có): kéo thả, dán, hoặc <a href="#" id="fpick">chọn file</a>.</div></div>
     <input type="file" id="ffile" accept="image/*" multiple hidden>
     <div class="err" id="fixErr"></div>
-    <div style="display:flex;align-items:center;gap:14px;margin-top:12px;flex-wrap:wrap"><button class="btn pri" id="bFix">Sửa một lượt</button><label class="mlab" title="Model cho lượt sửa này và các lượt sau của bài">Model ${chonModel('fixModel', ['', 'sonnet', 'opus'], j.model || '', 'Theo cài đặt')}</label><span style="color:var(--mut);font-size:13px">${j.session_id ? 'Claude nhớ cả bài, chỉ dựng lại slide cần sửa.' : ''}</span></div>
+    <div style="display:flex;align-items:center;gap:14px;margin-top:12px;flex-wrap:wrap"><button class="btn pri" id="bFix">Sửa một lượt</button><label class="mlab" title="Model cho lượt sửa này và các lượt sửa sau của bài (không đổi model đã dựng). Theo cài đặt = Kiểm máy > Model > Sửa bài">Model ${chonModel('fixModel', ['', 'sonnet', 'opus'], j.model_sua || '', 'Theo cài đặt')}</label><span style="color:var(--mut);font-size:13px">${j.session_id ? 'Claude nhớ cả bài, chỉ dựng lại slide cần sửa.' : ''}</span></div>
   </div>`;
   $('#fixText').oninput = e => { df.text = e.target.value; e.target.classList.remove('bad'); veTomSua(); };
   veTomSua();

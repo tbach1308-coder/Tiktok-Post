@@ -508,13 +508,15 @@ MODEL_OK = ("", "opus", "sonnet", "haiku")        # "" = model mặc định c�
 MODEL_VIEC = {   # khoá config: (mặc định, các model cho chọn). Fen chốt 29/10 19h47: "chọn opus mặc định đi, chậm xíu mà kĩ"
     # fen 10/11 (hết hạn mức tuần 9/11, 1 lượt Sửa Opus ~12 USD): Dựng bài + Viết brief giữ Opus, Sửa / Chạy tiếp / Chat / Caption
     # mặc định Sonnet; ô Sửa bài vẫn có chọn Opus cho lần sửa khó
-    "model_dung": ("opus", ("", "opus", "sonnet")),       # dựng bài
+    "model_dung": ("opus", ("", "opus", "sonnet")),       # dựng bài Photoshop
+    "model_dung_canva": ("sonnet", ("", "opus", "sonnet")),   # dựng bài Canva (mẫu kênh / theme có sẵn bố cục; fen 10/11 15h22 chọn Sonnet)
     "model_sua": ("sonnet", ("", "opus", "sonnet")),      # sửa bài, chạy tiếp, trả lời câu hỏi Claude hỏi
     "model_brief": ("opus", ("", "opus", "sonnet")),      # Viết brief
     "model_chat": ("sonnet", ("", "opus", "sonnet", "haiku")),     # Chat sửa brief
     "model_caption": ("sonnet", ("", "opus", "sonnet", "haiku")),  # Viết caption
-    "model_duyet": ("opus", ("", "opus", "sonnet")),      # agent duyệt + thiết kế ("" = theo phiên chính)
-    "model_quytac": ("opus", ("", "opus", "sonnet")),     # nút Quy tắc: ghi luật mới vào file quy tắc (30/10)
+    "model_duyet": ("opus", ("", "opus", "sonnet")),      # agent duyệt + thiết kế bài Photoshop ("" = theo phiên chính)
+    "model_duyet_canva": ("sonnet", ("", "opus", "sonnet")),  # agent duyệt bài Canva (fen 10/11 15h22)
+    "model_quytac": ("sonnet", ("", "opus", "sonnet")),   # nút Quy tắc: ghi luật mới vào file quy tắc (30/10; 10/11 đổi Sonnet)
 }
 VIEC_AN = ("brief", "quy-tac")   # việc ẩn, không phải bài: Viết brief / Chat brief, Ghi quy tắc
 
@@ -1325,7 +1327,8 @@ def start_run(job, prompt, kind, resume=None, label=None, model=None, them_dir=N
     d = job_dir(job["id"])
     if AGENT_OPUS in prompt:      # agent duyệt + thiết kế: theo lựa chọn của bài, không có thì theo Kiểm máy > Model
         md = job.get("model_duyet")
-        prompt = prompt.replace(AGENT_OPUS, cau_model_duyet(md if md in MODEL_VIEC["model_duyet"][1] and md is not None else model_viec("model_duyet")))
+        prompt = prompt.replace(AGENT_OPUS, cau_model_duyet(md if md in MODEL_VIEC["model_duyet"][1] and md is not None
+                                                            else model_viec("model_duyet_canva" if job.get("dung_bang") == "canva" else "model_duyet")))
     if doi_goc():   # lệnh mẫu ghi đường dẫn máy shop (E:/Social Claude/...): đổi sang thư mục máy này (Mac / máy mới)
         prompt = mac_doi(prompt, mac_bang_cfg())
     with open(os.path.join(d, "prompt-%d.txt" % n), "w", encoding="utf-8") as f:
@@ -1341,10 +1344,10 @@ def start_run(job, prompt, kind, resume=None, label=None, model=None, them_dir=N
             model = job.get("model") if job.get("model") is not None else model_viec("model_brief")
         elif kind == "quy-tac":
             model = model_viec("model_quytac")
-        elif kind in ("sua", "tiep"):
-            model = job.get("model") or model_viec("model_sua")
+        elif kind in ("sua", "tiep"):      # fen 10/11 15h24: model chọn cho lần dựng không lan sang Sửa / Chạy tiếp
+            model = job.get("model_sua") if job.get("model_sua") in MODEL_VIEC["model_sua"][1] and job.get("model_sua") else model_viec("model_sua")
         else:
-            model = job.get("model") or model_viec("model_dung")
+            model = job.get("model") or model_viec("model_dung_canva" if job.get("dung_bang") == "canva" else "model_dung")
     if model not in MODEL_OK:
         model = ""
     if model:
@@ -1498,6 +1501,9 @@ def create_job(data):
         job["tu_tg"] = True
     if data.get("dung_bang") == "canva":     # fen 6/11: dựng trên Canva theo mẫu của kênh, không qua Photoshop
         th = theme_cv_tim(data.get("theme_canva"))
+        if th and (THEME_SUA.get(th["id"]) or {}).get("tt") == "dang" and (THEME_SUA[th["id"]].get("kieu") != "nhan-ban") \
+                and now() - THEME_SUA[th["id"]].get("t", 0) < 1200:
+            raise ValueError('Theme "%s" đang được chỉnh trên Canva (2–5 phút): chờ chỉnh xong rồi Chạy' % short(th.get("ten") or "", 40))
         if th:      # fen 10/11: chọn theme trong kho theme Canva thay cho mẫu của kênh
             job["theme_canva"] = {"id": th["id"], "ten": th.get("ten"), "link": th["link"]}
         if not th and not canva_mau(kenh):
@@ -1731,6 +1737,7 @@ def viet_brief(data):
         "brief_cu": bcu or "(trống)",
         "thu_muc_kenh": (CFG["thu_muc_bai"].get(kenh, "") or "").replace("\\", "/"),
         "kho": kho_khoi(data.get("kho"), kenh),
+        "theme": theme_mo_ta(data.get("theme_canva")),
         "out": out.replace("\\", "/"),
     })
     job = {"id": jid, "kenh": kenh, "loai": "brief", "brief": "", "ten_bai": "", "tieu_de": "Viết brief: " + short(chu_de, 60),
@@ -1872,6 +1879,7 @@ def chat_brief(data):
         "brief": (data.get("brief") or "").strip()[:20000] or "(trống)",
         "lich_su": "\n".join(ls) or "(chưa có)", "tin": tin_gui,
         "kho": kho_khoi(data.get("kho"), kenh),
+        "theme": theme_mo_ta(data.get("theme_canva")),
         "out": out.replace("\\", "/"),
     })
     job = {"id": jid, "kenh": kenh, "loai": "brief", "chat": True, "brief": "", "ten_bai": "", "tieu_de": "Chat brief: " + short(tin or "(ảnh)", 60), "anh": anh,
@@ -2003,8 +2011,8 @@ def _fix_job(jid, data):
     anh = save_images(job_dir(jid), data.get("anh") or [], "anh-sua-%d" % (len(job.get("runs", [])) + 1))
     sid = job.get("session_id")
     resumed = bool(sid) and data.get("moi") is not True
-    if "model" in data and (data.get("model") or "") in MODEL_VIEC["model_dung"][1]:
-        job["model"] = data.get("model") or ""          # fen đổi model ở ô Sửa bài: giữ cho các lượt sau của bài
+    if "model" in data and (data.get("model") or "") in MODEL_VIEC["model_sua"][1]:
+        job["model_sua"] = data.get("model") or ""      # fen đổi model ở ô Sửa bài: giữ cho các lượt sửa sau của bài (không đổi model dựng)
     job.setdefault("sua", []).append({"t": now(), "text": text, "slides": slides, "anh": anh})
     lab = "Sửa" + (" slide " + ", ".join(str(x) for x in slides) if slides else "") + ": " + short(text, 50)
     start_run(job, build_prompt_sua(job, text, slides, anh, resumed), "sua", sid if resumed else None, lab)
@@ -2569,6 +2577,44 @@ def _theme_yeu_cau(data):
     return ds
 
 
+def theme_goi_y(kenh, chu):
+    """Theme hợp kênh + dạng bài (đoán theo chủ đề / dòng đầu brief); nhiều theme cùng dạng thì lấy theme mới nhất. Không có thì None (dùng mẫu kênh)."""
+    dg = _doan_dang(short(re.sub(r"\s+", " ", chu or ""), 300))
+    if not dg:
+        return None
+    ds = [t for t in theme_cv_ds(kenh) if dg in (t.get("dang") or []) and not (t.get("nguon") == "kho-chung" and not t.get("chia_se"))]
+    return max(ds, key=lambda t: t.get("t") or 0) if ds else None
+
+
+def theme_mo_ta(tid):
+    """Khối "Theme Canva" cho lệnh Viết brief / Chat sửa brief (fen 10/11 15h24: brief phải biết theme đã chọn)."""
+    t = theme_cv_tim(tid) if tid else None
+    if not t:
+        return "Theme: không dùng theme (dựng như thường)."
+    ten_dang = dict(THEME_DANG)
+    dong = ['Theme Canva fen chọn: "%s"%s%s. Brief viết vừa khung theme này: số slide và kiểu từng slide theo các trang của theme '
+            '(bìa, trang nội dung dùng lại được nhiều lần, trang cuối), chữ mỗi slide vừa các ô chữ của trang tương ứng (đếm số chữ ô mẫu), '
+            'không thêm kiểu slide theme không có. Dạng bài của theme khác chủ đề thì vẫn viết đúng chủ đề, chỉ mượn khung.'
+            % (t.get("ten") or "", " · dạng " + ", ".join(ten_dang.get(d, d) for d in t.get("dang") or []) if t.get("dang") else "",
+               " · %d trang" % t["so_trang"] if isinstance(t.get("so_trang"), int) else "")]
+    d = read_json(os.path.join(_theme_trang_dir(t["id"]), "trang.json"), None) or {}
+    if d.get("trang") and not d.get("het"):
+        for tr in d["trang"][:12]:
+            o = [x for x in (tr.get("o") or []) if str(x.get("chu") or "").strip()]
+            dong.append("- Trang %d: %s" % (tr.get("so"), " | ".join('"%s" (%d chữ)' % (short(re.sub(r"\s+", " ", x["chu"]).strip(), 60), len(x["chu"].split()))
+                                                             for x in o[:6]) or "(không có chữ, trang ảnh)"))
+    return "\n".join(dong)[:2500]
+
+
+def _bai_dung_theme(tid):
+    """Bài đang dựng / hẹn / xếp hàng dùng theme tid (để không chỉnh thiết kế theme giữa chừng)."""
+    for j in list_jobs():
+        th = j.get("theme_canva") if isinstance(j.get("theme_canva"), dict) else {}
+        if th.get("id") == tid and j.get("status") in ("dang-chay", "hen"):
+            return j
+    return None
+
+
 def theme_sua(data):
     """POST /api/theme-canva {nhan_ban|chinh: {id, ten, kenh, dang, mau_chinh, mau_nen, thay_chu: [[cũ, mới]], ghi}}."""
     kieu = "nhan-ban" if data.get("nhan_ban") else "sua"
@@ -2578,6 +2624,11 @@ def theme_sua(data):
         raise ValueError("Không thấy theme")
     if (THEME_SUA.get(t["id"]) or {}).get("tt") == "dang" and now() - THEME_SUA[t["id"]].get("t", 0) < 1200:
         raise ValueError("Theme này đang được chỉnh, chờ xong đã")
+    if kieu == "sua":
+        dung = _bai_dung_theme(t["id"])
+        if dung:
+            raise ValueError('Bài "%s" đang dựng / hẹn dựng bằng theme này: chờ bài xong rồi chỉnh (hoặc bấm Nhân bản để chỉnh bản khác)'
+                             % short(dung.get("tieu_de") or dung.get("ten_bai") or dung["id"], 40))
     if kieu == "sua" and t.get("nguon") == "kho-chung":
         raise ValueError("Theme lấy từ kho chung là thiết kế của fen: bấm Nhân bản để có bản riêng rồi chỉnh bản đó")
     yc = _theme_yeu_cau(x)
@@ -2737,7 +2788,10 @@ def _theme_dong_bo_chay(cmd):
         except Exception:
             ds = None
     if not isinstance(ds, list):
-        loi = ghi or (re.sub(r"^.*THEME_LOI\s*", "", kq, flags=re.S).strip()[:160] if "THEME_LOI" in kq else short(kq or "không đọc được thư mục", 160))
+        hm = han_muc_text(kq)
+        if hm:
+            han_muc_ghi(hm[0], hm[1])
+        loi = ghi or (han_muc_ly_do() if hm else "") or (re.sub(r"^.*THEME_LOI\s*", "", kq, flags=re.S).strip()[:160] if "THEME_LOI" in kq else short(kq or "không đọc được thư mục", 160))
         THEME_DB.update({"tt": "loi", "t": now(), "ghi": loi})
         if "Chưa nối được Canva" in kq:
             canva_ghi_tt("chua", "Lấy kho theme", kq)
@@ -3143,7 +3197,10 @@ def _theme_xem_chay(cmd, t):
                         y["ten"] = short(str(info["ten"]), 60)
             write_json(THEME_CV_FILE, doc)
     ok = bool(m) and os.path.isfile(anh) and _la_anh(anh)
-    loi = ghi or (re.sub(r"^.*THEME_LOI\s*", "", kq, flags=re.S).strip()[:160] if "THEME_LOI" in kq else "") or ("" if ok else short(kq or "không ra ảnh", 160))
+    hm = None if ok else han_muc_text(kq)
+    if hm:
+        han_muc_ghi(hm[0], hm[1])
+    loi = ghi or (han_muc_ly_do() if hm else "") or (re.sub(r"^.*THEME_LOI\s*", "", kq, flags=re.S).strip()[:160] if "THEME_LOI" in kq else "") or ("" if ok else short(kq or "không ra ảnh", 160))
     THEME_XEM[t["id"]] = {"tt": "ok" if ok else "loi", "t": now(), "ghi": "" if ok else loi}
     if "Chưa nối được Canva" in kq:
         canva_ghi_tt("chua", "Lấy ảnh theme", kq)
@@ -4072,10 +4129,12 @@ def tgl_chay(jid, tra, bo_nut, canva=False):
             return tra("Brief trống")
         j.setdefault("tg", {})["chay"] = "dang"
         save_job(j)
-    tra("Bắt đầu dựng trên Canva…" if canva else "Bắt đầu dựng…")
+    th = theme_goi_y(j.get("kenh"), j.get("chu_de") or "\n".join([x for x in bv.splitlines() if x.strip()][:2])) if canva else None   # fen 10/11 15h24: Telegram dựng Canva dùng theme hợp dạng bài
+    tra(("Bắt đầu dựng trên Canva theo theme \"%s\"…" % re.sub(r"^\s*carousel\s+tiktok\s*", "", th.get("ten") or "", flags=re.I) if th else "Bắt đầu dựng trên Canva…") if canva else "Bắt đầu dựng…")
     bo_nut()
     try:
-        job = create_job({"kenh": j.get("kenh"), "brief": bv, "tu_tg": True, "dung_bang": "canva" if canva else ""})
+        job = create_job({"kenh": j.get("kenh"), "brief": bv, "tu_tg": True, "dung_bang": "canva" if canva else "",
+                          "theme_canva": th["id"] if th else ""})
     except ValueError as e:
         tgl_gan(jid, {"chay": None})
         return tgl_gui("⚠️ Chưa chạy được: " + str(e).split("|")[-1])
@@ -4950,7 +5009,7 @@ def job_view(jid, since=0):
             ly_do = job["loi_chay"]
     return {
         "ly_do": ly_do,
-        "job": dict({k: job.get(k) for k in ("id", "kenh", "tieu_de", "ten_bai", "ngay_dang", "brief", "ghi_chu", "status", "created", "thu_muc_bai", "session_id", "anh", "sua", "model", "hen_luc", "sau_caption", "hen_bao", "nhac", "da_dang", "dang_loi", "hen_dang", "xep_hang", "dung_bang", "canva_loi", "theme_canva")},
+        "job": dict({k: job.get(k) for k in ("id", "kenh", "tieu_de", "ten_bai", "ngay_dang", "brief", "ghi_chu", "status", "created", "thu_muc_bai", "session_id", "anh", "sua", "model", "model_sua", "hen_luc", "sau_caption", "hen_bao", "nhac", "da_dang", "dang_loi", "hen_dang", "xep_hang", "dung_bang", "canva_loi", "theme_canva")},
                     **dict(zip(("tieu_de", "ngay_dang"), ten_hien(job)))),
         "run": run and {"n": run["n"], "kind": run["kind"], "started": run["started"], "ended": run.get("ended")},
         "runs": len(job.get("runs", [])),

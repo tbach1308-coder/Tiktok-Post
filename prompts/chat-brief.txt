@@ -9,6 +9,7 @@ Các tin trước trong cuộc chat này (cũ -> mới; ảnh fen gửi ở tin 
 {lich_su}
 Tin mới của fen: {tin}
 {kho}
+{theme}
 
 Cách làm:
 - Fen bảo sửa / thêm / bớt / đổi (vd "slide 3 đổi sang máy khác", "ngắn lại", "thêm slide về pin", "bìa ngắn hơn", "đổi góc khác"): sửa đúng chỗ fen nói, giữ nguyên phần fen không nhắc (tiêu đề bìa / slide trong brief giữ đúng chữ, chỉ đổi khi fen bảo đổi tiêu đề đó hoặc tiêu đề sai thông tin; luật 17d, fen 06/11), rồi ghi TOÀN BỘ brief mới vào đúng file "{out}" bằng Write (UTF-8, cùng định dạng brief hiện tại, không markdown: không **, không #, không gạch đầu dòng).
