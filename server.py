@@ -2351,6 +2351,10 @@ def _multipart(fields, files):
     return b"\r\n".join(out), "multipart/form-data; boundary=" + b
 
 
+class TgTam(ValueError):
+    """Mạng tới Telegram rớt tạm thời (timed out, handshake…): thử lại là được."""
+
+
 def tg_call(method, fields=None, files=None, timeout=120):
     import urllib.request
     token = CFG.get("telegram_token")
@@ -2379,6 +2383,12 @@ def tg_call(method, fields=None, files=None, timeout=120):
             res = None
         if not res:
             code = getattr(e, "code", None)
+            # 11/11 fen "Remote · lỗi": mạng tới Telegram hay rớt 1 lần (read / handshake timed out) rồi tự lại -> không ghi log từng lần,
+            # vòng nghe lệnh tự thử lại, chỉ báo lỗi khi rớt nhiều lần liền
+            if not code and re.search(r"timed out|timeout|handshake|reset by peer|Remote end closed|EOF occurred|temporar", str(e), re.I):
+                if method != "getUpdates":
+                    log("telegram %s: %s (mạng chập chờn)" % (method, e))
+                raise TgTam("Mạng tới Telegram chập chờn, app tự thử lại.")
             log("telegram %s: %s | %s" % (method, e, raw[:300].decode("utf-8", "replace").replace("\n", " ")))
             if code:   # có trả lời từ máy chủ nhưng không phải dạng Telegram
                 raise ValueError("Telegram trả lỗi %s khi %s (chi tiết trong app-log.txt). Chụp màn hình gửi Claude." % (code, method))
@@ -4009,11 +4019,19 @@ def tgl_vong():
         bo_cu = TGL.pop("bo_cu", False)
         try:
             ups = tg_call("getUpdates", {"offset": off, "timeout": 0 if bo_cu else 25, "allowed_updates": json.dumps(["message", "callback_query"])}, timeout=40) or []
-            TGL["loi"] = ""
+            TGL["loi"], TGL["lien"] = "", 0
         except Exception as e:
             if bo_cu:
                 TGL["bo_cu"] = bo_cu
             if TGL["tam_dung"] > now():
+                continue
+            if isinstance(e, TgTam):          # mạng rớt 1 lần: thử lại sau 3 giây, rớt 3 lần liền mới báo lỗi
+                TGL["lien"] = TGL.get("lien", 0) + 1
+                if TGL["lien"] >= 3:
+                    if TGL["lien"] == 3:
+                        log("telegram getUpdates: mạng tới Telegram rớt 3 lần liền, vẫn thử lại")
+                    TGL["loi"], TGL["loi_luc"] = "Mạng tới Telegram chập chờn nhiều lần liền, app vẫn đang thử lại.", now()
+                time.sleep(3 if TGL["lien"] < 3 else 15)
                 continue
             s = str(e).split("|")[-1]
             if "conflict" in s.lower():
