@@ -3236,6 +3236,15 @@ def kho_chung(data=None):
         if v and not _kho_chung_url(v):
             raise ValueError("Dán link chia sẻ của file %s trên Google Drive (https://drive.google.com/file/d/…)" % KHO_CHUNG_TEN)
         save_cfg_keys({"kho_chung_link": v})
+    if data.get("mo"):                                  # nút "Mở thư mục Drive" (bước chia sẻ file)
+        d = kho_chung_dir()
+        if not d:
+            raise ValueError("Máy này chưa có ổ Google Drive")
+        os.makedirs(d, exist_ok=True)
+        if IS_WIN:
+            os.startfile(d)
+        elif IS_MAC:
+            subprocess.Popen(["open", d])
     if data.get("dua"):
         kho_chung_dua(data["dua"])
         if not CFG.get("kho_chung_chu"):
