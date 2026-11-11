@@ -111,7 +111,8 @@ a.btn{color:var(--tx);text-decoration:none}
 .thdb{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:4px 0 2px}
 .thkc{border:1px solid var(--line2);border-radius:10px;background:var(--panel2);padding:10px 12px;margin:10px 0 4px;display:grid;gap:8px;max-width:860px}
 .thkc b{font-size:14px}.thkc .row1{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px}.thkc .row1 .in{flex:1 1 320px;width:auto}.thkc .pnote{margin:0}
-.thc .kcb{font-size:11px;color:#9cc8ff}.kcw{font-size:11px;color:#f5b84a;font-weight:500}
+.thc .kcb{font-size:11px;color:#9cc8ff}
+.meta .dungc{font-size:12px;color:var(--mut);border:1px solid var(--line2);border-radius:999px;padding:1px 8px;cursor:help}.kcw{font-size:11px;color:#f5b84a;font-weight:500}
 .thc .thmore[hidden],.thc .thinfo[hidden]{display:none}
 .thc .thmore{display:flex;flex-wrap:wrap;gap:5px}.thc .thmore .btn{padding:3px 8px;font-size:12px}
 .thc .thinfo{display:grid;gap:6px;border-top:1px solid var(--line2);padding-top:8px}
@@ -578,7 +579,7 @@ const S = {view:'new', jobId:null, jobs:[], jobsH:'', since:0, events:[], data:n
 const store = {get(k, d){ try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch(e) { return d; } },
                set(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch(e) {} }};
 /* nháp Bài mới: mỗi nháp 1 brief riêng (bấm qua lại không mất), lưu trên máy (nhap.json) + bản phụ trong trình duyệt */
-const NHAP_K = ['id', 'kenh', 'ten', 'ngay', 'brief', 'note', 'chude', 'briefJob', 'briefT', 'briefNote', 'nhanh', 't', 'chat', 'chatJob', 'chatT', 'briefTruoc', 'kb', 'model', 'briefCd', 'briefCdGui', 'briefMay', 'dung', 'kho', 'theme'];   // kb: kênh lúc Claude viết / sửa brief; briefCd: chủ đề lúc Claude viết brief trong ô; briefMay: chữ Claude viết (so ra fen có sửa không)
+const NHAP_K = ['id', 'kenh', 'ten', 'ngay', 'brief', 'note', 'chude', 'briefJob', 'briefT', 'briefNote', 'nhanh', 't', 'chat', 'chatJob', 'chatT', 'briefTruoc', 'kb', 'model', 'briefCd', 'briefCdGui', 'briefMay', 'dung', 'kho', 'theme', 'themeTu', 'themeBo'];   // kb: kênh lúc Claude viết / sửa brief; briefCd: chủ đề lúc Claude viết brief trong ô; briefMay: chữ Claude viết (so ra fen có sửa không)
 const nhapMoi = o => Object.assign({id: 'n' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), kenh: (S.form && KENH[S.form.kenh] && S.form.kenh) || 'laptop', t: Date.now()}, o || {}, {anh: []});
 const nhapGon = x => { const o = {}; for (const k of NHAP_K) if (x[k] != null && x[k] !== '') o[k] = x[k]; return o; };
 const nhapRong = x => !(x.brief || '').trim() && !(x.chude || '').trim() && !(x.ten || '').trim() && !(x.note || '').trim() && !(x.kho || '').trim() && !(x.anh || []).length && !x.briefJob && !x.chatJob && !(x.chat || []).length;
@@ -738,6 +739,7 @@ async function health(force){
     else if (h.login === false) { cls = 'warn'; txt = 'Chưa đăng nhập Claude'; btn = `<button class="btn sm pri" onclick="login(this)">Đăng nhập</button>`; }
     else if (h.login == null) { cls = 'warn'; txt = 'Chưa kiểm được đăng nhập'; }
     else if (h.han_muc && h.han_muc.het) { cls = 'warn'; txt = 'Hết hạn mức Claude' + (h.han_muc.gio ? ' · reset ' + h.han_muc.gio : ''); }
+    else if (h.dung && h.dung.canh_bao) { cls = 'warn'; txt = 'Hạn mức tuần ~' + h.dung.pt + '%'; }
     const el = $('#hc'); el.title = 'Bấm để kiểm máy' + (v ? ' · Claude Code ' + v : '') + (tk ? ' · tài khoản ' + tk : '');
     setH(el, `<span class="dot ${cls}"></span><span>${esc(txt)}</span>${h.login && tk ? `<span class="tk">· ${esc(tk)}</span>` : ''}${btn}`);
     if ($('#kmL')) kmVe();
@@ -774,6 +776,10 @@ function kmVe(){
   for (const x of (h.san_sang || [])) html += row(x.ok ? true : x.can ? false : null, x.ten, x.ghi);
   const hm = h.han_muc || {};
   if (hm.het) html += row(false, 'Hạn mức Claude', 'hết hạn mức' + (hm.chu ? ' ' + hm.chu : '') + (hm.gio ? ' · reset ' + hm.gio : '') + '. Bài dựng / sửa dở sẽ tự chạy lại sau đó.');
+  const du = h.dung;
+  if (du) html += row(du.canh_bao ? false : true, 'Hạn mức tuần (việc trong app)', `≈ ${usd(du.tong)} từ ${new Date(du.tu * 1000).toLocaleString('vi-VN', {hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit'})}`
+    + (du.muc ? ` · ~${du.pt}% so với lần hết hạn mức trước (${usd(du.muc)})` : '') + (Object.keys(du.m || {}).length ? ' · ' + Object.entries(du.m).sort((a, b) => b[1] - a[1]).map(([k, v]) => (MODEL_NGAN[k] || k) + ' ' + usd(v)).join(', ') : '')
+    + '. Ước tính, chỉ tính việc trong app này (app khác trên máy dùng chung tài khoản không tính được).' + (du.canh_bao ? ' Sắp chạm mức lần trước: ưu tiên Sonnet, bớt viết lại brief.' : ''));
   if (h.tu_bat) html += row(h.tu_bat.bat ? (h.tu_bat.co ? true : null) : null, 'Tự bật app khi mở máy', h.tu_bat.bat ? (h.tu_bat.co ? 'đang bật (lối tắt trong Startup)' : 'đang ghi lối tắt…') : 'tắt (config.json "tu_bat": false)');
   setH(L, html);
   const b = $('#kmTk'); if (b && !b.dataset.cho && !b.dataset.chac) b.textContent = h.login ? 'Đổi tài khoản' : 'Đăng nhập';
@@ -1024,6 +1030,7 @@ async function loadJobs(){
     if (j.ui) { if (!S.ui) S.ui = j.ui; else if (j.ui !== S.ui) { if (canReload()) { taiLaiUi(); return; } uiMoiBao(); } }
     rmChip(j.remote);
     if (j.han_muc && S.health && (!!S.health.han_muc?.het !== !!j.han_muc.het || (S.health.han_muc || {}).gio !== j.han_muc.gio)) { S.health.han_muc = j.han_muc; health(); }
+    if (j.dung && S.health && S.health.dung && (j.dung.pt >= 80) !== !!S.health.dung.canh_bao) health();
     const old = new Map(S.jobs.map(x => [x.id, x.status])); S.jobs = j.jobs || [];
     S.jobs.forEach(x => { if (old.get(x.id) === 'dang-chay' && x.status !== 'dang-chay' && x.id !== S.jobId) notify(x); });
     renderJobs();
@@ -1224,10 +1231,14 @@ function newView(){
     const ths = (S.themeCv || []).filter(t => !t.kenh || t.kenh === f.kenh);
     if (f.theme && !ths.some(t => t.id === f.theme)) f.theme = '';
     const dg = doanDang((f.chude || '') + ' ' + (f.brief || '').split('\n')[0]);
+    // fen 11/11 "bài Canva đạt hơn": làm bằng Canva mà chưa chọn theme thì tự chọn theme hợp dạng bài (bấm ✕ / Mẫu kênh là thôi tự chọn cho nháp này)
+    if (cv && !f.theme && !f.themeBo && dg) { const g = ths.filter(t => (t.dang || []).includes(dg) && !(t.nguon === 'kho-chung' && !t.chia_se));
+      if (g.length) { f.theme = g[g.length - 1].id; f.themeTu = 1; saveForm(); } }
+    if (!f.theme) f.themeTu = 0;
     // fen 10/11 13h31 "chỗ làm bài mới cho chọn theme để chạy bài viết": hàng theme luôn hiện; bấm 1 theme là chuyển sang làm bằng Canva
     const thCo = cv && f.theme;
-    setH($('#thPick'), `<div class="thpick"><span class="lbl">🎨 Theme</span><button data-th="-" class="${thCo ? '' : 'on'}" title="${cv ? 'Canva dùng mẫu của kênh (Kiểm máy > Canva)' : 'Photoshop tự vẽ theo bộ dựng của shop'}">${cv ? 'Mẫu kênh' : 'Không theme'}</button>${ths.map(t => `<button data-th="${t.id}" class="${thCo && f.theme === t.id ? 'on' : ''}" title="${esc(t.ten)}${t.so_trang ? ' · ' + t.so_trang + ' trang' : ''} · làm bằng Canva${thCo && f.theme === t.id ? ' · bấm lần nữa để bỏ chọn' : ''}">${t.anh ? `<img src="${esc(t.anh)}" alt="">` : ''}${esc(tenGon(t))}${dg && (t.dang || []).includes(dg) ? ' <i>gợi ý</i>' : ''}${thCo && f.theme === t.id ? '<b class="thx" title="Bỏ chọn theme">✕</b>' : ''}</button>`).join('')}${thCo ? '<span class="thmot">chỉ dùng 1 theme · bấm ✕ để bỏ</span>' : ''}<a href="#" id="thMo">${ths.length ? 'Kho theme' : '＋ Kho theme đang trống, thêm theme'}</a></div>`);
-    document.querySelectorAll('#thPick [data-th]').forEach(b => b.onclick = () => { if (b.dataset.th === '-' || (thCo && f.theme === b.dataset.th)) f.theme = ''; else { f.theme = b.dataset.th; f.dung = 'canva'; } saveForm(); veDung(); });   // fen 10/11 15h11 "lỡ chọn nhiều là xóa không được hả": chỉ chọn 1 theme, bấm lại theme đang chọn là bỏ chọn
+    setH($('#thPick'), `<div class="thpick"><span class="lbl">🎨 Theme</span><button data-th="-" class="${thCo ? '' : 'on'}" title="${cv ? 'Canva dùng mẫu của kênh (Kiểm máy > Canva)' : 'Photoshop tự vẽ theo bộ dựng của shop'}">${cv ? 'Mẫu kênh' : 'Không theme'}</button>${ths.map(t => `<button data-th="${t.id}" class="${thCo && f.theme === t.id ? 'on' : ''}" title="${esc(t.ten)}${t.so_trang ? ' · ' + t.so_trang + ' trang' : ''} · làm bằng Canva${thCo && f.theme === t.id ? ' · bấm lần nữa để bỏ chọn' : ''}">${t.anh ? `<img src="${esc(t.anh)}" alt="">` : ''}${esc(tenGon(t))}${dg && (t.dang || []).includes(dg) ? ' <i>gợi ý</i>' : ''}${thCo && f.theme === t.id ? '<b class="thx" title="Bỏ chọn theme">✕</b>' : ''}</button>`).join('')}${thCo ? `<span class="thmot">${f.themeTu ? 'app tự chọn theo dạng bài · ' : ''}chỉ dùng 1 theme · bấm ✕ để bỏ</span>` : ''}<a href="#" id="thMo">${ths.length ? 'Kho theme' : '＋ Kho theme đang trống, thêm theme'}</a></div>`);
+    document.querySelectorAll('#thPick [data-th]').forEach(b => b.onclick = () => { f.themeTu = 0; if (b.dataset.th === '-' || (thCo && f.theme === b.dataset.th)) { f.theme = ''; f.themeBo = 1; } else { f.theme = b.dataset.th; f.dung = 'canva'; } saveForm(); veDung(); });   // fen 10/11 15h11 "lỡ chọn nhiều là xóa không được hả": chỉ chọn 1 theme, bấm lại theme đang chọn là bỏ chọn
     const tm = $('#thMo'); if (tm) tm.onclick = ev => { ev.preventDefault(); khoTheme(); };
     setH($('#dungGhi'), cv && S.cvMau && !mau && !f.theme ? `<span class="stc">${esc(KENH[f.kenh].ten)} chưa có mẫu Canva · <a href="#" id="dungMau">thêm mẫu</a> hoặc chọn theme</span>` : '');
     const dm = $('#dungMau'); if (dm) dm.onclick = ev => { ev.preventDefault(); kiemMay(); setTimeout(() => { const k = $('#kmCv'); if (k) k.scrollIntoView({block: 'center'}); }, 300); }; };
@@ -1454,7 +1465,7 @@ function renderJob(){
     <div class="jh">
       <div class="tt">
         <h1>${esc(j.tieu_de)}</h1>
-        <div class="meta"><span class="kn ${j.kenh}">${esc(k.ten || j.kenh)}</span>${tagDung(j, true)}<span>${esc(k.handle || '')}</span>${j.ngay_dang ? `<span>đăng ${esc(j.ngay_dang)}</span>` : ''}${j.model ? `<span class="fastc" title="Model Claude dựng bài này (sửa theo Kiểm máy > Model hoặc ô Model ở Sửa bài)">${esc(MODEL_NGAN[j.model] || j.model)}</span>` : ''}<span class="stp" id="stp"></span></div>
+        <div class="meta"><span class="kn ${j.kenh}">${esc(k.ten || j.kenh)}</span>${tagDung(j, true)}<span>${esc(k.handle || '')}</span>${j.ngay_dang ? `<span>đăng ${esc(j.ngay_dang)}</span>` : ''}${j.model ? `<span class="fastc" title="Model Claude dựng bài này (sửa theo Kiểm máy > Model hoặc ô Model ở Sửa bài)">${esc(MODEL_NGAN[j.model] || j.model)}</span>` : ''}<span class="dungc" id="jDung" hidden></span><span class="stp" id="stp"></span></div>
       </div>
       <div class="acts" id="acts"></div>
     </div>
@@ -1496,6 +1507,7 @@ function updateJob(){
   let tm = '';
   if (run && live) tm = ` · <span class="tm">${dur(nowS() - run.started)}</span>`;
   else if (run && j.status === 'xong' && run.ended) tm = ` · ${dur(run.ended - run.started)}`;
+  veDungBai();
   const stp = $('#stp'); stp.className = 'stp ' + j.status;
   setH(stp, `${live ? '<span class="dot run"></span>' : ''}${esc(ST[j.status] || j.status)}${tm}`);
   // nút: thứ tự cố định [Mở thư mục][⋯][Dừng | Chạy tiếp]
@@ -1620,7 +1632,14 @@ function updateJob(){
   renderFix();
   renderPost();
 }
-function runLabel(n){ const r = (S.data.run_list || []).find(x => x.n === n); if (!r) return 'Lượt ' + n; return 'Lượt ' + n + ' · ' + r.label + (r.model ? ' · ' + (MODEL_NGAN[r.model] || r.model) : '') + ' · ' + hm(r.started) + (r.ended ? '–' + hm(r.ended) : ''); }
+// hạn mức đã dùng (fen 11/11 "xem hạn mức từng bài"): quy đổi USD theo giá API (gói Max không trừ tiền), % so với lần hết hạn mức tuần trước
+const usd = c => c == null ? '' : (c < 0.01 ? '<0,01' : c.toFixed(2).replace('.', ',')) + ' USD';
+const mucTuan = () => (S.data && S.data.dung_tuan && S.data.dung_tuan.muc) || (S.health && S.health.dung && S.health.dung.muc) || null;
+const ptTuan = c => { const m = mucTuan(); return m && c != null ? (c / m * 100 < 1 ? '<1' : Math.round(c / m * 100)) + '% tuần' : ''; };
+function runLabel(n){ const r = (S.data.run_list || []).find(x => x.n === n); if (!r) return 'Lượt ' + n; return 'Lượt ' + n + ' · ' + r.label + (r.model ? ' · ' + (MODEL_NGAN[r.model] || r.model) : '') + ' · ' + hm(r.started) + (r.ended ? '–' + hm(r.ended) : '') + (r.cost != null ? ' · ≈ ' + [ptTuan(r.cost), usd(r.cost)].filter(Boolean).join(' · ') : ''); }
+function veDungBai(){ const e = $('#jDung'); if (!e || !S.data) return; const c = S.data.cost; e.hidden = c == null;
+  e.textContent = c == null ? '' : '≈ ' + [ptTuan(c), usd(c)].filter(Boolean).join(' · ');
+  e.title = 'Hạn mức Claude bài này đã dùng (ước tính; quy đổi theo giá API, gói Max không trừ tiền)' + ((S.data.run_list || []).some(r => r.cost != null) ? ': ' + S.data.run_list.filter(r => r.cost != null).map(r => r.label + ' ' + usd(r.cost)).join(' · ') : ''); }
 function renderFeed(){
   const feed = $('#feed'); const ev = S.events; const LIM = 8;
   const list = S.feedAll ? ev : ev.slice(-LIM);

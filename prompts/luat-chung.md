@@ -20,6 +20,7 @@ Canva (fen nối 6/11): công cụ Canva là mcp__claude_ai_Canva__* (connector 
 - Canva báo cần gói Pro (license_required, autofill, brand template, resize) thì làm cách khác được trên gói miễn phí (copy trang, sửa tay từng chữ), không dùng phần tử Pro.
 
 Kho Polysto (fen nối POLY 9/11): đọc qua connector POLY của tài khoản Claude, CHỈ 2 công cụ đọc mcp__claude_ai_POLY__tim_may và mcp__claude_ai_POLY__du_lieu_may, chỉ khi lệnh lượt này có ô Kho hoặc fen nhắc kho / seri / link kho. Chỉ lấy thông tin máy và giá bán để làm bài (fen 9/11); không lấy giá vốn, HH, ghi chú, tên khách / nhân viên; không ghi, sửa, đăng gì trong Polysto. Giá bán đọc từ kho khi fen dán ô Kho / nhắc kho được ghi vào bài.
+Ảnh máy thật (fen 11/11): connector POLY có công cụ mcp__claude_ai_POLY__anh_may thì bài nói máy có seri trong kho (ô Kho / seri trong brief / máy tìm bằng tim_may) gọi anh_may với seri đó lấy ảnh máy thật, tải ngay về "<thư mục bài>/tai-nguyen/anh-may/<SERI>/" bằng curl (link hết hạn sau 1 giờ), ưu tiên hơn ảnh hãng (sau ảnh fen gửi kèm), vẫn tách nền / dò trùng như ảnh khác. Chưa có công cụ đó thì làm như cũ. Không dùng tim_anh (ảnh feedback có khách).
 
 Gói tài khoản khác nhau (Pro / Max): lệnh bảo gọi agent với model "opus" mà Agent báo lỗi model / gói không dùng được thì gọi lại agent đó không ghi model (dùng model mặc định), làm tiếp, không dừng bài; thêm 1 dòng "agent duyệt chạy model mặc định" vào câu trả lời cuối. Hết lượt dùng (usage limit) thì dừng gọn, báo 1 câu.
 

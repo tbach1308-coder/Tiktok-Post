@@ -50,6 +50,9 @@ HẾT HẠN MỨC CLAUDE + TỰ BẬT APP (10/11)
 - Tự bật app khi mở máy (Windows): app tự ghi lối tắt "Poly Dung Bai" vào thư mục Startup của tài khoản Windows, mở máy
   là máy chủ tự chạy ngầm sau 15 giây (không mở cửa sổ; bấm icon Desktop khi cần). Tắt: config.json "tu_bat": false.
   Xem trạng thái ở Kiểm máy > "Tự bật app khi mở máy".
+- Hạn mức đã dùng: mỗi bài hiện "≈ x% tuần · y USD" cạnh tên kênh (rê chuột xem từng lượt). Kiểm máy có dòng
+  "Hạn mức tuần (việc trong app)": tổng tuần này so với lúc hết hạn mức lần trước; tới ~80% chip trên cùng báo vàng.
+  Chỉ là ước tính việc trong app (app khác trên máy dùng chung tài khoản Claude không tính được); USD là quy đổi, gói Max không trừ tiền.
 
 KHO THEME CANVA (10/11)
 - Cột trái → "🎨 Kho theme" (mở thành trang riêng như Bài mới). Theme Canva = 1 thiết kế Canva làm mẫu (1080x1440, mỗi trang 1 kiểu slide: bìa, nội dung, cuối).

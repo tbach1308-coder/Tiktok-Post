@@ -11,6 +11,7 @@ Trang thai luon doc lai tu file log, nen tat app giua chung roi mo lai van xem t
 """
 import base64
 import json
+import math
 import mimetypes
 import os
 import re
@@ -939,6 +940,7 @@ def handle_line(st, obj, run):
             "subtype": obj.get("subtype"), "text": obj.get("result") or "",
             "ms": obj.get("duration_ms"), "turns": obj.get("num_turns"),
             "session_id": obj.get("session_id"),
+            "cost": _so(obj.get("total_cost_usd")), "cost_m": _dung_model(obj),
         }
         st["session_id"] = obj.get("session_id") or st["session_id"]
         note_folder(st, r["text"])
@@ -956,6 +958,139 @@ def handle_line(st, obj, run):
         # chỉ thêm khi tiến trình đã kết thúc (parse_job / _danh_dau_xong), không thêm ở đây
         if not r["ok"]:
             add_event(st, "error", SUB_VI.get(r["subtype"]) or ("Claude dừng vì lỗi: " + short(explain_err(r["text"] or r["subtype"] or ""), 200)), run)
+
+
+# ---------------------------------------------------------------- hạn mức đã dùng (fen 11/11 "xem hạn mức từng bài")
+# Claude trả total_cost_usd (quy đổi theo giá API, gói Max không trừ tiền) + modelUsage mỗi lượt: app ghi lại để ước tính
+# hạn mức đã dùng từng bài và cả tuần. Chỉ tính việc chạy trong app này (app khác trên máy cùng tài khoản không thấy được).
+DUNG_FILE = os.path.join(APP, "han-muc-dung.json")
+DUNG_KHOA = threading.Lock()
+# 9/11 16h35 tài khoản shop hết hạn mức tuần, báo "resets 6am" -> tuần mới lúc 06:00 10/11 (thứ Ba), mỗi 7 ngày
+DUNG_MOC_RESET = 1794265200          # 2026-11-10 06:00 +07
+DUNG_MOC_HET = 1794216900            # 2026-11-09 16:35 +07: lần hết hạn mức tuần đầu tiên
+
+
+def _so(v):
+    try:
+        return float(v) if v is not None else None
+    except (TypeError, ValueError):
+        return None
+
+
+def _dung_model(o):
+    m = {}
+    for k, v in ((o or {}).get("modelUsage") or {}).items():
+        ten = "opus" if "opus" in k else "sonnet" if "sonnet" in k else "haiku" if "haiku" in k else "fable" if "fable" in k else "khac"
+        c = _so((v or {}).get("costUSD"))
+        if c:
+            m[ten] = round(m.get(ten, 0) + c, 4)
+    return m
+
+
+def _dung_doc():
+    d = read_json(DUNG_FILE, None)
+    return d if isinstance(d, dict) and isinstance(d.get("ds"), list) else {"ds": [], "muc_tuan": None}
+
+
+def ghi_dung(khoa, t, cost, cost_m, viec="", jid=None):
+    """Ghi 1 lượt vào sổ (bỏ trùng theo khoá), giữ 60 ngày."""
+    if cost is None:
+        return
+    with DUNG_KHOA:
+        d = _dung_doc()
+        if any(x.get("k") == khoa for x in d["ds"][-400:]):
+            return
+        d["ds"].append({"k": khoa, "t": round(t or now()), "c": round(cost, 4), "m": cost_m or {}, "v": viec, "j": jid})
+        d["ds"] = [x for x in d["ds"] if x.get("t", 0) > now() - 60 * 86400]
+        write_json(DUNG_FILE, d)
+
+
+def _dung_dau_tuan(t=None):
+    """Mốc đầu tuần hạn mức chứa thời điểm t (tuần mới 06:00 thứ Ba theo lần reset đã biết; có lần hết hạn mức mới thì theo lần đó)."""
+    t = t or now()
+    moc = (read_json(DUNG_FILE, None) or {}).get("moc_reset") or DUNG_MOC_RESET
+    tuan = 7 * 86400
+    return moc + math.floor((t - moc) / tuan) * tuan
+
+
+def dung_tuan():
+    """Kiểm máy: tổng tuần này + mức lần hết trước (ước tính, chỉ việc trong app)."""
+    d = _dung_doc()
+    dau = _dung_dau_tuan()
+    ds = [x for x in d["ds"] if x.get("t", 0) >= dau]
+    tong, m = 0.0, {}
+    for x in ds:
+        tong += x.get("c") or 0
+        for k, v in (x.get("m") or {}).items():
+            m[k] = m.get(k, 0) + v
+    muc = d.get("muc_tuan")
+    if not muc:                      # chưa học được: tính từ lần hết hạn mức đầu tiên (9/11) nếu sổ có đủ lượt tuần đó
+        dau_cu = _dung_dau_tuan(DUNG_MOC_HET)
+        cu = [x for x in d["ds"] if dau_cu <= x.get("t", 0) <= DUNG_MOC_HET]
+        if len(cu) >= 5:
+            muc = round(sum(x.get("c") or 0 for x in cu), 2)
+    pt = round(100 * tong / muc) if muc else None
+    return {"tong": round(tong, 2), "m": {k: round(v, 2) for k, v in m.items()}, "so_luot": len(ds), "tu": dau,
+            "toi": dau + 7 * 86400, "muc": muc, "pt": pt, "canh_bao": bool(pt and pt >= 80)}
+
+
+def _dung_tuan_gon():
+    try:
+        x = dung_tuan()
+        return {"tong": x["tong"], "muc": x["muc"], "pt": x["pt"]}
+    except Exception:
+        return None
+
+
+def dung_hoc_muc():
+    """Vừa hết hạn mức tuần: nhớ app đã dùng bao nhiêu trong tuần đó (mức để báo trước lần sau) + mốc reset mới."""
+    with DUNG_KHOA:
+        d = _dung_doc()
+        dau = _dung_dau_tuan()
+        tong = sum(x.get("c") or 0 for x in d["ds"] if x.get("t", 0) >= dau)
+        if tong > 1:
+            d["muc_tuan"] = round(tong, 2)
+        if HAN_MUC.get("reset_t") and HAN_MUC.get("chu") == "tuần":
+            d["moc_reset"] = HAN_MUC["reset_t"]
+        write_json(DUNG_FILE, d)
+
+
+def dung_bu_cu():
+    """Mở app: lượt cũ (trước khi có sổ, 8 ngày gần nhất + tuần hết hạn mức 9/11) chưa ghi chi phí thì đọc đuôi stream để ghi."""
+    if not os.path.isdir(JOBS):
+        return
+    tu = min(now() - 9 * 86400, _dung_dau_tuan(DUNG_MOC_HET))
+    d = _dung_doc()
+    co = set(x.get("k") for x in d["ds"])
+    for jid in sorted(os.listdir(JOBS)):
+        j = read_json(os.path.join(JOBS, jid, "job.json"))
+        if not j:
+            continue
+        for r in j.get("runs") or []:
+            if (r.get("started") or 0) < tu or not r.get("ended") or "%s:%d" % (jid, r["n"]) in co:
+                continue
+            f = os.path.join(JOBS, jid, "stream-%d.jsonl" % r["n"])
+            try:
+                with open(f, "rb") as fh:
+                    fh.seek(0, 2)
+                    fh.seek(max(0, fh.tell() - 400000))
+                    duoi = fh.read().decode("utf-8", "replace")
+            except OSError:
+                continue
+            best = None
+            for line in duoi.splitlines():
+                if '"type":"result"' not in line.replace(" ", ""):
+                    continue
+                try:
+                    o = json.loads(line)
+                except Exception:
+                    continue
+                c = _so(o.get("total_cost_usd"))
+                if c is not None and (best is None or c > best[0]):
+                    best = (c, _dung_model(o))
+            if best:
+                ghi_dung("%s:%d" % (jid, r["n"]), r.get("ended"), best[0], best[1], j.get("loai") or r.get("kind") or "", jid)
+    log("han muc dung: da bu so cu")
 
 
 # ---------------------------------------------------------------- hết hạn mức Claude (fen 10/11)
@@ -1004,6 +1139,11 @@ def han_muc_ghi(loai, chu, jid=None):
     moi = not HAN_MUC["het"]
     HAN_MUC.update({"het": True, "chu": loai, "reset": chu, "reset_t": rt, "t": now()})
     write_json(HAN_MUC_FILE, HAN_MUC)
+    if moi and loai == "tuần":
+        try:
+            dung_hoc_muc()
+        except Exception as e:
+            log("dung hoc muc loi: %s" % e)
     if moi and not HAN_MUC.get("bao"):
         HAN_MUC["bao"] = True
         msg = "⛔ Hết hạn mức Claude%s%s. Bài dựng / sửa đang dở sẽ tự chạy lại sau đó." % (
@@ -1154,11 +1294,19 @@ def parse_job(jid):
             _doc_luot(st, os.path.join(job_dir(jid), "stream-%d.jsonl" % n), n)
             if run.get("ended"):
                 _danh_dau_ket(st, run)
-        for r in job.get("runs", []):
+        for r in job.get("runs", []):      # hạn mức đã dùng từng lượt (fen 11/11 "xem hạn mức từng bài")
+            if r.get("ended") and r.get("cost") is None:
+                kq = [x for x in st["results"] if x["run"] == r["n"] and x.get("cost") is not None]
+                if kq:
+                    best = max(kq, key=lambda x: x["cost"])
+                    r["cost"], r["cost_m"] = round(best["cost"], 4), best.get("cost_m") or {}
+                    ghi_dung("%s:%d" % (jid, r["n"]), r.get("ended") or now(), r["cost"], r["cost_m"],
+                             job.get("loai") or r.get("kind") or "", jid)
+                    st["_cost_doi"] = True
             ct = st.get("canva_tt", {}).get(r["n"])
             if ct and (r.get("started") or 0) > CANVA_TT.get("t", 0):     # lượt mới hơn lần ghi trước mới tính
                 canva_ghi_tt(CANVA_TT_MA[ct], "lượt " + short(r.get("label") or r["kind"], 30), t=r.get("started"))
-        changed = False
+        changed = bool(st.pop("_cost_doi", False))
         if st["folder"] and job.get("thu_muc_bai") != st["folder"]:
             job["thu_muc_bai"] = st["folder"]
             changed = True
@@ -1549,7 +1697,7 @@ def create_job(data):
 
 
 NHAP_KHOA = ("id", "kenh", "ten", "ngay", "brief", "note", "chude", "briefJob", "briefT", "briefNote", "nhanh", "t",
-             "chat", "chatJob", "chatT", "briefTruoc", "kb", "model", "briefCd", "briefCdGui", "briefMay", "dung", "kho", "theme")
+             "chat", "chatJob", "chatT", "briefTruoc", "kb", "model", "briefCd", "briefCdGui", "briefMay", "dung", "kho", "theme", "themeTu", "themeBo")
 
 
 def _sach_nhap(x):
@@ -1759,7 +1907,8 @@ def viet_brief(data):
 # Kho Polysto qua connector POLY của tài khoản Claude (fen 9/11 "thêm chỗ nhập link kho để lấy thông tin máy",
 # "chỉ lấy thông tin máy và giá làm bài"): chỉ cho 2 công cụ ĐỌC (tìm máy, số liệu 1 máy). Công cụ khác của POLY
 # (khách, đăng bài, ghi kết quả) không có trong --allowedTools nên lượt chạy không gọi được.
-POLY_DOC = ["mcp__claude_ai_POLY__tim_may", "mcp__claude_ai_POLY__du_lieu_may"]
+POLY_DOC = ["mcp__claude_ai_POLY__tim_may", "mcp__claude_ai_POLY__du_lieu_may",
+            "mcp__claude_ai_POLY__anh_may"]     # anh_may: ảnh máy thật theo seri, khi POLY có công cụ này (fen 11/11)
 KHO_LINK = "https://app.polystorevn.com/kho-may"
 KHO_HANG = {"laptop": "Dell, ThinkPad, Lenovo, Legion, Asus, ROG, HP, MSI, Acer, MacBook, Surface, LG gram, Razer",
             "ipad": "iPad Pro, iPad Air, iPad mini, iPad Gen"}
@@ -2493,6 +2642,7 @@ def _canva_kiem_chay(cmd):
                         ma = CANVA_TT_MA[sv["status"]]
             elif o.get("type") == "result":
                 kq = str(o.get("result") or "")
+                ghi_dung("kiem-canva:" + str(o.get("session_id") or now()), now(), _so(o.get("total_cost_usd")), _dung_model(o), "kiem-canva")
         if not kq and not ghi:
             ghi = short(explain_err((err or b"").decode("utf-8", "replace")[-600:]), 200)
     except Exception as e:
@@ -2684,6 +2834,7 @@ def _theme_sua_chay(cmd, t, kieu, yc, ten_moi, kenh, dang):
                 continue
             if o.get("type") == "result":
                 kq = str(o.get("result") or "")
+                ghi_dung("theme-sua:" + str(o.get("session_id") or now()), now(), _so(o.get("total_cost_usd")), _dung_model(o), "theme-sua")
     except Exception as e:
         ghi = str(e)
     m = re.search(r"THEME_OK\s*(\{.*?\})", kq)
@@ -2782,6 +2933,7 @@ def _theme_dong_bo_chay(cmd):
                 continue
             if o.get("type") == "result":
                 kq = str(o.get("result") or "")
+                ghi_dung("theme-dong-bo:" + str(o.get("session_id") or now()), now(), _so(o.get("total_cost_usd")), _dung_model(o), "theme-dong-bo")
     except Exception as e:
         ghi = str(e)
     m = re.search(r"THEME_DS\s*(\[.*\])", kq, re.S)
@@ -3241,6 +3393,7 @@ def _theme_xem_chay(cmd, t):
                 continue
             if o.get("type") == "result":
                 kq = str(o.get("result") or "")
+                ghi_dung("theme-anh:" + str(o.get("session_id") or now()), now(), _so(o.get("total_cost_usd")), _dung_model(o), "theme-anh")
     except Exception as e:
         ghi = str(e)
     m = re.search(r"THEME_OK\s*(\{.*\})", kq)
@@ -3379,6 +3532,7 @@ def _theme_trang_chay(cmd, t):
                 continue
             if o.get("type") == "result":
                 kq = str(o.get("result") or "")
+                ghi_dung("theme-trang:" + str(o.get("session_id") or now()), now(), _so(o.get("total_cost_usd")), _dung_model(o), "theme-trang")
             if o.get("type") != "user":
                 continue
             for b in ((o.get("message") or {}).get("content") or []):
@@ -5080,7 +5234,10 @@ def job_view(jid, since=0):
                     **dict(zip(("tieu_de", "ngay_dang"), ten_hien(job)))),
         "run": run and {"n": run["n"], "kind": run["kind"], "started": run["started"], "ended": run.get("ended")},
         "runs": len(job.get("runs", [])),
-        "run_list": [{"n": r["n"], "kind": r["kind"], "label": r.get("label") or r["kind"], "started": r["started"], "ended": r.get("ended"), "model": r.get("model") or ""} for r in job.get("runs", [])],
+        "run_list": [{"n": r["n"], "kind": r["kind"], "label": r.get("label") or r["kind"], "started": r["started"], "ended": r.get("ended"), "model": r.get("model") or "",
+                      "cost": r.get("cost")} for r in job.get("runs", [])],
+        "cost": round(sum(r.get("cost") or 0 for r in job.get("runs", [])), 2) if any(r.get("cost") is not None for r in job.get("runs", [])) else None,
+        "dung_tuan": _dung_tuan_gon(),
         "idle": round(now() - st.get("last_new", now())),
         "events": ev, "next": since + len(ev), "tasks": tasks, "gen": st.get("gen"),
         "final": final, "hoi": hoi, "hoi_luot": run_hoi, "slides": list_slides(job.get("thu_muc_bai")),
@@ -5797,7 +5954,7 @@ class H(BaseHTTPRequestHandler):
                     "mode": CFG.get("che_do_quyen"), "kenh": CFG["kenh"],
                     "tk": ci.get("tk") or {}, "san_sang": san_sang(),
                     "os": "mac" if IS_MAC else "win" if IS_WIN else "khac",   # giao diện đổi chữ hướng dẫn theo máy (⌘, Terminal…)
-                    "han_muc": han_muc_tt(), "tu_bat": tu_bat_tt() if IS_WIN else None,
+                    "han_muc": han_muc_tt(), "tu_bat": tu_bat_tt() if IS_WIN else None, "dung": dung_tuan(),
                 })
             m = re.fullmatch(r"/api/tiktok/([\w-]+)", u.path)
             if m:
@@ -5851,7 +6008,7 @@ class H(BaseHTTPRequestHandler):
                     uiv = int(os.path.getmtime(os.path.join(UI, "index.html")))
                 except OSError:
                     uiv = 0
-                return self.send(200, {"jobs": list_jobs(), "ui": uiv, "han_muc": han_muc_tt(),
+                return self.send(200, {"jobs": list_jobs(), "ui": uiv, "han_muc": han_muc_tt(), "dung": _dung_tuan_gon(),
                                        "remote": {"bat": bool(CFG.get("tg_lenh")), "noi": tgl_noi(), "loi": bool(tgl_trang_thai()["loi"])}})
             m = re.fullmatch(r"/api/job/([\w-]+)", u.path)
             if m:
@@ -6050,6 +6207,7 @@ def main():
         win_chuan_bi()
     if IS_WIN:
         threading.Thread(target=win_tu_bat, daemon=True).start()
+    threading.Thread(target=dung_bu_cu, daemon=True).start()     # sổ hạn mức: ghi bù lượt cũ
     hm = read_json(HAN_MUC_FILE, None)
     if isinstance(hm, dict) and hm.get("het") and (hm.get("reset_t") or 0) > now():   # mở lại app giữa đợt hết hạn mức: nhớ tiếp
         HAN_MUC.update({k: hm.get(k) for k in ("het", "chu", "reset", "reset_t", "t")})
