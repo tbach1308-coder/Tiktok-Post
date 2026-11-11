@@ -987,9 +987,26 @@ def _dung_model(o):
     return m
 
 
+def _dung_tru(tong, tong_m, truoc):
+    """Claude cộng dồn chi phí cả phiên khi chạy tiếp phiên cũ (Sửa, Chạy tiếp): lượt này = phần tăng so với lượt trước cùng phiên."""
+    if not truoc:
+        return round(tong, 4), dict(tong_m or {})
+    c0, m0 = truoc
+    return round(max(0.0, tong - c0), 4), {k: round(max(0.0, v - (m0 or {}).get(k, 0)), 4) for k, v in (tong_m or {}).items() if v - (m0 or {}).get(k, 0) > 0.0001}
+
+
 def _dung_doc():
     d = read_json(DUNG_FILE, None)
-    return d if isinstance(d, dict) and isinstance(d.get("ds"), list) else {"ds": [], "muc_tuan": None}
+    if isinstance(d, dict) and isinstance(d.get("ds"), list) and d.get("ban") == 2:
+        return d
+    if isinstance(d, dict) and d.get("ds"):         # sổ bản đầu (11/11 15h08) tính cộng dồn cả phiên: cất đi, ghi lại từ đầu
+        try:
+            bo = os.path.join(APP, "_to_delete")
+            os.makedirs(bo, exist_ok=True)
+            shutil.move(DUNG_FILE, os.path.join(bo, "han-muc-dung-ban1-%d.json" % int(now())))
+        except OSError:
+            pass
+    return {"ban": 2, "ds": [], "muc_tuan": (d or {}).get("muc_tuan") if isinstance(d, dict) and d.get("ban") == 2 else None}
 
 
 def ghi_dung(khoa, t, cost, cost_m, viec="", jid=None):
@@ -1000,6 +1017,7 @@ def ghi_dung(khoa, t, cost, cost_m, viec="", jid=None):
         d = _dung_doc()
         if any(x.get("k") == khoa for x in d["ds"][-400:]):
             return
+        d["ban"] = 2
         d["ds"].append({"k": khoa, "t": round(t or now()), "c": round(cost, 4), "m": cost_m or {}, "v": viec, "j": jid})
         d["ds"] = [x for x in d["ds"] if x.get("t", 0) > now() - 60 * 86400]
         write_json(DUNG_FILE, d)
@@ -1066,8 +1084,11 @@ def dung_bu_cu():
         j = read_json(os.path.join(JOBS, jid, "job.json"))
         if not j:
             continue
-        for r in j.get("runs") or []:
-            if (r.get("started") or 0) < tu or not r.get("ended") or "%s:%d" % (jid, r["n"]) in co:
+        da_thay = {}
+        if not any((r.get("started") or 0) >= tu for r in j.get("runs") or []):
+            continue
+        for r in j.get("runs") or []:          # đọc cả lượt cũ hơn mốc để trừ đúng phần cộng dồn của phiên
+            if not r.get("ended"):
                 continue
             f = os.path.join(JOBS, jid, "stream-%d.jsonl" % r["n"])
             try:
@@ -1087,9 +1108,13 @@ def dung_bu_cu():
                     continue
                 c = _so(o.get("total_cost_usd"))
                 if c is not None and (best is None or c > best[0]):
-                    best = (c, _dung_model(o))
+                    best = (c, _dung_model(o), o.get("session_id") or "")
             if best:
-                ghi_dung("%s:%d" % (jid, r["n"]), r.get("ended"), best[0], best[1], j.get("loai") or r.get("kind") or "", jid)
+                c, m = _dung_tru(best[0], best[1], da_thay.get(best[2]))
+                if best[2]:
+                    da_thay[best[2]] = (best[0], best[1])
+                if "%s:%d" % (jid, r["n"]) not in co and (r.get("started") or 0) >= tu:
+                    ghi_dung("%s:%d" % (jid, r["n"]), r.get("ended"), c, m, j.get("loai") or r.get("kind") or "", jid)
     log("han muc dung: da bu so cu")
 
 
@@ -1294,15 +1319,20 @@ def parse_job(jid):
             _doc_luot(st, os.path.join(job_dir(jid), "stream-%d.jsonl" % n), n)
             if run.get("ended"):
                 _danh_dau_ket(st, run)
-        for r in job.get("runs", []):      # hạn mức đã dùng từng lượt (fen 11/11 "xem hạn mức từng bài")
-            if r.get("ended") and r.get("cost") is None:
+        da_thay = {}                       # hạn mức đã dùng từng lượt (fen 11/11 "xem hạn mức từng bài")
+        for r in job.get("runs", []):
+            if r.get("cost_tong") is None and r.get("ended"):
                 kq = [x for x in st["results"] if x["run"] == r["n"] and x.get("cost") is not None]
                 if kq:
                     best = max(kq, key=lambda x: x["cost"])
-                    r["cost"], r["cost_m"] = round(best["cost"], 4), best.get("cost_m") or {}
+                    r["sess"] = best.get("session_id") or ""
+                    r["cost_tong"], r["cost_tong_m"] = round(best["cost"], 4), best.get("cost_m") or {}
+                    r["cost"], r["cost_m"] = _dung_tru(r["cost_tong"], r["cost_tong_m"], da_thay.get(r["sess"]))
                     ghi_dung("%s:%d" % (jid, r["n"]), r.get("ended") or now(), r["cost"], r["cost_m"],
                              job.get("loai") or r.get("kind") or "", jid)
                     st["_cost_doi"] = True
+            if r.get("cost_tong") is not None and r.get("sess"):
+                da_thay[r["sess"]] = (r["cost_tong"], r.get("cost_tong_m") or {})
             ct = st.get("canva_tt", {}).get(r["n"])
             if ct and (r.get("started") or 0) > CANVA_TT.get("t", 0):     # lượt mới hơn lần ghi trước mới tính
                 canva_ghi_tt(CANVA_TT_MA[ct], "lượt " + short(r.get("label") or r["kind"], 30), t=r.get("started"))
