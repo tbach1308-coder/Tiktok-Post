@@ -2225,19 +2225,23 @@ async function khoTheme(){
   $('#thKieu').onclick = e => { const b = e.target.closest('[data-k]'); if (!b) return; S.thKieu = b.dataset.k;
     document.querySelectorAll('#thKieu button').forEach(x => x.classList.toggle('on', x === b));
     $('#thPsWrap').hidden = S.thKieu !== 'ps'; $('#thCvWrap').hidden = S.thKieu === 'ps'; };
-  const vePs = ds2 => { S.themePsDs = ds2; if (!$('#thPsG')) return;
-    setH($('#thPsG'), ds2.length ? ds2.map(t => `<div class="thc thps" data-id="${t.id}"><div class="tha3">${(t.anh || []).map((a, i) => `<img src="${esc(a)}" alt="Trang ${i + 1}">`).join('') || '<span>Chưa có ảnh xem trước</span>'}</div>
+  // fen 12/11 21h18 "sao chưa hiển thị thêm": theme Photoshop cũng hiện trong mục ☁️ Kho chung của tab Canva (thePs dùng chung 2 chỗ)
+  const thePs = t => `<div class="thc thps" data-id="${t.id}"><div class="tha3">${(t.anh || []).map((a, i) => `<img src="${esc(a)}" alt="Trang ${i + 1}">`).join('') || '<span>Chưa có ảnh xem trước</span>'}</div>
       <b title="${esc(t.ten)}">${esc(t.ten)}</b><small>${t.kenh ? esc(KENH[t.kenh].ten) : 'Cả 2 kênh'} · Photoshop${(t.mau || []).map(c => ` <i class="thmau" style="background:${esc(c)}"></i>`).join('')}</small>
       <small class="kcb">☁️ Kho chung</small>${t.mo_ta ? `<small>${esc(t.mo_ta)}</small>` : ''}
-      <div class="thb"><button class="btn sm pri" data-dungps="${t.id}" title="Mở bài mới với theme này, làm bằng Photoshop">▶ Làm bài</button></div></div>`).join('')
-      : '<p class="pnote">Kho chung chưa có theme Photoshop nào.</p>'); };
+      <div class="thb"><button class="btn sm pri" data-dungps="${t.id}" title="Mở bài mới với theme này, làm bằng Photoshop">▶ Làm bài</button></div></div>`;
+  const vePs = ds2 => { S.themePsDs = ds2; if (!$('#thPsG')) return;
+    setH($('#thPsG'), ds2.length ? ds2.map(thePs).join('') : '<p class="pnote">Kho chung chưa có theme Photoshop nào.</p>');
+    const nb = $('#thKieu [data-k=ps]'); if (nb) nb.textContent = '🖌 Photoshop' + (ds2.length ? ' · ' + ds2.length : '');
+    if (cuoi) ve(cuoi); };
   api('/api/theme-ps').then(r => vePs(r.ds || [])).catch(e => { if ($('#thPsG')) $('#thPsG').textContent = e.message; });
-  $('#thPsG').onclick = e => { const b = e.target.closest('[data-dungps]'); if (!b) return; const t = (S.themePsDs || []).find(x => x.id === b.dataset.dungps); if (!t) return;
+  const dungPs = id => { const t = (S.themePsDs || []).find(x => x.id === id); if (!t) return;
     if (!nhapRong(S.form)) {
       if (S.nhap.ds.length >= 20 && !S.nhap.ds.some(x => x !== S.form && nhapRong(x))) { toast('Tối đa 20 bản nháp, xoá bớt nháp cũ ở tab Bản nháp trước', true); return; }
       saveForm(S.form); moNhapTrong(t.kenh && KENH[t.kenh] ? t.kenh : S.form.kenh); }
     const f = S.form; f.themePs = t.id; f.dung = ''; if (t.kenh && KENH[t.kenh]) f.kenh = t.kenh; saveForm(); newView();
     toast('Bài mới với theme "' + t.ten + '", làm bằng Photoshop'); };
+  $('#thPsG').onclick = e => { const b = e.target.closest('[data-dungps]'); if (b) dungPs(b.dataset.dungps); };
   let ds = [], dang = S.themeDang || [], cuoi = null, moMore = '', moInfo = '';
   const chon = new Set(), dangXem = () => S.view === 'theme' && $('#thG');
   const veDang = () => setH($('#thDang'), dang.map(([k, t]) => `<button data-dg="${k}" class="${chon.has(k) ? 'on' : ''}">${esc(t)}</button>`).join(''));
@@ -2279,11 +2283,12 @@ async function khoTheme(){
         <div class="thinfo" hidden></div></div>`; };
     setH($('#thG'), dsRieng.length ? dsRieng.map(t => the(t)).join('')
       : `<p class="pnote">${KHACH ? 'Máy này chưa có theme riêng. Dán link 1 thiết kế Canva ở trên, hoặc bấm ⧉ Nhân bản 1 theme kho chung bên dưới để có bản riêng.' : 'Kho trống. Trên Canva bỏ thiết kế vào thư mục POLY Theme rồi bấm Lấy từ Canva.'}</p>`);
-    setH($('#thKcN'), dsChung.length ? '· ' + dsChung.length + ' theme' : '');
-    setH($('#thKcGhi'), dsChung.length ? (KHACH ? 'Theme fen để chung: bấm ▶ Làm bài là dùng; muốn chỉnh thì ⧉ Nhân bản thành bản riêng của máy này.'
+    const psChung = S.themePsDs || [], nChung = dsChung.length + psChung.length;
+    setH($('#thKcN'), nChung ? '· ' + nChung + ' theme' + (psChung.length ? ' (' + psChung.length + ' Photoshop)' : '') : '');
+    setH($('#thKcGhi'), nChung ? (KHACH ? 'Theme fen để chung: bấm ▶ Làm bài là dùng; muốn chỉnh thì ⧉ Nhân bản thành bản riêng của máy này.'
         : 'Máy dùng chung và máy cài app khác (tải kho chung trên Drive) thấy đúng các theme này.')
       : (KHACH ? 'Fen chưa để theme nào vào kho chung.' : 'Chưa có theme nào trong kho chung. Bấm ☆ Vào kho chung ở thẻ theme phía trên để máy khác dùng được.'));
-    setH($('#thKcG'), dsChung.map(t => the(t, true)).join(''));
+    setH($('#thKcG'), dsChung.map(t => the(t, true)).join('') + psChung.map(thePs).join(''));
   };
   // Thông tin ngay trên ô theme (fen 10/11 15h13 "rà lại làm cho logic")
   const moThongTin = (t, the) => { const f = the.querySelector('.thinfo'); if (!f) return; moInfo = t.id; moMore = ''; the.querySelector('.thmore').hidden = true; f.hidden = false; const c = new Set(t.dang || []);
@@ -2303,7 +2308,7 @@ async function khoTheme(){
   const tai = async () => { if (!dangXem()) return clearInterval(S._thT); try { ve(await api('/api/theme-canva')); } catch(e) { if (dangXem()) $('#thErr').textContent = e.message; } };
   $('#thBo').onclick = async e => { const a = e.target.closest('[data-hien]'); if (!a) return; e.preventDefault();
     try { ve(await api('/api/theme-canva', {hien: a.dataset.hien})); toast('Đã hiện lại theme'); } catch(err) { $('#thErr').textContent = err.message; } };
-  $('#thKcG').onclick = e => $('#thG').onclick(e);
+  $('#thKcG').onclick = e => { const b = e.target.closest('[data-dungps]'); if (b) return dungPs(b.dataset.dungps); $('#thG').onclick(e); };
   $('#thG').onclick = async e => { const b = e.target.closest('button'); if (!b || b.closest('.thinfo')) return; $('#thErr').textContent = '';
     try {
       if (b.dataset.dung) { const t = ds.find(x => x.id === b.dataset.dung); if (!t) return;   // fen 10/11 15h06 "h muốn chọn mẫu để chạy thì làm sao"

@@ -11,6 +11,15 @@ const check = (n, c, x) => { c ? ok++ : bad++; console.log((c ? '✓ ' : '✗ ')
     await p.goto(A + '/'); await p.waitForTimeout(1500);
     await p.evaluate(() => khoTheme()); await p.waitForTimeout(600);
     const rongCv = await p.evaluate(() => document.documentElement.scrollWidth);
+    await p.waitForSelector('#thKcG .thps', { timeout: 8000 }).catch(() => {});
+    const kc = await p.$$eval('#thKcG .thps b', x => x.map(e => e.textContent));
+    check(ten + ': mục ☁️ Kho chung (tab Canva) hiện 2 theme Photoshop', kc.length === 2, kc);
+    check(ten + ': số theme kho chung ghi đúng', /2 theme \(2 Photoshop\)/.test(await p.$eval('#thKcN', e => e.textContent)), await p.$eval('#thKcN', e => e.textContent));
+    check(ten + ': nút tab ghi số theme Photoshop', /Photoshop · 2/.test(await p.$eval('#thKieu [data-k=ps]', e => e.textContent)));
+    if (ten === 'rong') { await p.screenshot({ path: '/home/claude/bug3/shots/theme-ps-khochung.png', fullPage: true });
+      await p.click('#thKcG [data-dungps="phang-xanh-dem"]'); await p.waitForTimeout(800);
+      check('▶ Làm bài ở mục Kho chung: mở Bài mới với theme Photoshop', await p.$$eval('#thPick [data-thps="phang-xanh-dem"].on', x => x.length) === 1);
+      await p.evaluate(() => khoTheme()); await p.waitForTimeout(800); }
     await p.click('#thKieu [data-k=ps]'); await p.waitForSelector('#thPsG .thps', { timeout: 8000 }); await p.waitForTimeout(1200);
     const the = await p.$$eval('#thPsG .thps', x => x.map(e => ({ ten: e.querySelector('b').textContent, anh: e.querySelectorAll('.tha3 img').length, kc: !!e.querySelector('.kcb') })));
     check(ten + ': tab Photoshop có 2 theme, mỗi thẻ 3 ảnh + nhãn kho chung', the.length === 2 && the.every(t => t.anh === 3 && t.kc), the);
