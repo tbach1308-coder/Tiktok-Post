@@ -727,16 +727,6 @@ function xoaNhapId(id){
   if (S.form === x) { S.form = S.nhap.ds.find(nhapRong) || S.nhap.ds[S.nhap.ds.length - 1]; S.nhap.cur = S.form.id; }
   luuNhap(); renderJobs(); toast('Đã xoá bản nháp (còn trong Lịch sử brief)');
 }
-function boNhap(id){
-  const x = S.nhap.ds.find(y => y.id === id); if (!x) return;
-  if (!nhapRong(x) && !confirm('Bỏ nháp "' + tenNhap(x).slice(0, 50) + '"? Nháp được cất vào Lịch sử brief, cần thì lấy lại.')) return;
-  clearTimeout(x._t);
-  if (!nhapRong(x)) api('/api/nhap/bo', {nhap: nhapGon(x)}).catch(() => {});
-  S.nhap.ds = S.nhap.ds.filter(y => y !== x);
-  if (!S.nhap.ds.length) S.nhap.ds.push(nhapMoi({kenh: x.kenh}));
-  if (S.form === x) { const sau = S.nhap.ds.slice().sort((a, b) => (b.t || 0) - (a.t || 0))[0]; S.nhap.cur = sau.id; S.form = sau; luuNhap(); if (S.view === 'new') newView(); }
-  else luuNhap();
-}
 S.seen = store.get('poly-da-xem', {}); S.det = store.get('poly-chi-tiet', false);
 
 async function api(path, body) {
@@ -752,7 +742,6 @@ function toast(t, bad){ const el = $('#toast'); el.textContent = t; el.className
 const nowS = () => Date.now()/1000 + S.offset;
 function ago(t){ if (!t) return ''; const s = Math.max(0, nowS() - t); if (s < 60) return 'mới đây'; if (s < 3600) return Math.floor(s/60) + ' phút trước'; if (s < 86400) return Math.floor(s/3600) + ' giờ trước';
   return new Date(t*1000).toLocaleDateString('vi-VN', {day:'2-digit', month:'2-digit'}); }
-function mins(s){ s = Math.max(0, s); return s < 60 ? 'chưa tới 1 phút' : Math.floor(s/60) + ' phút'; }
 function hm(t){ if (!t) return ''; const d = new Date(t*1000); return String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0'); }
 function dur(s){ s = Math.max(0, Math.floor(s)); const m = Math.floor(s/60), x = s%60; return m + ':' + String(x).padStart(2,'0'); }
 const THU = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];

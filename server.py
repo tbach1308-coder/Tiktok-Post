@@ -6653,6 +6653,25 @@ def chung_canh():
             threading.Thread(target=chung_khoi, daemon=True).start()
 
 
+# fen 12/11 20h28 "check lại các phần không dùng tới xóa đi": file chạy 1 lần còn sót trên máy shop -> _to_delete/don-12-11
+# (không xoá hẳn). Chạy lúc mở app, không có file thì thôi.
+DON_THUA = ("don-thua-28-10.bat", "don-thua-28-10.log", "tao-icon.bat", "tao-icon.ps1", "tao-icon.log",
+            "dev/thu-co-moi.bat", "dev/thu-co-moi.log", "dev/fake_claude.py")
+
+
+def don_file_thua():
+    d = os.path.join(APP, "_to_delete", "don-12-11")
+    for f in DON_THUA:
+        p = os.path.join(APP, *f.split("/"))
+        if os.path.isfile(p):
+            try:
+                os.makedirs(d, exist_ok=True)
+                shutil.move(p, os.path.join(d, f.replace("/", "_")))
+                log("don file thua: %s -> _to_delete/don-12-11" % f)
+            except Exception as e:
+                log("don file thua %s loi: %s" % (f, e))
+
+
 def chung_zip(jid):
     """Khách tải về: slide-NN.png + caption.txt (dòng 1 caption, dòng 2 câu ghim)."""
     import io
@@ -7136,6 +7155,10 @@ def main():
         tgl_khoi()
     if CFG.get("chung_bat"):     # dùng chung: mở cổng khách, nhận lại đường nối cũ (link giữ nguyên) hoặc mở mới
         threading.Thread(target=chung_khoi, daemon=True).start()
+    try:
+        don_file_thua()
+    except Exception:
+        log(traceback.format_exc())
     try:
         srv.serve_forever()
     except KeyboardInterrupt:

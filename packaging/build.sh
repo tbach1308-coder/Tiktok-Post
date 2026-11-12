@@ -35,7 +35,7 @@ echo "== Ma app (file da commit)"
 cd "$REPO"
 git ls-files -z | while IFS= read -r -d '' f; do
   case "$f" in
-    packaging/*|dev/*|.git*|*.command|lam-moi-app-v3.bat|tao-icon.*|_index.src.html|PROJECT.md|README.md|HUONG-DAN-MAC.txt) continue ;;
+    packaging/*|dev/*|.git*|*.command|lam-moi-app-v3.bat|_index.src.html|PROJECT.md|README.md|HUONG-DAN-MAC.txt) continue ;;
   esac
   mkdir -p "$B/app/$(dirname "$f")"
   cp -p "$f" "$B/app/$f"
