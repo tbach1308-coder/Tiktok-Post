@@ -1,0 +1,101 @@
+{
+  "id": "toi-xanh-bang",
+  "ten": "Tối · Xanh băng",
+  "kenh": "",
+  "mo_ta": "Nền xanh đêm có quầng sáng mờ, dòng nhỏ trắng + dòng chính rất to xanh băng chuyển sắc, chữ to mờ xanh phía sau, máy to nghiêng tràn mép (theo ảnh mẫu fen gửi). Không bóng đổ.",
+  "nen": "060A13",
+  "nen2": "060A13",
+  "the": "111B30",
+  "toa": [
+    [
+      "1C2D52",
+      540,
+      1120,
+      760,
+      560,
+      220,
+      100
+    ],
+    [
+      "2B4374",
+      560,
+      1320,
+      520,
+      300,
+      170,
+      70
+    ]
+  ],
+  "nhan": "2563EB",
+  "nhan_dam": "1D4ED8",
+  "nhan_nhat": "93C5FD",
+  "vang": "BFDBFE",
+  "ghi_nen": "DBEAFE",
+  "ghi_chu": "0B1220",
+  "do": "F87171",
+  "font_tieu_de": [
+    "UTMNeoSansIntelBold",
+    "UTM-Neo-Sans-IntelBold",
+    "UTMAvoBold"
+  ],
+  "font_than": [
+    "UTMAvoBold",
+    "UTMNeoSansIntelBold"
+  ],
+  "font_bia": [
+    "UTMNeoSansIntelBold",
+    "UTM-Neo-Sans-IntelBold"
+  ],
+  "co_tieu_de": 0.92,
+  "giu_vien": false,
+  "trang_tri": "khong",
+  "bia_mau": "A9C8FF",
+  "bia_sac": [
+    "DCE9FF",
+    "6E9BFF"
+  ],
+  "so_mau": "1E3366",
+  "so_mo": 70,
+  "xem": {
+    "bia_tn": {
+      "kieu": "nho-to",
+      "t1": "Màn hình đẹp như thật",
+      "t2": "Ultra Retina",
+      "mo": "iPad Pro M4 màn OLED kép:\rsáng hơn, nét hơn, đen sâu hơn",
+      "so": "M4",
+      "may": [
+        "may.png"
+      ],
+      "xoay": -12,
+      "may_trai": 20,
+      "may_phai": 300
+    },
+    "pill": "MẸO 1",
+    "tieu": "BẬT GIAO DIỆN TỐI",
+    "phu": "Đỡ mỏi mắt, pin màn OLED bền hơn",
+    "ten": "iPad Pro M4",
+    "cau": "Ultra Retina XDR · 256GB",
+    "gia": "24.990.000đ",
+    "y": [
+      [
+        "check",
+        "Cài đặt > Màn hình & Độ sáng"
+      ],
+      [
+        "check",
+        "Chọn Tối, bật Tự động"
+      ],
+      [
+        "x",
+        "Đừng để độ sáng tối đa cả ngày"
+      ]
+    ],
+    "ghi": [
+      "Lo màn bị hở sáng, ám màu?",
+      "Ghé POLY test màn miễn phí"
+    ],
+    "moc": "Xem mẹo 2",
+    "hoi": "Bạn mê màn OLED\rhay LCD?",
+    "nen": []
+  }
+}

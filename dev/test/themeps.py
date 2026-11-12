@@ -29,8 +29,8 @@ def prompt():
 s, b, _ = req(APP, '/api/theme-ps')
 ds = b.get('ds', []) if s == 200 else []
 ids = [t['id'] for t in ds]
-check('GET /api/theme-ps: 4 theme kho chung (2 phẳng, 2 glass)', s == 200 and ids == ['glass-tim-hong', 'glass-xanh-ngoc', 'phang-than-xanh-duong', 'phang-xanh-dem'] and all(t['kc'] for t in ds), (s, b))
-check('kiểu theme: glass / phẳng', [t['kieu'] for t in ds] == ['glass', 'glass', 'phẳng', 'phẳng'], [t.get('kieu') for t in ds])
+check('GET /api/theme-ps: 6 theme kho chung', s == 200 and ids == ['glass-tim-hong', 'glass-xanh-ngoc', 'phang-than-xanh-duong', 'phang-xanh-dem', 'toi-gian-den', 'toi-xanh-bang'] and all(t['kc'] for t in ds), (s, b))
+check('kiểu theme: glass / phẳng', [t['kieu'] for t in ds] == ['glass', 'glass', 'phẳng', 'phẳng', 'phẳng', 'phẳng'], [t.get('kieu') for t in ds])
 check('mỗi theme 3 ảnh xem trước + tên + màu', all(len(t['anh']) == 3 and t['ten'] and len(t['mau']) == 3 for t in ds), ds)
 s, b, h = req(APP, ds[0]['anh'][0].split('?')[0], raw=True) if ds else (0, b'', {})
 check('ảnh xem trước tải được (png)', s == 200 and b[:8] == b'\x89PNG\r\n\x1a\n' and h.get('Content-Type') == 'image/png', (s, h))
@@ -82,7 +82,7 @@ HOST = r['url'].split('//')[1]; ma = req(APP, '/api/chung', {"ma_moi": True})[1]
 TOK = req(K, '/api/chung/vao', {"ma": ma, "ten": "Máy thử theme"}, h={'Host': HOST})[1].get('token')
 T = {'Host': HOST, 'X-Poly-Khach': TOK}
 s, b, _ = req(K, '/api/theme-ps', h=T)
-check('máy dùng chung: thấy 4 theme Photoshop kho chung', s == 200 and len(b.get('ds', [])) == 4, (s, b))
+check('máy dùng chung: thấy 6 theme Photoshop kho chung', s == 200 and len(b.get('ds', [])) == 6, (s, b))
 s, b, _ = req(K, '/api/theme-ps/anh/phang-xanh-dem/2', h=T, raw=True)
 check('máy dùng chung: xem ảnh theme', s == 200 and b[:4] == b'\x89PNG', s)
 s, b, _ = req(K, '/api/run', {"kenh": "ipad", "brief": "Bìa: MÁY KHÁC\nSlide 2: x", "theme_ps": "phang-than-xanh-duong"}, h=T)
@@ -99,5 +99,5 @@ s, b, _ = req(APP, '/api/run', {"kenh": "ipad", "brief": "Bìa: GLASS\nSlide 2: 
 cho_xong(b.get('id')); pr = prompt()
 check('chạy theme glass: lệnh ghi kiểu glass + --theme glass', '(kho chung, glass:' in pr and 'glass-tim-hong/theme.jsx' in pr, pr[:700])
 js = open(os.path.join(TGL, 'theme-ps', 'glass-tim-hong', 'theme.jsx'), encoding='utf-8').read()
-check('theme glass có nền ảnh mờ + thẻ kính + bìa kiểu quảng cáo', '"nen_kieu": "kinh"' in js and 'function themeAnhMo' in js and 'function biaSanPham' in js)
+check('theme glass có nền ảnh mờ + thẻ kính + 3 kiểu bìa', '"nen_kieu": "kinh"' in js and 'function themeAnhMo' in js and 'function biaSanPham' in js and 'function biaTinhNang' in js and 'function biaToiGian' in js and 'function themeChuyenSac' in js)
 print('KẾT QUẢ: %d đạt, %d lỗi' % tuple(ok))

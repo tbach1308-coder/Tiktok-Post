@@ -1,0 +1,81 @@
+{
+  "id": "toi-gian-den",
+  "ten": "Tối giản · Đen",
+  "kenh": "",
+  "mo_ta": "Nền đen trơn, tên máy chữ mảnh căn trái, 2 gạch ngắn kẹp mô tả, ảnh cận cụm camera to tràn góc (theo ảnh mẫu fen gửi). Nhấn xanh rêu, không bóng đổ.",
+  "nen": "000000",
+  "nen2": "000000",
+  "the": "141414",
+  "nhan": "3F6F5A",
+  "nhan_dam": "2F5546",
+  "nhan_nhat": "A7C4B5",
+  "vang": "E5E7EB",
+  "ghi_nen": "E8EFEA",
+  "ghi_chu": "0A0A0A",
+  "do": "F87171",
+  "font_tieu_de": [
+    "UTM-Neo-Sans-Intel",
+    "UTM Neo Sans Intel",
+    "UTMNeoSansIntel",
+    "UTMNeoSansIntelBold"
+  ],
+  "font_than": [
+    "UTMAvoBold",
+    "UTMNeoSansIntelBold"
+  ],
+  "font_thuong": [
+    "UTM-Avo",
+    "UTMAvo"
+  ],
+  "font_bia": [
+    "UTM-Neo-Sans-Intel",
+    "UTM Neo Sans Intel",
+    "UTMNeoSansIntel"
+  ],
+  "co_tieu_de": 0.95,
+  "giu_vien": false,
+  "trang_tri": "khong",
+  "xem": {
+    "bia_tg": {
+      "ten": "iPad Pro M4",
+      "mo": [
+        "Mỏng nhất từ trước tới nay,",
+        "camera LiDAR, màn OLED kép,",
+        "chip M4 mạnh mẽ."
+      ],
+      "may": "may.png",
+      "hop": [
+        250,
+        600,
+        2600
+      ]
+    },
+    "pill": "MẸO 1",
+    "tieu": "Chụp tài liệu bằng LiDAR",
+    "phu": "Ghi chú > Quét tài liệu, rõ cả chỗ tối",
+    "ten": "iPad Pro M4",
+    "cau": "LiDAR · 256GB",
+    "gia": "24.990.000đ",
+    "y": [
+      [
+        "check",
+        "Mở Ghi chú, bấm biểu tượng camera"
+      ],
+      [
+        "check",
+        "Chọn Quét tài liệu, giữ máy thẳng"
+      ],
+      [
+        "x",
+        "Đừng quét chỗ quá tối, mờ chữ"
+      ]
+    ],
+    "ghi": [
+      "Cần máy học tập, làm việc?",
+      "Ghé POLY thử máy tận tay"
+    ],
+    "moc": "Xem mẹo 2",
+    "hoi": "Bạn chọn Pro M4\rhay Air M3?",
+    "nen": []
+  }
+}

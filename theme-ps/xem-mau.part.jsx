@@ -14,7 +14,7 @@ BODY_BOT = 1266 - 34 - 48;
 if (want(1)) {
   var d1 = newDoc("Slide 01");
   nenXem(0);
-  if (XM.bia_sp || XM.bia_tn) { if (XM.bia_sp) biaSanPham(XM.bia_sp); else biaTinhNang(XM.bia_tn); RUN += "01 bia kieu quang cao\n"; luuXem(d1, 1); d1.close(SaveOptions.DONOTSAVECHANGES); }
+  if (XM.bia_sp || XM.bia_tn || XM.bia_tg) { if (XM.bia_sp) biaSanPham(XM.bia_sp); else if (XM.bia_tg) biaToiGian(XM.bia_tg); else biaTinhNang(XM.bia_tn); RUN += "01 bia kieu quang cao\n"; luuXem(d1, 1); d1.close(SaveOptions.DONOTSAVECHANGES); }
   else {
   text("POLY STORE", F.B, 22, C.WHITE, 96, 112, { track: 200, name: "Thương hiệu" });
   var T1 = text(xm("t1", "IPAD NÀO"), F.T, 104, C.WHITE, 96, 300, { maxW: 884, name: "Tiêu đề - dòng 1" });

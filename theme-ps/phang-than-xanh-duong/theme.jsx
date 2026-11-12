@@ -180,6 +180,12 @@ function themeNen() {
   rect(0, 0, W, H, 0, THEME.nen, "Nền - " + THEME.ten);
   var k = THEME_N % 2, tt = THEME.trang_tri || "tron";
   if (THEME.nen_kieu == "kinh") themeDom();
+  // quang sang mo tren nen (fen 12/11 21h51 anh mau "Lifelike Visuals"): [mau, cx, cy, rx, ry, mo, do dam]
+  var toa = THEME.toa || [];
+  for (var i = 0; i < toa.length; i++) {
+    var a = toa[i], Lt = oval(a[1] - a[3], a[2] - a[4], a[1] + a[3], a[2] + a[4], a[0], "Quầng sáng " + (i + 1));
+    Lt.rasterize(RasterizeType.ENTIRELAYER); app.activeDocument.activeLayer = Lt; gblur(a[5] || 180); Lt.opacity = a[6] || 100;
+  }
   if (tt == "tron") {
     if (k) { themeTron(W + 40, 120, 340, THEME.nen2, 100, "Trang trí - tròn lớn"); themeTron(-60, H - 90, 210, THEME.nen2, 100, "Trang trí - tròn nhỏ"); }
     else { themeTron(-40, 150, 300, THEME.nen2, 100, "Trang trí - tròn lớn"); themeTron(W + 70, H - 140, 260, THEME.nen2, 100, "Trang trí - tròn nhỏ"); }
@@ -283,19 +289,83 @@ function biaTinhNang(o) {
   var cx = W / 2, TF = THEME.font_bia ? pick(THEME.font_bia.concat([F.T])) : F.T, mau = THEME.bia_mau || THEME.vang, q, y = 170;
   text("POLY STORE", F.B, 22, C.WHITE, 96, 112, { track: 200, name: "Thương hiệu" });
   if (o.so) {
-    var So = text(o.so, TF, 760, "FFFFFF", cx, 1300, { align: Justification.CENTER, name: "Số to mờ" });
+    var So = text(o.so, TF, 760, THEME.so_mau || "FFFFFF", cx, 1300, { align: Justification.CENTER, name: "Số to mờ" });
     So.opacity = THEME.so_mo || 7; themeGiua(So, cx); themeDuoi(So, 560);
   }
-  var T1 = text(o.t1, TF, 92, mau, cx, 300, { align: Justification.CENTER, maxW: 940, name: "Tiêu đề - dòng 1" });
-  themeGiua(T1, cx); q = themeDuoi(T1, y); y = q[3] + 14;
-  var T2 = text(o.t2, TF, 92, C.WHITE, cx, 420, { align: Justification.CENTER, maxW: 940, name: "Tiêu đề - dòng 2" });
+  // kieu "nho-to" (anh mau "Lifelike Visuals"): dong 1 nho trang, dong 2 rat to mau nhan (chuyen sac neu theme co bia_sac)
+  var nt = o.kieu == "nho-to";
+  var T1 = text(o.t1, TF, nt ? 54 : 92, nt ? C.WHITE : mau, cx, 300, { align: Justification.CENTER, maxW: 940, name: "Tiêu đề - dòng 1" });
+  themeGiua(T1, cx); q = themeDuoi(T1, y); y = q[3] + (nt ? 18 : 14);
+  var T2 = text(o.t2, TF, nt ? 128 : 92, nt ? mau : C.WHITE, cx, 420, { align: Justification.CENTER, maxW: 960, name: "Tiêu đề - dòng 2" });
   themeGiua(T2, cx); q = themeDuoi(T2, y); y = q[3] + 34;
+  if (nt && THEME.bia_sac) themeChuyenSac(T2, THEME.bia_sac[0], THEME.bia_sac[1], 0);
   if (o.mo) { var M = text(o.mo, F.B, 38, C.WHITE, cx, 560, { align: Justification.CENTER, maxW: 860, lead: 52, name: "Mô tả" }); M.opacity = 92; themeGiua(M, cx); q = themeDuoi(M, y); y = q[3]; }
   var ds = o.may || [], top = Math.max(y + 70, 600);
   if (ds.length >= 2) {
     themeDat(AA + ds[0], -330, top + 40, 600, H + 260, -14, "Máy trái");
     themeDat(AA + ds[1], 330, top + 140, W + 360, H + 330, 16, "Máy phải");
   } else if (ds.length) {
-    themeDat(AA + ds[0], -40, top + 20, W + 260, H + 220, -10, "Máy");
+    themeDat(AA + ds[0], o.may_trai || -40, top + 20, W + (o.may_phai || 260), H + 220, o.xoay == null ? -10 : o.xoay, "Máy");
+  }
+}
+
+// chu chuyen sac 2 mau (gradient overlay cua layer, phang - khong noi khoi). Loi thi giu mau dac.
+function themeChuyenSac(L, c1, c2, goc) {
+  try {
+    app.activeDocument.activeLayer = L;
+    var c2t = charIDToTypeID, d = new ActionDescriptor(), r = new ActionReference();
+    r.putProperty(c2t("Prpr"), c2t("Lefx"));
+    r.putEnumerated(c2t("Lyr "), c2t("Ordn"), c2t("Trgt"));
+    d.putReference(c2t("null"), r);
+    var fe = new ActionDescriptor(); fe.putUnitDouble(c2t("Scl "), c2t("#Prc"), 100);
+    var g = new ActionDescriptor();
+    g.putBoolean(c2t("enab"), true);
+    g.putEnumerated(c2t("Md  "), c2t("BlnM"), c2t("Nrml"));
+    g.putUnitDouble(c2t("Opct"), c2t("#Prc"), 100);
+    var gr = new ActionDescriptor();
+    gr.putString(c2t("Nm  "), "Theme");
+    gr.putEnumerated(c2t("GrdF"), c2t("GrdF"), c2t("CstS"));
+    gr.putDouble(c2t("Intr"), 4096);
+    var cl = new ActionList();
+    function stop(hex, loc) { var x = new ActionDescriptor(); x.putObject(c2t("Clr "), c2t("RGBC"), rgbDesc(hex)); x.putEnumerated(c2t("Type"), c2t("Clry"), c2t("UsrS")); x.putInteger(c2t("Lctn"), loc); x.putInteger(c2t("Mdpn"), 50); return x; }
+    cl.putObject(c2t("Clrt"), stop(c1, 0)); cl.putObject(c2t("Clrt"), stop(c2, 4096));
+    gr.putList(c2t("Clrs"), cl);
+    var tl = new ActionList();
+    function ts(loc) { var x = new ActionDescriptor(); x.putUnitDouble(c2t("Opct"), c2t("#Prc"), 100); x.putInteger(c2t("Lctn"), loc); x.putInteger(c2t("Mdpn"), 50); return x; }
+    tl.putObject(c2t("TrnS"), ts(0)); tl.putObject(c2t("TrnS"), ts(4096));
+    gr.putList(c2t("Trns"), tl);
+    g.putObject(c2t("Grad"), c2t("Grdn"), gr);
+    g.putUnitDouble(c2t("Angl"), c2t("#Ang"), goc || 0);
+    g.putEnumerated(c2t("Type"), c2t("GrdT"), c2t("Lnr "));
+    g.putBoolean(c2t("Rvrs"), false); g.putBoolean(c2t("Algn"), true);
+    g.putUnitDouble(c2t("Scl "), c2t("#Prc"), 100);
+    fe.putObject(c2t("GrFl"), c2t("GrFl"), g);
+    d.putObject(c2t("T   "), c2t("Lefx"), fe);
+    executeAction(c2t("setd"), d, DialogModes.NO);
+  } catch (e) { THEME_LOG += "Theme: chu chuyen sac loi (" + e.message + "), giu mau dac\n"; }
+}
+
+// ---------- bia toi gian (fen 12/11 21h52 anh mau "iPhone 11" + "lam anh nay thanh theme luon") ----------
+// Nen den tron, TEN MAY chu manh can trai, 2 gach ngan kep 2-4 dong mo ta nho, anh can 1 goc may (cum camera) rat to tran goc duoi phai.
+// o = { ten: "iPad Pro M4", mo: ["dòng 1", "dòng 2", "dòng 3"], may: "file.png", hop: [trai, tren, rong] (khung dat anh, rong > W de phong to 1 goc) }
+function biaToiGian(o) {
+  var AA = typeof A != "undefined" ? A : (typeof TN != "undefined" ? TN : "");
+  var x = o.x || 210, y = 150, q, TF = THEME.font_bia ? pick(THEME.font_bia.concat([F.T])) : F.T;
+  text("POLY STORE", F.B, 22, C.WHITE, 96, 80, { track: 200, name: "Thương hiệu" });
+  if (o.may) {   // anh dat truoc (nam duoi chu)
+    var h = o.hop || [230, 560, 2600];
+    var L = placeSO(AA + o.may, "Ảnh cận máy"), b0 = bb(L), k = h[2] / (b0[2] - b0[0]) * 100;
+    L.resize(k, k, AnchorPosition.TOPLEFT); b0 = bb(L); L.translate(h[0] - b0[0], h[1] - b0[1]);
+  }
+  var T = text(o.ten, TF, 128, C.WHITE, x, 300, { maxW: 1080 - x - 60, name: "Tên máy" });
+  q = bb(T); T.translate(x - q[0], y - q[1]); q = bb(T); y = q[3] + 52;
+  var mo = o.mo || [];
+  if (mo.length) {
+    rect(x, y, x + 70, y + 3, 0, "FFFFFF", "Gạch trên"); y += 44;
+    for (var i = 0; i < mo.length; i++) {
+      var M = text(mo[i], F.R || F.B, 32, C.WHITE, x, y + 30, { maxW: 700, name: "Mô tả " + (i + 1) });
+      var qm = bb(M); M.translate(x - qm[0], 0); y += 52;
+    }
+    y += 18; rect(x, y, x + 70, y + 3, 0, "FFFFFF", "Gạch dưới");
   }
 }
