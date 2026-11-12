@@ -4133,10 +4133,23 @@ def tgl_khoi():
         t.start()
 
 
+def tgl_nhom_moi():
+    """Nhóm Remote là nhóm thường (mã không bắt đầu -100) mà đã lên supergroup (vd vừa cho bot làm quản trị viên): hỏi Telegram,
+    lỗi trả migrate_to_chat_id thì tg_call tự đổi tg_lenh_chat sang mã mới (fen 12/11 20h: tạo nhóm POLY Dựng Bài cho Quân)."""
+    c = str(CFG.get("tg_lenh_chat") or "")
+    if not CFG.get("tg_lenh_nhom") or not c.startswith("-") or c.startswith("-100"):
+        return
+    try:
+        tg_call("sendChatAction", {"chat_id": c, "action": "typing"}, timeout=20)     # nhóm cũ đã lên supergroup: Telegram báo mã mới
+    except Exception as e:
+        log("tg lenh kiem nhom: %s" % e)
+
+
 def tgl_vong():
     log("tg lenh: bat dau nghe")
     off = int(CFG.get("tg_lenh_offset") or 0)
     try:
+        tgl_nhom_moi()
         tgl_xem_lai()
     except Exception:
         log(traceback.format_exc())
@@ -4278,6 +4291,17 @@ def tgl_chu(fr):
 def tgl_tin(m):
     c, fr = m.get("chat") or {}, m.get("from") or {}
     nhom = c.get("type") in ("group", "supergroup")
+    # nhóm Remote lên supergroup (cho bot làm quản trị viên, bật chủ đề…): Telegram đổi mã nhóm, theo mã mới
+    if tgl_noi() and CFG.get("tg_lenh_nhom"):
+        cu = str(CFG.get("tg_lenh_chat"))
+        if m.get("migrate_to_chat_id") and str(c.get("id")) == cu:
+            save_cfg_keys({"tg_lenh_chat": m["migrate_to_chat_id"]})
+            log("tg lenh: nhom len supergroup %s -> %s" % (cu, m["migrate_to_chat_id"]))
+            return
+        if m.get("migrate_from_chat_id") and str(m["migrate_from_chat_id"]) == cu:
+            save_cfg_keys({"tg_lenh_chat": c.get("id")})
+            log("tg lenh: nhom len supergroup %s -> %s" % (cu, c.get("id")))
+            return
     if (c.get("type") != "private" and not nhom) or fr.get("is_bot"):
         return
     text = (m.get("text") or m.get("caption") or "").strip()
