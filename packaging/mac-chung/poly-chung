@@ -49,6 +49,16 @@ thu() {
   "$CURL" -s -m 15 -o /dev/null -w '%{http_code}' -H "X-Poly-Khach: $TOK" "$URL/api/chung/toi"
 }
 
+# app tải từ link máy shop có gắn sẵn link (Resources/link.txt): thử link đó trước, khỏi hỏi
+R="$(cd "$(dirname "$0")/../Resources" 2>/dev/null && pwd)"
+GAN=""
+[ -n "$R" ] && [ -f "$R/link.txt" ] && GAN=$(head -n 1 "$R/link.txt" | tr -d '[:space:]')
+case "$GAN" in https://*) ;; *) GAN="" ;; esac
+if [ -z "$URL" ] && [ -n "$GAN" ]; then
+  c=$("$CURL" -s -m 15 -o /dev/null -w '%{http_code}' "$GAN/api/ping")
+  [ "$c" = "200" ] && URL="$GAN"
+fi
+
 n=0
 while :; do
   n=$((n + 1))
@@ -58,7 +68,7 @@ while :; do
   fi
   if [ -z "$URL" ]; then
     cb=$(pbpaste 2>/dev/null | tr -d '[:space:]')
-    case "$cb" in https://*.trycloudflare.com*) ;; *) cb="" ;; esac
+    case "$cb" in https://*.trycloudflare.com*) ;; *) cb="$GAN" ;; esac
     x=$(hoi "Dán link app của máy shop (fen gửi qua Zalo / Telegram, dạng https://….trycloudflare.com):" "$cb") || exit 0
     URL=$(chuan "$x")
     case "$URL" in

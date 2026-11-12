@@ -6048,6 +6048,57 @@ CHUNG_CAM = {"GET": (r"/api/chung",),
                       r"/api/job/[\w-]+/(mo|tiktok)")}
 CF_GH = "https://api.github.com/repos/cloudflare/cloudflared/releases/latest"
 APP_MAC_ZIP = os.path.join(APP, "dist", "Poly-Dung-Bai-dung-chung-Mac.zip")
+APP_WIN_EXE = os.path.join(APP, "dist", "Poly-Dung-Bai-dung-chung.exe")
+
+
+def chung_tai_app(he):
+    """File app dùng chung để tải (fen 12/11 "có làm link tải exe dc không cho tiện"): gắn sẵn link hiện tại của máy chủ
+    (exe: dòng "POLYLINK:" ở cuối file; Mac: Contents/Resources/link.txt) để máy kia mở là chỉ hỏi mã."""
+    import io
+    import zipfile
+    url = CHUNG["url"] if re.fullmatch(r"https://[a-z0-9-]+\.trycloudflare\.com", CHUNG["url"] or "") else ""
+    if he == "win":
+        with open(APP_WIN_EXE, "rb") as f:
+            b = f.read()
+        return b + (("\nPOLYLINK:%s\n" % url).encode() if url else b""), "Poly-Dung-Bai-dung-chung.exe", "application/vnd.microsoft.portable-executable"
+    with open(APP_MAC_ZIP, "rb") as f:
+        goc = f.read()
+    if not url:
+        return goc, os.path.basename(APP_MAC_ZIP), "application/zip"
+    ra = io.BytesIO()
+    with zipfile.ZipFile(io.BytesIO(goc)) as zi, zipfile.ZipFile(ra, "w", zipfile.ZIP_DEFLATED) as zo:
+        app = ""
+        for it in zi.infolist():
+            zo.writestr(it, zi.read(it.filename))
+            if it.filename.endswith(".app/Contents/Resources/"):
+                app = it.filename
+        if app:
+            zl = zipfile.ZipInfo(app + "link.txt", time.localtime()[:6])
+            zl.create_system, zl.external_attr, zl.compress_type = 3, 0o100644 << 16, zipfile.ZIP_DEFLATED
+            zo.writestr(zl, url + "\n")
+    return ra.getvalue(), os.path.basename(APP_MAC_ZIP), "application/zip"
+
+
+def chung_trang_tai():
+    """Trang /tai (không cần mã): tải app Windows / Mac."""
+    co_w, co_m = os.path.isfile(APP_WIN_EXE), os.path.isfile(APP_MAC_ZIP)
+    nut = lambda href, ten, he, co: ('<a class="b" data-he="%s" href="%s">%s</a>' % (he, href, ten)) if co else ""
+    return ("""<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tải app Poly Dựng Bài</title><link rel="icon" href="/ui/poly.png"><style>
+:root{color-scheme:dark}body{margin:0;background:#141414;color:#eee;font:15px/1.55 system-ui,-apple-system,Segoe UI,sans-serif}
+.c{max-width:460px;margin:9vh auto;padding:24px;border:1px solid #2c2c2c;border-radius:14px;background:#1b1b1b;box-sizing:border-box;width:calc(100% - 32px)}
+h1{font-size:20px;margin:0 0 6px}p{color:#aaa;margin:8px 0}.b{display:block;text-align:center;margin:10px 0;padding:12px;border-radius:10px;
+background:#262626;color:#eee;text-decoration:none;font-weight:600;border:1px solid #333}.b.on{background:#1f9d55;border-color:#1f9d55;color:#fff}
+ol{padding-left:20px;color:#bbb}small{color:#888}</style></head><body><div class="c">
+<h1>Poly Dựng Bài · dùng chung</h1>
+<p>App chạy trên máy shop, máy này không cần đăng nhập gì. Tải app cho máy này:</p>
+{NUT}
+<ol><li>Mở file vừa tải (Windows hiện "Windows đã bảo vệ PC" thì bấm "Thông tin thêm" → "Vẫn chạy"; Mac: giải nén, chuột phải → Mở).</li>
+<li>Nhập mã 6 số fen đưa (máy shop: 💻 Máy khác → Thêm máy) + tên máy. Chỉ lần đầu.</li>
+<li>Lần sau bấm biểu tượng Poly Dựng Bài là vào.</li></ol>
+<p><small>Không cài app cũng được: <a href="/" style="color:#7bd88f">mở app ngay trên trình duyệt</a>.</small></p></div>
+<script>const m=/Mac/.test(navigator.platform||navigator.userAgent)?'mac':'win';document.querySelectorAll('[data-he]').forEach(a=>{if(a.dataset.he===m)a.classList.add('on')});</script>
+</body></html>""").replace("{NUT}", nut("/tai-app-win", "⬇ Tải cho Windows", "win", co_w) + nut("/tai-app-mac", "⬇ Tải cho Mac", "mac", co_m))
 
 
 def _chung_cong():
@@ -6085,7 +6136,8 @@ def chung_tt():
           for k, v in (CFG.get("chung_may") or {}).items() if isinstance(v, dict)]
     return {"bat": bool(CFG.get("chung_bat")), "url": CHUNG["url"] if song else "", "chay": song and bool(CHUNG["url"]),
             "dang": CHUNG["dang"], "loi": CHUNG["loi"], "ma": ma, "ma_con": max(0, int(CHUNG_MA_HAN - (now() - CHUNG["ma_luc"]))) if ma else 0,
-            "may": sorted(ds, key=lambda x: x.get("t") or 0), "co_cf": os.path.isfile(cf_exe()), "app_mac": os.path.isfile(APP_MAC_ZIP)}
+            "may": sorted(ds, key=lambda x: x.get("t") or 0), "co_cf": os.path.isfile(cf_exe()), "app_mac": os.path.isfile(APP_MAC_ZIP),
+            "app_win": os.path.isfile(APP_WIN_EXE)}
 
 
 def chung_cai(data=None):
@@ -6448,11 +6500,13 @@ class H(BaseHTTPRequestHandler):
                 return self.send(200, chung_tt())
             if u.path == "/api/chung/toi":
                 return self.send(200, {"khach": False})
-            if u.path == "/tai-app-mac":
-                if not os.path.isfile(APP_MAC_ZIP):
-                    return self.send(404, {"err": "Chưa có file app Mac trong thư mục dist của app"})
-                with open(APP_MAC_ZIP, "rb") as f:
-                    return self.send(200, f.read(), "application/zip", {"Content-Disposition": 'attachment; filename="%s"' % os.path.basename(APP_MAC_ZIP)})
+            if u.path in ("/tai-app-mac", "/tai-app-win"):
+                if not os.path.isfile(APP_MAC_ZIP if u.path.endswith("mac") else APP_WIN_EXE):
+                    return self.send(404, {"err": "Chưa có file app trong thư mục dist của app"})
+                b, ten, kieu = chung_tai_app(u.path[-3:])
+                return self.send(200, b, kieu, {"Content-Disposition": 'attachment; filename="%s"' % ten})
+            if u.path == "/tai":
+                return self.send(200, chung_trang_tai(), "text/html; charset=utf-8")
             if u.path == "/api/health":
                 ci = claude_info(force=q.get("force") == ["1"])
                 return self.send(200, {
@@ -6704,7 +6758,7 @@ class HK(H):
             self.send(403, {"err": "origin lạ"})
             return False
         p = urlparse(self.path).path
-        if self.command == "GET" and (p in ("/", "/index.html", "/api/ping", "/tai-app-mac") or p.startswith("/ui/")):
+        if self.command == "GET" and (p in ("/", "/index.html", "/api/ping", "/tai", "/tai-app-mac", "/tai-app-win") or p.startswith("/ui/")):
             return True
         if self.command == "POST" and p == "/api/chung/vao":
             return True

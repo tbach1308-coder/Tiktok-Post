@@ -2099,7 +2099,7 @@ function manVao(){
     <input class="in" id="vaoTen" maxlength="40" placeholder="Tên máy này, vd MacBook Quân">
     <p class="err" id="vaoErr"></p>
     <div class="acts"><button class="btn pri" id="vaoOk">Vào app</button></div>
-    <p class="pnote">Dùng MacBook: <a href="/tai-app-mac">tải app cho Mac</a> để lần sau bấm là mở, link đổi thì app hỏi.</p>`;
+    <p class="pnote"><a href="/tai">Tải app cho Windows / Mac</a> để lần sau bấm biểu tượng là mở, link đổi thì app hỏi.</p>`;
   document.body.appendChild(d);
   $('#vaoTen').value = store.get('poly-ten-may', '');
   const ok = async () => { const b = $('#vaoOk'); $('#vaoErr').textContent = ''; b.disabled = true;
@@ -2128,8 +2128,9 @@ function chungDlg(){
     let h = '';
     if (!r.bat) h = '<p class="stc">Đang tắt: không máy nào vào được. Bật lên để có link (lần đầu app tải đường nối Cloudflare khoảng 60 MB, miễn phí, không cần tài khoản).</p>';
     else {
-      if (r.chay) h += `<p class="okc">● Đang mở. Link app:</p><div class="chlink"><code>${esc(r.url)}</code><button class="btn sm" id="chChep">Sao chép link</button></div>
-        <p class="pnote">Link đổi khi máy shop khởi động lại hoặc mất mạng lâu; bot Remote báo link mới trong Telegram. App Mac tự hỏi link mới.</p>`;
+      if (r.chay) h += `<p class="okc">● Đang mở. Gửi link tải app cho máy kia (Windows / Mac):</p><div class="chlink"><code>${esc(r.url)}/tai</code><button class="btn sm" id="chChepTai">Sao chép</button></div>
+        <p class="okc" style="margin-top:6px">Link mở app ngay trên trình duyệt:</p><div class="chlink"><code>${esc(r.url)}</code><button class="btn sm" id="chChep">Sao chép</button></div>
+        <p class="pnote">Link đổi khi máy shop khởi động lại hoặc mất mạng lâu; bot Remote báo link mới trong Telegram, app trên máy kia tự hỏi link mới.</p>`;
       else if (r.loi) h += `<p class="err">${esc(r.loi)}</p><div class="acts"><button class="btn sm" id="chThu">Thử lại</button></div>`;
       else h += `<p class="stc">⏳ ${esc(r.dang || 'Đang mở đường nối…')}</p>`;
       h += r.ma ? `<div class="rmma"><div>Mã cho máy mới (dùng 1 lần, ${Math.ceil(r.ma_con / 60)} phút):</div><div class="chma">${esc(r.ma)}</div>
@@ -2137,10 +2138,11 @@ function chungDlg(){
         : `<div class="acts" style="justify-content:flex-start"><button class="btn sm pri" id="chMa">＋ Thêm máy (lấy mã)</button></div>`;
       h += (r.may || []).length ? `<div style="margin-top:8px"><b>Máy đang dùng chung</b>${r.may.map(x => `<div class="chmay"><div>${esc(x.ten)}<small>vào ${x.t ? (d => String(d.getDate()).padStart(2, '0') + '/' + String(d.getMonth() + 1).padStart(2, '0'))(new Date(x.t * 1000)) : ''}${x.lan ? ' · dùng gần nhất ' + hm(x.lan) : ''}</small></div><button class="btn sm ghost" data-bo="${esc(x.id)}">Bỏ</button></div>`).join('')}</div>` : '';
     }
-    h += `<p class="pnote" style="margin-top:10px">${r.app_mac ? '<a href="/tai-app-mac">⬇ Tải app cho Mac</a> rồi gửi file qua Zalo / Telegram cho máy kia (giải nén, chuột phải → Mở lần đầu).' : ''}</p>`;
+    h += `<p class="pnote" style="margin-top:10px">Hoặc tải file ở đây rồi gửi qua Zalo / Telegram: ${r.app_win ? '<a href="/tai-app-win">⬇ App Windows (.exe)</a>' : ''}${r.app_win && r.app_mac ? ' · ' : ''}${r.app_mac ? '<a href="/tai-app-mac">⬇ App Mac (.zip)</a>' : ''}</p>`;
     setH($('#chSt'), h); $('#chErr').textContent = '';
     const on = (id, fn) => { const b = $('#' + id); if (b) b.onclick = fn; };
     on('chChep', () => navigator.clipboard.writeText(r.url).then(() => toast('Đã chép link'), () => toast('Không chép được', true)));
+    on('chChepTai', () => navigator.clipboard.writeText(r.url + '/tai').then(() => toast('Đã chép link tải app'), () => toast('Không chép được', true)));
     on('chMa', () => gui({ma_moi: true})); on('chThu', () => gui({bat: true}));
     m.querySelectorAll('[data-bo]').forEach(b => b.onclick = () => { if (confirm('Bỏ máy này khỏi dùng chung? Máy đó phải nhập mã mới mới vào lại được.')) gui({bo: b.dataset.bo}); });
   };

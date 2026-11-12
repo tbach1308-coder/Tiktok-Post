@@ -187,7 +187,10 @@ LÀM 1 BÀI
   dùng đủ mọi chức năng, không đăng nhập Claude hay tài khoản gì (việc chạy trên máy này bằng tài khoản của fen).
   Bật → app tự tải đường nối Cloudflare (lần đầu ~60 MB, miễn phí) → có link https://….trycloudflare.com.
   Thêm máy: bấm "＋ Thêm máy" lấy mã 6 số (dùng 1 lần, 15 phút) → máy kia mở link (hoặc app Mac) → nhập mã + tên máy. Lần sau vào thẳng.
-  App Mac: bấm "⬇ Tải app cho Mac" → gửi file zip cho máy kia → giải nén → chuột phải → Mở (lần đầu).
+  Cho tiện: gửi máy kia LINK TẢI APP (dòng đầu trong hộp, dạng https://….trycloudflare.com/tai) → máy kia mở link,
+  bấm "Tải cho Windows" (file .exe, Windows hỏi thì "Thông tin thêm" → "Vẫn chạy") hoặc "Tải cho Mac" (giải nén,
+  chuột phải → Mở). File tải về đã gắn sẵn link nên lần đầu chỉ hỏi mã 6 số + tên máy; app Windows tự tạo biểu tượng
+  "Poly Dựng Bài (dùng chung)" ngoài Desktop.
   Link đổi khi máy này khởi động lại / mất mạng lâu: bot Remote báo link mới trong Telegram, app Mac tự hỏi link mới.
   Trên máy khác: Đăng TikTok web và Mở thư mục mở trên máy này nên dùng "⬇ Tải slide + caption" hoặc Gửi Telegram.
   Chỉ thêm máy của người mình tin; không dùng nữa thì bấm Bỏ. Có máy mới vào, bot Remote báo trong Telegram.
