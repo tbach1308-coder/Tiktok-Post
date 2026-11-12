@@ -68,7 +68,7 @@ def main():
     # script thử: chép ra gốc máy thử, đổi đường dẫn nếu không phải /home/claude/bug3
     for f in os.listdir(TEST):
         p = os.path.join(TEST, f)
-        if os.path.isfile(p) and f.endswith((".py", ".js")) and f not in ("tao-may-thu.py", "fake_claude.py"):
+        if os.path.isfile(p) and f.endswith((".py", ".js", ".sh")) and f not in ("tao-may-thu.py", "fake_claude.py"):
             s = open(p, encoding="utf-8").read()
             if dich != GOC:
                 s = s.replace(GOC, dich)

@@ -38,7 +38,7 @@ python3 dev/test/tao-may-thu.py                  # tạo /home/claude/bug3 (Clau
 cd /home/claude/bug3 && (nohup python3 tglfake.py > tglfake.out 2>&1 & echo $! > tglfake.pid)
 cd /home/claude/bug3/tgl && (nohup python3 server.py > srv.out 2>&1 & echo $! > srv.pid)    # app thử: http://127.0.0.1:8790
 cd /home/claude/bug3 && python3 tgltest.py && python3 tglnhom.py && python3 tglmig.py && python3 tglrieng.py && python3 chungtest.py
-# mỗi script nên chạy trên app thử vừa khởi động lại (trạng thái sạch: tg_lenh_offset 0, chưa nối)
+# mỗi script nên chạy trên app thử vừa khởi động lại: cd /home/claude/bug3 && bash reset.sh (tg_lenh_offset 0, chưa nối, tắt dùng chung)
 node chungui.js ; node khotheme.js                # Playwright (Chromium có sẵn)
 ```
 - `tgltest.py` Remote chat riêng (49), `tglnhom.py` Remote trong nhóm (26), `tglmig.py` nhóm lên supergroup, `tglrieng.py` bài gửi riêng từng người (14), `chungtest.py` dùng chung
