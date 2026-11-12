@@ -1,0 +1,13 @@
+#!/bin/bash
+# curl giả: https://<tên>.trycloudflare.com -> http://127.0.0.1:<cổng trong $MG/map> + Host; tên lạ -> cổng 9 (không mở)
+a=()
+for x in "$@"; do
+  case "$x" in
+    https://*)
+      h=$(printf '%s' "$x" | sed -E 's#^https://([^/]+).*#\1#'); rest=$(printf '%s' "$x" | sed -E 's#^https://[^/]+##')
+      port=$(sed -n "s/^$h //p" "$MG/map" | head -n 1); port=${port:-9}
+      a+=("http://127.0.0.1:$port$rest" -H "Host: $h") ;;
+    *) a+=("$x") ;;
+  esac
+done
+exec /usr/bin/curl "${a[@]}"

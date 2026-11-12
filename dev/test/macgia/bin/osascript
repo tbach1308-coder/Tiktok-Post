@@ -1,0 +1,13 @@
+#!/bin/bash
+# osascript giả: hỏi (3 tham số) -> lấy câu trả lời đầu hàng chờ; báo (2 tham số) -> ghi lại
+cat >/dev/null
+shift
+if [ "$#" -ge 3 ]; then
+  echo "HOI: $1 [mặc định: $2]" >> "$MG/nhatky"
+  a=$(head -n 1 "$MG/hang"); sed -i '1d' "$MG/hang"
+  [ "$a" = "__HUY__" ] && exit 1
+  [ -z "$a" ] && { echo "HẾT HÀNG CHỜ" >> "$MG/nhatky"; exit 1; }
+  printf '%s\n' "$a"
+else
+  echo "BAO: $1" >> "$MG/nhatky"
+fi
