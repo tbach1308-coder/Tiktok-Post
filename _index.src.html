@@ -143,7 +143,8 @@ a.btn{color:var(--tx);text-decoration:none}
 .thc .thinfo .in{font-size:13px;padding:6px 8px}
 .thc .thb [data-more]{padding:3px 10px;font-weight:700}
 .thbo{margin-top:12px}.thbo a{margin-right:4px}
-.thkcd{margin-top:16px;max-width:860px}.thkcd summary{cursor:pointer;color:var(--mut);font-size:13.5px}
+.thkcd{margin-top:16px;max-width:860px}
+body:not(.kcdrive) .thkcd{display:none!important}   /* fen 12/11 21h47 "dấu cái này đi tạm thời chưa dùng": kho chung Drive (máy cài app riêng) ẩn tới khi bật lại */.thkcd summary{cursor:pointer;color:var(--mut);font-size:13.5px}
 .thlink{margin-top:4px}.thlink summary{cursor:pointer;color:var(--mut);font-size:13px}
 .thed[hidden]{display:none}
 .thed{display:grid;gap:8px;border:1px solid #8b5cf6;border-radius:10px;padding:12px;background:#1b1530;margin-top:10px}
@@ -2203,6 +2204,7 @@ function doanDang(x){
   return '';
 }
 // fen 10/11 13h46 "không hiện lên bảng nhỏ vậy có 1 tab riêng luôn": kho theme là 1 trang riêng như Bài mới
+const KC_DRIVE = false;      // fen 12/11 21h47: tạm chưa dùng kho chung Drive (bật lại: true + thêm class kcdrive cho body)
 async function khoTheme(){
   try { history.replaceState(null, '', '#theme'); } catch(e) {}
   const choBai = !!S.thChoBai; S.thChoBai = 0;     // mở từ hàng Theme ở Bài mới: bấm theme là gắn vào bài đang viết rồi quay lại
@@ -2289,7 +2291,7 @@ async function khoTheme(){
         : KHACH ? (rieng ? '<small class="kcb">🔒 Riêng máy này</small>' : '<small class="kcb">☁️ Kho chung (máy shop)</small>')
         : trongKc ? `<button class="kctg on" data-kc="${t.id}" title="Bấm để bỏ ra khỏi kho chung (chỉ máy shop thấy)">★ Bỏ khỏi kho chung</button>`
         : `<button class="kctg${t.kc ? ' on' : ''}" data-kc="${t.id}" title="${t.kc ? 'Đang trong kho chung: máy dùng chung và máy tải kho chung thấy, dùng được. Bấm để bỏ ra (chỉ máy shop thấy)' : 'Chỉ máy shop thấy. Bấm để đưa vào kho chung cho máy khác dùng'}">${t.kc ? '★ Trong kho chung' : '☆ Vào kho chung'}</button>`
-          + (t.kc && S.kcDung && !t.chia_se ? '<small class="kcw" title="Máy cài app khác tải kho chung có thể không mở được theme này. Thêm link: ⋯ → Thông tin → Link chia sẻ Canva">☁️ Chưa chia sẻ cho máy khác</small>' : '');
+          + (t.kc && S.kcDung && KC_DRIVE && !t.chia_se ? '<small class="kcw" title="Máy cài app khác tải kho chung có thể không mở được theme này. Thêm link: ⋯ → Thông tin → Link chia sẻ Canva">☁️ Chưa chia sẻ cho máy khác</small>' : '');
       return `<div class="thc" data-id="${t.id}"><div class="tha">${anh}</div><b title="${esc(t.ten)}">${esc(tenGon(t))}</b>
         <small>${t.kenh ? esc(KENH[t.kenh].ten) : 'Cả 2 kênh'}${(t.dang || []).length ? ' · ' + t.dang.map(tenDang).map(esc).join(', ') : ''}${t.so_trang ? ' · ' + t.so_trang + ' trang' : ''}${t.goc ? ' · bản nhân' : ''}</small>${chung}${tt}
         <div class="thb"><button class="btn sm pri" data-dung="${t.id}" title="${choBai ? 'Dùng theme này cho bài đang viết' : 'Mở bài mới với theme này'}, làm bằng Canva">${nutDung}</button>${!rieng ? '' : `<button class="btn sm" data-chinh="${t.id}"${ban ? ' disabled' : ''} title="Sửa chữ, màu ngay trong app, Claude lưu lên Canva (bản cũ được cất lại)">✏️ Chỉnh</button>`}<button class="btn sm" data-nb="${t.id}"${ban ? ' disabled' : ''} title="Tạo theme mới từ theme này, chỉnh luôn nếu muốn">⧉ Nhân bản</button>${rieng ? `<button class="btn sm ghost" data-more="${t.id}" title="Thêm">⋯</button>` : ''}</div>
@@ -2300,7 +2302,7 @@ async function khoTheme(){
     const psChung = S.themePsDs || [], nChung = dsChung.length + psChung.length;
     setH($('#thKcN'), nChung ? '· ' + nChung + ' theme' + (psChung.length ? ' (' + psChung.length + ' Photoshop)' : '') : '');
     setH($('#thKcGhi'), nChung ? (KHACH ? 'Theme fen để chung: bấm ▶ Làm bài là dùng; muốn chỉnh thì ⧉ Nhân bản thành bản riêng của máy này.'
-        : 'Máy dùng chung và máy cài app khác (tải kho chung trên Drive) thấy đúng các theme này.')
+        : KC_DRIVE ? 'Máy dùng chung và máy cài app khác (tải kho chung trên Drive) thấy đúng các theme này.' : 'Máy dùng chung thấy và dùng được đúng các theme này.')
       : (KHACH ? 'Fen chưa để theme nào vào kho chung.' : 'Chưa có theme nào trong kho chung. Bấm ☆ Vào kho chung ở thẻ theme phía trên để máy khác dùng được.'));
     setH($('#thKcG'), dsChung.map(t => the(t, true)).join('') + psChung.map(thePs).join(''));
   };
