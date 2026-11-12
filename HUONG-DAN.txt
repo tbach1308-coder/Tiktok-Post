@@ -76,7 +76,11 @@ KHO THEME CANVA (10/11)
   Máy khác: dán link đó 1 lần → "⬇ Tải kho chung" là có theme. Theme muốn dùng ở tài khoản Canva khác: trên Canva mở theme →
   Chia sẻ → "Bất kỳ ai có liên kết", dán link vào ⋯ → Thông tin của theme rồi đưa lên lại.
 - Máy khác / tài khoản Canva khác: theme phải là thiết kế người đó mở được (fen chia sẻ link). Kho theme lưu riêng từng máy (theme-canva.json).
-- Kho theme Photoshop: làm sau. Không chọn theme thì Photoshop / Canva dựng như cũ.
+- Kho theme Photoshop (12/11): Kho theme → bấm "🖌 Photoshop". Theme phẳng (không 3D) nằm sẵn trong kho chung,
+  máy nào dùng app (kể cả máy dùng chung) cũng thấy, chọn được. Bấm "▶ Làm bài" ở theme → viết brief → Chạy: Claude dựng bằng
+  Photoshop theo màu, font, nền của theme (nội dung, ảnh máy vẫn như thường). Ở Bài mới cũng chọn được ngay trên hàng "🎨 Theme"
+  (nút có ảnh nhỏ, bấm là chuyển sang Photoshop; bấm lại hoặc "Không theme" là bỏ). Sửa slide bài đó cũng giữ theme.
+  Có 2 theme: "Phẳng · Xanh lá đêm" và "Phẳng · Than xanh dương". Không chọn theme thì Photoshop / Canva dựng như cũ.
 
 DỌN BÀI THÁNG CŨ (10/11)
 - Kiểm máy → "Dọn bài tháng cũ" → chọn tháng → Dọn. Thư mục bài T<tháng>_… của cả 2 kênh chuyển vào

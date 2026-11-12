@@ -2,7 +2,7 @@
 """Ghep thu vien + phan slide cua bai thanh 1 file .jsx chay duoc trong Photoshop.
 
 Dung (tren may shop):
-  python "E:/Social Claude/_bo-dung-design/ipad/build.py" "<thu muc bai>" "<bai>/tai-nguyen/script/bai.part.jsx" "E:/Social Claude/_bo-dung-design/out/<ten>-vN.jsx" [--only 3,4]
+  python "E:/Social Claude/_bo-dung-design/ipad/build.py" "<thu muc bai>" "<bai>/tai-nguyen/script/bai.part.jsx" "E:/Social Claude/_bo-dung-design/out/<ten>-vN.jsx" [--only 3,4] [--theme "<app>/theme-ps/<id>/theme.jsx"]
   roi: python "E:/Social Claude/_bo-dung-design/code/chay_ps.py" "<file .jsx>" "<thu muc bai>" vN   (ketThuc("vN.log") de chay_ps doc dung log)
 
 - Thu vien poly-lib.jsx nam canh file nay.
@@ -16,6 +16,7 @@ ap.add_argument("bai", help='vd: "E:/Social Claude/iPad/T10_PinTutNhanh_26-10"')
 ap.add_argument("part")
 ap.add_argument("out")
 ap.add_argument("--only", default="", help="vd: 3,4")
+ap.add_argument("--theme", default="", help="theme Photoshop (app Poly Dung Bai: theme-ps/<id>/theme.jsx), ghep sau thu vien")
 a = ap.parse_args()
 
 here = os.path.dirname(os.path.abspath(__file__))
@@ -30,7 +31,12 @@ for bad in ("var ONLY", "var BAI", "#target"):
 if "ketThuc(" not in part:
     sys.exit("LOI: file slide phai ket thuc bang ketThuc(\"ten-log.txt\")")
 
-jsx = '#target photoshop\nvar BAI = "%s";\nvar ONLY = %s;\n' % (bai, only) + lib + "\n" + part
+theme = ""
+if a.theme:
+    if not os.path.isfile(a.theme):
+        sys.exit("LOI: khong thay file theme: " + a.theme)
+    theme = io.open(a.theme, encoding="utf-8").read() + "\nRUN += THEME_LOG;\n"
+jsx = '#target photoshop\nvar BAI = "%s";\nvar ONLY = %s;\n' % (bai, only) + lib + "\n" + theme + "\n" + part
 
 
 def esc(s):
@@ -59,4 +65,4 @@ if shutil.which("node"):
     os.unlink(t.name)
     if r.returncode:
         sys.exit("LOI CU PHAP:\n" + r.stderr[-1500:])
-print("OK  %s  (%d ky tu, ONLY=%s)" % (a.out, len(jsx), only))
+print("OK  %s  (%d ky tu, ONLY=%s%s)" % (a.out, len(jsx), only, ", theme " + os.path.basename(os.path.dirname(a.theme)) if a.theme else ""))

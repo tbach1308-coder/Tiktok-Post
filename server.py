@@ -648,6 +648,7 @@ def build_prompt_dung(job):
     if job.get("dung_bang") == "canva":
         data.update(canva_bien(job))
         return fill(read_prompt("dung-canva.txt"), data)
+    data["theme_ps"] = theme_ps_bien(job)
     return fill(read_prompt("dung-bai.txt"), data)
 
 
@@ -689,6 +690,7 @@ def build_prompt_sua(job, text, slides, anh, resumed):
     if job.get("dung_bang") == "canva":     # bài dựng bằng Canva: sửa trên thiết kế Canva, xuất lại slide
         data.update(canva_bien(job))
         return fill(read_prompt("sua-canva.txt"), data)
+    data["theme_ps"] = theme_ps_bien(job)       # bài dựng theo theme Photoshop: dựng lại cũng phải --theme
     tpl = read_prompt("sua-bai.txt" if resumed else "sua-bai-moi.txt")
     return fill(tpl, data)
 
@@ -1699,6 +1701,11 @@ def create_job(data):
             raise ValueError("Kênh %s chưa có mẫu Canva: vào Kiểm máy > Canva dán link thiết kế mẫu, hoặc chọn Dựng bằng Photoshop"
                              % CFG["kenh"].get(kenh, {}).get("ten", kenh))
         job["dung_bang"] = "canva"
+    elif data.get("theme_ps"):      # fen 12/11: theme Photoshop trong kho chung (bộ phong cách phẳng)
+        tp = theme_ps_tim(data.get("theme_ps"))
+        if not tp:
+            raise ValueError("Không thấy theme Photoshop này trong kho (có thể đã bị bỏ): chọn lại theme hoặc Không theme")
+        job["theme_ps"] = {"id": tp["id"], "ten": tp["ten"]}
     with open(os.path.join(d, "brief.txt"), "w", encoding="utf-8") as f:
         f.write(brief)
     job["anh"] = save_images(d, data.get("anh") or [])
@@ -3733,6 +3740,60 @@ def _theme_trang_chay(cmd, t):
     log("theme %s trang: %d trang, %d o chu" % (tid, len(so_ds), sum(len(v) for v in noi.values())))
 
 
+# ---------------------------------------------------------------- theme Photoshop (kho chung)
+# fen 12/11 20h57 "thiết kế template kho chung bằng photoshop" + "đừng 3d quá" (chọn: bộ phong cách): theme = màu, font, nền, thẻ phẳng
+# (theme-ps/<id>/theme.json -> theme.jsx do theme-ps/tao.py tạo), bộ dựng ghép theme.jsx ngay sau thư viện (build.py --theme).
+# Theme nằm trong thư mục app nên mọi máy dùng chung đều thấy, dùng được (kho chung); ảnh xem trước: theme-ps/<id>/xem/slide-0N.png.
+THEME_PS_DIR = os.path.join(APP, "theme-ps")
+_THEME_PS_ID = re.compile(r"[a-z0-9][a-z0-9-]{0,59}")
+
+
+def theme_ps_ds():
+    ds = []
+    if not os.path.isdir(THEME_PS_DIR):
+        return ds
+    for ten in sorted(os.listdir(THEME_PS_DIR)):
+        d = os.path.join(THEME_PS_DIR, ten)
+        if not _THEME_PS_ID.fullmatch(ten) or not os.path.isfile(os.path.join(d, "theme.jsx")):
+            continue
+        t = read_json(os.path.join(d, "theme.json"), {}) or {}
+        if not isinstance(t, dict):
+            continue
+        anh = []
+        for n in (1, 2, 3):
+            f = os.path.join(d, "xem", "slide-%02d.png" % n)
+            if os.path.isfile(f) and _la_anh(f):
+                anh.append("/api/theme-ps/anh/%s/%d?t=%d" % (ten, n, int(os.path.getmtime(f))))
+        ds.append({"id": ten, "ten": str(t.get("ten") or ten)[:80], "kenh": t.get("kenh") if t.get("kenh") in CFG["kenh"] else "",
+                   "mo_ta": str(t.get("mo_ta") or "")[:300], "anh": anh, "kc": True,
+                   "mau": ["#" + str(t[k]) for k in ("nen", "nhan", "vang") if re.fullmatch(r"[0-9A-Fa-f]{6}", str(t.get(k) or ""))]})
+    return ds
+
+
+def theme_ps_tim(tid):
+    tid = str(tid or "")
+    if not _THEME_PS_ID.fullmatch(tid):
+        return None
+    return next((t for t in theme_ps_ds() if t["id"] == tid), None)
+
+
+def theme_ps_bien(job):
+    """Dòng {theme_ps} trong lệnh dựng Photoshop: không theme thì "(không)"."""
+    th = job.get("theme_ps") if isinstance(job.get("theme_ps"), dict) else None
+    t = theme_ps_tim((th or {}).get("id"))
+    if not t:
+        return "(không, dựng theo theme của kênh như thường)" if not th else \
+            '(theme "%s" fen chọn đã bị bỏ khỏi kho: dựng theo theme của kênh như thường)' % short(th.get("ten") or "", 60)
+    jsx = os.path.join(THEME_PS_DIR, t["id"], "theme.jsx").replace("\\", "/")
+    luat = os.path.join(THEME_PS_DIR, "luat-theme.md").replace("\\", "/")
+    return ('"%s" (kho chung, phẳng: %s)\n'
+            "Dựng bằng theme này: đọc \"%s\" trước khi viết slide; ghép theme khi build: iPad thêm --theme \"%s\" vào lệnh ipad/build.py, "
+            "Laptop thêm --theme \"%s\" vào lệnh code/build.py (mọi lần build, cả lần dựng lại). Theme thắng phần màu, font, nền, thẻ, "
+            "hiệu ứng của theme kênh (luật 15 nền ảnh mờ, phát sáng, kính mờ, bg-thumb không áp dụng); nội dung, bố cục, ảnh máy vẫn theo luật. "
+            "Dặn agent thiết kế + agent duyệt: bài dùng theme Photoshop \"%s\" (đọc \"%s\"), chấm màu / font / nền theo theme, không theo theme kênh."
+            % (t["ten"], t["mo_ta"] or "nền phẳng", luat, jsx, jsx, t["ten"], luat))
+
+
 def canva_bien(job):
     """Biến chung cho lệnh mẫu Canva (dựng, sửa, đưa lên)."""
     cv = canva_doc(job["id"]) or {}
@@ -5584,7 +5645,7 @@ def job_view(jid, since=0):
             ly_do = job["loi_chay"]
     return {
         "ly_do": ly_do,
-        "job": dict({k: job.get(k) for k in ("id", "kenh", "tieu_de", "ten_bai", "ngay_dang", "brief", "ghi_chu", "status", "created", "thu_muc_bai", "session_id", "khach", "anh", "sua", "model", "model_sua", "hen_luc", "sau_caption", "hen_bao", "nhac", "da_dang", "dang_loi", "hen_dang", "xep_hang", "dung_bang", "canva_loi", "theme_canva")},
+        "job": dict({k: job.get(k) for k in ("id", "kenh", "tieu_de", "ten_bai", "ngay_dang", "brief", "ghi_chu", "status", "created", "thu_muc_bai", "session_id", "khach", "anh", "sua", "model", "model_sua", "hen_luc", "sau_caption", "hen_bao", "nhac", "da_dang", "dang_loi", "hen_dang", "xep_hang", "dung_bang", "canva_loi", "theme_canva", "theme_ps")},
                     **dict(zip(("tieu_de", "ngay_dang"), ten_hien(job)))),
         "run": run and {"n": run["n"], "kind": run["kind"], "started": run["started"], "ended": run.get("ended")},
         "runs": len(job.get("runs", [])),
@@ -5727,7 +5788,7 @@ def list_jobs():
                 job, _ = parse_job(jid)
             except Exception:
                 pass
-        it = {k: job.get(k) for k in ("id", "kenh", "tieu_de", "status", "created", "ngay_dang", "hen_luc", "hen_dang", "hen_dang_mo", "da_dang", "xep_hang", "dung_bang", "theme_canva", "khach")}
+        it = {k: job.get(k) for k in ("id", "kenh", "tieu_de", "status", "created", "ngay_dang", "hen_luc", "hen_dang", "hen_dang_mo", "da_dang", "xep_hang", "dung_bang", "theme_canva", "theme_ps", "khach")}
         it["tieu_de"], it["ngay_dang"] = ten_hien(job)
         lr = (job.get("runs") or [{}])[-1]
         it["started"], it["ended"] = lr.get("started"), lr.get("ended")
@@ -6807,6 +6868,15 @@ class H(BaseHTTPRequestHandler):
                 return self.send(200, canva_cai(None, self.may()))
             if u.path == "/api/theme-canva":
                 return self.send(200, theme_cv(None, self.may()))
+            if u.path == "/api/theme-ps":       # fen 12/11: kho theme Photoshop (kho chung, mọi máy thấy)
+                return self.send(200, {"ds": theme_ps_ds()})
+            m = re.fullmatch(r"/api/theme-ps/anh/([a-z0-9][a-z0-9-]{0,59})/([1-3])", u.path)
+            if m:
+                f = os.path.join(THEME_PS_DIR, m.group(1), "xem", "slide-%02d.png" % int(m.group(2)))
+                if not os.path.isfile(f) or not _la_anh(f):
+                    return self.send(404, {"err": "chưa có ảnh"})
+                with open(f, "rb") as fh:
+                    return self.send(200, fh.read(), "image/png", {"Cache-Control": "max-age=86400"})
             if u.path == "/api/kho-chung":
                 return self.send(200, kho_chung())
             m = re.fullmatch(r"/api/theme-canva/(?:trang|trang-anh|anh)/(t[0-9a-f]{8}).*", u.path)

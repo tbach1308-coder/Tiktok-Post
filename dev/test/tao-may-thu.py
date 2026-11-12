@@ -24,7 +24,7 @@ def main():
     # mã app (bản trong repo)
     for f in ("server.py", "_index.src.html", "HUONG-DAN.txt", "PROJECT.md"):
         shutil.copy2(os.path.join(REPO, f), app)
-    for d in ("ui", "prompts", "dev"):
+    for d in ("ui", "prompts", "dev", "theme-ps"):
         shutil.copytree(os.path.join(REPO, d), os.path.join(app, d), dirs_exist_ok=True,
                         ignore=shutil.ignore_patterns("test", "__pycache__"))
     shutil.copy2(os.path.join(TEST, "fake_claude.py"), app)

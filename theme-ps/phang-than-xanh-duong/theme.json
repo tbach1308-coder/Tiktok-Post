@@ -1,0 +1,14 @@
+{
+  "id": "phang-than-xanh-duong",
+  "ten": "Phẳng · Than xanh dương",
+  "kenh": "",
+  "mo_ta": "Nền than chì phẳng, chấm bi + nửa hình tròn ở góc, sọc nhấn xanh dương bên trái, tiêu đề chữ đậm hẹp. Không bóng đổ, không phát sáng.",
+  "nen": "131519", "nen2": "1F232A", "the": "20252D",
+  "nhan": "2563EB", "nhan_dam": "1D4ED8", "nhan_nhat": "60A5FA",
+  "vang": "FFD60A", "ghi_nen": "DBEAFE", "ghi_chu": "0F172A", "do": "EF4444",
+  "font_tieu_de": ["UTM-Swiss-721-Black-Condensed", "UTMSwiss721BlackCondensed", "UTM Swiss 721 Black Condensed"],
+  "font_than": ["UTMHelveBold", "UTM-HelveBold", "UTMAvoBold"],
+  "co_tieu_de": 1.08,
+  "giu_vien": false,
+  "trang_tri": "cham"
+}

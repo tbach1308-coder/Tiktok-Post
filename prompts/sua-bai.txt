@@ -1,5 +1,6 @@
 /poly-carousel:sua-bai {thu_muc_bai} {yeu_cau}
 Slide fen chọn: {slides}
+Theme Photoshop của bài: {theme_ps}
 Ảnh mới fen gửi:
 {anh_list}
 

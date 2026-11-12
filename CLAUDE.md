@@ -41,7 +41,7 @@ cd /home/claude/bug3 && python3 tgltest.py && python3 tglnhom.py && python3 tglm
 # mỗi script nên chạy trên app thử vừa khởi động lại: cd /home/claude/bug3 && bash reset.sh (tg_lenh_offset 0, chưa nối, tắt dùng chung)
 node chungui.js ; node khotheme.js                # Playwright (Chromium có sẵn)
 ```
-- `tgltest.py` Remote chat riêng (49), `tglnhom.py` Remote trong nhóm (26), `tglmig.py` nhóm lên supergroup, `tglrieng.py` bài gửi riêng từng người (14), `chungtest.py` dùng chung
+- `themeps.py` kho theme Photoshop (26) + `themepsui.js` giao diện (16); `tgltest.py` Remote chat riêng (49), `tglnhom.py` Remote trong nhóm (26), `tglmig.py` nhóm lên supergroup, `tglrieng.py` bài gửi riêng từng người (14), `chungtest.py` dùng chung
   (máy khác, quyền, bài / theme riêng từng máy, 82), `chungui.js` / `khotheme.js` giao diện. Script ghi đường dẫn `/home/claude/bug3`;
   tạo chỗ khác thì `tao-may-thu.py <thư mục>` tự đổi. Repo nên clone ở `/home/claude/tiktok-post` (script app Mac / Windows trỏ vào đó).
 - App Mac / Windows "dùng chung": `packaging/mac-chung/build.py`, `packaging/win-chung/build.sh` (mingw) → `dist/`; thử:
@@ -53,3 +53,6 @@ node chungui.js ; node khotheme.js                # Playwright (Chromium có s�
 - Dùng chung: máy shop làm máy chủ (cổng khách 8778 + đường nối Cloudflare tạm), máy khác vào bằng mã 6 số 1 lần; mỗi máy chỉ thấy bài,
   nháp, theme, mẫu Canva của mình; máy shop (admin) thấy / quản lý hết; theme chung = theme fen bấm ☆ Vào kho chung.
 - Kho theme Canva (Chỉnh chữ trên slide, Nhân bản, kho chung Drive), hạn mức dùng Claude theo bài + tuần, model theo việc.
+- Kho theme Photoshop (`theme-ps/`, luật `theme-ps/luat-theme.md`): theme phẳng = `theme.json` + `_dong-co.jsx` → `theme.jsx` (`python3 theme-ps/tao.py`),
+  bộ dựng ghép bằng `--theme`; ảnh xem trước dựng trên Photoshop máy shop: `ipad/build.py "E:/Tool/poly-dung-bai/theme-ps/<id>/xem" theme-ps/xem-mau.part.jsx <out> --theme ...`
+  rồi chép .jsx vào `C:\Users\Dao\Pictures\PolySocial\_tu-chay\` (Photoshop tự chạy). Đổi `social-claude/_bo-dung-design/*/build.py` thì chép cả sang `E:\Social Claude\_bo-dung-design`.

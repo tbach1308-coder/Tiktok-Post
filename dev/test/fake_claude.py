@@ -13,6 +13,7 @@ if a[:2] == ['auth', 'status']:
     sys.exit(0 if ok else 1)
 json.dump(a, open(os.path.join(HERE, 'last-args.json'), 'w'))   # để test xem app truyền cờ gì
 prompt = sys.stdin.read()
+open(os.path.join(HERE, 'last-prompt.txt'), 'w', encoding='utf-8').write(prompt)   # để test xem lệnh app gửi Claude
 sid = a[a.index('--resume') + 1] if '--resume' in a else 'sess-' + str(int(time.time() * 1000))
 def out(o, d=0.12):
     if o.get("type") == "result":

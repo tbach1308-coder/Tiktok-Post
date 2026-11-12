@@ -12,6 +12,8 @@ Brief từng slide:
 
 Ghi chú thêm của fen: {ghi_chu}
 
+Theme Photoshop: {theme_ps}
+
 ---
 Bài này giao từ app "Poly Dựng Bài" trên máy shop. Fen không xem chat và không trả lời được câu hỏi giữa chừng: tự làm hết theo plugin poly-carousel và luật, chỗ chưa rõ tự chọn phương án hợp lý nhất. Thiếu ảnh shop thì dùng ảnh tạm (ảnh hãng) và làm tiếp.
 Ngay khi tạo thư mục bài, in 1 dòng riêng THU_MUC_BAI=<đường dẫn đầy đủ> (app dựa vào dòng này để hiện đúng slide của bài).

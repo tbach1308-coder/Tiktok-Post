@@ -12,8 +12,14 @@ for _f in (_s.stdout, _s.stderr):
     except Exception: pass
 import sys, os, subprocess
 K = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-slides, folder, name, ver = sys.argv[1:5]
-only = sys.argv[5] if len(sys.argv) > 5 else None
+# --theme "<app>/theme-ps/<id>/theme.jsx": theme Photoshop kho chung (fen 12/11), ghép sau thư viện, trước file slides
+argv = sys.argv[1:]
+theme_f = ""
+if "--theme" in argv:
+    i = argv.index("--theme"); theme_f = argv[i + 1] if i + 1 < len(argv) else ""; del argv[i:i + 2]
+    if not os.path.isfile(theme_f): sys.exit("LOI: khong thay file theme: " + theme_f)
+slides, folder, name, ver = argv[0:4]
+only = argv[4] if len(argv) > 4 else None
 kenh = 'iPad' if folder.lower().find('ipad') >= 0 else 'Laptop'
 head = open(os.path.join(K, 'code/make-mac-vs-win.jsx'), encoding='utf-8').read().split('\n')[:223]
 head[1] = '// POLY STORE - ' + name + ' (' + ver + ')'
@@ -31,7 +37,8 @@ sl = open(os.path.join(K, slides), encoding='utf-8').read()
 # không đóng file fen đang mở: chỉ đóng file do script tạo
 sl = sl.replace('for (var di = app.documents.length - 1; di >= 0; di--) app.documents[di].close(SaveOptions.DONOTSAVECHANGES);', 'var KEEP = app.documents.length;')
 sl = sl.replace('while (app.documents.length) app.activeDocument.close(SaveOptions.DONOTSAVECHANGES);', 'while (app.documents.length > KEEP) app.activeDocument.close(SaveOptions.DONOTSAVECHANGES);')
-body = pre + '\n'.join(helpers) + '\n' + sl
+theme = (open(theme_f, encoding='utf-8').read() + '\n') if theme_f else ''
+body = pre + '\n'.join(helpers) + '\n' + theme + sl
 def esc(s):
     out = []
     for ch in s:
