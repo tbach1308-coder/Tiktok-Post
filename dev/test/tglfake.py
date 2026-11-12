@@ -41,7 +41,12 @@ class H(BaseHTTPRequestHandler):
                 time.sleep(0.1)
             return self.send_j({"ok": True, "result": r})
         if meth == 'getMe': return self.send_j({"ok": True, "result": {"username": "poly_lenh_bot"}})
-        if meth == 'getChatMember': return self.send_j({"ok": True, "result": {"status": open('/home/claude/bug3/tglfake.admin').read().strip() if os.path.exists('/home/claude/bug3/tglfake.admin') else 'member'}})
+        if meth in ('sendMessage', 'sendPhoto', 'sendMediaGroup', 'sendDocument') and str(vals.get('chat_id')) == '444':
+            return self.send_j({"ok": False, "error_code": 403, "description": "Forbidden: bot can't initiate conversation with a user"}, 403)
+        if meth == 'getChatMember':
+            if str(vals.get('user_id')) == '333': return self.send_j({"ok": True, "result": {"status": "left"}})
+            if str(vals.get('user_id')).isdigit() and not str(vals.get('user_id')).startswith(('111', '222', '444')): return self.send_j({"ok": True, "result": {"status": open('/home/claude/bug3/tglfake.admin').read().strip() if os.path.exists('/home/claude/bug3/tglfake.admin') else 'member'}})
+            return self.send_j({"ok": True, "result": {"status": "member"}})
         if meth == 'getFile': return self.send_j({"ok": True, "result": {"file_path": "photos/f_%s.png" % vals.get('file_id')}})
         if meth == 'sendMediaGroup' and os.path.exists('/home/claude/bug3/tglfake.slow'): time.sleep(6)
         if meth in ('sendMessage', 'sendPhoto', 'sendMediaGroup'):

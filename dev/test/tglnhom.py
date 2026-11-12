@@ -34,7 +34,7 @@ n=len(logs()); gmsg('@poly_dung_bai_bot ?'); x=wait_for(n, lambda x: 'Cách dùn
 n=len(logs()); gmsg('bài: laptop cho dân kiến trúc'); x=wait_for(n, lambda x: x['meth']=='sendMessage', 20); check('Quân "bài: …": bot làm brief', x is not None, '')
 print('   ', txt(x)[:120].replace('\n',' | ') if x else '')
 n=len(logs()); gmsg('/brief máy cho sinh viên'); x=wait_for(n, lambda x: x['meth']=='sendMessage', 20); check('Quân /brief: bot làm', x is not None)
-n=len(logs()); msg('/tinhhinh'); check('fen nhắn riêng khi đã nối nhóm: bỏ qua', not quiet(n))
+n=len(logs()); msg('/tinhhinh'); x=wait_for(n, lambda x: x['vals'].get('chat_id')=='111', 5); check('fen nhắn lệnh riêng khi đã nối nhóm: không chạy lệnh, chỉ nhắc / đăng ký nhận bài riêng', x is not None and 'Tình hình' not in txt(x), x and txt(x))
 time.sleep(6); n=len(logs()); gmsg('/tinhhinh', chat=-100999); check('nhóm lạ: bỏ qua', not quiet(n), quiet(n,0))
 n=len(logs()); gmsg('/tat', uid=111, name='Bách'); time.sleep(2.5); check('fen /tat trong nhóm: tắt', not req(APP+'/api/tg-lenh')['bat'])
 n=len(logs()); gmsg('/bat'); time.sleep(2.5); check('Quân /bat: không bật', not req(APP+'/api/tg-lenh')['bat'])

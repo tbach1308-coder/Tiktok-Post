@@ -1685,6 +1685,8 @@ def create_job(data):
         job["tu_tg"] = True
     if isinstance(data.get("_khach"), dict):     # bài do máy dùng chung tạo (cổng khách tự gắn, trang không gửi được)
         job["khach"] = {"id": data["_khach"].get("id"), "ten": data["_khach"].get("ten")}
+    if isinstance(data.get("_tg_nguoi"), dict) and data["_tg_nguoi"].get("id"):     # bấm Chạy trong nhóm Remote: gửi bài riêng người đó
+        job["tg_nguoi"] = {"id": data["_tg_nguoi"]["id"], "ten": str(data["_tg_nguoi"].get("ten") or "")[:40]}
     if data.get("dung_bang") == "canva":     # fen 6/11: dựng trên Canva theo mẫu của kênh, không qua Photoshop
         km = (data.get("_khach") or {}).get("id") if isinstance(data.get("_khach"), dict) else None
         th = theme_tim_cho(data.get("theme_canva"), km)
@@ -2538,12 +2540,16 @@ def _gui_telegram(jid):
     job = load_job(jid)
     if not job:
         raise ValueError("Không thấy bài")
-    if not (CFG.get("telegram_token") and CFG.get("telegram_chat")):
+    ng = tg_nguoi_cua(job)            # fen 12/11 20h04: bài của ai gửi riêng người đó
+    if job.get("khach") and not ng:
+        raise ValueError("Máy %s chưa gán Telegram nhận bài: trên máy shop vào 💻 Máy khác, chọn Telegram cho máy này"
+                         % ((job.get("khach") or {}).get("ten") or "này"))
+    if not (CFG.get("telegram_token") and (ng or CFG.get("telegram_chat"))):
         raise ValueError("CAI_TELEGRAM")
     sl = list_slides(job.get("thu_muc_bai"))
     if not sl:
         raise ValueError("Bài chưa có slide")
-    chat = CFG["telegram_chat"]
+    chat = ng["id"] if ng else CFG["telegram_chat"]
     ten, _ = ten_hien(job)
     cap, ghim = tach_caption(read_caption(job))
     # Fen chốt 28/10 21h: gửi dạng ALBUM ẢNH như fen gửi tay (xem trước được trong nhóm), album không kèm chú thích.
@@ -3893,7 +3899,7 @@ def _bao_tg(text, anh=None, chats=None, jid=None):
     data = None
     for chat in (chats if chats is not None else [CFG.get("telegram_chat")]):
         f2 = {"chat_id": chat}
-        if jid and chat == CFG.get("tg_lenh_chat"):
+        if jid and (chat == CFG.get("tg_lenh_chat") or tg_rieng_co(chat)):
             f2["reply_markup"] = json.dumps({"inline_keyboard": [[{"text": "📷 Xem đủ slide + caption", "callback_data": "xem:" + jid}]]}, ensure_ascii=False)
         try:
             if anh and os.path.isfile(anh) and os.path.getsize(anh) < 9.5e6:
@@ -3906,11 +3912,20 @@ def _bao_tg(text, anh=None, chats=None, jid=None):
             ok = True
         except Exception as e:
             log("bao telegram loi: %s" % e)
+            if str(chat) in (CFG.get("tg_rieng") or {}) or (isinstance(chat, int) and chat > 0 and tgl_nhom()):
+                tg_rieng_loi(chat, (CFG.get("tg_rieng") or {}).get(str(chat)), e)
     return ok
 
 
 def _noi_bao(job):
-    """Chat nhận báo bài xong / lỗi: nhóm (nếu bật báo), cộng chat lệnh Remote khi bài do fen bấm Chạy trên Telegram."""
+    """Chat nhận báo bài xong / lỗi: nhóm (nếu bật báo), cộng chat lệnh Remote khi bài do fen bấm Chạy trên Telegram.
+    Bài của 1 người (bấm Chạy trong nhóm Remote / máy dùng chung đã gán Telegram): chỉ chat riêng người đó (fen 12/11 20h04).
+    Bài máy dùng chung chưa gán Telegram: không báo vào nhóm chung."""
+    ng = tg_nguoi_cua(job)
+    if ng:
+        return [ng["id"]]
+    if job.get("khach"):
+        return []
     ds = []
     if CFG.get("telegram_chat") and CFG.get("telegram_bao") is not False:
         ds.append(CFG["telegram_chat"])
@@ -4079,6 +4094,65 @@ def tgl_cai(data):
     return tgl_trang_thai()
 
 
+# ---- Bài gửi riêng từng người (fen 12/11 20h04 "telegram gửi bài là riêng cá nhân nha, để không gửi quá nhiều bài chung nhiều người 1 chat"
+# → "Ai ra lệnh bài đó nhận riêng"): nhóm Remote chỉ để ra lệnh; bài xong / lỗi / 📷 xem slide / Gửi Telegram của bài ai bấm Chạy
+# trong nhóm thì bot gửi vào chat riêng của người đó (mỗi người bấm Start bot 1 lần → CFG tg_rieng). Máy dùng chung: fen gán Telegram
+# nhận bài cho từng máy (chung_may[id].tg). Bài làm trên máy shop: như cũ (nhóm nhận slide telegram_chat).
+TGL_RIENG_NHAC = {}
+
+
+def tg_rieng_co(uid):
+    """Người này nhận được tin riêng từ bot: đã bấm Start (tg_rieng) hoặc là người nối Remote (fen, đã chat riêng với bot)."""
+    return bool(uid) and (str(uid) in (CFG.get("tg_rieng") or {}) or str(uid) == str(CFG.get("tg_lenh_nguoi") or ""))
+
+
+def tg_nguoi_cua(job):
+    n = (job or {}).get("tg_nguoi")
+    if isinstance(n, dict) and n.get("id"):
+        return n
+    k = ((job or {}).get("khach") or {}).get("id")
+    if k:
+        uid = ((CFG.get("chung_may") or {}).get(k) or {}).get("tg")
+        if uid:
+            return {"id": uid, "ten": (CFG.get("tg_rieng") or {}).get(str(uid)) or ""}
+    return None
+
+
+def tg_rieng_loi(uid, ten, e):
+    """Gửi chat riêng không được (người đó chưa bấm Start bot): nhắc trong nhóm Remote, 10 phút / người 1 lần."""
+    log("tg rieng %s loi: %s" % (uid, e))
+    if not tgl_nhom() or now() - TGL_RIENG_NHAC.get(uid, 0) < 600:
+        return
+    TGL_RIENG_NHAC[uid] = now()
+    tgl_gui("⚠️ %s chưa nhận được bài riêng: bấm vào @%s → Start (Bắt đầu) 1 lần, rồi bấm 📷 ở bài đó lại."
+            % (ten or "Bạn", CFG.get("telegram_bot") or "bot"))
+
+
+def tgl_dang_ky_rieng(c, fr, text):
+    """Tin nhắn riêng với bot khi Remote đang ở nhóm: thành viên nhóm bấm Start = nhận bài riêng ở đây."""
+    uid = fr.get("id")
+    try:
+        x = tg_call("getChatMember", {"chat_id": CFG["tg_lenh_chat"], "user_id": uid}, timeout=20) or {}
+    except Exception as e:
+        log("tg rieng kiem thanh vien loi: %s" % e)
+        return
+    if not isinstance(x, dict) or x.get("status") not in ("creator", "administrator", "member", "restricted"):
+        log("tg lenh: bo qua tin rieng tu nguoi ngoai nhom %s" % uid)
+        return
+    ten = " ".join(y for y in (fr.get("first_name"), fr.get("last_name")) if y).strip() or fr.get("username") or "bạn"
+    ds = dict(CFG.get("tg_rieng") or {})
+    moi = str(uid) not in ds
+    if moi or ds.get(str(uid)) != ten:
+        ds[str(uid)] = ten
+        save_cfg_keys({"tg_rieng": ds})
+    if moi or text.startswith("/start"):
+        tgl_gui("✅ Đã nối, %s. Bài bạn bấm Chạy trong nhóm %s sẽ gửi riêng vào đây (slide, caption, nút ✅ Đã đăng). Ra lệnh thì nhắn trong nhóm."
+                % (ten, CFG.get("tg_lenh_ten") or ""), chat=c["id"])
+    elif now() - TGL_RIENG_NHAC.get(("tin", uid), 0) > 300:
+        TGL_RIENG_NHAC[("tin", uid)] = now()
+        tgl_gui("Ra lệnh trong nhóm %s nha, ở đây bot chỉ gửi bài riêng của bạn." % (CFG.get("tg_lenh_ten") or ""), chat=c["id"])
+
+
 def tgl_kiem_quyen_nhom():
     """Bot trong nhóm chỉ đọc được lệnh /… và tin trả lời bot; muốn đọc mọi tin (nhắn chủ đề, quy tắc) thì bot phải là quản trị viên."""
     try:
@@ -4094,9 +4168,9 @@ def tgl_kiem_quyen_nhom():
         return None
 
 
-def tgl_gui(text, nut=None, tra_loi=None, markup=None):
-    """Gửi 1 tin vào chat lệnh. Trả message_id (None nếu lỗi / chưa nối)."""
-    chat = CFG.get("tg_lenh_chat")
+def tgl_gui(text, nut=None, tra_loi=None, markup=None, chat=None):
+    """Gửi 1 tin vào chat lệnh (hoặc chat riêng `chat`). Trả message_id (None nếu lỗi / chưa nối)."""
+    chat = chat or CFG.get("tg_lenh_chat")
     if not chat or not CFG.get("telegram_token"):
         return None
     f = {"chat_id": chat, "text": text[:4000], "disable_web_page_preview": "true"}
@@ -4335,6 +4409,8 @@ def tgl_tin(m):
                      if nhom else "✅ Đã nối app Poly Dựng Bài.\n\n") + tgl_huong_dan())
             if nhom:
                 tgl_kiem_quyen_nhom()
+                tgl_gui("📩 Bài ai bấm Chạy thì bot gửi riêng cho người đó, không đổ vào nhóm. Mỗi người bấm vào @%s → Start (Bắt đầu) 1 lần để nhận."
+                        % (CFG.get("telegram_bot") or "bot"))
             tgl_bang(moi=True)
             return
     if not tgl_noi():
@@ -4343,6 +4419,8 @@ def tgl_tin(m):
         if c.get("id") == CFG.get("tg_lenh_chat"):
             tgl_gui("Mã này để nối bot vào nhóm: bấm nút \"Thêm bot vào nhóm\" trong app (Remote → Dùng trong nhóm), chọn nhóm.")
         return
+    if tgl_nhom() and c.get("type") == "private":
+        return tgl_dang_ky_rieng(c, fr, text)
     if c.get("id") != CFG.get("tg_lenh_chat") or (not tgl_nhom() and not tgl_chu(fr)):
         if c.get("type") == "private":
             log("tg lenh: bo qua tin tu tai khoan la %s" % fr.get("id"))
@@ -4445,10 +4523,16 @@ def tgl_bam(q):
         except Exception:
             pass
 
-    if not tgl_noi() or (not tgl_nhom() and not tgl_chu(fr)) or (msg.get("chat") or {}).get("id") != CFG.get("tg_lenh_chat"):
+    rieng = bool(tgl_nhom() and (msg.get("chat") or {}).get("type") == "private" and (msg.get("chat") or {}).get("id") == fr.get("id")
+                 and tg_rieng_co(fr.get("id")))
+    if not tgl_noi() or (not rieng and ((not tgl_nhom() and not tgl_chu(fr)) or (msg.get("chat") or {}).get("id") != CFG.get("tg_lenh_chat"))):
         return tra()
     TGL["lan_cuoi"] = now()
     loai, _, du = (q.get("data") or "").partition(":")
+    if rieng and loai not in ("xem", "dd", "cap"):
+        return tra("Ra lệnh trong nhóm nha")
+    # nhóm: slide / caption gửi vào chat riêng của người bấm (fen 12/11 20h04)
+    toi = fr.get("id") if tgl_nhom() else None
     if loai == "bg":
         if du in ("bat", "tat", "qt") and not tgl_chu(fr):
             return tra("Chỉ %s làm việc này" % (CFG.get("tg_lenh_chu_ten") or "người nối bot"))
@@ -4456,14 +4540,18 @@ def tgl_bam(q):
     if loai in ("qt", "qtk") and not tgl_chu(fr):
         return tra("Ghi quy tắc chỉ người nối bot làm được")
     if loai == "xem" and re.fullmatch(r"[0-9a-zA-Z_-]{6,64}", du):     # chỉ xem: lúc Remote tắt vẫn xem được
-        dang, vua = TGL.setdefault("xem_dang", set()), TGL.setdefault("xem_luc", {}).get(du, 0)
-        if du in dang:             # bấm 2 lần liền (bảng ghim + danh sách): không gửi album 2 lần
+        kx = "%s:%s" % (du, toi or "")          # chặn gửi trùng theo từng chat nhận (nhóm: mỗi người 1 chat riêng)
+        dang, vua = TGL.setdefault("xem_dang", set()), TGL.setdefault("xem_luc", {}).get(kx, 0)
+        if kx in dang:             # bấm 2 lần liền (bảng ghim + danh sách): không gửi album 2 lần
             return tra("Đang gửi bài này, chờ chút nha")
         if now() - vua < 60:
             return tra("Vừa gửi bài này lúc %s, kéo lên xem nha" % time.strftime("%H:%M", time.localtime(vua)))
-        dang.add(du)
-        tra("Bài trước gửi xong sẽ tới bài này" if TGL_KHOA_XEM.locked() else "Đang gửi slide…")
-        threading.Thread(target=tgl_xem_nen, args=(du,), daemon=True).start()
+        if toi and not tg_rieng_co(toi):
+            tg_rieng_loi(toi, " ".join(y for y in (fr.get("first_name"), fr.get("last_name")) if y), "chua dang ky")
+            return tra("Bấm @%s → Start 1 lần để nhận bài riêng" % (CFG.get("telegram_bot") or "bot"))
+        dang.add(kx)
+        tra(("Bài trước gửi xong sẽ tới bài này" if TGL_KHOA_XEM.locked() else "Đang gửi slide…") + (" (vào chat riêng với bot)" if toi and not rieng else ""))
+        threading.Thread(target=tgl_xem_nen, args=(du, toi), daemon=True).start()
         return
     # ✅ Đã đăng xong: chỉ ghi sổ (app chuyển bài sang tab Đã đăng), lúc Remote tắt vẫn bấm được (fen 5/11)
     if loai == "dd" and re.fullmatch(r"[0-9a-zA-Z_-]{6,64}", du):
@@ -4473,7 +4561,7 @@ def tgl_bam(q):
             return tra(str(e))
         tra("Đã chuyển sang Đã đăng")
         bo_nut()
-        tgl_gui("✅ Đã đăng: %s" % ten_hien(load_job(du) or {})[0])
+        tgl_gui("✅ Đã đăng: %s" % ten_hien(load_job(du) or {})[0], chat=fr.get("id") if rieng else None)
         return tgl_bang(ep=True)
     if not CFG.get("tg_lenh"):
         return tra("Remote đang tắt, nhắn /bat để bật rồi bấm lại")
@@ -4506,8 +4594,8 @@ def tgl_bam(q):
             return tra(str(e).split("|")[-1])
         tra("Claude đang viết caption…")
         bo_nut()
-        tgl_gui("✍ Đang viết caption…")
-        return threading.Thread(target=tgl_cho_caption, args=(du,), daemon=True).start()
+        tgl_gui("✍ Đang viết caption…", chat=fr.get("id") if rieng else None)
+        return threading.Thread(target=tgl_cho_caption, args=(du, 900, fr.get("id") if rieng else None), daemon=True).start()
     if loai in ("chay", "chcv", "lai", "bo") and re.fullmatch(r"[0-9a-zA-Z_-]{6,64}", du):
         if loai == "bo":
             with LOCK:
@@ -4521,7 +4609,7 @@ def tgl_bam(q):
             tra("Viết lại…")
             bo_nut()
             return tgl_viet_lai(du)
-        return tgl_chay(du, tra, bo_nut, canva=loai == "chcv")
+        return tgl_chay(du, tra, bo_nut, canva=loai == "chcv", fr=fr)
     tra()
 
 
@@ -4586,7 +4674,7 @@ def tgl_sua_brief(jid, tin, anh=None):
     threading.Thread(target=tgl_cho_viec, args=(r["id"],), daemon=True).start()
 
 
-def tgl_chay(jid, tra, bo_nut, canva=False):
+def tgl_chay(jid, tra, bo_nut, canva=False, fr=None):
     with LOCK:
         j = load_job(jid)
         if not j or j.get("loai") != "brief":
@@ -4605,17 +4693,20 @@ def tgl_chay(jid, tra, bo_nut, canva=False):
     tra(("Bắt đầu dựng trên Canva theo theme \"%s\"…" % re.sub(r"^\s*carousel\s+tiktok\s*", "", th.get("ten") or "", flags=re.I) if th else "Bắt đầu dựng trên Canva…") if canva else "Bắt đầu dựng…")
     bo_nut()
     try:
+        nguoi = ({"id": fr["id"], "ten": " ".join(y for y in (fr.get("first_name"), fr.get("last_name")) if y).strip() or fr.get("username") or ""}
+                 if tgl_nhom() and fr and fr.get("id") else None)     # nhóm: bài xong gửi riêng người bấm Chạy
         job = create_job({"kenh": j.get("kenh"), "brief": bv, "tu_tg": True, "dung_bang": "canva" if canva else "",
-                          "theme_canva": th["id"] if th else ""})
+                          "theme_canva": th["id"] if th else "", "_tg_nguoi": nguoi})
     except ValueError as e:
         tgl_gan(jid, {"chay": None})
         return tgl_gui("⚠️ Chưa chạy được: " + str(e).split("|")[-1])
     tgl_gan(jid, {"chay": job["id"]})
     ten, tk = ten_hien(job)[0], CFG["kenh"].get(job.get("kenh"), {}).get("ten", job.get("kenh"))
+    rg = " · xong bot gửi riêng cho %s" % job["tg_nguoi"]["ten"] if job.get("tg_nguoi") else ""
     if job.get("status") == "hen" and job.get("xep_hang"):
-        tgl_gui("⏳ Xếp hàng thứ %d: %s (%s)" % (job.get("thu") or 1, ten, tk))
+        tgl_gui("⏳ Xếp hàng thứ %d: %s (%s)%s" % (job.get("thu") or 1, ten, tk, rg))
     else:
-        tgl_gui("▶️ Đang dựng: %s (%s)" % (ten, tk))
+        tgl_gui("▶️ Đang dựng: %s (%s)%s" % (ten, tk, rg))
     log("tg lenh: chay bai %s tu brief %s" % (job["id"], jid))
     tgl_bang(ep=True)
 
@@ -4897,18 +4988,23 @@ def tgl_ds_cho():
     tgl_gui("📮 Chờ đăng (%d%s):" % (len(ds), ", 15 bài mới nhất" if len(ds) > 15 else ""), nut)
 
 
-def tgl_xem(jid):
-    """Gửi đủ slide (album như nút Gửi Telegram) + caption + câu ghim của 1 bài về chat lệnh, kèm nút Đã đăng."""
+def tgl_xem(jid, rieng=None):
+    """Gửi đủ slide (album như nút Gửi Telegram) + caption + câu ghim của 1 bài về chat lệnh (hoặc chat riêng `rieng`), kèm nút Đã đăng."""
     j = load_job(jid)
     if not j:
-        return tgl_gui("Không thấy bài này nữa.")
-    chat = CFG.get("tg_lenh_chat")
+        return tgl_gui("Không thấy bài này nữa.", chat=rieng)
+    chat = rieng or CFG.get("tg_lenh_chat")
+
+    def gui(text, nut=None):      # mọi tin của lượt xem này về cùng 1 chat
+        return tgl_gui(text, nut, chat=chat)
     sl = list_slides(j.get("thu_muc_bai"))
     ten = ten_hien(j)[0]
     tk = CFG["kenh"].get(j.get("kenh"), {}).get("ten", j.get("kenh"))
     if not sl:
-        return tgl_gui("Bài %s chưa có slide." % ten)
-    tgl_gui("📷 %s · %d slide" % (ten, len(sl)))
+        return gui("Bài %s chưa có slide." % ten)
+    if gui("📷 %s · %d slide" % (ten, len(sl))) is None and rieng:      # chưa bấm Start bot: nhắc trong nhóm
+        tg_rieng_loi(rieng, (CFG.get("tg_rieng") or {}).get(str(rieng)), "khong gui duoc")
+        return False
     file_goc = bool(CFG.get("telegram_file")) or any(os.path.getsize(x["path"]) > 9.5e6 for x in sl)
     kieu = "document" if file_goc else "photo"
     i = 0
@@ -4927,34 +5023,35 @@ def tgl_xem(jid):
                     media.append({"type": kieu, "media": "attach://f%d" % k})
                 tg_call("sendMediaGroup", {"chat_id": chat, "media": json.dumps(media)}, files, timeout=300)
     except (ValueError, OSError) as e:
-        return tgl_gui("⚠️ Gửi được %d/%d slide thì lỗi: %s" % (i - c if i else 0, len(sl), (str(e).split("|")[-1] if isinstance(e, ValueError) else "không đọc được file slide")))
+        return gui("⚠️ Gửi được %d/%d slide thì lỗi: %s" % (i - c if i else 0, len(sl), (str(e).split("|")[-1] if isinstance(e, ValueError) else "không đọc được file slide")))
     cap, ghim = tach_caption(read_caption(j))
     if cap:            # mỗi cái 1 tin riêng để giữ tin copy
-        tgl_gui(cap)
+        gui(cap)
     if ghim:
-        tgl_gui(ghim)
-    nut = [[{"text": "✅ Đã đăng xong", "callback_data": "dd:" + jid}, {"text": "📮 Bài khác", "callback_data": "bg:cho"}]]
+        gui(ghim)
+    nut = [[{"text": "✅ Đã đăng xong", "callback_data": "dd:" + jid}] + ([] if rieng else [{"text": "📮 Bài khác", "callback_data": "bg:cho"}])]
     if not cap:
         nut.insert(0, [{"text": "✍ Viết caption", "callback_data": "cap:" + jid}])
     cv = canva_doc(jid)
-    tgl_gui(("Giữ tin để copy. Đăng xong bấm ✅." if cap else "Chưa có caption.") + ("\n🎨 Canva: " + cv["edit_url"] if cv else ""), nut)
+    gui(("Giữ tin để copy. Đăng xong bấm ✅." if cap else "Chưa có caption.") + ("\n🎨 Canva: " + cv["edit_url"] if cv else ""), nut)
     return True
 
 
-def tgl_xem_nen(jid):
+def tgl_xem_nen(jid, chat=None):
     ok = False
     with TGL_KHOA_XEM:
         try:
-            ok = tgl_xem(jid) is True
+            ok = tgl_xem(jid, chat) is True
         except Exception:
             log(traceback.format_exc())
+    kx = "%s:%s" % (jid, chat or "")
     TGL["xem_luc"] = {k: v for k, v in TGL.get("xem_luc", {}).items() if now() - v < 60}
     if ok:
-        TGL["xem_luc"][jid] = now()     # gửi xong: 1 phút sau mới gửi lại được
-    TGL.setdefault("xem_dang", set()).discard(jid)   # lỗi (không thấy bài, thiếu slide, mạng): bấm lại được ngay
+        TGL["xem_luc"][kx] = now()     # gửi xong: 1 phút sau mới gửi lại được
+    TGL.setdefault("xem_dang", set()).discard(kx)   # lỗi (không thấy bài, thiếu slide, mạng): bấm lại được ngay
 
 
-def tgl_cho_caption(jid, han=900):
+def tgl_cho_caption(jid, han=900, chat=None):
     bd = now()
     while now() - bd < han:
         time.sleep(4)
@@ -4967,11 +5064,12 @@ def tgl_cho_caption(jid, han=900):
     j = load_job(jid) or {}
     cap, ghim = tach_caption(read_caption(j))
     if not cap:
-        return tgl_gui("⚠️ Chưa viết được caption, fen mở app bấm Viết caption.")
-    tgl_gui(cap)
+        return tgl_gui("⚠️ Chưa viết được caption, fen mở app bấm Viết caption.", chat=chat)
+    tgl_gui(cap, chat=chat)
     if ghim:
-        tgl_gui(ghim)
-    tgl_gui("Giữ tin để copy. Đăng xong bấm ✅.", [[{"text": "✅ Đã đăng xong", "callback_data": "dd:" + jid}, {"text": "📮 Bài khác", "callback_data": "bg:cho"}]])
+        tgl_gui(ghim, chat=chat)
+    tgl_gui("Giữ tin để copy. Đăng xong bấm ✅.", [[{"text": "✅ Đã đăng xong", "callback_data": "dd:" + jid}]
+                                                   + ([] if chat else [{"text": "📮 Bài khác", "callback_data": "bg:cho"}])], chat=chat)
 
 
 def tgl_bam_bang(viec, tra):
@@ -6261,21 +6359,36 @@ def _cf_song():
     return bool(CHUNG["pid"] and pid_alive(CHUNG["pid"], CHUNG["pid_t"] or None))
 
 
+def chung_nguoi():
+    """Người nhận bài Telegram chọn được cho máy dùng chung: người đã bấm Start bot (nhóm Remote) + người nối Remote."""
+    ds = {str(k): v for k, v in (CFG.get("tg_rieng") or {}).items()}
+    if CFG.get("tg_lenh_nguoi") and str(CFG["tg_lenh_nguoi"]) not in ds:
+        ds[str(CFG["tg_lenh_nguoi"])] = CFG.get("tg_lenh_chu_ten") or (CFG.get("tg_lenh_ten") if not CFG.get("tg_lenh_nhom") else "") or "Fen"
+    return [{"id": k, "ten": v or k} for k, v in ds.items()]
+
+
 def chung_tt():
     ma = CHUNG["ma"] if CHUNG["ma"] and now() - CHUNG["ma_luc"] < CHUNG_MA_HAN else ""
     song = _cf_song()
-    ds = [{"id": k, "ten": v.get("ten") or "Máy khác", "t": v.get("t"), "lan": CHUNG["lan"].get(k)}
+    ds = [{"id": k, "ten": v.get("ten") or "Máy khác", "t": v.get("t"), "lan": CHUNG["lan"].get(k), "tg": str(v.get("tg") or "")}
           for k, v in (CFG.get("chung_may") or {}).items() if isinstance(v, dict)]
     return {"bat": bool(CFG.get("chung_bat")), "url": CHUNG["url"] if song else "", "chay": song and bool(CHUNG["url"]),
             "dang": CHUNG["dang"], "loi": CHUNG["loi"], "ma": ma, "ma_con": max(0, int(CHUNG_MA_HAN - (now() - CHUNG["ma_luc"]))) if ma else 0,
             "may": sorted(ds, key=lambda x: x.get("t") or 0), "co_cf": os.path.isfile(cf_exe()), "app_mac": os.path.isfile(APP_MAC_ZIP),
-            "app_win": os.path.isfile(APP_WIN_EXE)}
+            "app_win": os.path.isfile(APP_WIN_EXE), "nguoi": chung_nguoi()}
 
 
 def chung_cai(data=None):
     """GET/POST /api/chung (chỉ cổng app gốc): {bat: true|false}, {ma_moi: true}, {bo: <mã máy>}."""
     import secrets
     data = data or {}
+    if isinstance(data.get("tg"), dict) and data["tg"].get("may"):     # gán Telegram nhận bài riêng cho 1 máy
+        ds = dict(CFG.get("chung_may") or {})
+        mid, uid = str(data["tg"]["may"]), data["tg"].get("nguoi")
+        if mid in ds:
+            ok_ds = {str(x["id"]) for x in chung_nguoi()}
+            ds[mid] = dict(ds[mid], tg=int(uid) if uid and str(uid) in ok_ds else None)
+            save_cfg_keys({"chung_may": ds})
     if data.get("bo"):
         ds = dict(CFG.get("chung_may") or {})
         m = ds.pop(str(data["bo"]), None)
@@ -6971,6 +7084,7 @@ class HK(H):
                     data["_khach"] = dict(self.khach)
                     return self.send(200, (viet_brief if u.path == "/api/viet-brief" else chat_brief)(data))
                 data.pop("tu_tg", None)
+                data.pop("_tg_nguoi", None)
                 data["_khach"] = dict(self.khach)
                 job = create_job(data)
                 return self.send(200, {"id": job["id"], "xep_hang": bool(job.get("xep_hang") and job.get("status") == "hen"), "thu": job.get("thu") or 0})

@@ -477,7 +477,7 @@ body.vaoing .top .chip{display:none!important}
 .vao h2{margin:0 0 6px;font-size:19px}.vao .in{width:100%;margin-top:8px}.vao .vaoma{font-size:24px;letter-spacing:6px;text-align:center}
 .vao .acts{margin-top:14px}
 .chma{font-size:30px;letter-spacing:8px;font-weight:700;color:var(--g);margin:6px 0}
-.chmay{display:flex;align-items:center;gap:8px;padding:6px 0;border-top:1px solid var(--line2)}.chmay>div{flex:1;min-width:0}.chmay small{display:block;color:var(--mut)}
+.chmay{display:flex;align-items:center;gap:8px;padding:6px 0;border-top:1px solid var(--line2)}.chmay .chtg{width:auto;max-width:170px;padding:4px 6px;font-size:12px}.chmay>div{flex:1;min-width:0}.chmay small{display:block;color:var(--mut)}
 .chlink{display:flex;gap:6px;align-items:center;margin:6px 0}.chlink code{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;padding:6px 8px;border:1px solid var(--line2);border-radius:8px}
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;z-index:80}
 .modal.on{display:flex}
@@ -2150,7 +2150,10 @@ function chungDlg(){
       h += r.ma ? `<div class="rmma"><div>Mã cho máy mới (dùng 1 lần, ${Math.ceil(r.ma_con / 60)} phút):</div><div class="chma">${esc(r.ma)}</div>
           <p class="pnote">Trên máy kia: mở app Mac (hoặc mở link bằng Chrome / Safari) → dán link → nhập mã này + tên máy.</p></div>`
         : `<div class="acts" style="justify-content:flex-start"><button class="btn sm pri" id="chMa">＋ Thêm máy (lấy mã)</button></div>`;
-      h += (r.may || []).length ? `<div style="margin-top:8px"><b>Máy đang dùng chung</b>${r.may.map(x => `<div class="chmay"><div>${esc(x.ten)}<small>vào ${x.t ? (d => String(d.getDate()).padStart(2, '0') + '/' + String(d.getMonth() + 1).padStart(2, '0'))(new Date(x.t * 1000)) : ''}${x.lan ? ' · dùng gần nhất ' + hm(x.lan) : ''}</small></div><button class="btn sm ghost" data-bo="${esc(x.id)}">Bỏ</button></div>`).join('')}</div>` : '';
+      h += (r.may || []).length ? `<div style="margin-top:8px"><b>Máy đang dùng chung</b>${r.may.map(x => `<div class="chmay"><div>${esc(x.ten)}<small>vào ${x.t ? (d => String(d.getDate()).padStart(2, '0') + '/' + String(d.getMonth() + 1).padStart(2, '0'))(new Date(x.t * 1000)) : ''}${x.lan ? ' · dùng gần nhất ' + hm(x.lan) : ''}</small></div>
+          <select class="in chtg" data-tg="${esc(x.id)}" title="Bài máy này làm xong / bấm Gửi Telegram thì bot gửi riêng cho người này"><option value="">📩 Không gửi Telegram</option>${(r.nguoi || []).map(n => `<option value="${esc(n.id)}"${String(x.tg) === String(n.id) ? ' selected' : ''}>📩 ${esc(n.ten)}</option>`).join('')}</select>
+          <button class="btn sm ghost" data-bo="${esc(x.id)}">Bỏ</button></div>`).join('')}
+          <p class="pnote">📩 = bài máy đó làm thì bot gửi riêng cho ai (người đó bấm Start bot 1 lần mới hiện trong danh sách).</p></div>` : '';
     }
     h += `<p class="pnote" style="margin-top:10px">Hoặc tải file ở đây rồi gửi qua Zalo / Telegram: ${r.app_win ? '<a href="/tai-app-win">⬇ App Windows (.exe)</a>' : ''}${r.app_win && r.app_mac ? ' · ' : ''}${r.app_mac ? '<a href="/tai-app-mac">⬇ App Mac (.zip)</a>' : ''}</p>`;
     setH($('#chSt'), h); $('#chErr').textContent = '';
@@ -2158,6 +2161,7 @@ function chungDlg(){
     on('chChep', () => navigator.clipboard.writeText(r.url).then(() => toast('Đã chép link'), () => toast('Không chép được', true)));
     on('chChepTai', () => navigator.clipboard.writeText(r.url + '/tai').then(() => toast('Đã chép link tải app'), () => toast('Không chép được', true)));
     on('chMa', () => gui({ma_moi: true})); on('chThu', () => gui({bat: true}));
+    m.querySelectorAll('[data-tg]').forEach(b => b.onchange = () => gui({tg: {may: b.dataset.tg, nguoi: b.value}}));
     m.querySelectorAll('[data-bo]').forEach(b => b.onclick = () => { if (confirm('Bỏ máy này khỏi dùng chung? Máy đó phải nhập mã mới mới vào lại được.')) gui({bo: b.dataset.bo}); });
   };
   const gui = async d => { try { ve(await api('/api/chung', d)); if ('bat' in d && !d.bat) toast('Đã tắt dùng chung'); } catch(e) { $('#chErr').textContent = e.message; } };

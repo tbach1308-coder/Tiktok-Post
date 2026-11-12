@@ -37,17 +37,19 @@ Cần fen quyết thì hỏi bằng lựa chọn (AskUserQuestion), có 1 lựa 
 python3 dev/test/tao-may-thu.py                  # tạo /home/claude/bug3 (Claude giả, Telegram giả, cloudflared giả)
 cd /home/claude/bug3 && (nohup python3 tglfake.py > tglfake.out 2>&1 & echo $! > tglfake.pid)
 cd /home/claude/bug3/tgl && (nohup python3 server.py > srv.out 2>&1 & echo $! > srv.pid)    # app thử: http://127.0.0.1:8790
-cd /home/claude/bug3 && python3 tgltest.py && python3 tglnhom.py && python3 tglmig.py && python3 chungtest.py
+cd /home/claude/bug3 && python3 tgltest.py && python3 tglnhom.py && python3 tglmig.py && python3 tglrieng.py && python3 chungtest.py
+# mỗi script nên chạy trên app thử vừa khởi động lại (trạng thái sạch: tg_lenh_offset 0, chưa nối)
 node chungui.js ; node khotheme.js                # Playwright (Chromium có sẵn)
 ```
-- `tgltest.py` Remote chat riêng (49), `tglnhom.py` Remote trong nhóm (26), `tglmig.py` nhóm lên supergroup, `chungtest.py` dùng chung
+- `tgltest.py` Remote chat riêng (49), `tglnhom.py` Remote trong nhóm (26), `tglmig.py` nhóm lên supergroup, `tglrieng.py` bài gửi riêng từng người (14), `chungtest.py` dùng chung
   (máy khác, quyền, bài / theme riêng từng máy, 82), `chungui.js` / `khotheme.js` giao diện. Script ghi đường dẫn `/home/claude/bug3`;
   tạo chỗ khác thì `tao-may-thu.py <thư mục>` tự đổi. Repo nên clone ở `/home/claude/tiktok-post` (script app Mac / Windows trỏ vào đó).
 - App Mac / Windows "dùng chung": `packaging/mac-chung/build.py`, `packaging/win-chung/build.sh` (mingw) → `dist/`; thử:
   `macgia/thu.py`, `macgia/thu2.py` (lệnh macOS giả), `winthu.py` (wine). Bộ cài app đầy đủ: `packaging/build.sh` (NSIS).
 
 ## Tính năng lớn gần đây (chi tiết trong PROJECT.md)
-- Remote Telegram: chat riêng hoặc 1 nhóm (fen + nhân viên + bot); trong nhóm ai cũng ra lệnh, bật / tắt + quy tắc chỉ người nối.
+- Remote Telegram: chat riêng hoặc 1 nhóm (fen + nhân viên + bot, nhóm thật: "POLY Dựng Bài"); trong nhóm ai cũng ra lệnh, bật / tắt + quy tắc chỉ người nối;
+  bài ai bấm Chạy gửi riêng người đó (mỗi người bấm Start bot 1 lần).
 - Dùng chung: máy shop làm máy chủ (cổng khách 8778 + đường nối Cloudflare tạm), máy khác vào bằng mã 6 số 1 lần; mỗi máy chỉ thấy bài,
   nháp, theme, mẫu Canva của mình; máy shop (admin) thấy / quản lý hết; theme chung = theme fen bấm ☆ Vào kho chung.
 - Kho theme Canva (Chỉnh chữ trên slide, Nhân bản, kho chung Drive), hạn mức dùng Claude theo bài + tuần, model theo việc.
