@@ -28,3 +28,6 @@ dist/
 _win/
 theme-canva.json
 theme-canva/
+# dùng chung: cloudflared + nhật ký đường nối, nháp từng máy khách
+_cf/
+nhap-*.json

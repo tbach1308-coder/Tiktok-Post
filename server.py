@@ -21,6 +21,7 @@ import sys
 import threading
 import time
 import traceback
+import urllib.request
 import uuid
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import parse_qs, quote, unquote, urlparse
@@ -64,6 +65,8 @@ DEFAULT_CFG = {
     # kho theme chung trên Google Drive (fen 10/11 15h51 "cài link đó làm kho mặc định, các app cài máy khác tự update"):
     # link chia sẻ công khai của file kho-theme-canva.json; máy nào cài cũng có sẵn, tự tải lại khi mở app và mỗi 2 giờ
     "kho_chung_link": "",
+    # dùng chung (fen 12/11): máy khác (Mac) mở app của máy này qua mạng, không cần đăng nhập Claude
+    "chung_bat": False, "chung_may": {},
     "model": "",
     "lenh_claude": [],
     # tài khoản Claude nào đăng nhập cũng làm được: mỗi lượt chạy app tự nạp plugin dựng bài + luật chung,
@@ -1680,6 +1683,8 @@ def create_job(data):
     }
     if data.get("tu_tg"):      # fen bấm Chạy trên chat lệnh Telegram: xong / lỗi thì báo cả về chat đó
         job["tu_tg"] = True
+    if isinstance(data.get("_khach"), dict):     # bài do máy dùng chung tạo (cổng khách tự gắn, trang không gửi được)
+        job["khach"] = {"id": data["_khach"].get("id"), "ten": data["_khach"].get("ten")}
     if data.get("dung_bang") == "canva":     # fen 6/11: dựng trên Canva theo mẫu của kênh, không qua Photoshop
         th = theme_cv_tim(data.get("theme_canva"))
         if th and (THEME_SUA.get(th["id"]) or {}).get("tt") == "dang" and (THEME_SUA[th["id"]].get("kieu") != "nhan-ban") \
@@ -1792,21 +1797,21 @@ def _sua_kenh_nhap(ds):
     return doi
 
 
-def nhap_doc():
-    d = read_json(os.path.join(APP, "nhap.json"), {}) or {}
+def nhap_doc(fn="nhap.json"):
+    d = read_json(os.path.join(APP, fn), {}) or {}
     ds = [x for x in (d.get("ds") or []) if isinstance(x, dict)]
     if _sua_kenh_nhap(ds):
         with LOCK:
-            write_json(os.path.join(APP, "nhap.json"), {"ds": ds, "cur": d.get("cur") or "", "t": now()})
+            write_json(os.path.join(APP, fn), {"ds": ds, "cur": d.get("cur") or "", "t": now()})
     return {"ds": ds, "cur": d.get("cur") or "", "co": bool(d)}
 
 
-def nhap_luu(data):
-    """Các nháp ở Bài mới (mỗi nháp 1 brief riêng). Trang gửi cả danh sách mỗi lần sửa (chờ 0,6 giây)."""
+def nhap_luu(data, fn="nhap.json"):
+    """Các nháp ở Bài mới (mỗi nháp 1 brief riêng). Trang gửi cả danh sách mỗi lần sửa (chờ 0,6 giây). Máy dùng chung: file riêng."""
     ds = [y for y in (_sach_nhap(x) for x in (data.get("ds") or [])[:30]) if y]
     _sua_kenh_nhap(ds)
     with LOCK:
-        write_json(os.path.join(APP, "nhap.json"), {"ds": ds, "cur": str(data.get("cur") or "")[:40], "t": now()})
+        write_json(os.path.join(APP, fn), {"ds": ds, "cur": str(data.get("cur") or "")[:40], "t": now()})
     return {"ok": True, "n": len(ds)}
 
 
@@ -4941,6 +4946,7 @@ def _chay_lich():
 
 def _chay_lich_1():
     _han_muc_chay_lai()
+    chung_canh()
     if now() - (KHO_CHUNG_TT.get("tai") or {}).get("t", 0) > 7200:
         kho_chung_tu_tai()
     jobs = []
@@ -5373,7 +5379,7 @@ def job_view(jid, since=0):
             ly_do = job["loi_chay"]
     return {
         "ly_do": ly_do,
-        "job": dict({k: job.get(k) for k in ("id", "kenh", "tieu_de", "ten_bai", "ngay_dang", "brief", "ghi_chu", "status", "created", "thu_muc_bai", "session_id", "anh", "sua", "model", "model_sua", "hen_luc", "sau_caption", "hen_bao", "nhac", "da_dang", "dang_loi", "hen_dang", "xep_hang", "dung_bang", "canva_loi", "theme_canva")},
+        "job": dict({k: job.get(k) for k in ("id", "kenh", "tieu_de", "ten_bai", "ngay_dang", "brief", "ghi_chu", "status", "created", "thu_muc_bai", "session_id", "khach", "anh", "sua", "model", "model_sua", "hen_luc", "sau_caption", "hen_bao", "nhac", "da_dang", "dang_loi", "hen_dang", "xep_hang", "dung_bang", "canva_loi", "theme_canva")},
                     **dict(zip(("tieu_de", "ngay_dang"), ten_hien(job)))),
         "run": run and {"n": run["n"], "kind": run["kind"], "started": run["started"], "ended": run.get("ended")},
         "runs": len(job.get("runs", [])),
@@ -5516,7 +5522,7 @@ def list_jobs():
                 job, _ = parse_job(jid)
             except Exception:
                 pass
-        it = {k: job.get(k) for k in ("id", "kenh", "tieu_de", "status", "created", "ngay_dang", "hen_luc", "hen_dang", "hen_dang_mo", "da_dang", "xep_hang", "dung_bang", "theme_canva")}
+        it = {k: job.get(k) for k in ("id", "kenh", "tieu_de", "status", "created", "ngay_dang", "hen_luc", "hen_dang", "hen_dang_mo", "da_dang", "xep_hang", "dung_bang", "theme_canva", "khach")}
         it["tieu_de"], it["ngay_dang"] = ten_hien(job)
         lr = (job.get("runs") or [{}])[-1]
         it["started"], it["ended"] = lr.get("started"), lr.get("ended")
@@ -6025,6 +6031,356 @@ def mac_chuan_bi():
 
 
 # ---------------------------------------------------------------- HTTP
+# ---------------------------------------------------------------- dùng chung: máy khác (Mac) mở app của máy này qua mạng
+# fen 12/11 16h14 "file cài trên máy mac sài dc, không cần đăng nhập kết nối sài chung với mình" → "Đi đâu cũng dùng" (đường nối
+# Cloudflare tạm, không cần tài khoản); 16h26 "máy khác vẫn sài được full chức năng, nhưng không cần đăng nhập gì hết, máy mình
+# đóng vai là máy chủ". Cổng khách riêng (cổng app + 1, chỉ 127.0.0.1, chỉ cloudflared nối vào); máy khác vào 1 lần bằng mã 6 số
+# fen bấm ở hộp 💻 Máy khác (dùng 1 lần, 15 phút, sai 10 lần huỷ) → mã thiết bị (cookie pdb_k / header X-Poly-Khach), không đăng
+# nhập gì. Máy khác làm được mọi việc như máy shop, trừ CHUNG_CAM: việc mở cửa sổ / thư mục / Chrome trên chính máy shop
+# (máy kia không thấy), tắt app, quản lý dùng chung (tránh tự khoá mình). Mọi việc chạy trên máy này bằng tài khoản Claude của fen.
+CHUNG = {"srv": None, "pid": 0, "pid_t": 0, "url": "", "loi": "", "dang": "", "ma": "", "ma_luc": 0, "sai": 0, "thu": [],
+         "khoi": 0, "kiem": 0, "rot": 0, "lan": {}}
+CHUNG_KHOA = threading.Lock()
+CHUNG_DIR = os.path.join(APP, "_cf")
+CHUNG_MA_HAN = 900
+CHUNG_CAM = {"GET": (r"/api/chung",),
+             "POST": (r"/api/tat", r"/api/login", r"/api/cai-claude", r"/api/chung", r"/api/tiktok-(soi|dang|nhac)",
+                      r"/api/job/[\w-]+/(mo|tiktok)")}
+CF_GH = "https://api.github.com/repos/cloudflare/cloudflared/releases/latest"
+APP_MAC_ZIP = os.path.join(APP, "dist", "Poly-Dung-Bai-dung-chung-Mac.zip")
+
+
+def _chung_cong():
+    return int(CFG.get("chung_cong") or (int(CFG.get("port") or 8777) + 1))
+
+
+def _chung_bam(tok):
+    import hashlib
+    return hashlib.sha256(("poly-dung-chung|" + tok).encode("utf-8")).hexdigest()
+
+
+def chung_may_tim(tok):
+    import hmac
+    if not tok or not re.fullmatch(r"[\w-]{30,80}", tok):
+        return None
+    h = _chung_bam(tok)
+    for mid, m in (CFG.get("chung_may") or {}).items():
+        if isinstance(m, dict) and hmac.compare_digest(str(m.get("h") or ""), h):
+            return {"id": mid, "ten": m.get("ten") or "Máy khác"}
+    return None
+
+
+def cf_exe():
+    return CFG.get("chung_cf") or os.path.join(CHUNG_DIR, "cloudflared.exe" if IS_WIN else "cloudflared")
+
+
+def _cf_song():
+    return bool(CHUNG["pid"] and pid_alive(CHUNG["pid"], CHUNG["pid_t"] or None))
+
+
+def chung_tt():
+    ma = CHUNG["ma"] if CHUNG["ma"] and now() - CHUNG["ma_luc"] < CHUNG_MA_HAN else ""
+    song = _cf_song()
+    ds = [{"id": k, "ten": v.get("ten") or "Máy khác", "t": v.get("t"), "lan": CHUNG["lan"].get(k)}
+          for k, v in (CFG.get("chung_may") or {}).items() if isinstance(v, dict)]
+    return {"bat": bool(CFG.get("chung_bat")), "url": CHUNG["url"] if song else "", "chay": song and bool(CHUNG["url"]),
+            "dang": CHUNG["dang"], "loi": CHUNG["loi"], "ma": ma, "ma_con": max(0, int(CHUNG_MA_HAN - (now() - CHUNG["ma_luc"]))) if ma else 0,
+            "may": sorted(ds, key=lambda x: x.get("t") or 0), "co_cf": os.path.isfile(cf_exe()), "app_mac": os.path.isfile(APP_MAC_ZIP)}
+
+
+def chung_cai(data=None):
+    """GET/POST /api/chung (chỉ cổng app gốc): {bat: true|false}, {ma_moi: true}, {bo: <mã máy>}."""
+    import secrets
+    data = data or {}
+    if data.get("bo"):
+        ds = dict(CFG.get("chung_may") or {})
+        m = ds.pop(str(data["bo"]), None)
+        if m is not None:
+            save_cfg_keys({"chung_may": ds})
+            log("dung chung: bo may %s" % data["bo"])
+    if "bat" in data:
+        if data["bat"]:
+            save_cfg_keys({"chung_bat": True})
+            CHUNG["loi"] = ""
+            threading.Thread(target=chung_khoi, daemon=True).start()
+        else:
+            save_cfg_keys({"chung_bat": False})
+            chung_tat()
+    if CFG.get("chung_bat") and (data.get("ma_moi") or (data.get("bat") and not (CFG.get("chung_may") or {}))):
+        CHUNG["ma"], CHUNG["ma_luc"], CHUNG["sai"] = "%06d" % secrets.randbelow(10 ** 6), now(), 0
+    return chung_tt()
+
+
+def chung_vao(data):
+    """Cổng khách POST /api/chung/vao: {ma, ten} (mã 6 số fen đưa) → cấp mã thiết bị mới; {token} (app Mac mở trang kèm #vao=…)."""
+    import hmac
+    import secrets
+    tok = str(data.get("token") or "")
+    if tok:
+        m = chung_may_tim(tok)
+        if not m:
+            raise ValueError("Máy này chưa vào hoặc đã bị fen bỏ khỏi dùng chung: nhập mã 6 số mới")
+        return tok, m
+    with CHUNG_KHOA:
+        t = now()
+        CHUNG["thu"] = [x for x in CHUNG["thu"] if t - x < 60]
+        if len(CHUNG["thu"]) >= 20:
+            raise ValueError("Thử quá nhiều lần, chờ 1 phút rồi nhập lại")
+        CHUNG["thu"].append(t)
+        ma = CHUNG["ma"] if CHUNG["ma"] and t - CHUNG["ma_luc"] < CHUNG_MA_HAN else ""
+        so = re.sub(r"\D", "", str(data.get("ma") or ""))[:6]
+        if not ma:
+            raise ValueError("Mã hết hạn hoặc chưa có: nhờ fen bấm 💻 Máy khác > Mã mới trên máy shop")
+        if not hmac.compare_digest(so, ma):
+            CHUNG["sai"] += 1
+            if CHUNG["sai"] >= 10:
+                CHUNG["ma"], CHUNG["sai"] = "", 0
+                log("dung chung: sai ma 10 lan, huy ma")
+            raise ValueError("Sai mã")
+        CHUNG["ma"], CHUNG["sai"] = "", 0          # mã dùng 1 lần
+    ten = re.sub(r"[\x00-\x1f<>\"'`]", "", str(data.get("ten") or "")).strip()[:40] or "Máy khác"
+    tok = secrets.token_urlsafe(32)
+    mid = "m" + uuid.uuid4().hex[:8]
+    ds = dict(CFG.get("chung_may") or {})
+    ds[mid] = {"ten": ten, "h": _chung_bam(tok), "t": now()}
+    save_cfg_keys({"chung_may": ds})
+    log("dung chung: them may %s" % mid)
+    if tgl_noi():
+        try:
+            tgl_gui("💻 Máy mới vào dùng chung app: %s. Không phải máy của mình thì vào app > 💻 Máy khác > Bỏ." % ten)
+        except Exception:
+            pass
+    return tok, {"id": mid, "ten": ten}
+
+
+def _cf_tai():
+    """Tải cloudflared bản mới nhất từ GitHub của Cloudflare; kiểm mã kiểm (sha256 GitHub ghi) + chữ ký Cloudflare (Windows / Mac)."""
+    import hashlib
+    import platform
+    if IS_WIN:
+        ten = "cloudflared-windows-amd64.exe"
+    elif IS_MAC:
+        ten = "cloudflared-darwin-%s.tgz" % ("arm64" if platform.machine() == "arm64" else "amd64")
+    else:
+        raise ValueError("Máy này chưa hỗ trợ tự tải đường nối")
+    CHUNG["dang"] = "Đang tải đường nối Cloudflare (khoảng 60 MB, lần đầu)…"
+    req = urllib.request.Request(CF_GH, headers={"User-Agent": "PolyDungBai/1.0", "Accept": "application/vnd.github+json"})
+    with urllib.request.urlopen(req, timeout=30) as r:
+        rel = json.loads(r.read().decode("utf-8"))
+    a = next((x for x in rel.get("assets") or [] if x.get("name") == ten), None)
+    if not a:
+        raise ValueError("Không thấy bản cloudflared cho máy này trên GitHub")
+    dg = str(a.get("digest") or "")
+    url = a.get("browser_download_url") or ""
+    if not url.startswith("https://github.com/cloudflare/cloudflared/releases/download/"):
+        raise ValueError("Link tải cloudflared lạ, không tải")
+    os.makedirs(CHUNG_DIR, exist_ok=True)
+    tam = os.path.join(CHUNG_DIR, ten + ".part")
+    h = hashlib.sha256()
+    with urllib.request.urlopen(urllib.request.Request(url, headers={"User-Agent": "PolyDungBai/1.0"}), timeout=60) as r, open(tam, "wb") as f:
+        while True:
+            b = r.read(1 << 20)
+            if not b:
+                break
+            h.update(b)
+            f.write(b)
+    if dg.startswith("sha256:") and dg[7:].lower() != h.hexdigest():
+        _cf_bo(tam)
+        raise ValueError("File cloudflared tải về không khớp mã kiểm của GitHub, đã bỏ")
+    if IS_MAC:
+        import tarfile
+        with tarfile.open(tam) as tf:
+            m = next((x for x in tf.getmembers() if x.isfile() and os.path.basename(x.name) == "cloudflared"), None)
+            if not m:
+                raise ValueError("Gói cloudflared không có file chạy")
+            src = tf.extractfile(m)
+            exe_tam = os.path.join(CHUNG_DIR, "cloudflared.part2")
+            with open(exe_tam, "wb") as f:
+                shutil.copyfileobj(src, f)
+        _cf_bo(tam)
+        os.chmod(exe_tam, 0o755)
+        tam = exe_tam
+    ok, ly_do = _cf_ky(tam, bool(dg.startswith("sha256:")))
+    if not ok:
+        _cf_bo(tam)
+        raise ValueError("cloudflared tải về không có chữ ký của Cloudflare (%s), đã bỏ" % ly_do)
+    os.replace(tam, cf_exe())
+    log("dung chung: da tai cloudflared %s" % rel.get("tag_name"))
+
+
+def _cf_bo(p):
+    """Không xoá hẳn: dời file hỏng vào _to_delete."""
+    try:
+        d = os.path.join(APP, "_to_delete", "cloudflared")
+        os.makedirs(d, exist_ok=True)
+        shutil.move(p, os.path.join(d, time.strftime("%Y%m%d-%H%M%S-") + os.path.basename(p)))
+    except Exception:
+        pass
+
+
+def _cf_ky(p, co_ma_kiem):
+    if IS_WIN:
+        ps = "$s = Get-AuthenticodeSignature -LiteralPath $env:POLY_CF; $s.Status.ToString() + '|' + $(if ($s.SignerCertificate) { $s.SignerCertificate.Subject } else { '' })"
+        try:
+            r = subprocess.run(["powershell", "-NoProfile", "-NonInteractive", "-Command", ps], env=dict(os.environ, POLY_CF=p),
+                               capture_output=True, text=True, timeout=90, creationflags=CREATE_NO_WINDOW)
+            out = (r.stdout or "").strip()
+        except Exception as e:
+            return False, "không kiểm được chữ ký: %s" % e
+        st, _, ai = out.partition("|")
+        if st == "Valid":
+            return ("Cloudflare" in ai), ai[:80]
+        if st == "NotSigned" and co_ma_kiem:     # bản không ký: chỉ nhận khi đã khớp mã kiểm sha256 GitHub ghi cho đúng file này
+            return True, "không ký, khớp mã kiểm GitHub"
+        return False, st or "không đọc được"
+    if IS_MAC:
+        r = subprocess.run(["codesign", "-dv", "--verbose=2", p], capture_output=True, text=True, timeout=60)
+        return (r.returncode == 0 and "Cloudflare" in (r.stderr or "") + (r.stdout or "")), "codesign"
+    return co_ma_kiem or bool(CFG.get("chung_cf")), "máy thử"
+
+
+def _cf_luu():
+    write_json(os.path.join(CHUNG_DIR, "cf.json"), {"pid": CHUNG["pid"], "t": CHUNG["pid_t"], "url": CHUNG["url"]})
+
+
+def _cf_chay():
+    """Bật cloudflared (đường nối tạm trycloudflare.com) trỏ vào cổng khách. App tắt / khởi động lại: cloudflared vẫn chạy,
+    app mở lại thì nhận lại (giữ link cũ); chỉ khi cloudflared chết mới bật mới (link đổi, báo Remote Telegram)."""
+    os.makedirs(CHUNG_DIR, exist_ok=True)
+    cu = read_json(os.path.join(CHUNG_DIR, "cf.json"), {}) or {}
+    if cu.get("pid") and cu.get("url") and pid_alive(cu["pid"], cu.get("t") or None):
+        CHUNG.update(pid=cu["pid"], pid_t=cu.get("t") or 0, url=cu["url"], dang="", loi="")
+        return
+    if not os.path.isfile(cf_exe()):
+        _cf_tai()
+    CHUNG["dang"] = "Đang mở đường nối…"
+    nk = os.path.join(CHUNG_DIR, "cf.log")
+    with open(nk, "wb") as f:
+        kw = {"creationflags": CREATE_NO_WINDOW | CREATE_NEW_PROCESS_GROUP} if IS_WIN else {"start_new_session": True}
+        p = subprocess.Popen([cf_exe(), "tunnel", "--no-autoupdate", "--url", "http://127.0.0.1:%d" % _chung_cong()],
+                             stdout=f, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL, cwd=CHUNG_DIR, **kw)
+    t0 = now()
+    CHUNG.update(pid=p.pid, pid_t=t0, url="")
+    url = ""
+    while now() - t0 < 45:
+        time.sleep(1)
+        m = re.search(r"https://[a-z0-9-]+\.trycloudflare\.com", read_text(nk))
+        if m:
+            url = m.group(0)
+            break
+        if p.poll() is not None:
+            break
+    if not url:
+        kill_tree(p.pid)
+        CHUNG.update(pid=0, pid_t=0)
+        cuoi = " | ".join(l.strip() for l in read_text(nk).splitlines()[-4:])[-300:]
+        raise ValueError("Không mở được đường nối Cloudflare (mạng chặn hoặc Cloudflare bận). %s" % cuoi)
+    if not CFG.get("chung_bat"):          # fen tắt lúc đang mở
+        kill_tree(p.pid)
+        CHUNG.update(pid=0, pid_t=0, url="", dang="")
+        return
+    CHUNG.update(url=url, dang="", loi="", rot=0, kiem=now())
+    _cf_luu()
+    log("dung chung: duong noi moi")
+    if cu.get("url") != url and tgl_noi():
+        try:
+            tgl_gui("🔗 Link app dùng chung đổi: %s\nMáy Mac mở app Poly Dựng Bài (dùng chung), app hỏi link thì dán link này." % url)
+        except Exception:
+            pass
+
+
+def chung_srv():
+    """Cổng khách (127.0.0.1, cổng app + 1): chỉ cloudflared trên máy này nối vào."""
+    if CHUNG["srv"]:
+        return
+    s = Srv(("127.0.0.1", _chung_cong()), HK)
+    s.daemon_threads = True
+    CHUNG["srv"] = s
+    threading.Thread(target=s.serve_forever, daemon=True).start()
+    log("dung chung: mo cong khach %d" % _chung_cong())
+
+
+def chung_khoi():
+    with CHUNG_KHOA:
+        if not CFG.get("chung_bat"):
+            return
+        CHUNG["khoi"] = now()
+        try:
+            chung_srv()
+            if not _cf_song():
+                _cf_chay()
+            if not CFG.get("chung_bat"):
+                chung_tat()
+        except Exception as e:
+            CHUNG["loi"], CHUNG["dang"] = str(e) if isinstance(e, ValueError) else "Lỗi: %s" % e, ""
+            log("dung chung loi: %s" % e)
+
+
+def chung_tat():
+    # không chờ khoá: lượt bật có thể đang tải cloudflared vài phút; lượt đó tự thấy chung_bat tắt rồi dừng
+    if CHUNG["pid"]:
+        kill_tree(CHUNG["pid"])
+    CHUNG.update(pid=0, pid_t=0, url="", dang="", loi="", ma="")
+    try:
+        _cf_luu()
+    except Exception:
+        pass
+    s, CHUNG["srv"] = CHUNG["srv"], None
+    if s:
+        threading.Thread(target=lambda: (s.shutdown(), s.server_close()), daemon=True).start()
+    log("dung chung: tat")
+
+
+def chung_canh():
+    """Luồng lich() 15 giây/lần: đang bật mà cloudflared chết thì bật lại (chờ 60 giây giữa 2 lần thử);
+    10 phút/lần thử mở link từ ngoài vào, rớt 3 lần liền thì bật đường nối mới."""
+    if not CFG.get("chung_bat") or CHUNG_KHOA.locked():
+        return
+    if not _cf_song() or not CHUNG["srv"]:
+        if now() - CHUNG["khoi"] > 60:
+            threading.Thread(target=chung_khoi, daemon=True).start()
+        return
+    if CHUNG["url"] and now() - CHUNG["kiem"] > 600:
+        CHUNG["kiem"] = now()
+        try:
+            with urllib.request.urlopen(urllib.request.Request(CHUNG["url"] + "/api/ping", headers={"User-Agent": "PolyDungBai/1.0"}), timeout=20) as r:
+                ok = r.status == 200
+        except Exception:
+            ok = False
+        CHUNG["rot"] = 0 if ok else CHUNG["rot"] + 1
+        if CHUNG["rot"] >= 3:
+            log("dung chung: link khong vao duoc 3 lan, mo duong noi moi")
+            with CHUNG_KHOA:
+                kill_tree(CHUNG["pid"])
+                CHUNG.update(pid=0, pid_t=0, rot=0)
+            threading.Thread(target=chung_khoi, daemon=True).start()
+
+
+def chung_zip(jid):
+    """Khách tải về: slide-NN.png + caption.txt (dòng 1 caption, dòng 2 câu ghim)."""
+    import io
+    import zipfile
+    job = load_job(jid)
+    if not job:
+        raise ValueError("Không thấy bài")
+    sl = list_slides(job.get("thu_muc_bai"))
+    if not sl:
+        raise ValueError("Bài chưa có slide")
+    cap, ghim = tach_caption(read_caption(job))
+    b = io.BytesIO()
+    with zipfile.ZipFile(b, "w", zipfile.ZIP_STORED) as z:
+        for x in sl:
+            z.write(x["path"], "slide-%02d.png" % x["n"])
+        z.writestr("caption.txt", "﻿" + (cap or "") + ("\r\n\r\nCâu ghim:\r\n" + ghim if ghim else ""))
+    ten = re.sub(r"[^\w-]+", "-", _bo_dau(ten_hien(job)[0] or jid)).strip("-")[:50] or jid
+    return b.getvalue(), ten + ".zip"
+
+
+def _chung_cookie(h, tok):
+    an = "https" in (h.headers.get("X-Forwarded-Proto") or "") + (h.headers.get("Cf-Visitor") or "")
+    return "pdb_k=%s; Path=/; Max-Age=31536000; HttpOnly; SameSite=Lax%s" % (tok, "; Secure" if an else "")
+
+
 class H(BaseHTTPRequestHandler):
     server_version = "PolyDungBai/1.0"
 
@@ -6082,12 +6438,21 @@ class H(BaseHTTPRequestHandler):
                     return self.send(200, f.read(), "text/html; charset=utf-8")
             if u.path.startswith("/ui/"):
                 fp = os.path.normpath(os.path.join(UI, unquote(u.path[4:])))
-                if not fp.startswith(UI) or not os.path.isfile(fp):
+                if not fp.startswith(UI + os.sep) or not os.path.isfile(fp):
                     return self.send(404, {"err": "không có"})
                 with open(fp, "rb") as f:
                     return self.send(200, f.read(), mimetypes.guess_type(fp)[0] or "application/octet-stream")
             if u.path == "/api/ping":
                 return self.send(200, {"ok": True})
+            if u.path == "/api/chung":
+                return self.send(200, chung_tt())
+            if u.path == "/api/chung/toi":
+                return self.send(200, {"khach": False})
+            if u.path == "/tai-app-mac":
+                if not os.path.isfile(APP_MAC_ZIP):
+                    return self.send(404, {"err": "Chưa có file app Mac trong thư mục dist của app"})
+                with open(APP_MAC_ZIP, "rb") as f:
+                    return self.send(200, f.read(), "application/zip", {"Content-Disposition": 'attachment; filename="%s"' % os.path.basename(APP_MAC_ZIP)})
             if u.path == "/api/health":
                 ci = claude_info(force=q.get("force") == ["1"])
                 return self.send(200, {
@@ -6152,7 +6517,8 @@ class H(BaseHTTPRequestHandler):
                 except OSError:
                     uiv = 0
                 return self.send(200, {"jobs": list_jobs(), "ui": uiv, "han_muc": han_muc_tt(), "dung": _dung_tuan_gon(),
-                                       "remote": {"bat": bool(CFG.get("tg_lenh")), "noi": tgl_noi(), "loi": bool(tgl_trang_thai()["loi"])}})
+                                       "remote": {"bat": bool(CFG.get("tg_lenh")), "noi": tgl_noi(), "loi": bool(tgl_trang_thai()["loi"])},
+                                       "chung": {"bat": bool(CFG.get("chung_bat")), "chay": bool(CHUNG["url"]) and _cf_song(), "loi": bool(CHUNG["loi"])}})
             m = re.fullmatch(r"/api/job/([\w-]+)", u.path)
             if m:
                 v = job_view(m.group(1), int((q.get("since") or ["0"])[0]))
@@ -6248,6 +6614,8 @@ class H(BaseHTTPRequestHandler):
                 return self.send(200, tg_cai(data))
             if u.path == "/api/tg-lenh":
                 return self.send(200, tgl_cai(data))
+            if u.path == "/api/chung":
+                return self.send(200, chung_cai(data))
             if u.path == "/api/bai-co-san":
                 return self.send(200, mo_bai_co_san(data))
             m = re.fullmatch(r"/api/job/([\w-]+)/(caption|telegram|tiktok)", u.path)
@@ -6324,6 +6692,84 @@ class H(BaseHTTPRequestHandler):
             return self.send(500, {"err": "Có lỗi trong app, chi tiết đã ghi vào app-log.txt. Thử lại, vẫn lỗi thì chụp màn hình gửi Claude."})
 
 
+class HK(H):
+    """Cổng khách (dùng chung, fen 12/11): cùng các trang / lệnh của app, phải có mã thiết bị; chặn CHUNG_CAM.
+    Nháp riêng từng máy (2 máy cùng sửa 1 danh sách nháp sẽ đè nhau), bài máy khách tạo ghi tên máy."""
+    khach = None
+
+    def local_only(self):
+        host = self.headers.get("Host") or ""
+        origin = self.headers.get("Origin")
+        if origin and origin.rstrip("/") not in ("https://" + host, "http://" + host) and not (CHUNG["url"] and origin.rstrip("/") == CHUNG["url"]):
+            self.send(403, {"err": "origin lạ"})
+            return False
+        p = urlparse(self.path).path
+        if self.command == "GET" and (p in ("/", "/index.html", "/api/ping", "/tai-app-mac") or p.startswith("/ui/")):
+            return True
+        if self.command == "POST" and p == "/api/chung/vao":
+            return True
+        tok = self.headers.get("X-Poly-Khach") or ""
+        if not tok:
+            m = re.search(r"(?:^|;\s*)pdb_k=([\w-]+)", self.headers.get("Cookie") or "")
+            tok = m.group(1) if m else ""
+        m = chung_may_tim(tok)
+        if not m:
+            self.send(401, {"err": "Máy này chưa vào dùng chung: nhập mã 6 số fen đưa", "chua_vao": True})
+            return False
+        self.khach = m
+        CHUNG["lan"][m["id"]] = now()
+        if any(re.fullmatch(r, p) for r in CHUNG_CAM.get(self.command, ())):
+            self.send(403, {"err": "Việc này mở trên chính máy shop (máy này không thấy): làm trên máy shop"})
+            return False
+        return True
+
+    def do_GET(self):
+        if not self.local_only():
+            return
+        u = urlparse(self.path)
+        q = parse_qs(u.query)
+        try:
+            if u.path == "/api/chung/toi":
+                return self.send(200, {"khach": True, "ten": self.khach["ten"], "id": self.khach["id"]})
+            if u.path == "/api/nhap":
+                return self.send(200, nhap_doc("nhap-%s.json" % self.khach["id"]))
+            m = re.fullmatch(r"/api/job/([\w-]+)/zip", u.path)
+            if m:
+                b, ten = chung_zip(m.group(1))
+                return self.send(200, b, "application/zip", {"Content-Disposition": "attachment; filename=\"%s\"" % ten})
+        except ValueError as e:
+            return self.send(400, {"err": str(e)})
+        except Exception:
+            log(traceback.format_exc())
+            return self.send(500, {"err": "Có lỗi trong app máy shop. Thử lại, vẫn lỗi thì báo fen."})
+        return H.do_GET(self)
+
+    def do_POST(self):
+        if not self.local_only():
+            return
+        u = urlparse(self.path)
+        try:
+            if u.path == "/api/chung/vao":       # chưa có mã thiết bị: chỉ nhận thân nhỏ
+                if int(self.headers.get("Content-Length") or 0) > 4096:
+                    return self.send(413, {"err": "Gửi quá lớn"})
+                tok, m = chung_vao(self.body())
+                return self.send(200, {"ok": True, "ten": m["ten"], "token": tok}, extra={"Set-Cookie": _chung_cookie(self, tok)})
+            if u.path in ("/api/nhap", "/api/run"):
+                data = self.body()
+                if u.path == "/api/nhap":
+                    return self.send(200, nhap_luu(data, "nhap-%s.json" % self.khach["id"]))
+                data.pop("tu_tg", None)
+                data["_khach"] = dict(self.khach)
+                job = create_job(data)
+                return self.send(200, {"id": job["id"], "xep_hang": bool(job.get("xep_hang") and job.get("status") == "hen"), "thu": job.get("thu") or 0})
+        except ValueError as e:
+            return self.send(400, {"err": str(e)})
+        except Exception:
+            log(traceback.format_exc())
+            return self.send(500, {"err": "Có lỗi trong app máy shop. Thử lại, vẫn lỗi thì báo fen."})
+        return H.do_POST(self)
+
+
 class Srv(ThreadingHTTPServer):
     # Windows: SO_REUSEADDR cho nhieu ban cung nghe 1 cong -> chi cho 1 ban duy nhat
     allow_reuse_address = not IS_WIN
@@ -6362,6 +6808,8 @@ def main():
     threading.Thread(target=lich, daemon=True).start()
     if CFG.get("telegram_token") and (CFG.get("tg_lenh") or tgl_noi()):
         tgl_khoi()
+    if CFG.get("chung_bat"):     # dùng chung: mở cổng khách, nhận lại đường nối cũ (link giữ nguyên) hoặc mở mới
+        threading.Thread(target=chung_khoi, daemon=True).start()
     try:
         srv.serve_forever()
     except KeyboardInterrupt:

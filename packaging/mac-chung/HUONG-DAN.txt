@@ -1,0 +1,19 @@
+POLY DỰNG BÀI (DÙNG CHUNG) CHO MAC
+Mở app Poly Dựng Bài của máy shop qua mạng. Máy này không cần đăng nhập Claude:
+viết brief, dựng, sửa đều chạy trên máy shop bằng tài khoản của fen.
+
+LẦN ĐẦU
+1. Giải nén file zip (bấm đúp), kéo "Poly Dung Bai (dung chung)" vào thư mục Ứng dụng (Applications).
+2. Chuột phải vào app → Mở → Mở (macOS chặn app tải từ mạng lần đầu).
+   macOS 15 trở lên: mở app 1 lần (bị chặn), vào Cài đặt hệ thống → Quyền riêng tư & Bảo mật → kéo xuống → Vẫn mở.
+3. App hỏi link: dán link fen gửi (dạng https://….trycloudflare.com).
+4. Nhập mã 6 số fen đọc cho (máy shop: 💻 Máy khác → Thêm máy) và tên máy này.
+5. App mở cửa sổ Chrome (không có Chrome thì mở Safari). Lần sau bấm app là vào luôn.
+
+LINK ĐỔI
+Máy shop khởi động lại hoặc mất mạng lâu thì link đổi. App tự hỏi link mới: dán link bot gửi trong nhóm
+Telegram (hoặc hỏi fen). Không phải nhập lại mã.
+
+ĐƯỢC LÀM
+Đủ mọi chức năng như trên máy shop. Riêng Đăng TikTok web và Mở thư mục thì mở trên máy shop, nên trên Mac dùng
+nút ⬇ Tải slide + caption (tải về máy này) hoặc Gửi Telegram.

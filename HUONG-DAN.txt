@@ -183,6 +183,14 @@ LÀM 1 BÀI
   Viết brief, chat brief, viết caption, ô Sửa vẫn chạy liền không phải chờ. Photoshop vẫn làm lần lượt từng script.
 - "Dừng": dừng bài đang chạy. "Chạy tiếp": làm tiếp từ chỗ dở. Nút ⋯ > "Xoá khỏi danh sách":
   chuyển bài vào thư mục _to_delete của app (không xoá hẳn).
+- Nút "💻 Máy khác" trên cùng (12/11): máy này làm MÁY CHỦ, máy khác (MacBook…) mở app qua mạng ở đâu cũng được,
+  dùng đủ mọi chức năng, không đăng nhập Claude hay tài khoản gì (việc chạy trên máy này bằng tài khoản của fen).
+  Bật → app tự tải đường nối Cloudflare (lần đầu ~60 MB, miễn phí) → có link https://….trycloudflare.com.
+  Thêm máy: bấm "＋ Thêm máy" lấy mã 6 số (dùng 1 lần, 15 phút) → máy kia mở link (hoặc app Mac) → nhập mã + tên máy. Lần sau vào thẳng.
+  App Mac: bấm "⬇ Tải app cho Mac" → gửi file zip cho máy kia → giải nén → chuột phải → Mở (lần đầu).
+  Link đổi khi máy này khởi động lại / mất mạng lâu: bot Remote báo link mới trong Telegram, app Mac tự hỏi link mới.
+  Trên máy khác: Đăng TikTok web và Mở thư mục mở trên máy này nên dùng "⬇ Tải slide + caption" hoặc Gửi Telegram.
+  Chỉ thêm máy của người mình tin; không dùng nữa thì bấm Bỏ. Có máy mới vào, bot Remote báo trong Telegram.
 - Nút "📱 Remote" trên cùng (30/10): ra ngoài vẫn giao việc cho app qua Telegram (chat riêng với bot, hoặc 1 nhóm có thêm người).
   DÙNG TRONG NHÓM (12/11, thêm người làm cùng): tạo nhóm Telegram có fen + người đó → app: 📱 Remote > 👥 Dùng trong nhóm
   > bấm "Thêm bot vào nhóm", chọn nhóm, bấm Thêm → cho bot làm Quản trị viên nhóm (để bot đọc được tin thường).

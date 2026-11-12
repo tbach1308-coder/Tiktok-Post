@@ -42,7 +42,7 @@ a{color:var(--gl)}
 .brand small{display:block;font-weight:500;color:var(--dim);font-size:11px;letter-spacing:.14em}
 .sp{flex:1}
 .chip{display:inline-flex;align-items:center;gap:7px;height:30px;padding:0 12px;border-radius:99px;border:1px solid var(--line2);font-size:12.5px;color:var(--mut);background:var(--panel);white-space:nowrap}
-@media (max-width:1100px){.top .chip .tk{display:none}}
+@media (max-width:1365px){.top .chip .tk{display:none}}
 .chip.tgc{cursor:pointer;margin-right:8px;font-family:inherit}
 .chip.tgc:hover{border-color:var(--g);color:var(--tx)}
 .chip.hcc{cursor:pointer;font-family:inherit}
@@ -467,6 +467,19 @@ select.in.msel option{background:var(--panel);color:var(--tx)}
 .post .pnote a{color:var(--gl)}
 .post .stc{color:var(--o)}
 .okc{color:var(--gl)}
+/* dùng chung (fen 12/11 "máy khác vẫn sài được full chức năng"): chỉ ẩn nút mở cửa sổ / thư mục / Chrome trên chính máy shop */
+body.khach #bChung,body.khach #bOpen,body.khach #bDang{display:none!important}
+.chip.khc{color:var(--tx)}.khtag{font-size:11px;color:var(--mut);margin-left:4px}
+body.vaoing .top .chip{display:none!important}
+.brand{flex-shrink:0}
+@media (max-width:1439px){#bChung .lb{display:none}}
+@media (max-width:1365px){#bQt .lb{display:none}}
+.vao{max-width:420px;width:calc(100% - 32px);box-sizing:border-box;margin:12vh auto;padding:22px;border:1px solid var(--line2);border-radius:14px;background:var(--panel)}
+.vao h2{margin:0 0 6px;font-size:19px}.vao .in{width:100%;margin-top:8px}.vao .vaoma{font-size:24px;letter-spacing:6px;text-align:center}
+.vao .acts{margin-top:14px}
+.chma{font-size:30px;letter-spacing:8px;font-weight:700;color:var(--g);margin:6px 0}
+.chmay{display:flex;align-items:center;gap:8px;padding:6px 0;border-top:1px solid var(--line2)}.chmay>div{flex:1;min-width:0}.chmay small{display:block;color:var(--mut)}
+.chlink{display:flex;gap:6px;align-items:center;margin:6px 0}.chlink code{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;padding:6px 8px;border:1px solid var(--line2);border-radius:8px}
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;z-index:80}
 .modal.on{display:flex}
 .mbox{background:var(--panel);border:1px solid var(--line2);border-radius:14px;padding:20px 22px;width:min(560px,92vw)}
@@ -577,7 +590,9 @@ details.brief ul{margin:0;padding-left:18px;color:var(--mut)}
   <div class="brand"><div class="logo">P</div><div>POLY DỰNG BÀI<small>CAROUSEL TIKTOK</small></div></div>
   <div class="sp"></div>
   <span class="chip rmc" id="bRm" title="Remote: nhắn việc cho app từ Telegram (viết brief, bấm Chạy, ghi quy tắc, hỏi tình hình). Chỉ nghe khi bật. Bấm chữ Remote để xem mã nối, hướng dẫn."><span class="dot"></span><span class="rml" role="button">📱 Remote</span><span class="kseg rmsw"><button data-rb="0">Tắt</button><button data-rb="1">Bật</button></span></span>
-  <button class="chip tgc" id="bQt" title="Ghi quy tắc mới cho mọi bài sau (không sửa bài nào)"><span>📏 Quy tắc</span></button>
+  <button class="chip tgc" id="bChung" title="Dùng chung: máy khác (MacBook…) mở app này qua mạng, không cần đăng nhập Claude"><span class="dot"></span><span>💻<span class="lb"> Máy khác</span></span></button>
+  <span class="chip khc" id="khc" hidden title="App chạy trên máy shop (máy chủ), bằng tài khoản Claude của fen. Máy này không cần đăng nhập gì."></span>
+  <button class="chip tgc" id="bQt" title="Ghi quy tắc mới cho mọi bài sau (không sửa bài nào)"><span>📏<span class="lb"> Quy tắc</span></span></button>
   <button class="chip tgc" id="bCv" title="Canva: Claude đã nối với Canva của fen chưa (bấm để kiểm, xem cách nối)"><span class="dot"></span><span>Canva</span></button>
   <button class="chip tgc" id="bTg" title="Cài / đổi Telegram nhận slide bài Laptop, iPad"><span class="dot"></span><span>Telegram</span></button>
   <span class="chip hcc" id="hc" title="Kiểm máy: tài khoản Claude, plugin, quy tắc" onclick="if (!event.target.closest('button')) kiemMay()"><span class="dot"></span><span>Đang kiểm Claude…</span></span>
@@ -601,6 +616,9 @@ const KENH = {laptop:{ten:'Laptop', handle:'@polystorelaptop', ic:'💻',
                 ph:{ten:'VD: Top 5 laptop dưới 25 triệu', brief:'Bìa: TOP 5 LAPTOP DƯỚI 25 TRIỆU\nPhụ đề: cho dân kỹ thuật\n\nSlide 2: ThinkPad P14s Gen 4 ...\nSlide 3: ...\n\nSlide cuối: Ngân sách bạn bao nhiêu? Comment, Poly chọn máy 👇', note:'VD: bìa dùng ảnh HP EliteBook fen gửi; bài nhiều máy không ghi giá'}},
               ipad:{ten:'iPad', handle:'@poly.store', ic:'📱',
                 ph:{ten:'VD: Tầm 10 triệu mua iPad gì?', brief:'Bìa: TẦM 10 TRIỆU MUA iPAD GÌ?\nPhụ đề: ở Poly\n\nSlide 2: iPad Air 4 64GB · Sky Blue · 7.700.000đ ...\nSlide 3: ...\n\nSlide cuối: Bạn mua iPad để học hay vẽ? Comment, Poly tư vấn 👇', note:'VD: slide 2 dùng ảnh máy thật fen gửi; màu ghi tiếng Anh'}}};
+// mở qua link dùng chung (không phải 127.0.0.1 / localhost của máy shop): giao diện khách, ẩn việc chỉ máy shop làm
+const KHACH = !/^(127\.0\.0\.1|localhost|\[::1\])$/.test(location.hostname);
+if (KHACH) document.body.classList.add('khach');
 const ST = {'dang-chay':'Đang chạy', 'xong':'Xong', 'loi':'Lỗi', 'dung':'Đã dừng', 'moi':'Mới', 'hen':'Đã hẹn'};
 const S = {view:'new', jobId:null, jobs:[], jobsH:'', since:0, events:[], data:null, timer:null, fail:0,
            form:{kenh:'laptop', anh:[]}, drafts:{}, health:null, offset:0, feedAll:false, asked:false};
@@ -725,7 +743,9 @@ S.seen = store.get('poly-da-xem', {}); S.det = store.get('poly-chi-tiet', false)
 async function api(path, body) {
   const r = await fetch(path, body === undefined ? {} : {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)});
   const j = await r.json().catch(() => ({}));
-  if (!r.ok) throw new Error(j.err || ('Lỗi ' + r.status));
+  if (!r.ok) { const er = new Error(j.err || ('Lỗi ' + r.status)); er.status = r.status;
+    if (r.status === 401 && j.chua_vao && KHACH && S.khach && !$('#vaoBox')) manVao();      // máy dùng chung đang dùng thì bị fen bỏ
+    throw er; }
   return j;
 }
 function setH(el, h){ if (el && el._h !== h) { el._h = h; el.innerHTML = h; return true; } return false; }
@@ -1063,13 +1083,13 @@ async function loadJobs(){
   try {
     const j = await api('/api/jobs'); S.fail = 0; $('#offline')?.remove();
     if (j.ui) { if (!S.ui) S.ui = j.ui; else if (j.ui !== S.ui) { if (canReload()) { taiLaiUi(); return; } uiMoiBao(); } }
-    rmChip(j.remote);
+    rmChip(j.remote); chungChip(j.chung);
     if (j.han_muc && S.health && (!!S.health.han_muc?.het !== !!j.han_muc.het || (S.health.han_muc || {}).gio !== j.han_muc.gio)) { S.health.han_muc = j.han_muc; health(); }
     if (j.dung && S.health && S.health.dung && (j.dung.pt >= 80) !== !!S.health.dung.canh_bao) health();
     const old = new Map(S.jobs.map(x => [x.id, x.status])); S.jobs = j.jobs || [];
     S.jobs.forEach(x => { if (old.get(x.id) === 'dang-chay' && x.status !== 'dang-chay' && x.id !== S.jobId) notify(x); });
     renderJobs();
-  } catch(e) { offline(); }
+  } catch(e) { if (e.status !== 401) offline(); }
 }
 // có bản giao diện mới: chỉ tự tải lại khi fen không đang gõ / chưa gửi dở
 // app có bản mới mà đang dở tay (gõ chữ, ảnh chưa gửi) nên chưa tự tải lại: hiện thanh nhắc (fen 6/11 không thấy nút mới vì trang chưa tải lại)
@@ -1133,7 +1153,7 @@ function renderJobs(){
   const item = j => { const g = nhomBai(j), p = dongPhu(j, g);
     return `<button class="ji co-bia ${S.jobId === j.id ? 'on' : ''}" data-id="${j.id}">${j.status !== 'dang-chay' ? `<span class="jx" role="button" data-xj="${j.id}" title="Xoá bài khỏi danh sách (slide trong thư mục bài vẫn giữ)">🗑</span>` : ''}${g === 'cho' ? `<span class="jk" role="button" data-dj="${j.id}" title="Đã đăng bài này (đăng tay, đăng bằng điện thoại): chuyển sang tab Đã đăng">✓ Đã đăng</span>` : g === 'dang' && j.da_dang && j.da_dang.tay ? `<span class="jk" role="button" data-bj="${j.id}" title="Bỏ đánh dấu, đưa bài về Chờ đăng">↩ Chưa đăng</span>` : ''}${j.bia ? `<img class="bia" src="${esc(j.bia)}" loading="lazy" alt="">` : '<span class="bia trong"></span>'}
       <div><div class="t">${esc(j.tieu_de || 'Bài')}</div>${unseen(j) ? '<span class="new">mới</span>' : ''}
-      <div class="m"><span class="kn ${j.kenh}">${esc((KENH[j.kenh]||{}).ten || j.kenh)}</span>${tagDung(j)}<span class="dot ${j.status === 'dang-chay' ? 'run' : j.status === 'xong' ? 'ok' : j.status === 'loi' ? 'err' : j.status === 'hen' ? 'hen' : 'warn'}"></span><span class="jl">${esc(jobLine(j))}</span>${j.ngay_dang ? `<span class="nd">đăng ${esc(j.ngay_dang)}</span>` : ''}</div>
+      <div class="m"><span class="kn ${j.kenh}">${esc((KENH[j.kenh]||{}).ten || j.kenh)}</span>${tagDung(j)}${j.khach ? `<span class="khtag" title="Bài máy dùng chung tạo">👤 ${esc(j.khach.ten || '')}</span>` : ''}<span class="dot ${j.status === 'dang-chay' ? 'run' : j.status === 'xong' ? 'ok' : j.status === 'loi' ? 'err' : j.status === 'hen' ? 'hen' : 'warn'}"></span><span class="jl">${esc(jobLine(j))}</span>${j.ngay_dang ? `<span class="nd">đăng ${esc(j.ngay_dang)}</span>` : ''}</div>
       ${p ? `<div class="mt2 ${p[0]}">${esc(p[1])}</div>` : ''}</div>
     </button>`; };
   const ds = nhom[S.sbTab];
@@ -1829,7 +1849,7 @@ function renderPost(){
   const h = `<div class="card mt post"><div class="ph"><b>Đăng bài</b><span class="pn" id="capN"></span></div>
     <textarea class="in cap" id="capT" placeholder="Claude chưa viết caption. Gõ caption ở đây (dòng 1 tối đa 90 ký tự, dòng 2 comment ghim).">
 ${esc(d.caption || '')}</textarea>
-    <div class="pacts"><button class="btn sm pri" id="bDang"${busy ? ' disabled' : ''}>${nut}</button><button class="btn sm ghost" id="bGuiTg"${busy ? ' disabled' : ''} title="Gửi album slide + caption + câu ghim vào Telegram để đăng bằng app TikTok trên điện thoại">Gửi Telegram</button><button class="btn sm ghost" id="bCopy">Chép caption</button><button class="btn sm ghost" id="bVietCap" title="Claude đọc slide, viết caption + câu ghim theo luật hashtag kênh (khoảng 1–2 phút)">${(d.caption || '').trim() ? 'Viết lại caption' : '✍ Viết caption'}</button>${d.canva ? `<a class="btn sm ghost" id="bCanvaMo" href="${esc(d.canva.edit_url)}" target="_blank" rel="noopener" title="Mở thiết kế của bài trên Canva để chỉnh tiếp (web hoặc app Canva)">🎨 Mở Canva</a><button class="btn sm ghost" id="bCanvaLay"${busy ? ' disabled' : ''} title="Sửa trên Canva xong: Claude xuất lại các trang về thay slide trong app (slide cũ chuyển vào _to_delete), khoảng 1–3 phút">⬇ Lấy lại từ Canva</button>` : ''}${j.dung_bang === 'canva' && d.canva ? '' : `<button class="btn sm ghost" id="bCanva"${busy ? ' disabled' : ''} title="Claude đưa ${sl.length} slide lên Canva của fen thành 1 thiết kế (mỗi slide 1 trang), chạy trên mạng khoảng 3–5 phút">${d.canva ? '🎨 Đưa lại lên Canva' : '🎨 Đưa lên Canva'}</button>`}${!j.da_dang ? `<button class="btn sm ghost" id="bHenDang" title="Chọn giờ đăng: giờ này hiện sẵn trên nút ⏰ Hẹn giờ ở khung Poly trên trang TikTok">⏰ ${j.hen_dang ? 'Đổi giờ đăng' : 'Hẹn giờ đăng'}</button>` : ''}<button class="btn sm ghost" id="bDaDang" title="Fen tự đăng ngoài tiện ích (vd đăng bằng app TikTok trên điện thoại) xong thì bấm">${j.da_dang ? 'Bỏ đánh dấu đã đăng' : '✓ Đánh dấu đã đăng'}</button></div>
+    <div class="pacts">${KHACH && sl.length ? `<a class="btn sm pri" id="bZip" href="/api/job/${encodeURIComponent(j.id)}/zip" title="Tải ${sl.length} slide + caption, câu ghim (file .zip) về máy này để đăng">⬇ Tải slide + caption</a>` : ''}<button class="btn sm pri" id="bDang"${busy ? ' disabled' : ''}>${nut}</button><button class="btn sm ghost" id="bGuiTg"${busy ? ' disabled' : ''} title="Gửi album slide + caption + câu ghim vào Telegram để đăng bằng app TikTok trên điện thoại">Gửi Telegram</button><button class="btn sm ghost" id="bCopy">Chép caption</button><button class="btn sm ghost" id="bVietCap" title="Claude đọc slide, viết caption + câu ghim theo luật hashtag kênh (khoảng 1–2 phút)">${(d.caption || '').trim() ? 'Viết lại caption' : '✍ Viết caption'}</button>${d.canva ? `<a class="btn sm ghost" id="bCanvaMo" href="${esc(d.canva.edit_url)}" target="_blank" rel="noopener" title="Mở thiết kế của bài trên Canva để chỉnh tiếp (web hoặc app Canva)">🎨 Mở Canva</a><button class="btn sm ghost" id="bCanvaLay"${busy ? ' disabled' : ''} title="Sửa trên Canva xong: Claude xuất lại các trang về thay slide trong app (slide cũ chuyển vào _to_delete), khoảng 1–3 phút">⬇ Lấy lại từ Canva</button>` : ''}${j.dung_bang === 'canva' && d.canva ? '' : `<button class="btn sm ghost" id="bCanva"${busy ? ' disabled' : ''} title="Claude đưa ${sl.length} slide lên Canva của fen thành 1 thiết kế (mỗi slide 1 trang), chạy trên mạng khoảng 3–5 phút">${d.canva ? '🎨 Đưa lại lên Canva' : '🎨 Đưa lên Canva'}</button>`}${!j.da_dang ? `<button class="btn sm ghost" id="bHenDang" title="Chọn giờ đăng: giờ này hiện sẵn trên nút ⏰ Hẹn giờ ở khung Poly trên trang TikTok">⏰ ${j.hen_dang ? 'Đổi giờ đăng' : 'Hẹn giờ đăng'}</button>` : ''}<button class="btn sm ghost" id="bDaDang" title="Fen tự đăng ngoài tiện ích (vd đăng bằng app TikTok trên điện thoại) xong thì bấm">${j.da_dang ? 'Bỏ đánh dấu đã đăng' : '✓ Đánh dấu đã đăng'}</button></div>
     ${(() => { const b = d.brand || {bat: false, nguon: 'mac-dinh'};
       return `<div class="brrow" title="Tiết lộ nội dung → Thương hiệu của bạn (Disclose post content → Your brand). Mặc định tắt như cài đặt gốc TikTok (fen chốt 30/10); bài nào cần thì bấm Bật."><span>Your brand</span><div class="kseg"><button data-br="0" class="${b.bat ? '' : 'on'}">Không bật</button><button data-br="1" class="${b.bat ? 'on' : ''}">Bật</button></div><span>${b.nguon === 'fen' ? 'fen chọn' : 'mặc định'}</span></div>`; })()}
     <p class="pnote">${(henD ? `<br><span class="hen">⏰ Giờ hẹn ${esc(henTxt(henD))}: mở TikTok, khung Poly có nút ⏰ Hẹn giờ điền sẵn giờ này, fen bấm nút rồi tự bấm Schedule (máy tắt TikTok vẫn đăng đúng giờ). <a href="#" id="henHuy">Huỷ hẹn</a></span>` : '') + (j.da_dang ? `<br><span class="okc">${j.da_dang.lich ? (j.da_dang.lich > nowS() ? 'Đã hẹn trên TikTok, TikTok sẽ đăng lúc ' : 'TikTok đã đăng lúc ') + esc(henTxt(j.da_dang.lich)) : 'Đã đăng TikTok lúc ' + hm(j.da_dang.t)}${j.da_dang.brand === false && (!d.brand || d.brand.bat) ? ' · <span class="stc">chưa bật Thương hiệu của bạn</span>' : ''}</span>` : j.dang_loi ? `<br><span class="stc">Chưa đăng được: ${esc(j.dang_loi.loi)}</span>` : '') + (j.nhac && j.nhac.ten ? `<br>Nhạc đã chọn: <b>${esc(j.nhac.ten)}</b>${j.nhac.tacgia ? ' · ' + esc(j.nhac.tacgia) : ''}` : '')}${daGui}${d.canva ? `<br><span class="okc">🎨 ${j.dung_bang === 'canva' ? 'Dựng trên Canva' : 'Đã có trên Canva'}${d.canva.so_trang ? ' · ' + esc(String(d.canva.so_trang)) + ' trang' : ''}</span>, sửa trên Canva xong bấm ⬇ Lấy lại từ Canva để app đăng bằng ảnh mới.${d.canva.lay_lai && j.dung_bang !== 'canva' ? ' Slide đang là ảnh lấy từ Canva: ô Sửa slide vẫn dựng lại bằng Photoshop (mất phần sửa trên Canva ở slide đó), muốn giữ thì sửa tiếp trên Canva rồi Lấy lại.' : ''}` : ''}${j.canva_loi ? `<br><span class="stc">${esc(j.canva_loi)}</span>` : ''}</p></div>`.replace(/<p class="pnote">(?:<br>)?/, '<p class="pnote">').replace('<p class="pnote"></p>', '');
@@ -2065,11 +2085,85 @@ function inline(s){
     .replace(/(^|[^*])\*([^*\s][^*]*)\*/g, '$1<em>$2</em>');
 }
 
+/* ---------- dùng chung (fen 12/11 "file cài trên máy mac sài dc, không cần đăng nhập kết nối sài chung với mình") ----------
+   Máy shop: chip 💻 Máy khác → bật đường nối, lấy mã 6 số cho máy mới, bỏ máy. Máy khác: mở link → nhập mã → dùng như fen
+   (viết brief, Chạy, Sửa, tải slide); cài đặt, quy tắc, Remote, xoá bài chỉ máy shop. */
+async function khoiDong(){
+  if (KHACH) {
+    const vao = (location.hash.match(/vao=([\w-]+)/) || [])[1];
+    if (vao) { history.replaceState(null, '', location.pathname); try { await api('/api/chung/vao', {token: vao}); } catch(e) {} }
+    try { S.khach = await api('/api/chung/toi'); }
+    catch(e) { if (e.status === 401) { manVao(); return false; } setH($('#hc'), '<span class="dot err"></span><span>Không vào được app máy shop</span>'); return false; }
+    const k = $('#khc'); k.hidden = false; k.textContent = '👤 ' + (S.khach.ten || 'Máy khác');
+  }
+  health(); tgChip(); cvChip(); qtTai(); return true;
+}
+function manVao(){
+  if ($('#vaoBox')) return;
+  $('#wrap').hidden = true; document.body.classList.add('vaoing');
+  const d = document.createElement('div'); d.className = 'vao'; d.id = 'vaoBox';
+  d.innerHTML = `<h2>Poly Dựng Bài · dùng chung</h2>
+    <p class="pnote">App chạy trên máy shop (máy chủ), bằng tài khoản Claude của fen: máy này không cần đăng nhập gì. Chỉ lần đầu nhập mã 6 số fen đưa (trên máy shop: <b>💻 Máy khác</b> → Thêm máy), lần sau vào thẳng.</p>
+    <input class="in vaoma" id="vaoMa" inputmode="numeric" maxlength="6" placeholder="••••••" autocomplete="one-time-code">
+    <input class="in" id="vaoTen" maxlength="40" placeholder="Tên máy này, vd MacBook Quân">
+    <p class="err" id="vaoErr"></p>
+    <div class="acts"><button class="btn pri" id="vaoOk">Vào app</button></div>
+    <p class="pnote">Dùng MacBook: <a href="/tai-app-mac">tải app cho Mac</a> để lần sau bấm là mở, link đổi thì app hỏi.</p>`;
+  document.body.appendChild(d);
+  $('#vaoTen').value = store.get('poly-ten-may', '');
+  const ok = async () => { const b = $('#vaoOk'); $('#vaoErr').textContent = ''; b.disabled = true;
+    try { await api('/api/chung/vao', {ma: $('#vaoMa').value.trim(), ten: $('#vaoTen').value.trim()}); store.set('poly-ten-may', $('#vaoTen').value.trim()); location.reload(); }
+    catch(e) { $('#vaoErr').textContent = e.message; b.disabled = false; } };
+  $('#vaoOk').onclick = ok; $('#vaoMa').onkeydown = e => { if (e.key === 'Enter') ok(); }; $('#vaoMa').focus();
+}
+function chungChip(r){
+  const c = $('#bChung'); if (!c || !r) return;
+  const d = c.querySelector('.dot'); if (d) d.className = 'dot ' + (!r.bat ? '' : r.chay ? 'ok' : r.loi ? 'err' : 'warn');
+}
+function chungDlg(){
+  if ($('#chBox')) return;
+  const m = document.createElement('div'); m.className = 'modal on';
+  m.innerHTML = `<div class="mbox rmbox" id="chBox"><h3>💻 Dùng chung với máy khác</h3>
+    <p class="pnote">Máy này làm máy chủ: máy khác (MacBook…) mở app qua mạng, ở đâu cũng được, dùng đủ mọi chức năng, không cần đăng nhập gì (chỉ lần đầu nhập mã 6 số). Mọi việc chạy trên máy này bằng tài khoản Claude của fen. Đăng TikTok web, Mở thư mục mở trên máy này nên máy kia dùng nút ⬇ Tải slide + caption hoặc Gửi Telegram. Chỉ thêm máy của người mình tin: máy đã vào làm được mọi thứ như máy này.</p>
+    <div class="kseg" id="chSeg"><button data-b="0">Tắt</button><button data-b="1">Bật</button></div>
+    <div id="chSt"></div><p class="err" id="chErr"></p>
+    <div class="acts"><button class="btn" id="chDong">Đóng</button></div></div>`;
+  document.body.appendChild(m);
+  const dong = () => { clearTimeout(chungDlg.t); m.remove(); };
+  $('#chDong').onclick = dong; m.onclick = e => { if (e.target === m) dong(); };
+  const ve = r => {
+    if (!$('#chBox') || !r) return; chungChip(r);
+    m.querySelectorAll('#chSeg [data-b]').forEach(b => b.classList.toggle('on', (b.dataset.b === '1') === !!r.bat));
+    let h = '';
+    if (!r.bat) h = '<p class="stc">Đang tắt: không máy nào vào được. Bật lên để có link (lần đầu app tải đường nối Cloudflare khoảng 60 MB, miễn phí, không cần tài khoản).</p>';
+    else {
+      if (r.chay) h += `<p class="okc">● Đang mở. Link app:</p><div class="chlink"><code>${esc(r.url)}</code><button class="btn sm" id="chChep">Sao chép link</button></div>
+        <p class="pnote">Link đổi khi máy shop khởi động lại hoặc mất mạng lâu; bot Remote báo link mới trong Telegram. App Mac tự hỏi link mới.</p>`;
+      else if (r.loi) h += `<p class="err">${esc(r.loi)}</p><div class="acts"><button class="btn sm" id="chThu">Thử lại</button></div>`;
+      else h += `<p class="stc">⏳ ${esc(r.dang || 'Đang mở đường nối…')}</p>`;
+      h += r.ma ? `<div class="rmma"><div>Mã cho máy mới (dùng 1 lần, ${Math.ceil(r.ma_con / 60)} phút):</div><div class="chma">${esc(r.ma)}</div>
+          <p class="pnote">Trên máy kia: mở app Mac (hoặc mở link bằng Chrome / Safari) → dán link → nhập mã này + tên máy.</p></div>`
+        : `<div class="acts" style="justify-content:flex-start"><button class="btn sm pri" id="chMa">＋ Thêm máy (lấy mã)</button></div>`;
+      h += (r.may || []).length ? `<div style="margin-top:8px"><b>Máy đang dùng chung</b>${r.may.map(x => `<div class="chmay"><div>${esc(x.ten)}<small>vào ${x.t ? (d => String(d.getDate()).padStart(2, '0') + '/' + String(d.getMonth() + 1).padStart(2, '0'))(new Date(x.t * 1000)) : ''}${x.lan ? ' · dùng gần nhất ' + hm(x.lan) : ''}</small></div><button class="btn sm ghost" data-bo="${esc(x.id)}">Bỏ</button></div>`).join('')}</div>` : '';
+    }
+    h += `<p class="pnote" style="margin-top:10px">${r.app_mac ? '<a href="/tai-app-mac">⬇ Tải app cho Mac</a> rồi gửi file qua Zalo / Telegram cho máy kia (giải nén, chuột phải → Mở lần đầu).' : ''}</p>`;
+    setH($('#chSt'), h); $('#chErr').textContent = '';
+    const on = (id, fn) => { const b = $('#' + id); if (b) b.onclick = fn; };
+    on('chChep', () => navigator.clipboard.writeText(r.url).then(() => toast('Đã chép link'), () => toast('Không chép được', true)));
+    on('chMa', () => gui({ma_moi: true})); on('chThu', () => gui({bat: true}));
+    m.querySelectorAll('[data-bo]').forEach(b => b.onclick = () => { if (confirm('Bỏ máy này khỏi dùng chung? Máy đó phải nhập mã mới mới vào lại được.')) gui({bo: b.dataset.bo}); });
+  };
+  const gui = async d => { try { ve(await api('/api/chung', d)); if ('bat' in d && !d.bat) toast('Đã tắt dùng chung'); } catch(e) { $('#chErr').textContent = e.message; } };
+  m.querySelectorAll('#chSeg [data-b]').forEach(b => b.onclick = () => gui({bat: b.dataset.b === '1'}));
+  const tai = async () => { try { ve(await api('/api/chung')); } catch(e) {} if ($('#chBox')) chungDlg.t = setTimeout(tai, 3000); };
+  tai();
+}
 /* ---------- bắt đầu ---------- */
 $('#bNew').onclick = baiMoi;
-$('#bTg').onclick = () => tgDialog(); tgChip();
-$('#bCv').onclick = () => cvDialog(); cvChip();
-$('#bQt').onclick = () => quyTac(); qtTai();
+$('#bTg').onclick = () => tgDialog();
+$('#bCv').onclick = () => cvDialog();
+$('#bQt').onclick = () => quyTac();
+$('#bChung').onclick = () => chungDlg();
 $('#bRm .rml').onclick = () => remote();
 document.querySelectorAll('#bRm [data-rb]').forEach(b => b.onclick = e => { e.stopPropagation(); const v = b.dataset.rb === '1'; if (S.rm && v === !!S.rm.bat) return; rmBat(v); });
 
@@ -2283,7 +2377,7 @@ async function khoTheme(){
   veDang();
   try { ve(await api('/api/theme-canva', {dong_bo: true})); } catch(e) { tai(); }   // mở kho là tự lấy (quá 30 phút mới lấy lại)
 }
-health(); Promise.all([loadJobs(), loadNhap()]).then(() => { if (location.hash === '#theme') return khoTheme(); const h = (location.hash.match(/bai=([\w-]+)/) || [])[1], moi = location.hash === '#moi'; const r = !moi && ((h && S.jobs.find(j => j.id === h)) || S.jobs.find(j => j.status === 'dang-chay')); r ? openJob(r.id) : newView(); });
+khoiDong().then(ok => ok && Promise.all([loadJobs(), loadNhap()])).then(v => { if (!v) return; if (location.hash === '#theme') return khoTheme(); const h = (location.hash.match(/bai=([\w-]+)/) || [])[1], moi = location.hash === '#moi'; const r = !moi && ((h && S.jobs.find(j => j.id === h)) || S.jobs.find(j => j.status === 'dang-chay')); r ? openJob(r.id) : newView(); });
 setInterval(loadJobs, 5000); setInterval(() => health(), 120000);
 </script>
 </body>

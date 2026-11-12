@@ -1,0 +1,118 @@
+#!/bin/bash
+# Poly Dung Bai (dung chung) cho Mac - fen 12/11/2026: mo app Poly Dung Bai cua MAY SHOP qua link Cloudflare.
+# May nay khong can dang nhap Claude: viet brief, dung, sua deu chay tren may shop bang tai khoan cua fen.
+# Lan dau: dan link + nhap ma 6 so (may shop: "Máy khác" -> Them may). Sau do bam la mo; link doi thi app hoi link moi.
+# Chi dung lenh co san cua macOS (bash 3.2, curl, osascript, open). Khong cai gi them.
+D="$HOME/Library/Application Support/PolyDungBaiChung"
+F="$D/may.txt"
+mkdir -p "$D" || exit 1
+URL=""
+TOK=""
+if [ -f "$F" ]; then
+  URL=$(sed -n 's/^url=//p' "$F" | head -n 1)
+  TOK=$(sed -n 's/^token=//p' "$F" | head -n 1)
+fi
+TIEU_DE="Poly Dựng Bài"
+OSA="${POLY_OSA:-/usr/bin/osascript}"
+CURL="${POLY_CURL:-/usr/bin/curl}"
+
+luu() {
+  ( umask 077; printf 'url=%s\ntoken=%s\n' "$URL" "$TOK" > "$F" )
+}
+
+# hoi "cau hoi" "mac dinh" -> in chu nguoi dung go; bam Huy thi tra ma loi
+hoi() {
+  "$OSA" - "$1" "$2" "$TIEU_DE" <<'OSA' 2>/dev/null
+on run argv
+  activate
+  set r to display dialog (item 1 of argv) default answer (item 2 of argv) with title (item 3 of argv) buttons {"Huỷ", "OK"} default button "OK" cancel button "Huỷ"
+  return text returned of r
+end run
+OSA
+}
+
+bao() {
+  "$OSA" - "$1" "$TIEU_DE" <<'OSA' >/dev/null 2>&1
+on run argv
+  activate
+  display alert (item 2 of argv) message (item 1 of argv)
+end run
+OSA
+}
+
+# chi giu https://ten-may (bo khoang trang, duong dan, #...)
+chuan() {
+  printf '%s' "$1" | tr -d '[:space:]' | sed -E 's#^(https?://[^/?#]+).*#\1#'
+}
+
+thu() {
+  "$CURL" -s -m 15 -o /dev/null -w '%{http_code}' -H "X-Poly-Khach: $TOK" "$URL/api/chung/toi"
+}
+
+n=0
+while :; do
+  n=$((n + 1))
+  if [ "$n" -gt 8 ]; then
+    bao "Chưa vào được app của máy shop. Kiểm tra mạng, hỏi fen máy shop có đang bật 💻 Máy khác không, rồi mở lại."
+    exit 1
+  fi
+  if [ -z "$URL" ]; then
+    cb=$(pbpaste 2>/dev/null | tr -d '[:space:]')
+    case "$cb" in https://*.trycloudflare.com*) ;; *) cb="" ;; esac
+    x=$(hoi "Dán link app của máy shop (fen gửi qua Zalo / Telegram, dạng https://….trycloudflare.com):" "$cb") || exit 0
+    URL=$(chuan "$x")
+    case "$URL" in
+      https://*) ;;
+      *) bao "Link phải bắt đầu bằng https://"; URL=""; continue ;;
+    esac
+  fi
+  if [ -z "$TOK" ]; then
+    ma=$(hoi "Nhập mã 6 số fen đưa (máy shop: 💻 Máy khác → Thêm máy):" "") || exit 0
+    may=$(scutil --get ComputerName 2>/dev/null)
+    ten=$(hoi "Tên máy này (để fen biết máy nào đang dùng chung):" "${may:-MacBook}") || exit 0
+    ma=$(printf '%s' "$ma" | tr -cd '0-9' | cut -c1-6)
+    ten=$(printf '%s' "$ten" | tr -d '"\\' | tr -d '\000-\037')
+    kq=$("$CURL" -s -m 20 -H 'Content-Type: application/json' -X POST \
+         -d "{\"ma\":\"$ma\",\"ten\":\"$ten\"}" "$URL/api/chung/vao")
+    TOK=$(printf '%s' "$kq" | sed -nE 's/.*"token": *"([A-Za-z0-9_-]+)".*/\1/p')
+    if [ -z "$TOK" ]; then
+      loi=$(printf '%s' "$kq" | sed -nE 's/.*"err": *"([^"]*)".*/\1/p')
+      if [ -z "$kq" ]; then
+        bao "Không mở được link này. Xem lại link (máy shop khởi động lại thì link đổi)."
+        URL=""
+      else
+        bao "${loi:-Không vào được, thử lại.}"
+      fi
+      continue
+    fi
+    luu
+  fi
+  c=$(thu)
+  if [ "$c" != "200" ] && [ "$c" != "401" ]; then
+    sleep 3
+    c=$(thu)
+  fi
+  case "$c" in
+    200) break ;;
+    401)
+      TOK=""
+      luu
+      bao "Máy này chưa vào hoặc đã bị fen bỏ khỏi dùng chung. Nhập mã mới fen đưa."
+      ;;
+    *)
+      x=$(hoi "Không mở được link cũ (máy shop khởi động lại hoặc mất mạng thì link đổi). Dán link mới bot gửi trong nhóm Telegram, hoặc hỏi fen:" "") || exit 0
+      URL=$(chuan "$x")
+      luu
+      ;;
+  esac
+done
+luu
+MO="$URL/#vao=$TOK"
+CH="/Applications/Google Chrome.app"
+[ -d "$CH" ] || CH="$HOME/Applications/Google Chrome.app"
+if [ -d "$CH" ]; then
+  open -na "$CH" --args --app="$MO" --user-data-dir="$D/chrome" --no-first-run --no-default-browser-check
+else
+  open "$MO"
+fi
+exit 0
