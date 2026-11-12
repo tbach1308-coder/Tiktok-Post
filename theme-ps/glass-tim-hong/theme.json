@@ -1,0 +1,136 @@
+{
+  "id": "glass-tim-hong",
+  "ten": "Glass · Tím hồng",
+  "kenh": "",
+  "nen_kieu": "kinh",
+  "mo_ta": "Glass tông tối: ảnh thật làm mờ, phủ tím than đậm + đốm tím, đỏ rượu, xanh đậm; thẻ kính trong viền trắng mảnh, nhãn tím, chữ nhấn cam. Không bóng đổ.",
+  "nen": "110C26",
+  "nen2": "110C26",
+  "the": "FFFFFF",
+  "dom": [
+    [
+      "5B21B6",
+      860,
+      260,
+      420
+    ],
+    [
+      "831843",
+      120,
+      820,
+      380
+    ],
+    [
+      "1E3A8A",
+      900,
+      1260,
+      360
+    ]
+  ],
+  "dom_mo": 170,
+  "kinh_op": 10,
+  "kinh_vien": 40,
+  "nhan": "7C3AED",
+  "nhan_dam": "6D28D9",
+  "nhan_nhat": "F0ABFC",
+  "vang": "FDE047",
+  "ghi_nen": "F3E8FF",
+  "ghi_chu": "2E1065",
+  "do": "F43F5E",
+  "font_tieu_de": [
+    "UTMNeoSansIntelBold",
+    "UTM-Neo-Sans-IntelBold",
+    "UTMAvoBold"
+  ],
+  "font_than": [
+    "UTMAvoBold",
+    "UTMNeoSansIntelBold"
+  ],
+  "co_tieu_de": 0.9,
+  "giu_vien": false,
+  "trang_tri": "khong",
+  "anh_mo": 14,
+  "anh_toi": 58,
+  "anh_mau": 58,
+  "dom_tren": 28,
+  "xem": {
+    "t1": "IPAD GEN 11",
+    "t2": "CHO HỌC SINH?",
+    "nho": "Rẻ, nhẹ, đủ học online",
+    "pill": "MẸO 1",
+    "tieu": "GIỚI HẠN APP GIẢI TRÍ",
+    "phu": "Con học tập trung hơn",
+    "ten": "iPad Gen 11",
+    "cau": "Chip A16 · 128GB",
+    "gia": "7.290.000đ",
+    "y": [
+      [
+        "check",
+        "Cài đặt > Thời gian sử dụng"
+      ],
+      [
+        "check",
+        "Đặt giới hạn cho game, video"
+      ],
+      [
+        "x",
+        "Đừng quên đặt mật mã riêng"
+      ]
+    ],
+    "ghi": [
+      "Cần chọn iPad cho con?",
+      "Ghé POLY thử máy tận tay"
+    ],
+    "moc": "Xem mẹo 2",
+    "hoi": "Con bạn đang\rhọc lớp mấy?",
+    "nen": [
+      [
+        "unsplash-hoc-online-4FwEuaWFxgE.jpg",
+        1600,
+        430,
+        0,
+        740
+      ],
+      [
+        "unsplash-ghi-chu-pencil-KxVlKiqQObU.jpg",
+        1600,
+        400,
+        0,
+        800
+      ],
+      [
+        "unsplash-be-gai-ipad-qESmLLXAmWs.jpg",
+        1600,
+        400,
+        0,
+        800
+      ]
+    ],
+    "bia_sp": {
+      "dong": "iPad",
+      "ten": "GEN 11",
+      "sl1": "Rẻ, nhẹ, bền",
+      "sl2": "Đủ cho con học online",
+      "may": [
+        "may.png",
+        "may2.png",
+        "may3.png"
+      ],
+      "trai": [
+        "A16",
+        "Chip mạnh"
+      ],
+      "phai": [
+        "128GB",
+        "Bộ nhớ"
+      ],
+      "chan": "Máy likenew, có sẵn tại POLY STORE"
+    }
+  },
+  "font_bia": [
+    "UTM-Futura-Extra",
+    "UTMFuturaExtra",
+    "UTM Futura Extra"
+  ],
+  "bia_mau": "FB923C"
+}

@@ -3,12 +3,97 @@
   "ten": "Phẳng · Than xanh dương",
   "kenh": "",
   "mo_ta": "Nền than chì phẳng, chấm bi + nửa hình tròn ở góc, sọc nhấn xanh dương bên trái, tiêu đề chữ đậm hẹp. Không bóng đổ, không phát sáng.",
-  "nen": "131519", "nen2": "1F232A", "the": "20252D",
-  "nhan": "2563EB", "nhan_dam": "1D4ED8", "nhan_nhat": "60A5FA",
-  "vang": "FFD60A", "ghi_nen": "DBEAFE", "ghi_chu": "0F172A", "do": "EF4444",
-  "font_tieu_de": ["UTM-Swiss-721-Black-Condensed", "UTMSwiss721BlackCondensed", "UTM Swiss 721 Black Condensed"],
-  "font_than": ["UTMHelveBold", "UTM-HelveBold", "UTMAvoBold"],
+  "nen": "131519",
+  "nen2": "1F232A",
+  "the": "20252D",
+  "nhan": "2563EB",
+  "nhan_dam": "1D4ED8",
+  "nhan_nhat": "60A5FA",
+  "vang": "FFD60A",
+  "ghi_nen": "DBEAFE",
+  "ghi_chu": "0F172A",
+  "do": "EF4444",
+  "font_tieu_de": [
+    "UTM-Swiss-721-Black-Condensed",
+    "UTMSwiss721BlackCondensed",
+    "UTM Swiss 721 Black Condensed"
+  ],
+  "font_than": [
+    "UTMHelveBold",
+    "UTM-HelveBold",
+    "UTMAvoBold"
+  ],
   "co_tieu_de": 1.08,
   "giu_vien": false,
-  "trang_tri": "cham"
+  "trang_tri": "cham",
+  "xem": {
+    "t1": "IPAD PRO M2",
+    "t2": "CÒN ĐÁNG?",
+    "nho": "Màn đẹp, chip khỏe, giá đã mềm",
+    "pill": "MẸO 1",
+    "tieu": "TẮT LÀM MỚI NỀN",
+    "phu": "Đỡ hao pin, máy mát hơn hẳn",
+    "ten": "iPad Pro M2",
+    "cau": "Chip M2 · 128GB",
+    "gia": "15.990.000đ",
+    "y": [
+      [
+        "check",
+        "Mở Cài đặt > Cài đặt chung"
+      ],
+      [
+        "check",
+        "Chọn Làm mới ứng dụng trong nền"
+      ],
+      [
+        "x",
+        "Đừng tắt hẳn app Tin nhắn"
+      ]
+    ],
+    "ghi": [
+      "Máy vẫn hao pin nhanh?",
+      "Ghé POLY kiểm tra pin miễn phí"
+    ],
+    "moc": "Xem mẹo 2",
+    "hoi": "Bạn chọn Pro\rhay Air?",
+    "nen": [
+      [
+        "tai-ve-03-11/air5m2/m2-life.jpg",
+        1960,
+        430,
+        0,
+        1102
+      ],
+      [
+        "tai-ve-03-11/air5m2/m2-freeform.jpg",
+        1960,
+        582,
+        170,
+        795
+      ],
+      [
+        "tai-ve-03-11/air5m2/a5-life.jpg",
+        1960,
+        245,
+        0,
+        1470
+      ]
+    ],
+    "bia_tn": {
+      "t1": "Màn 120Hz mượt",
+      "t2": "iPad Pro M2",
+      "mo": "Lướt, vẽ, chơi game\rđều mượt như bơ",
+      "so": "M2",
+      "may": [
+        "may.png",
+        "may2.png"
+      ]
+    }
+  },
+  "font_bia": [
+    "UTM-Futura-Extra",
+    "UTMFuturaExtra",
+    "UTM Futura Extra"
+  ],
+  "bia_mau": "FB923C"
 }

@@ -3766,6 +3766,7 @@ def theme_ps_ds():
                 anh.append("/api/theme-ps/anh/%s/%d?t=%d" % (ten, n, int(os.path.getmtime(f))))
         ds.append({"id": ten, "ten": str(t.get("ten") or ten)[:80], "kenh": t.get("kenh") if t.get("kenh") in CFG["kenh"] else "",
                    "mo_ta": str(t.get("mo_ta") or "")[:300], "anh": anh, "kc": True,
+                   "kieu": "glass" if t.get("nen_kieu") == "kinh" else "phẳng",     # fen 21h26 "cho thêm theme kiểu glass"
                    "mau": ["#" + str(t[k]) for k in ("nen", "nhan", "vang") if re.fullmatch(r"[0-9A-Fa-f]{6}", str(t.get(k) or ""))]})
     return ds
 
@@ -3786,12 +3787,12 @@ def theme_ps_bien(job):
             '(theme "%s" fen chọn đã bị bỏ khỏi kho: dựng theo theme của kênh như thường)' % short(th.get("ten") or "", 60)
     jsx = os.path.join(THEME_PS_DIR, t["id"], "theme.jsx").replace("\\", "/")
     luat = os.path.join(THEME_PS_DIR, "luat-theme.md").replace("\\", "/")
-    return ('"%s" (kho chung, phẳng: %s)\n'
+    return ('"%s" (kho chung, %s: %s)\n'
             "Dựng bằng theme này: đọc \"%s\" trước khi viết slide; ghép theme khi build: iPad thêm --theme \"%s\" vào lệnh ipad/build.py, "
             "Laptop thêm --theme \"%s\" vào lệnh code/build.py (mọi lần build, cả lần dựng lại). Theme thắng phần màu, font, nền, thẻ, "
             "hiệu ứng của theme kênh (luật 15 nền ảnh mờ, phát sáng, kính mờ, bg-thumb không áp dụng); nội dung, bố cục, ảnh máy vẫn theo luật. "
             "Dặn agent thiết kế + agent duyệt: bài dùng theme Photoshop \"%s\" (đọc \"%s\"), chấm màu / font / nền theo theme, không theo theme kênh."
-            % (t["ten"], t["mo_ta"] or "nền phẳng", luat, jsx, jsx, t["ten"], luat))
+            % (t["ten"], t["kieu"], t["mo_ta"] or "nền phẳng", luat, jsx, jsx, t["ten"], luat))
 
 
 def canva_bien(job):

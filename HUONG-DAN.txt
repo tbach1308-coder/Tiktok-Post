@@ -76,11 +76,14 @@ KHO THEME CANVA (10/11)
   Máy khác: dán link đó 1 lần → "⬇ Tải kho chung" là có theme. Theme muốn dùng ở tài khoản Canva khác: trên Canva mở theme →
   Chia sẻ → "Bất kỳ ai có liên kết", dán link vào ⋯ → Thông tin của theme rồi đưa lên lại.
 - Máy khác / tài khoản Canva khác: theme phải là thiết kế người đó mở được (fen chia sẻ link). Kho theme lưu riêng từng máy (theme-canva.json).
-- Kho theme Photoshop (12/11): Kho theme → bấm "🖌 Photoshop". Theme phẳng (không 3D) nằm sẵn trong kho chung,
-  máy nào dùng app (kể cả máy dùng chung) cũng thấy, chọn được. Bấm "▶ Làm bài" ở theme → viết brief → Chạy: Claude dựng bằng
-  Photoshop theo màu, font, nền của theme (nội dung, ảnh máy vẫn như thường). Ở Bài mới cũng chọn được ngay trên hàng "🎨 Theme"
-  (nút có ảnh nhỏ, bấm là chuyển sang Photoshop; bấm lại hoặc "Không theme" là bỏ). Sửa slide bài đó cũng giữ theme.
-  Có 2 theme: "Phẳng · Xanh lá đêm" và "Phẳng · Than xanh dương". Không chọn theme thì Photoshop / Canva dựng như cũ.
+- Kho theme Photoshop (12/11): Kho theme → bấm "🖌 Photoshop". Theme nằm sẵn trong kho chung, máy nào dùng app (kể cả máy dùng chung)
+  cũng thấy, chọn được. Có 4 theme: 2 phẳng ("Phẳng · Xanh lá đêm", "Phẳng · Than xanh dương": nền màu, không 3D) và 2 glass
+  ("Glass · Tím hồng", "Glass · Xanh ngọc": nền ảnh thật làm mờ + thẻ kính trong). Bìa có 2 kiểu như ảnh mẫu fen gửi: kiểu quảng cáo
+  (tên máy rất to, slogan, máy xòe quạt, 2 thông số) và kiểu tính năng (2 dòng tiêu đề, số to mờ phía sau, máy nghiêng tràn mép).
+  Bấm "▶ Làm bài" ở theme → viết brief → Chạy: Claude dựng bằng Photoshop theo màu, font, nền của theme; brief bao nhiêu slide làm bấy nhiêu.
+- Bài mới, hàng "🎨 Theme": chỉ hiện đúng theme đang chọn (chưa chọn: "Không theme" / "Mẫu kênh"). Bấm "＋ Chọn theme" / "Đổi theme"
+  → Kho theme mở ra, bấm "✓ Chọn theme này" là quay lại đúng bài đang viết (brief giữ nguyên). Bấm ✕ trên theme là bỏ.
+  Sửa slide bài đó cũng giữ theme. Không chọn theme thì Photoshop / Canva dựng như cũ.
 
 DỌN BÀI THÁNG CŨ (10/11)
 - Kiểm máy → "Dọn bài tháng cũ" → chọn tháng → Dọn. Thư mục bài T<tháng>_… của cả 2 kênh chuyển vào

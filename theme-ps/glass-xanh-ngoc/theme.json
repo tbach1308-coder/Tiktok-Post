@@ -1,0 +1,134 @@
+{
+  "id": "glass-xanh-ngoc",
+  "ten": "Glass · Xanh ngọc",
+  "kenh": "",
+  "nen_kieu": "kinh",
+  "mo_ta": "Glass tông tối: ảnh thật làm mờ, phủ xanh rêu đậm + đốm xanh ngọc, xanh lá, xanh biển đậm; thẻ kính trong viền trắng mảnh, nhãn xanh ngọc, chữ nhấn cam. Không bóng đổ.",
+  "nen": "031513",
+  "nen2": "031513",
+  "the": "FFFFFF",
+  "dom": [
+    [
+      "115E59",
+      880,
+      240,
+      420
+    ],
+    [
+      "14532D",
+      140,
+      760,
+      380
+    ],
+    [
+      "0C4A6E",
+      860,
+      1240,
+      360
+    ]
+  ],
+  "dom_mo": 170,
+  "kinh_op": 10,
+  "kinh_vien": 40,
+  "nhan": "0D9488",
+  "nhan_dam": "0F766E",
+  "nhan_nhat": "5EEAD4",
+  "vang": "FFD60A",
+  "ghi_nen": "CCFBF1",
+  "ghi_chu": "042F2E",
+  "do": "EF4444",
+  "font_tieu_de": [
+    "UTMNeoSansIntelBold",
+    "UTM-Neo-Sans-IntelBold",
+    "UTMAvoBold"
+  ],
+  "font_than": [
+    "UTMAvoBold",
+    "UTMNeoSansIntelBold"
+  ],
+  "co_tieu_de": 0.9,
+  "giu_vien": false,
+  "trang_tri": "khong",
+  "anh_mo": 14,
+  "anh_toi": 58,
+  "anh_mau": 58,
+  "dom_tren": 28,
+  "xem": {
+    "t1": "MACBOOK CŨ",
+    "t2": "CÒN NGON?",
+    "nho": "Pin, màn, bàn phím đều ổn",
+    "pill": "MẸO 1",
+    "tieu": "BẬT SẠC TỐI ƯU",
+    "phu": "Pin chai chậm hơn",
+    "ten": "MacBook Air M1",
+    "cau": "M1 · 8GB · 256GB",
+    "gia": "11.990.000đ",
+    "y": [
+      [
+        "check",
+        "Mở Cài đặt hệ thống > Pin"
+      ],
+      [
+        "check",
+        "Bật Sạc pin được tối ưu hóa"
+      ],
+      [
+        "x",
+        "Đừng cắm sạc 100% cả ngày"
+      ]
+    ],
+    "ghi": [
+      "Pin MacBook yếu?",
+      "Ghé POLY đo chu kỳ pin miễn phí"
+    ],
+    "moc": "Xem mẹo 2",
+    "hoi": "Bạn dùng Mac\rhay Windows?",
+    "nen": [
+      [
+        "unsplash-ban-trang-ca-phe-VieM9BdZKFo.jpg",
+        2400,
+        600,
+        0,
+        1200
+      ],
+      [
+        "unsplash-ban-trang-ban-phim-HoEYgBL_Gcs.jpg",
+        2400,
+        600,
+        0,
+        1200
+      ],
+      [
+        "unsplash-may-tinh-ke-toan.jpg",
+        2000,
+        500,
+        0,
+        1000
+      ]
+    ],
+    "bia_sp": {
+      "dong": "MacBook",
+      "ten": "AIR M1",
+      "sl1": "Mỏng nhẹ, pin trâu",
+      "sl2": "Vẫn ngon cho dân văn phòng",
+      "may": [
+        "may.png"
+      ],
+      "trai": [
+        "M1",
+        "Chip Apple"
+      ],
+      "phai": [
+        "8GB",
+        "RAM"
+      ],
+      "chan": "Máy likenew, có sẵn tại POLY STORE"
+    }
+  },
+  "font_bia": [
+    "UTM-Futura-Extra",
+    "UTMFuturaExtra",
+    "UTM Futura Extra"
+  ],
+  "bia_mau": "FDBA74"
+}

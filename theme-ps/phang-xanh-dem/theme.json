@@ -3,12 +3,96 @@
   "ten": "Phẳng · Xanh lá đêm",
   "kenh": "",
   "mo_ta": "Nền xanh đêm phẳng, hình tròn ở góc, nhấn xanh lá, tiêu đề chữ cao gọn (Bebas). Không bóng đổ, không phát sáng.",
-  "nen": "0E1A2B", "nen2": "15263D", "the": "1A2D47",
-  "nhan": "16A34A", "nhan_dam": "15803D", "nhan_nhat": "4ADE80",
-  "vang": "FFD60A", "ghi_nen": "DCFCE7", "ghi_chu": "0E1A2B", "do": "EF4444",
-  "font_tieu_de": ["UTM-Bebas", "UTMBebas", "UTM Bebas"],
-  "font_than": ["UTMNeoSansIntelBold", "UTM-Neo-Sans-IntelBold", "UTMAvoBold"],
+  "nen": "0E1A2B",
+  "nen2": "15263D",
+  "the": "1A2D47",
+  "nhan": "16A34A",
+  "nhan_dam": "15803D",
+  "nhan_nhat": "4ADE80",
+  "vang": "FFD60A",
+  "ghi_nen": "DCFCE7",
+  "ghi_chu": "0E1A2B",
+  "do": "EF4444",
+  "font_tieu_de": [
+    "UTM-Bebas",
+    "UTMBebas",
+    "UTM Bebas"
+  ],
+  "font_than": [
+    "UTMNeoSansIntelBold",
+    "UTM-Neo-Sans-IntelBold",
+    "UTMAvoBold"
+  ],
   "co_tieu_de": 1.22,
   "giu_vien": false,
-  "trang_tri": "tron"
+  "trang_tri": "tron",
+  "xem": {
+    "t1": "THINKPAD NÀO",
+    "t2": "HỢP BẠN?",
+    "nho": "Học, làm, đi lại đều bền",
+    "pill": "MẸO 1",
+    "tieu": "TẮT APP KHỞI ĐỘNG",
+    "phu": "Mở máy nhanh hơn hẳn",
+    "ten": "ThinkPad X1",
+    "cau": "Core i7 · 16GB · 512GB",
+    "gia": "12.490.000đ",
+    "y": [
+      [
+        "check",
+        "Ctrl + Shift + Esc mở Task Manager"
+      ],
+      [
+        "check",
+        "Vào Startup apps, tắt app thừa"
+      ],
+      [
+        "x",
+        "Đừng tắt driver âm thanh, touchpad"
+      ]
+    ],
+    "ghi": [
+      "Máy vẫn chậm?",
+      "Ghé POLY vệ sinh, kiểm tra miễn phí"
+    ],
+    "moc": "Xem mẹo 2",
+    "hoi": "Bạn đang xài\rlaptop gì?",
+    "nen": [
+      [
+        "unsplash-may-tinh-ke-toan.jpg",
+        2000,
+        500,
+        0,
+        1000
+      ],
+      [
+        "unsplash-ban-trang-ban-phim-HoEYgBL_Gcs.jpg",
+        2400,
+        600,
+        0,
+        1200
+      ],
+      [
+        "unsplash-ban-trang-ca-phe-VieM9BdZKFo.jpg",
+        2400,
+        600,
+        0,
+        1200
+      ]
+    ],
+    "bia_tn": {
+      "t1": "Bền bỉ, gõ sướng",
+      "t2": "ThinkPad X1",
+      "mo": "Máy doanh nhân, pin khỏe,\rgiá chỉ bằng nửa máy mới",
+      "so": "X1",
+      "may": [
+        "may.png"
+      ]
+    }
+  },
+  "font_bia": [
+    "UTM-Futura-Extra",
+    "UTMFuturaExtra",
+    "UTM Futura Extra"
+  ],
+  "bia_mau": "FFD60A"
 }
