@@ -183,7 +183,11 @@ LÀM 1 BÀI
   Viết brief, chat brief, viết caption, ô Sửa vẫn chạy liền không phải chờ. Photoshop vẫn làm lần lượt từng script.
 - "Dừng": dừng bài đang chạy. "Chạy tiếp": làm tiếp từ chỗ dở. Nút ⋯ > "Xoá khỏi danh sách":
   chuyển bài vào thư mục _to_delete của app (không xoá hẳn).
-- Nút "📱 Remote" trên cùng (30/10): ra ngoài vẫn giao việc cho app qua Telegram (chat RIÊNG với bot, không phải nhóm).
+- Nút "📱 Remote" trên cùng (30/10): ra ngoài vẫn giao việc cho app qua Telegram (chat riêng với bot, hoặc 1 nhóm có thêm người).
+  DÙNG TRONG NHÓM (12/11, thêm người làm cùng): tạo nhóm Telegram có fen + người đó → app: 📱 Remote > 👥 Dùng trong nhóm
+  > bấm "Thêm bot vào nhóm", chọn nhóm, bấm Thêm → cho bot làm Quản trị viên nhóm (để bot đọc được tin thường).
+  Trong nhóm ai cũng ra lệnh: "bài: <chủ đề>" hoặc /brief <chủ đề>, reply tin brief để sửa, ▶️ Chạy, /cho, /tinhhinh;
+  chuyện thường bot không đụng. Bật / tắt Remote, ghi quy tắc: chỉ người nối (fen). Nối nhóm thì chat riêng thôi nhận lệnh.
   Nút Tắt / Bật nằm ngay trên thanh trên cùng (bấm chữ "📱 Remote" để xem mã nối, hướng dẫn).
   Lần đầu bấm Bật app hiện mã 6 số: bấm "Mở bot trên Telegram" rồi Start (hoặc nhắn mã cho bot), là nối xong.
   Chỉ Telegram đã nhắn mã mới ra lệnh được, người khác nhắn bot thì bỏ qua. Không cần thì Tắt (hoặc nhắn /tat).

@@ -2400,6 +2400,10 @@ def tg_call(method, fields=None, files=None, timeout=120):
             log("telegram: nhóm đổi mã %s -> %s" % (CFG.get("telegram_chat"), moi))
             save_cfg_keys({"telegram_chat": moi})
             return tg_call(method, dict(fields, chat_id=moi, _lai=1), files, timeout)
+        if moi and fields and str(fields.get("chat_id")) == str(CFG.get("tg_lenh_chat")) and not fields.get("_lai"):
+            log("telegram: nhóm Remote đổi mã %s -> %s" % (CFG.get("tg_lenh_chat"), moi))
+            save_cfg_keys({"tg_lenh_chat": moi})
+            return tg_call(method, dict(fields, chat_id=moi, _lai=1), files, timeout)
         raise ValueError(tg_loi(res.get("description") or "?", method))
     return res.get("result")
 
@@ -3921,6 +3925,13 @@ TGL_HELP = (   # fen 30/10 18h05 "giao diện gọn thôi nha": tin ngắn
 TGL_PV = {"chung": "chung 2 kênh", "laptop": "chỉ Laptop", "ipad": "chỉ iPad"}
 
 
+def tgl_huong_dan():
+    if CFG.get("tg_lenh_nhom") and CFG.get("tg_lenh_chat"):   # nhóm: tin thường bot bỏ qua, gọi bot bằng "bài …" / @bot / lệnh /
+        return TGL_HELP.replace("• Nhắn chủ đề → brief", "• bài: <chủ đề> (hoặc /brief <chủ đề>) → brief") + \
+            "\nChuyện thường trong nhóm bot không đụng. Bật / tắt, quy tắc: chỉ %s." % (CFG.get("tg_lenh_chu_ten") or "người nối bot")
+    return TGL_HELP
+
+
 def _bo_dau(s):
     import unicodedata
     s = unicodedata.normalize("NFD", s or "")
@@ -3936,7 +3947,8 @@ def tgl_trang_thai():
     return {"bat": bool(CFG.get("tg_lenh")), "co_bot": bool(CFG.get("telegram_token")), "bot": CFG.get("telegram_bot") or "",
             "noi": tgl_noi(), "ten": CFG.get("tg_lenh_ten") or "", "ma": ma, "ma_con": max(0, int(TGL_MA_HAN - (now() - TGL["ma_luc"]))) if ma else 0,
             "chay": bool(TGL["luong"] and TGL["luong"].is_alive()),
-            "loi": TGL["loi"] if TGL["loi"] and now() - TGL["loi_luc"] < 90 else "", "lan_cuoi": TGL["lan_cuoi"]}
+            "loi": TGL["loi"] if TGL["loi"] and now() - TGL["loi_luc"] < 90 else "", "lan_cuoi": TGL["lan_cuoi"],
+            "nhom": tgl_nhom(), "ma_nhom": bool(ma and TGL.get("ma_nhom"))}
 
 
 def tgl_cai(data):
@@ -3944,8 +3956,8 @@ def tgl_cai(data):
     if data.get("bo_noi"):
         if tgl_noi():
             tgl_gui("Đã bỏ nối app Poly Dựng Bài với Telegram này. Muốn dùng lại: bật Remote trong app, nhắn mã mới.")
-        save_cfg_keys({"tg_lenh_chat": None, "tg_lenh_nguoi": None, "tg_lenh_ten": None, "tg_lenh_bang": None})
-        TGL["ma"] = ""
+        save_cfg_keys({"tg_lenh_chat": None, "tg_lenh_nguoi": None, "tg_lenh_ten": None, "tg_lenh_bang": None, "tg_lenh_nhom": False})
+        TGL["ma"], TGL["ma_nhom"] = "", False
         log("tg lenh: bo noi")
     if "bat" in data:
         bat = bool(data.get("bat"))
@@ -3966,10 +3978,34 @@ def tgl_cai(data):
                 threading.Thread(target=tgl_gui, args=("🟢 Đã bật Remote.",), daemon=True).start()
         elif doi and tgl_noi():
             threading.Thread(target=tgl_gui, args=("⚪ Đã tắt Remote. Nhắn /bat để bật lại.",), daemon=True).start()
-    if CFG.get("tg_lenh") and not tgl_noi() and (data.get("ma_moi") or not TGL["ma"] or now() - TGL["ma_luc"] >= TGL_MA_HAN):
+    if data.get("ma_nhom") is False:
+        TGL["ma_nhom"] = False
+        if tgl_noi():
+            TGL["ma"] = ""
+    if data.get("ma_nhom") and CFG.get("tg_lenh"):        # fen 12/11: nối vào nhóm (fen + nhân viên + bot), kể cả khi đang nối riêng
         import secrets
-        TGL["ma"], TGL["ma_luc"], TGL["sai"] = "%06d" % secrets.randbelow(10 ** 6), now(), 0
+        TGL["ma"], TGL["ma_luc"], TGL["sai"], TGL["ma_nhom"] = "%06d" % secrets.randbelow(10 ** 6), now(), 0, True
+        if tgl_noi() and not CFG.get("tg_lenh_chu_ten") and not CFG.get("tg_lenh_nhom"):
+            save_cfg_keys({"tg_lenh_chu_ten": CFG.get("tg_lenh_ten")})
+    elif CFG.get("tg_lenh") and not tgl_noi() and (data.get("ma_moi") or not TGL["ma"] or now() - TGL["ma_luc"] >= TGL_MA_HAN):
+        import secrets
+        TGL["ma"], TGL["ma_luc"], TGL["sai"], TGL["ma_nhom"] = "%06d" % secrets.randbelow(10 ** 6), now(), 0, False
     return tgl_trang_thai()
+
+
+def tgl_kiem_quyen_nhom():
+    """Bot trong nhóm chỉ đọc được lệnh /… và tin trả lời bot; muốn đọc mọi tin (nhắn chủ đề, quy tắc) thì bot phải là quản trị viên."""
+    try:
+        bot_id = int(str(CFG.get("telegram_token") or "").split(":")[0])
+        x = tg_call("getChatMember", {"chat_id": CFG["tg_lenh_chat"], "user_id": bot_id}, timeout=20) or {}
+        if x.get("status") not in ("administrator", "creator"):
+            tgl_gui("⚠ Để bot đọc được tin nhắn thường trong nhóm (nhắn chủ đề, quy tắc): vào nhóm → bấm tên nhóm → "
+                    "Quản trị viên → Thêm quản trị viên → chọn bot (không cần bật quyền nào). Trước khi làm, chỉ lệnh /… và tin trả lời bot là bot đọc được.")
+            return False
+        return True
+    except Exception as e:
+        log("tg lenh kiem quyen nhom loi: %s" % e)
+        return None
 
 
 def tgl_gui(text, nut=None, tra_loi=None, markup=None):
@@ -4143,44 +4179,84 @@ def tgl_doan_kenh(s):
     return "ipad" if ip and not lt else "laptop" if lt and not ip else ""
 
 
+def tgl_nhom():
+    """Remote đang nối vào 1 nhóm (fen 12/11 "thêm vào chat": fen + Quân + bot chung 1 nhóm, ai trong nhóm cũng ra lệnh)."""
+    return bool(tgl_noi() and CFG.get("tg_lenh_nhom"))
+
+
+def tgl_chu(fr):
+    """Người nối Remote (fen): bật / tắt Remote, ghi quy tắc chỉ fen làm (nhóm có người khác)."""
+    return (fr or {}).get("id") == CFG.get("tg_lenh_nguoi")
+
+
 def tgl_tin(m):
     c, fr = m.get("chat") or {}, m.get("from") or {}
-    if c.get("type") != "private" or fr.get("is_bot"):
+    nhom = c.get("type") in ("group", "supergroup")
+    if (c.get("type") != "private" and not nhom) or fr.get("is_bot"):
         return
     text = (m.get("text") or m.get("caption") or "").strip()
-    if not tgl_noi():
-        ma = TGL["ma"] if TGL["ma"] and now() - TGL["ma_luc"] < TGL_MA_HAN else ""
-        so = re.sub(r"\D", "", text)
-        if ma and so != ma and len(so) == 6:              # đoán mã: sai 10 lần thì huỷ mã, fen bấm Mã mới trong app
+    goi = False                               # trong nhóm: tin có gọi bot (gắn @bot, lệnh /…, trả lời tin bot, "bài …")
+    if CFG.get("telegram_bot"):               # bỏ "@tên_bot" khi được gọi tên
+        t2 = re.sub(r"@" + re.escape(CFG["telegram_bot"]) + r"\b", "", text, flags=re.I).strip()
+        goi, text = t2 != text, t2
+    ma = TGL["ma"] if TGL["ma"] and now() - TGL["ma_luc"] < TGL_MA_HAN else ""
+    # mã thường: nối chat riêng (lúc chưa nối); mã nhóm (nút "Dùng trong nhóm"): nối nhóm, kể cả khi đang nối riêng
+    if ma and ((nhom and TGL.get("ma_nhom")) or (not nhom and not tgl_noi())):
+        mm = re.fullmatch(r"(?:/start\s*)?(\d{6})", re.sub(r"\s+", " ", text))
+        so = mm.group(1) if mm else ""
+        if so and so != ma:                     # đoán mã: sai 10 lần thì huỷ mã, fen bấm Mã mới trong app
             TGL["sai"] = TGL.get("sai", 0) + 1
             if TGL["sai"] >= 10:
                 TGL["ma"], TGL["sai"] = "", 0
                 log("tg lenh: sai ma 10 lan, huy ma")
             return
-        if ma and so == ma:          # "/start 123456" (bấm link trong app) hoặc gõ "123456"
-            ten = " ".join(x for x in (fr.get("first_name"), fr.get("last_name")) if x).strip() or fr.get("username") or "fen"
-            save_cfg_keys({"tg_lenh_chat": c["id"], "tg_lenh_nguoi": fr["id"], "tg_lenh_ten": ten})
-            TGL["ma"] = ""
-            log("tg lenh: da ghep tai khoan %s" % fr.get("id"))
+        if so and so == ma:   # "/start 123456" (link trong app), "/start@bot 123456" (thêm bot vào nhóm) hoặc gõ "123456"
+            nguoi = " ".join(x for x in (fr.get("first_name"), fr.get("last_name")) if x).strip() or fr.get("username") or "fen"
+            if nhom:
+                save_cfg_keys({"tg_lenh_chat": c["id"], "tg_lenh_nguoi": fr["id"], "tg_lenh_ten": c.get("title") or "nhóm",
+                               "tg_lenh_chu_ten": nguoi, "tg_lenh_nhom": True, "tg_lenh_bang": None})
+            else:
+                save_cfg_keys({"tg_lenh_chat": c["id"], "tg_lenh_nguoi": fr["id"], "tg_lenh_ten": nguoi, "tg_lenh_chu_ten": nguoi,
+                               "tg_lenh_nhom": False, "tg_lenh_bang": None})
+            TGL["ma"], TGL["ma_nhom"] = "", False
+            log("tg lenh: da ghep %s %s" % ("nhom" if nhom else "tai khoan", c.get("id")))
             tgl_menu()
-            tgl_gui("✅ Đã nối app Poly Dựng Bài.\n\n" + TGL_HELP)
+            tgl_gui(("✅ Đã nối app Poly Dựng Bài với nhóm này. Ai trong nhóm cũng ra lệnh được; bật / tắt Remote, ghi quy tắc: chỉ %s.\n\n" % nguoi
+                     if nhom else "✅ Đã nối app Poly Dựng Bài.\n\n") + tgl_huong_dan())
+            if nhom:
+                tgl_kiem_quyen_nhom()
             tgl_bang(moi=True)
+            return
+    if not tgl_noi():
         return
-    if c.get("id") != CFG.get("tg_lenh_chat") or fr.get("id") != CFG.get("tg_lenh_nguoi"):
-        log("tg lenh: bo qua tin tu tai khoan la %s" % fr.get("id"))
+    if re.fullmatch(r"(?:/start\s*)?\d{6}", re.sub(r"\s+", " ", text)):     # mã nối gửi sai chỗ / hết hạn: không coi là chủ đề bài
+        if c.get("id") == CFG.get("tg_lenh_chat"):
+            tgl_gui("Mã này để nối bot vào nhóm: bấm nút \"Thêm bot vào nhóm\" trong app (Remote → Dùng trong nhóm), chọn nhóm.")
+        return
+    if c.get("id") != CFG.get("tg_lenh_chat") or (not tgl_nhom() and not tgl_chu(fr)):
+        if c.get("type") == "private":
+            log("tg lenh: bo qua tin tu tai khoan la %s" % fr.get("id"))
         return
     TGL["lan_cuoi"] = now()
     t0 = _bo_dau(text)
     lenh = (t0.split() or [""])[0].split("@")[0]
+    rt = m.get("reply_to_message") or {}
+    if tgl_nhom():
+        mb0 = re.match(r"^\s*(?:b[aà]i|brief|ch[uủ]\s*đ[eề])\s*[:\-–]\s*", text, re.I)     # "bài: …" (có dấu :), chat thường "bài này…" không tính
+        goi = goi or lenh.startswith("/") or bool((rt.get("from") or {}).get("is_bot")) or bool(mb0)
+        if mb0:
+            text, t0 = text[mb0.end():].strip(), _bo_dau(text[mb0.end():].strip())
     la_bat = lenh in ("/bat", "/on") or t0 in ("bat", "bat remote", "mo remote", "bat lenh", "on")
     if lenh in ("/bang", "/menu", "/start") or t0 in ("bang", "bang dieu khien", "menu"):
         return tgl_bang(moi=True)
     if lenh in ("/cho", "/chodang") or t0 in ("cho dang", "bai cho dang"):
         return tgl_ds_cho()
     if not CFG.get("tg_lenh"):            # Remote đang tắt: chỉ nhận lệnh bật
-        if la_bat:
+        if la_bat and tgl_chu(fr):
             tgl_cai({"bat": True})
-        elif now() - TGL.get("ngu_bao", 0) > 300:
+        elif la_bat:
+            tgl_gui("Chỉ %s bật Remote được." % (CFG.get("tg_lenh_chu_ten") or "người nối bot"))
+        elif (goi or not tgl_nhom()) and now() - TGL.get("ngu_bao", 0) > 300:
             TGL["ngu_bao"] = now()
             tgl_gui("⚪ Remote đang tắt, nhắn /bat để bật.")
         return
@@ -4195,18 +4271,22 @@ def tgl_tin(m):
             return
     rep_bj = tgl_tim_brief((m.get("reply_to_message") or {}).get("message_id")) if m.get("reply_to_message") else None
     if (m.get("photo") or m.get("document")) and not text and not rep_bj:
-        if g:
+        if g or (tgl_nhom() and not goi):
             return
         return tgl_gui("Ảnh dùng khi ghi quy tắc: gửi lại kèm chữ \"quy tắc: …\".")
     if lenh in ("/help", "/huongdan", "help") or t0 in ("?", "huong dan", "giup", "lenh"):
-        return tgl_gui(TGL_HELP)
+        return tgl_gui(tgl_huong_dan())
     if lenh in ("/tinhhinh", "/status") or re.match(r"(tinh hinh|tinh trang|status)\b", t0):
         return tgl_gui(tgl_tinh_hinh())
     if lenh == "/tat" or t0 in ("tat", "tat remote", "tat lenh", "dung remote"):
+        if not tgl_chu(fr):
+            return tgl_gui("Chỉ %s bật / tắt Remote được." % (CFG.get("tg_lenh_chu_ten") or "người nối bot"))
         tgl_cai({"bat": False})
         return
     mq = re.match(r"^\s*(?:/quytac(?:@\w+)?|quy\s*t[aắ]c(?:\s*m[oớ]i)?|lu[aậ]t(?:\s*m[oớ]i)?)\s*[:\-–]?\s*", text, re.I)
     hoi_qt = TGL.get("hoi_qt") and (m.get("reply_to_message") or {}).get("message_id") == TGL.get("hoi_qt")
+    if (mq or hoi_qt) and not tgl_chu(fr):
+        return tgl_gui("Ghi quy tắc chỉ %s làm được." % (CFG.get("tg_lenh_chu_ten") or "người nối bot"))
     if mq or hoi_qt:
         nd = (text[mq.end():] if mq else text).strip()
         if len(nd) < 3:
@@ -4222,9 +4302,11 @@ def tgl_tin(m):
         return tgl_bat_qt(TGL["cho"].pop(k), pv)
     if rep_bj:              # reply tin brief (kèm ảnh được, fen 3/11): Claude sửa brief đó
         return tgl_sua_brief(rep_bj, text, anh)
+    if tgl_nhom() and not goi:            # nhóm: chuyện thường giữa người với người, bot không đụng
+        return
     mb = re.match(r"^\s*/brief(?:@\w+)?\s*", text, re.I)
     if lenh.startswith("/") and not mb:
-        return tgl_gui("Lệnh lạ.\n\n" + TGL_HELP)
+        return tgl_gui("Lệnh lạ.\n\n" + tgl_huong_dan())
     chu_de = (text[mb.end():] if mb else text).strip()
     if len(chu_de) < 3:
         return tgl_gui("Gõ chủ đề bài, vd: laptop cho dân kiến trúc")
@@ -4253,12 +4335,16 @@ def tgl_bam(q):
         except Exception:
             pass
 
-    if not tgl_noi() or fr.get("id") != CFG.get("tg_lenh_nguoi") or (msg.get("chat") or {}).get("id") != CFG.get("tg_lenh_chat"):
+    if not tgl_noi() or (not tgl_nhom() and not tgl_chu(fr)) or (msg.get("chat") or {}).get("id") != CFG.get("tg_lenh_chat"):
         return tra()
     TGL["lan_cuoi"] = now()
     loai, _, du = (q.get("data") or "").partition(":")
     if loai == "bg":
+        if du in ("bat", "tat", "qt") and not tgl_chu(fr):
+            return tra("Chỉ %s làm việc này" % (CFG.get("tg_lenh_chu_ten") or "người nối bot"))
         return tgl_bam_bang(du, tra)
+    if loai in ("qt", "qtk") and not tgl_chu(fr):
+        return tra("Ghi quy tắc chỉ người nối bot làm được")
     if loai == "xem" and re.fullmatch(r"[0-9a-zA-Z_-]{6,64}", du):     # chỉ xem: lúc Remote tắt vẫn xem được
         dang, vua = TGL.setdefault("xem_dang", set()), TGL.setdefault("xem_luc", {}).get(du, 0)
         if du in dang:             # bấm 2 lần liền (bảng ghim + danh sách): không gửi album 2 lần
@@ -4790,7 +4876,7 @@ def tgl_bam_bang(viec, tra):
         return tgl_bang(ep=True)
     if viec == "help":
         tra()
-        return tgl_gui(TGL_HELP)
+        return tgl_gui(tgl_huong_dan())
     if viec == "th":
         tra()
         return tgl_gui(tgl_tinh_hinh())
