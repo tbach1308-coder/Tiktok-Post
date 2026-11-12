@@ -1686,13 +1686,14 @@ def create_job(data):
     if isinstance(data.get("_khach"), dict):     # bài do máy dùng chung tạo (cổng khách tự gắn, trang không gửi được)
         job["khach"] = {"id": data["_khach"].get("id"), "ten": data["_khach"].get("ten")}
     if data.get("dung_bang") == "canva":     # fen 6/11: dựng trên Canva theo mẫu của kênh, không qua Photoshop
-        th = theme_cv_tim(data.get("theme_canva"))
+        km = (data.get("_khach") or {}).get("id") if isinstance(data.get("_khach"), dict) else None
+        th = theme_tim_cho(data.get("theme_canva"), km)
         if th and (THEME_SUA.get(th["id"]) or {}).get("tt") == "dang" and (THEME_SUA[th["id"]].get("kieu") != "nhan-ban") \
                 and now() - THEME_SUA[th["id"]].get("t", 0) < 1200:
             raise ValueError('Theme "%s" đang được chỉnh trên Canva (2–5 phút): chờ chỉnh xong rồi Chạy' % short(th.get("ten") or "", 40))
         if th:      # fen 10/11: chọn theme trong kho theme Canva thay cho mẫu của kênh
             job["theme_canva"] = {"id": th["id"], "ten": th.get("ten"), "link": th["link"]}
-        if not th and not canva_mau(kenh):
+        if not th and not canva_mau(kenh, km):
             raise ValueError("Kênh %s chưa có mẫu Canva: vào Kiểm máy > Canva dán link thiết kế mẫu, hoặc chọn Dựng bằng Photoshop"
                              % CFG["kenh"].get(kenh, {}).get("ten", kenh))
         job["dung_bang"] = "canva"
@@ -1824,6 +1825,8 @@ def nhap_bo(data):
         p = os.path.join(APP, "nhap-bo.json")
         ds = read_json(p, []) or []
         x["bo_luc"] = now()
+        if data.get("_may"):
+            x["may"] = data["_may"]
         ds.append(x)
         write_json(p, ds[-100:])
     return {"ok": True}
@@ -1833,13 +1836,16 @@ def _chuan(t):
     return re.sub(r"\s+", " ", t or "").strip().lower()
 
 
-def lich_su_brief():
-    """Nút "Lịch sử brief": brief của mọi bài đã chạy, các lần bấm "Viết brief" (cả lần báo trùng) và nháp đã bỏ."""
+def lich_su_brief(may=None):
+    """Nút "Lịch sử brief": brief của mọi bài đã chạy, các lần bấm "Viết brief" (cả lần báo trùng) và nháp đã bỏ.
+    Máy dùng chung chỉ thấy của máy đó; máy shop thấy hết (fen 12/11 "app gốc quản lý và xem dc bài làm của máy khác")."""
     import difflib
     ds = []
     for jid in (sorted(os.listdir(JOBS), reverse=True)[:400] if os.path.isdir(JOBS) else []):
         job = read_json(os.path.join(JOBS, jid, "job.json"))
         if not job or job.get("loai") == "quy-tac":
+            continue
+        if may and (job.get("khach") or {}).get("id") != may:
             continue
         if job.get("loai") == "brief":
             txt = read_text(os.path.join(JOBS, jid, "brief-viet.txt")).replace("\ufeff", "").strip()
@@ -1870,6 +1876,8 @@ def lich_su_brief():
             ds.append({"id": jid, "loai": "bai", "kenh": job.get("kenh"), "ten": ten, "ngay": ngay, "t": job.get("created"),
                        "trang_thai": job.get("status"), "brief": b, "hen_luc": job.get("hen_luc")})
     for x in reversed(read_json(os.path.join(APP, "nhap-bo.json"), []) or []):
+        if may and isinstance(x, dict) and x.get("may") != may:
+            continue
         if isinstance(x, dict) and ((x.get("brief") or "").strip() or (x.get("chude") or "").strip()):
             ds.append({"id": "nhap-%s-%d" % (x.get("id"), int(x.get("bo_luc") or 0)), "loai": "nhap", "kenh": x.get("kenh"),
                        "ten": x.get("ten") or x.get("chude") or "", "t": x.get("bo_luc") or x.get("t"), "trang_thai": "bo",
@@ -1927,6 +1935,7 @@ def viet_brief(data):
         "out": out.replace("\\", "/"),
     })
     job = {"id": jid, "kenh": kenh, "loai": "brief", "brief": "", "ten_bai": "", "tieu_de": "Viết brief: " + short(chu_de, 60),
+           **({"khach": {"id": data["_khach"].get("id"), "ten": data["_khach"].get("ten")}} if isinstance(data.get("_khach"), dict) else {}),
            "chu_de": chu_de, "ngay_dang": "", "ghi_chu": "", "created": now(), "status": "moi", "runs": []}
     with LOCK:
         save_job(job)
@@ -2070,6 +2079,7 @@ def chat_brief(data):
         "out": out.replace("\\", "/"),
     })
     job = {"id": jid, "kenh": kenh, "loai": "brief", "chat": True, "brief": "", "ten_bai": "", "tieu_de": "Chat brief: " + short(tin or "(ảnh)", 60), "anh": anh,
+           **({"khach": {"id": data["_khach"].get("id"), "ten": data["_khach"].get("ten")}} if isinstance(data.get("_khach"), dict) else {}),
            "chu_de": (data.get("chu_de") or "").strip(), "ngay_dang": "", "ghi_chu": "", "created": now(), "status": "moi", "runs": [],
            "model": model_viec("model_chat")}       # chat cần nhanh: mặc định Sonnet (đổi ở Kiểm máy > Model)
     with LOCK:
@@ -2708,7 +2718,10 @@ def _canva_kiem_chay(cmd):
     canva_ghi_tt(tt, "kiểm", ghi, t=now())
 
 
-def canva_mau(kenh):
+def canva_mau(kenh, may=None):
+    """Mẫu Canva của kênh (Kiểm máy > Canva). Máy dùng chung có mẫu riêng (fen 12/11: mẫu fen đang dùng không áp cho máy khác)."""
+    if may:
+        return ((((CFG.get("chung_may") or {}).get(may) or {}).get("canva_mau") or {}).get(kenh) or "").strip()
     return ((CFG.get("canva_mau") or {}).get(kenh) or "").strip()
 
 
@@ -2784,7 +2797,8 @@ def theme_goi_y(kenh, chu):
     dg = _doan_dang(short(re.sub(r"\s+", " ", chu or ""), 300))
     if not dg:
         return None
-    ds = [t for t in theme_cv_ds(kenh) if dg in (t.get("dang") or []) and not (t.get("nguon") == "kho-chung" and not t.get("chia_se"))]
+    ds = [t for t in theme_cv_ds(kenh) if dg in (t.get("dang") or []) and not (t.get("nguon") == "kho-chung" and not t.get("chia_se"))
+          and theme_thay(t)]
     return max(ds, key=lambda t: t.get("t") or 0) if ds else None
 
 
@@ -2843,10 +2857,11 @@ def theme_sua(data):
     kenh = x.get("kenh") if x.get("kenh") in CFG["kenh"] else ("" if "kenh" in x else t.get("kenh", ""))
     dang = [d for d in (x.get("dang") or t.get("dang") or []) if d in dict(THEME_DANG)]
     THEME_SUA[t["id"]] = {"tt": "dang", "t": now(), "ghi": "", "kieu": kieu}
-    threading.Thread(target=_theme_sua_chay, args=(cmd, dict(t), kieu, yc, ten_moi, kenh, dang), daemon=True).start()
+    threading.Thread(target=_theme_sua_chay, args=(cmd, dict(t), kieu, yc, ten_moi, kenh, dang, x.get("_may") if kieu == "nhan-ban" else None),
+                     daemon=True).start()
 
 
-def _theme_sua_chay(cmd, t, kieu, yc, ten_moi, kenh, dang):
+def _theme_sua_chay(cmd, t, kieu, yc, ten_moi, kenh, dang, may=None):
     os.makedirs(THEME_CV_ANH, exist_ok=True)
     id_moi = ("t" + uuid.uuid4().hex[:8]) if kieu == "nhan-ban" else t["id"]
     anh = os.path.join(THEME_CV_ANH, "%s.png" % id_moi)
@@ -2909,6 +2924,8 @@ def _theme_sua_chay(cmd, t, kieu, yc, ten_moi, kenh, dang):
             doc["ds"].append({"id": id_moi, "ma": ma, "link": "https://www.canva.com/design/%s/edit" % ma, "ten": ten_moi, "kenh": kenh,
                               "dang": dang, "so_trang": info.get("so_trang") if isinstance(info.get("so_trang"), int) else t.get("so_trang"),
                               "t": now(), "nguon": "nhan-ban", "goc": t["id"]})
+            if may:
+                doc["ds"][-1]["may"] = may
         else:
             for y in doc["ds"]:
                 if y.get("id") == t["id"]:
@@ -3088,6 +3105,29 @@ def theme_cv_tim(tid):
     return next((t for t in theme_cv_ds() if t.get("id") == tid), None) if tid else None
 
 
+def theme_thay(t, may=None):
+    """Mỗi máy 1 bộ theme riêng (fen 12/11 19h35 "chỉ sài trên kho chung, mỗi máy sẽ có 1 template sáng tạo tự làm riêng" → "Fen chọn
+    theme vào kho chung"). Máy shop (may=None): theme của máy shop + theme tải từ kho chung (Drive). Máy dùng chung X: theme fen đã
+    bấm "Vào kho chung" (kc) + theme tải từ kho chung + theme máy X tự thêm / nhân bản (may = X)."""
+    if not t:
+        return False
+    if t.get("nguon") == "kho-chung":
+        return True
+    if may:
+        return t.get("may") == may or (bool(t.get("kc")) and not t.get("may"))
+    return not t.get("may")
+
+
+def theme_cua(t, may=None):
+    """Theme máy này được sửa / bỏ / chỉnh (theme kho chung của máy shop: máy khác chỉ dùng + nhân bản)."""
+    return bool(t) and (t.get("may") or None) == (may or None) and not (may and t.get("nguon") == "kho-chung")
+
+
+def theme_tim_cho(tid, may=None):
+    t = theme_cv_tim(tid)
+    return t if theme_thay(t, may) else None
+
+
 def _theme_ra(t):
     o = {k: t.get(k) for k in ("id", "ten", "link", "ma", "kenh", "dang", "so_trang", "rong", "cao", "t")}
     f = os.path.join(THEME_CV_ANH, "%s.png" % t.get("id"))
@@ -3096,14 +3136,44 @@ def _theme_ra(t):
     o["sua"] = THEME_SUA.get(t.get("id"))
     o["goc"] = t.get("goc")
     o["nguon"] = t.get("nguon") or ""
+    o["kc"] = bool(t.get("kc")) or t.get("nguon") == "kho-chung"
+    o["may"] = t.get("may") or ""
     o["link_chia_se"] = t.get("link_chia_se") or ""
     o["chia_se"] = bool(t.get("link_chia_se") or t.get("chia_se"))
     return o
 
 
-def theme_cv(data=None):
-    """GET: {ds, dang}. POST {them:{link,ten,kenh,dang}} | {sua:{id,...}} | {xoa:id} | {xem:id} (lấy ảnh xem trước)."""
+def theme_cv(data=None, may=None):
+    """GET: {ds, dang}. POST {them:{link,ten,kenh,dang}} | {sua:{id,...}} | {xoa:id} | {xem:id} (lấy ảnh xem trước) | {kc:id, bat}.
+    may: mã máy dùng chung (None = máy shop) — mỗi máy chỉ thấy / sửa theme của mình + kho chung (theme_thay / theme_cua)."""
     data = data or {}
+    for k in ("xoa", "hien", "chinh", "sua"):          # mỗi máy chỉ sửa / bỏ theme của máy đó
+        v = data.get(k)
+        tid = v.get("id") if isinstance(v, dict) else v
+        if v and not theme_cua(next((t for t in theme_cv_ds(ca_an=True) if t.get("id") == tid), None), may):
+            raise ValueError("Theme kho chung chỉ máy shop sửa / bỏ được: bấm ⧉ Nhân bản để có bản riêng rồi chỉnh bản đó" if may
+                             else "Không thấy theme")
+    if may:
+        for k in ("xem", "trang"):
+            if data.get(k) and not theme_tim_cho(data.get(k), may):
+                raise ValueError("Không thấy theme")
+        if data.get("nhan_ban") and not theme_tim_cho((data.get("nhan_ban") or {}).get("id"), may):
+            raise ValueError("Không thấy theme")
+        if data.get("kc") or data.get("dong_bo"):
+            data = {}                     # vào kho chung / lấy từ thư mục POLY Theme: chỉ máy shop
+    elif data.get("kc"):
+        with THEME_KHOA:
+            doc = _theme_doc()
+            t = next((y for y in doc["ds"] if y.get("id") == data["kc"] and not y.get("an") and not y.get("may")), None)
+            if not t or t.get("nguon") == "kho-chung":
+                raise ValueError("Không thấy theme")
+            if data.get("bat", True):
+                t["kc"] = True
+            else:
+                t.pop("kc", None)
+            write_json(THEME_CV_FILE, doc)
+    if data.get("nhan_ban"):
+        data["nhan_ban"] = dict(data["nhan_ban"], _may=may)
     if data.get("them") or data.get("sua"):
         x = data.get("them") or data.get("sua")
         kenh = x.get("kenh") if x.get("kenh") in CFG["kenh"] else ""
@@ -3117,9 +3187,9 @@ def theme_cv(data=None):
                 m = _CANVA_ID.search(link)
                 if not link or not m:
                     raise ValueError("Dán link thiết kế Canva (https://www.canva.com/design/D…/…)")
-                if any(t.get("ma") == m.group(0) and not t.get("an") for t in doc["ds"]):
+                if any(t.get("ma") == m.group(0) and not t.get("an") and theme_thay(t, may) for t in doc["ds"]):
                     raise ValueError("Thiết kế này đã có trong kho theme")
-                cu = next((t for t in doc["ds"] if t.get("ma") == m.group(0)), None)
+                cu = next((t for t in doc["ds"] if t.get("ma") == m.group(0) and (t.get("may") or None) == (may or None) and t.get("an")), None)
                 if cu is not None:                  # theme fen đã bỏ: hiện lại
                     cu.pop("an", None)
                     cu.pop("bo", None)
@@ -3131,6 +3201,8 @@ def theme_cv(data=None):
                 if not hien_lai:
                     t = {"id": "t" + uuid.uuid4().hex[:8], "ma": m.group(0), "link": "https://www.canva.com/design/%s/edit" % m.group(0),
                          "ten": ten or "Theme %d" % (len(doc["ds"]) + 1), "kenh": kenh, "dang": dang, "t": now()}
+                    if may:
+                        t["may"] = may
                     doc["ds"].append(t)
             else:
                 t = next((y for y in doc["ds"] if y.get("id") == x.get("id") and not y.get("an")), None)
@@ -3168,18 +3240,19 @@ def theme_cv(data=None):
         if not t:
             raise ValueError("Không thấy theme")
         _theme_xem_bat(t)
-    elif data.get("dong_bo"):
+    elif data.get("dong_bo") and not may:
         theme_dong_bo_bat(ep=data.get("dong_bo") == "ep")
     elif data.get("nhan_ban") or data.get("chinh"):
         theme_sua(data)
     elif data.get("trang"):
         return theme_trang_bat(str(data["trang"]), ep=bool(data.get("ep")))
-    if data.get("them") or data.get("sua") or data.get("xoa") or data.get("hien"):
+    if (data.get("them") or data.get("sua") or data.get("xoa") or data.get("hien") or data.get("kc")) and not may:
         _kho_chung_doi()
-    elif not data:
+    elif not data and not may:
         kho_chung_tu_tai()        # mở Kho theme / Bài mới: máy khác tự lấy kho chung mới (tối đa 30 phút 1 lần)
-    return {"ds": [_theme_ra(t) for t in theme_cv_ds()], "dang": THEME_DANG, "db": dict(THEME_DB),
-            "bo_ds": [{"id": t["id"], "ten": t.get("ten") or ""} for t in theme_cv_ds(ca_an=True) if t.get("an") and t.get("bo")],
+    return {"ds": [_theme_ra(t) for t in theme_cv_ds() if theme_thay(t, may)], "dang": THEME_DANG, "db": dict(THEME_DB), "may": may or "",
+            "bo_ds": [{"id": t["id"], "ten": t.get("ten") or ""} for t in theme_cv_ds(ca_an=True)
+                      if t.get("an") and t.get("bo") and (t.get("may") or None) == (may or None)],
             "thu_muc": CFG.get("theme_thu_muc") or "POLY Theme"}
 
 
@@ -3283,7 +3356,8 @@ def kho_chung_dua(chon):
     theo_ma = {x["ma"]: x for x in ds}
     them = 0
     for t in theme_cv_ds():
-        if t.get("nguon") == "kho-chung" or (chon is not True and t.get("id") not in (chon or [])):
+        if t.get("nguon") == "kho-chung" or t.get("may") or (chon is True and not t.get("kc")) or \
+                (chon is not True and t.get("id") not in (chon or [])):
             continue
         anh = ""
         fa = os.path.join(THEME_CV_ANH, "%s.png" % t["id"])
@@ -3657,8 +3731,9 @@ def canva_bien(job):
     """Biến chung cho lệnh mẫu Canva (dựng, sửa, đưa lên)."""
     cv = canva_doc(job["id"]) or {}
     th = job.get("theme_canva") if isinstance(job.get("theme_canva"), dict) else None
-    mau = (th or {}).get("link") or canva_mau(job["kenh"])
-    khac = next((canva_mau(k) for k in CFG["kenh"] if k != job["kenh"] and canva_mau(k)), "")
+    km = (job.get("khach") or {}).get("id")
+    mau = (th or {}).get("link") or canva_mau(job["kenh"], km)
+    khac = next((canva_mau(k, km) for k in CFG["kenh"] if k != job["kenh"] and canva_mau(k, km)), "")
     return {
         "mau": (mau + (' (theme "%s" fen chọn trong kho theme)' % th.get("ten") if th else "")) if mau else "(kênh này chưa có mẫu)",
         "mau_khung": mau or khac or "(chưa có mẫu nào: search-designs tìm thiết kế cỡ 1080x1440 của fen)",
@@ -3669,10 +3744,10 @@ def canva_bien(job):
     }
 
 
-def canva_cai(data=None):
-    """Kiểm máy > Canva: xem / lưu link thiết kế mẫu của từng kênh."""
+def canva_cai(data=None, may=None):
+    """Kiểm máy > Canva: xem / lưu link thiết kế mẫu của từng kênh. Máy dùng chung: mẫu riêng của máy đó."""
     if data is not None:
-        m = dict(CFG.get("canva_mau") or {})
+        m = dict((((CFG.get("chung_may") or {}).get(may) or {}).get("canva_mau") if may else CFG.get("canva_mau")) or {})
         for k in CFG["kenh"]:
             if "mau_" + k not in data:
                 continue
@@ -3681,8 +3756,14 @@ def canva_cai(data=None):
                 raise ValueError("Mẫu %s: dán link thiết kế Canva (https://www.canva.com/design/...) hoặc mã thiết kế bắt đầu bằng D"
                                  % CFG["kenh"][k].get("ten", k))
             m[k] = v
-        save_cfg_keys({"canva_mau": m})
-    return {"mau": {k: canva_mau(k) for k in CFG["kenh"]}, "thu_muc": CFG.get("canva_thu_muc") or "POLY Dựng Bài"}
+        if may:
+            ds = dict(CFG.get("chung_may") or {})
+            if may in ds:
+                ds[may] = dict(ds[may], canva_mau=m)
+                save_cfg_keys({"chung_may": ds})
+        else:
+            save_cfg_keys({"canva_mau": m})
+    return {"mau": {k: canva_mau(k, may) for k in CFG["kenh"]}, "thu_muc": CFG.get("canva_thu_muc") or "POLY Dựng Bài"}
 
 
 def canva_chot(jid, job, run, res):
@@ -5198,13 +5279,15 @@ def danh_dau_dang(jid, data):
     return {"ok": True}
 
 
-def quan_ly():
+def quan_ly(may=None):
     """Trang Quản lý bài: chờ đăng / đã hẹn / đã đăng."""
     ds = []
     base = "/file?p="
     for jid in (sorted(os.listdir(JOBS), reverse=True)[:300] if os.path.isdir(JOBS) else []):
         j = read_json(os.path.join(JOBS, jid, "job.json"))
         if not j or j.get("loai") in VIEC_AN or j.get("an"):
+            continue
+        if may and (j.get("khach") or {}).get("id") != may:
             continue
         sl = list_slides(j.get("thu_muc_bai")) if j.get("status") == "xong" else []
         ten, ngay = ten_hien(j)
@@ -6043,9 +6126,34 @@ CHUNG = {"srv": None, "pid": 0, "pid_t": 0, "url": "", "loi": "", "dang": "", "m
 CHUNG_KHOA = threading.Lock()
 CHUNG_DIR = os.path.join(APP, "_cf")
 CHUNG_MA_HAN = 900
-CHUNG_CAM = {"GET": (r"/api/chung",),
+CHUNG_CAM = {"GET": (r"/api/chung", r"/api/bai-co-san"),
              "POST": (r"/api/tat", r"/api/login", r"/api/cai-claude", r"/api/chung", r"/api/tiktok-(soi|dang|nhac)",
-                      r"/api/job/[\w-]+/(mo|tiktok)")}
+                      r"/api/job/[\w-]+/(mo|tiktok)", r"/api/bai-co-san")}
+CHUNG_TM = {}       # mã máy -> (lúc, [thư mục bài của máy đó]) để kiểm /file nhanh
+
+
+def chung_bai_cua(may, jid):
+    """Máy dùng chung chỉ mở / sửa bài máy đó làm (fen 12/11: máy shop quản lý, xem hết bài các máy)."""
+    j = load_job(jid) if re.fullmatch(r"[\w-]{1,80}", jid or "") else None
+    return bool(j) and (j.get("khach") or {}).get("id") == may
+
+
+def chung_file_cua(may, pth):
+    """/file trên cổng khách: chỉ file trong thư mục bài (jobs/<id>, thư mục slide) của bài máy đó làm."""
+    f = os.path.normcase(os.path.realpath(pth or ""))
+    c = CHUNG_TM.get(may)
+    if c and any(f == d or f.startswith(d + os.sep) for d in c[1]):
+        return True
+    if not c or now() - c[0] > 1:             # bài mới / thư mục mới: dò lại (tối đa 1 lần / giây)
+        ds = []
+        for jid in (sorted(os.listdir(JOBS), reverse=True)[:400] if os.path.isdir(JOBS) else []):
+            j = read_json(os.path.join(JOBS, jid, "job.json"))
+            if j and (j.get("khach") or {}).get("id") == may:
+                ds.append(os.path.normcase(os.path.realpath(os.path.join(JOBS, jid))))
+                if j.get("thu_muc_bai"):
+                    ds.append(os.path.normcase(os.path.realpath(j["thu_muc_bai"])))
+        c = CHUNG_TM[may] = (now(), ds)
+    return any(f == d or f.startswith(d + os.sep) for d in c[1])
 CF_GH = "https://api.github.com/repos/cloudflare/cloudflared/releases/latest"
 APP_MAC_ZIP = os.path.join(APP, "dist", "Poly-Dung-Bai-dung-chung-Mac.zip")
 APP_WIN_EXE = os.path.join(APP, "dist", "Poly-Dung-Bai-dung-chung.exe")
@@ -6434,6 +6542,12 @@ def _chung_cookie(h, tok):
 
 
 class H(BaseHTTPRequestHandler):
+    khach = None
+
+    def may(self):
+        """Mã máy dùng chung đang gọi (cổng khách), None = máy shop."""
+        return (self.khach or {}).get("id")
+
     server_version = "PolyDungBai/1.0"
 
     def log_message(self, *a):
@@ -6528,17 +6642,20 @@ class H(BaseHTTPRequestHandler):
             if u.path == "/api/bai-co-san":
                 return self.send(200, {"bai": bai_co_san()})
             if u.path == "/api/lich-su-brief":
-                return self.send(200, lich_su_brief())
+                return self.send(200, lich_su_brief(self.may()))
             if u.path == "/api/tiktok-cai":
                 return self.send(200, tiktok_cai())
             if u.path == "/api/model-cai":
                 return self.send(200, model_cai())
             if u.path == "/api/canva-cai":
-                return self.send(200, canva_cai())
+                return self.send(200, canva_cai(None, self.may()))
             if u.path == "/api/theme-canva":
-                return self.send(200, theme_cv())
+                return self.send(200, theme_cv(None, self.may()))
             if u.path == "/api/kho-chung":
                 return self.send(200, kho_chung())
+            m = re.fullmatch(r"/api/theme-canva/(?:trang|trang-anh|anh)/(t[0-9a-f]{8}).*", u.path)
+            if m and self.may() and not theme_tim_cho(m.group(1), self.may()):
+                return self.send(404, {"err": "Không thấy theme"})
             m = re.fullmatch(r"/api/theme-canva/trang/(t[0-9a-f]{8})", u.path)
             if m:
                 return self.send(200, theme_trang_ra(m.group(1)))
@@ -6561,7 +6678,7 @@ class H(BaseHTTPRequestHandler):
             if u.path == "/api/quy-tac":
                 return self.send(200, quy_tac_ds())
             if u.path == "/api/quan-ly":
-                return self.send(200, quan_ly())
+                return self.send(200, quan_ly(self.may()))
             if u.path == "/api/nhap":
                 return self.send(200, nhap_doc())
             if u.path == "/api/jobs":
@@ -6570,7 +6687,10 @@ class H(BaseHTTPRequestHandler):
                     uiv = int(os.path.getmtime(os.path.join(UI, "index.html")))
                 except OSError:
                     uiv = 0
-                return self.send(200, {"jobs": list_jobs(), "ui": uiv, "han_muc": han_muc_tt(), "dung": _dung_tuan_gon(),
+                ds = list_jobs()
+                if self.may():           # máy dùng chung: chỉ bài máy đó làm; máy shop thấy hết
+                    ds = [j for j in ds if (j.get("khach") or {}).get("id") == self.may()]
+                return self.send(200, {"jobs": ds, "ui": uiv, "han_muc": han_muc_tt(), "dung": _dung_tuan_gon(),
                                        "remote": {"bat": bool(CFG.get("tg_lenh")), "noi": tgl_noi(), "loi": bool(tgl_trang_thai()["loi"])},
                                        "chung": {"bat": bool(CFG.get("chung_bat")), "chay": bool(CHUNG["url"]) and _cf_song(), "loi": bool(CHUNG["loi"])}})
             m = re.fullmatch(r"/api/job/([\w-]+)", u.path)
@@ -6646,6 +6766,7 @@ class H(BaseHTTPRequestHandler):
             if u.path == "/api/nhap":
                 return self.send(200, nhap_luu(data))
             if u.path == "/api/nhap/bo":
+                data.pop("_may", None)
                 return self.send(200, nhap_bo(data))
             if u.path == "/api/tiktok-cai":
                 return self.send(200, tiktok_cai(data))
@@ -6654,11 +6775,11 @@ class H(BaseHTTPRequestHandler):
             if u.path == "/api/don-thang":
                 return self.send(200, don_thang(data))
             if u.path == "/api/theme-canva":
-                return self.send(200, theme_cv(data))
+                return self.send(200, theme_cv(data, self.may()))
             if u.path == "/api/kho-chung":
                 return self.send(200, kho_chung(data))
             if u.path == "/api/canva-cai":
-                return self.send(200, canva_cai(data))
+                return self.send(200, canva_cai(data, self.may()))
             if u.path == "/api/canva-tt":
                 return self.send(200, canva_tt(data))
             if u.path == "/api/run":
@@ -6775,6 +6896,13 @@ class HK(H):
         if any(re.fullmatch(r, p) for r in CHUNG_CAM.get(self.command, ())):
             self.send(403, {"err": "Việc này mở trên chính máy shop (máy này không thấy): làm trên máy shop"})
             return False
+        mj = re.fullmatch(r"/api/(?:job|tiktok)/([\w-]+)(?:/.*)?", p)
+        if mj and not chung_bai_cua(m["id"], mj.group(1)):
+            self.send(404, {"err": "Không thấy bài (bài của máy khác)"})
+            return False
+        if p == "/file" and not chung_file_cua(m["id"], (parse_qs(urlparse(self.path).query).get("p") or [""])[0]):
+            self.send(404, {"err": "Không thấy file"})
+            return False
         return True
 
     def do_GET(self):
@@ -6808,10 +6936,16 @@ class HK(H):
                     return self.send(413, {"err": "Gửi quá lớn"})
                 tok, m = chung_vao(self.body())
                 return self.send(200, {"ok": True, "ten": m["ten"], "token": tok}, extra={"Set-Cookie": _chung_cookie(self, tok)})
-            if u.path in ("/api/nhap", "/api/run"):
+            if u.path in ("/api/nhap", "/api/run", "/api/nhap/bo", "/api/viet-brief", "/api/chat-brief"):
                 data = self.body()
                 if u.path == "/api/nhap":
                     return self.send(200, nhap_luu(data, "nhap-%s.json" % self.khach["id"]))
+                if u.path == "/api/nhap/bo":
+                    data["_may"] = self.khach["id"]
+                    return self.send(200, nhap_bo(data))
+                if u.path in ("/api/viet-brief", "/api/chat-brief"):
+                    data["_khach"] = dict(self.khach)
+                    return self.send(200, (viet_brief if u.path == "/api/viet-brief" else chat_brief)(data))
                 data.pop("tu_tg", None)
                 data["_khach"] = dict(self.khach)
                 job = create_job(data)
