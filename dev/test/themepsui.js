@@ -16,13 +16,16 @@ const check = (n, c, x) => { c ? ok++ : bad++; console.log((c ? '✓ ' : '✗ ')
     check(ten + ': mục ☁️ Kho chung (tab Canva) hiện 2 theme Photoshop', kc.length === 2, kc);
     check(ten + ': số theme kho chung ghi đúng', /2 theme \(2 Photoshop\)/.test(await p.$eval('#thKcN', e => e.textContent)), await p.$eval('#thKcN', e => e.textContent));
     check(ten + ': nút tab ghi số theme Photoshop', /Photoshop · 2/.test(await p.$eval('#thKieu [data-k=ps]', e => e.textContent)));
+    const co = await p.evaluate(() => { const a = document.querySelector('#thKcG .thc:not(.thps) .tha'), b = document.querySelector('#thKcG .thps .tha'), c = document.querySelector('#thG .thc .tha');
+      const r = e => e && e.getBoundingClientRect(); const x = r(b), y = r(a) || r(c); return x && y ? [Math.round(x.width), Math.round(y.width), Math.round(x.height / x.width * 100)] : null; });
+    check(ten + ': ảnh thẻ Photoshop cùng cỡ thẻ Canva (3:4)', co && Math.abs(co[0] - co[1]) <= 2 && co[2] === 133, co);
     if (ten === 'rong') { await p.screenshot({ path: '/home/claude/bug3/shots/theme-ps-khochung.png', fullPage: true });
       await p.click('#thKcG [data-dungps="phang-xanh-dem"]'); await p.waitForTimeout(800);
       check('▶ Làm bài ở mục Kho chung: mở Bài mới với theme Photoshop', await p.$$eval('#thPick [data-thps="phang-xanh-dem"].on', x => x.length) === 1);
       await p.evaluate(() => khoTheme()); await p.waitForTimeout(800); }
     await p.click('#thKieu [data-k=ps]'); await p.waitForSelector('#thPsG .thps', { timeout: 8000 }); await p.waitForTimeout(1200);
-    const the = await p.$$eval('#thPsG .thps', x => x.map(e => ({ ten: e.querySelector('b').textContent, anh: e.querySelectorAll('.tha3 img').length, kc: !!e.querySelector('.kcb') })));
-    check(ten + ': tab Photoshop có 2 theme, mỗi thẻ 3 ảnh + nhãn kho chung', the.length === 2 && the.every(t => t.anh === 3 && t.kc), the);
+    const the = await p.$$eval('#thPsG .thps', x => x.map(e => ({ ten: e.querySelector('b').textContent, anh: e.querySelectorAll('.tha img').length, kc: !!e.querySelector('.kcb') })));
+    check(ten + ': tab Photoshop có 2 theme, thẻ giống Canva (1 ảnh bìa) + nhãn kho chung', the.length === 2 && the.every(t => t.anh === 1 && t.kc), the);
     const anhOk = await p.$$eval('#thPsG img', x => x.every(i => i.complete && i.naturalWidth > 0));
     check(ten + ': ảnh xem trước hiện được', anhOk);
     check(ten + ': phần Canva ẩn khi xem Photoshop', await p.$eval('#thCvWrap', e => e.hidden));
