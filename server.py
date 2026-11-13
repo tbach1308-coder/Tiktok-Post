@@ -1965,6 +1965,7 @@ def viet_brief(data):
         "ghi_chu": (data.get("ghi_chu") or "").strip() or "(không)",
         "brief_cu": bcu or "(trống)",
         "thu_muc_kenh": (CFG["thu_muc_bai"].get(kenh, "") or "").replace("\\", "/"),
+        "do_trung": do_trung_cho(kenh, (data.get("_khach") or {}).get("id") if isinstance(data.get("_khach"), dict) else None),
         "kho": kho_khoi(data.get("kho"), kenh),
         "theme": theme_mo_ta(data.get("theme_canva")),
         "out": out.replace("\\", "/"),
@@ -2109,6 +2110,7 @@ def chat_brief(data):
         "chu_de": (data.get("chu_de") or "").strip() or "(chưa gõ)",
         "brief": (data.get("brief") or "").strip()[:20000] or "(trống)",
         "lich_su": "\n".join(ls) or "(chưa có)", "tin": tin_gui,
+        "do_trung": do_trung_cho(kenh, (data.get("_khach") or {}).get("id") if isinstance(data.get("_khach"), dict) else None),
         "kho": kho_khoi(data.get("kho"), kenh),
         "theme": theme_mo_ta(data.get("theme_canva")),
         "out": out.replace("\\", "/"),
@@ -5485,7 +5487,7 @@ def hen_dang_job(jid, data):
             j.pop("hen_dang_mo", None)
         save_job(j)
     log("hen dang %s: %s" % (jid, "huy" if data.get("huy") else time.strftime("%H:%M %d/%m", time.localtime(j["hen_dang"]))))
-    trung = _bai_theo_ngay(j.get("kenh"), jid).get(time.strftime("%Y-%m-%d", time.localtime(j["hen_dang"])), []) if j.get("hen_dang") else []
+    trung = _bai_theo_ngay(j.get("kenh"), jid, (j.get("khach") or {}).get("id")).get(time.strftime("%Y-%m-%d", time.localtime(j["hen_dang"])), []) if j.get("hen_dang") else []
     return {"ok": True, "hen_dang": j.get("hen_dang"), "trung": trung}
 
 
@@ -5523,14 +5525,20 @@ def quan_ly(may=None):
     return {"ds": ds, "now": now()}
 
 
-def _bai_theo_ngay(kenh, tru=""):
-    """Ngày "YYYY-MM-DD" -> ["20:00 Tên bài", ...] các bài của kênh đã hẹn / đã đăng (luật kênh 1 bài/ngày, fen chốt 29/10)."""
+def _cung_may(j, may):
+    """fen 13/11 15h36 "bài máy nào tính trùng trên máy đó thôi, không tính tổng hết bài các máy": may = mã máy dùng chung, None = máy shop."""
+    return ((j.get("khach") or {}).get("id") or None) == (may or None)
+
+
+def _bai_theo_ngay(kenh, tru="", may=None):
+    """Ngày "YYYY-MM-DD" -> ["20:00 Tên bài", ...] các bài của kênh đã hẹn / đã đăng (luật kênh 1 bài/ngày, fen chốt 29/10),
+    chỉ bài của cùng máy (máy shop / từng máy dùng chung)."""
     out = {}
     for jid in (sorted(os.listdir(JOBS), reverse=True)[:300] if os.path.isdir(JOBS) else []):
         if jid == tru:
             continue
         j = read_json(os.path.join(JOBS, jid, "job.json"))
-        if not j or j.get("kenh") != kenh or j.get("loai") in VIEC_AN or j.get("an"):
+        if not j or j.get("kenh") != kenh or j.get("loai") in VIEC_AN or j.get("an") or not _cung_may(j, may):
             continue
         dd = j.get("da_dang") or {}
         t = dd.get("lich") or dd.get("t") or j.get("hen_dang")
@@ -5541,13 +5549,43 @@ def _bai_theo_ngay(kenh, tru=""):
     return out
 
 
+def _bai_may(kenh, may):
+    """[(tên bài, tên thư mục bài)] bài đã làm của kênh theo máy: may = mã máy dùng chung, None = máy shop; "*" = mọi máy dùng chung."""
+    out = []
+    for jid in (sorted(os.listdir(JOBS), reverse=True)[:400] if os.path.isdir(JOBS) else []):
+        j = read_json(os.path.join(JOBS, jid, "job.json"))
+        if not j or j.get("kenh") != kenh or j.get("loai") in VIEC_AN or j.get("an") or j.get("status") not in ("xong", "dang-chay", "hen", "dung", "loi"):
+            continue
+        if (may == "*" and not (j.get("khach") or {}).get("id")) or (may != "*" and not _cung_may(j, may)):
+            continue
+        out.append((ten_hien(j)[0], os.path.basename((j.get("thu_muc_bai") or "").replace("\\", "/").rstrip("/"))))
+    return out
+
+
+def do_trung_cho(kenh, may):
+    """Câu dặn dò trùng chủ đề cho lệnh Viết brief / Chat brief: máy shop dò như cũ (bỏ bài máy dùng chung); máy dùng chung chỉ dò bài máy đó."""
+    tm = (CFG["thu_muc_bai"].get(kenh, "") or "").replace("\\", "/")
+    if may:
+        ds = _bai_may(kenh, may)
+        if not ds:
+            return ("- Lượt này của 1 máy dùng chung: chỉ tính trùng với bài MÁY NÀY đã làm (fen 13/11: bài máy shop, danh sách content của shop, "
+                    "bài máy khác KHÔNG tính trùng). Máy này chưa làm bài nào của kênh: không cần dò trùng chủ đề.")
+        return ("- Lượt này của 1 máy dùng chung: chỉ tính trùng với bài MÁY NÀY đã làm dưới đây (fen 13/11: bài máy shop, danh sách content của shop, "
+                "bài máy khác KHÔNG tính trùng; không cần đọc thư mục kênh để dò trùng):\n" + "\n".join("  - %s%s" % (t, " (%s)" % f if f else "") for t, f in ds[:80]))
+    cu = "- \"E:/Social Claude/_bo-dung-design/noi-dung/danh-sach-content-22-10.md\" (bản chụp 22/10), \"E:/Social Claude/_bo-dung-design/noi-dung/danh-sach-content-da-don.md\" nếu có (bài tháng cũ fen đã dọn khỏi thư mục kênh, vẫn là bài đã làm) và tên các thư mục bài trong \"%s\" (mỗi thư mục T<tháng>_<Tên>_<dd-mm> là 1 bài đã làm; xem bằng 1 lần Glob hoặc ls)." % tm
+    kh = sorted({f for _, f in _bai_may(kenh, "*") if f})
+    if kh:
+        cu += "\n- Không tính trùng với bài của máy dùng chung (fen 13/11: bài máy nào tính trùng trên máy đó), các thư mục này bỏ qua: " + ", ".join(kh[:80])
+    return cu
+
+
 def goi_y_hen(job):
     """Giờ gợi ý cho nút Hẹn giờ của tiện ích: giờ hẹn trong app (còn ≥ 16 phút), không có thì 20:00 / 21:00 / 21:30 / 22:00
     của ngày đầu tiên chưa có bài (giờ đăng kênh 19–22h, 1 bài/ngày)."""
     h = job.get("hen_dang") or 0
     if h and h >= now() + 16 * 60:
         return h
-    co = _bai_theo_ngay(job.get("kenh"), job.get("id"))
+    co = _bai_theo_ngay(job.get("kenh"), job.get("id"), (job.get("khach") or {}).get("id"))
     for d in range(0, 10):
         lt = time.localtime(now() + d * 86400)
         if time.strftime("%Y-%m-%d", lt) in co:
@@ -5620,7 +5658,7 @@ def tiktok_data(jid):
         # fen chốt 29/10 17h50: tiện ích KHÔNG tự bấm Post/Schedule (điều khoản TikTok cấm script tự động); nút Hẹn giờ trong khung Poly
         # chỉ chọn Schedule + ngày giờ, fen tự bấm Schedule. Giờ gợi ý: giờ hẹn trong app, không có thì 19–22h ngày còn trống (1 bài/ngày).
         "hen_dang": job.get("hen_dang") or 0, "goi_y_hen": goi_y_hen(job),
-        "ngay_co_bai": _bai_theo_ngay(job.get("kenh"), jid),
+        "ngay_co_bai": _bai_theo_ngay(job.get("kenh"), jid, (job.get("khach") or {}).get("id")),
         "nhac_da_dung": [re.sub(r"\s+", " ", "%s · %s" % (x.get("ten", ""), x.get("tacgia", ""))).strip().lower() for x in nhac_so()[-300:] if x.get("dang")],   # fen chốt 29/10 17h02: chỉ bài nhạc đã ĐĂNG mới tính là trùng
         "files": [{"name": x["name"], "url": base + "/file?p=" + quote(x["path"]) + "&t=%d" % x["mt"]} for x in list_slides(job.get("thu_muc_bai"))],
     }

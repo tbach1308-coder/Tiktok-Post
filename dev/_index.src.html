@@ -1922,7 +1922,8 @@ function henDangGoiY(ngay){
 // bài iPad khác đã hẹn / đã đăng cùng ngày (luật kênh 1 bài/ngày, fen chốt 29/10)
 function baiCungNgay(j, d){
   const k = ddmm(d) + d.getFullYear();
-  return S.jobs.filter(x => x.id !== j.id && x.kenh === j.kenh).map(x => [x, (x.da_dang && (x.da_dang.lich || x.da_dang.t)) || x.hen_dang || 0])
+  const may = x => (x.khach && x.khach.id) || '';      // fen 13/11 15h36: bài máy nào tính trùng trên máy đó (máy shop / từng máy dùng chung)
+  return S.jobs.filter(x => x.id !== j.id && x.kenh === j.kenh && may(x) === may(j)).map(x => [x, (x.da_dang && (x.da_dang.lich || x.da_dang.t)) || x.hen_dang || 0])
     .filter(([, t]) => t && (dd => ddmm(dd) + dd.getFullYear() === k)(new Date(t * 1000))).map(([x, t]) => hm(t) + ' ' + (x.tieu_de || x.ten || 'bài khác'));
 }
 function henDangDialog(j){
