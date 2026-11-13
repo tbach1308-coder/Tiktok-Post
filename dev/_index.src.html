@@ -2283,7 +2283,8 @@ async function khoTheme(){
     moInfo = '';
     // fen 12/11 19h35: mỗi máy theme riêng + kho chung; 19h42 "hiển thị template lấy từ drive như canva": kho chung là 1 lưới thẻ riêng
     const cuaMay = t => KHACH ? !!(t.may && S.khach && t.may === S.khach.id) : t.nguon !== 'kho-chung';
-    const dsRieng = ds.filter(cuaMay), dsChung = ds.filter(t => t.kc);
+    // fen 13/11 11h21 "hiển thị dư rồi nè": theme đã vào kho chung chỉ hiện 1 chỗ (mục ☁️ Kho chung), lưới trên = theme chưa vào kho chung
+    const dsRieng = ds.filter(t => cuaMay(t) && !(t.kc && !KHACH)), dsChung = ds.filter(t => t.kc);
     const the = (t, trongKc) => { const x = t.xem || {}, sx = t.sua || {}, ban = sx.tt === 'dang', kc = t.nguon === 'kho-chung';
       const rieng = cuaMay(t) && !trongKc;     // rieng = thẻ có Chỉnh / ⋯ (theme máy này sửa / bỏ được)
       const anh = t.anh ? `<img src="${esc(t.anh)}" alt="">` : `<span>${x.tt === 'dang' ? 'Đang lấy ảnh xem trước…' : x.tt === 'loi' ? 'Chưa lấy được ảnh: ' + esc(x.ghi || '') : 'Chưa có ảnh xem trước'}</span>`;
@@ -2302,15 +2303,16 @@ async function khoTheme(){
         <div class="thmore"${moMore === t.id ? '' : ' hidden'}>${rieng ? `<button class="btn sm ghost" data-chinh="${t.id}"${ban ? ' disabled' : ''} title="Sửa chữ, màu ngay trong app, Claude lưu lên Canva (bản cũ được cất lại)">✏️ Chỉnh</button>` : ''}<button class="btn sm ghost" data-nb="${t.id}"${ban ? ' disabled' : ''} title="Tạo theme mới từ theme này, chỉnh luôn nếu muốn">⧉ Nhân bản</button><a class="btn sm ghost" href="${esc(t.link)}" target="_blank" rel="noopener">Mở Canva</a>${rieng ? `<button class="btn sm ghost" data-info="${t.id}" title="Đổi tên, kênh, dạng bài, link chia sẻ (không đụng thiết kế)">Thông tin</button><button class="btn sm ghost" data-xem="${t.id}"${x.tt === 'dang' ? ' disabled' : ''}>${t.anh ? 'Làm mới ảnh' : 'Lấy ảnh'}</button><button class="btn sm ghost" data-xoa="${t.id}">Bỏ khỏi kho</button>` : ''}</div>
         <div class="thinfo" hidden></div></div>`; };
     setH($('#thG'), dsRieng.length ? dsRieng.map(t => the(t)).join('')
-      : `<p class="pnote">${KHACH ? 'Máy này chưa có theme riêng. Dán link 1 thiết kế Canva ở trên, hoặc bấm ⧉ Nhân bản 1 theme kho chung bên dưới để có bản riêng.' : 'Kho trống. Trên Canva bỏ thiết kế vào thư mục POLY Theme rồi bấm Lấy từ Canva.'}</p>`);
+      : `<p class="pnote">${KHACH ? 'Máy này chưa có theme riêng. Dán link 1 thiết kế Canva ở trên, hoặc bấm ⧉ Nhân bản 1 theme kho chung bên dưới để có bản riêng.'
+        : dsChung.length ? 'Theme nào cũng đã ở ☁️ Kho chung bên dưới. Theme mới lấy từ Canva hiện ở đây, bấm ☆ để đưa vào kho chung.' : 'Kho trống. Trên Canva bỏ thiết kế vào thư mục POLY Theme rồi bấm Lấy từ Canva.'}</p>`);
     const psChung = S.themePsDs || [], nChung = dsChung.length + psChung.length;
     setH($('#thKcN'), nChung ? '· ' + nChung + ' theme' + (psChung.length ? ' (' + psChung.length + ' Photoshop)' : '') : '');
     setH($('#thKcGhi'), nChung ? (KHACH ? 'Theme fen để chung: bấm ▶ Làm bài là dùng; muốn chỉnh thì ⧉ Nhân bản thành bản riêng của máy này.'
         : KC_DRIVE ? 'Máy dùng chung và máy cài app khác (tải kho chung trên Drive) thấy đúng các theme này.' : 'Máy dùng chung thấy và dùng được đúng các theme này.')
-      : (KHACH ? 'Fen chưa để theme nào vào kho chung.' : 'Chưa có theme nào trong kho chung. Bấm ☆ Vào kho chung ở thẻ theme phía trên để máy khác dùng được.'));
+      : (KHACH ? 'Fen chưa để theme nào vào kho chung.' : 'Chưa có theme nào trong kho chung. Bấm ☆ ở thẻ theme phía trên để máy khác dùng được.'));
     // fen 13/11 11h09 "kho nào nằm kho đó nha, không lẫn lộn, vẫn hiển thị thấy hết": Kho chung chia 2 nhóm Canva / Photoshop, mỗi nhóm 1 lưới
     const nhom = (ten, n, h) => n ? `<h4 class="thkcs">${ten} <span>· ${n}</span></h4><div class="thg">${h}</div>` : '';
-    setH($('#thKcG'), nhom('🎨 Canva', dsChung.length, dsChung.map(t => the(t, true)).join('')) + nhom('🖌 Photoshop', psChung.length, psChung.map(thePs).join('')));
+    setH($('#thKcG'), nhom('🎨 Canva', dsChung.length, dsChung.map(t => the(t, KHACH)).join('')) + nhom('🖌 Photoshop', psChung.length, psChung.map(thePs).join('')));
   };
   // Thông tin ngay trên ô theme (fen 10/11 15h13 "rà lại làm cho logic")
   const moThongTin = (t, the) => { const f = the.querySelector('.thinfo'); if (!f) return; moInfo = t.id; moMore = ''; the.querySelector('.thmore').hidden = true; f.hidden = false; const c = new Set(t.dang || []);

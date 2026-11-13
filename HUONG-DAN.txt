@@ -204,7 +204,8 @@ LÀM 1 BÀI
   RIÊNG TỪNG MÁY (12/11): máy khác chỉ thấy bài, nháp, lịch sử brief của chính máy đó; máy shop (admin) thấy và quản lý hết
   (danh sách bài có hàng "Máy: Tất cả / Máy shop / 👤 tên máy" để lọc). Theme: mỗi máy có theme riêng tự thêm / nhân bản,
   máy khác không thấy; theme dùng chung nằm ở mục "☁️ Kho chung" cuối trang Kho theme: trên máy shop bấm ngôi sao ☆ cạnh nút ▶ Làm bài
-  ở thẻ theme để máy khác dùng (sao vàng ★ = đang trong kho chung, bấm lại để thôi). Máy khác chỉ ▶ Làm bài / ⧉ Nhân bản theme kho chung.
+  ở thẻ theme để máy khác dùng: theme chuyển xuống mục Kho chung (nhóm Canva / Photoshop riêng), mỗi theme chỉ hiện 1 chỗ;
+  sao vàng ★ = đang trong kho chung, bấm lại để thôi. Máy khác chỉ ▶ Làm bài / ⧉ Nhân bản theme kho chung.
   Mẫu Canva của kênh (Kiểm máy > Canva) cũng riêng từng máy.
 - Nút "📱 Remote" trên cùng (30/10): ra ngoài vẫn giao việc cho app qua Telegram (chat riêng với bot, hoặc 1 nhóm có thêm người).
   DÙNG TRONG NHÓM (12/11, thêm người làm cùng): tạo nhóm Telegram có fen + người đó → app: 📱 Remote > 👥 Dùng trong nhóm
