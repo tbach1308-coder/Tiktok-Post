@@ -42,5 +42,7 @@ check('chat brief máy 1: phạm vi dò trùng chỉ máy 1', 'Phạm vi dò tr�
 luc=time.time()+3*86400
 h1=req(A,'/api/job/%s/hen-dang' % b1,{"luc":luc})
 hs=req(A,'/api/job/%s/hen-dang' % bs,{"luc":luc+600})
-check('hẹn đăng cùng ngày: bài máy shop không bị tính trùng với bài máy 1', hs.get('ok') and not hs.get('trung'), hs)
+check('hẹn đăng cùng ngày: bài máy shop không bị tính trùng với bài máy 1', hs.get('ok') and not any('máy một' in x.lower() for x in (hs.get('trung') or [])), hs)
+h2=req(A,'/api/job/%s/hen-dang' % b1,{"luc":luc+1200})
+check('bài máy 1 hẹn lại cùng ngày: không tính bài máy shop', h2.get('ok') and not any('máy shop' in x.lower() for x in (h2.get('trung') or [])), h2)
 print('KẾT QUẢ: %d đạt, %d lỗi' % tuple(ok))

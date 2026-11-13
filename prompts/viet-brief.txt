@@ -13,7 +13,7 @@ B. Nhờ tìm chủ đề (có chữ "tìm", "chủ đề", "gợi ý", "đăng 
    - Đúng LOẠI BÀI fen nói. "mẹo" = bài mẹo dùng máy (tính năng, cài đặt, thao tác, giữ pin, dọn bộ nhớ, học / vẽ / ghi chú…), gắn với nhu cầu sửa / nâng cấp / lên đời ở shop khi được (quy-tac-xay-kenh mục 3 ý 7); KHÔNG làm bài so sánh hay giới thiệu máy. "so sánh" = 2 máy. "bảng giá" = bảng giá. "sinh viên", "ngành" = chọn máy theo ngành. "tầm X triệu" = phân khúc giá. "lỗi", "hư", "sửa" = lỗi hay gặp + cách xử lý.
    - Mọi lần kiểu B, không cần fen gõ chữ "hot" (luật 1f, fen 03/11): WebSearch nhanh trước khi chọn (tối đa 3 lần, ưu tiên tin trong ngày và vài ngày gần, rộng nhất 2 tuần trước hôm nay) xem hôm nay có gì hot (bản iPadOS / Windows mới, máy mới ra hoặc sắp ra, lỗi nhiều người gặp, mùa thi, tựu trường, đợt giảm giá) và xu hướng tìm kiếm máy ở Việt Nam (dòng máy nào đang được tìm nhiều); chọn chủ đề vừa hot / đang được tìm vừa dẫn về nhu cầu mua / sửa máy ở shop, đúng loại bài fen nói. Số lượt tìm chỉ để chọn chủ đề, không đưa lên bài nếu không có nguồn. Kênh iPad (luật 1d): tin hot được làm, nhưng bìa vẫn là câu hỏi chọn máy / nhu cầu người xem (vd "MINI 7 CÒN ĐÁNG MUA?"), không bìa kiểu bản tin ("MINI 8 RA RỒI"). Tin đồn thì ghi rõ "tin đồn".
    - Không nói loại bài: chọn loại hợp với điều đang hot; tìm không ra gì rõ thì mới chọn theo format đang thắng của kênh (quy-tac-xay-kenh mục 3) và mục "Chưa làm" của danh sách content.
-   - Chủ đề tự chọn phải chưa có bài: trùng thì tự chọn chủ đề khác (luật 1b).
+   - Chủ đề tự chọn phải chưa có bài: trùng thì tự chọn chủ đề khác (luật 1b). Fen đã nêu chủ đề cụ thể trong ô Chủ đề thì viết đúng chủ đề đó, không tự đổi dù trùng, chỉ báo trùng ở câu trả lời (luật 1h, fen 13/11).
 C. Chỉ có tên máy hoặc nhóm người xem (vd "iPad Air M2", "dân văn phòng"): chọn góc bài hợp nhất (so sánh, theo nhu cầu, mẹo, lên đời) rồi viết.
 Brief đang có trong ô:
    - Chủ đề lần này KHÁC bài trong ô (khác máy, khác loại bài, khác ý chính; vd ô đang là bài so sánh 2 máy mà fen gõ "mẹo iPad"): BỎ HẲN brief cũ, viết bài mới theo chủ đề lần này, không giữ máy, tiêu đề, cấu trúc, câu chữ của brief cũ.
@@ -27,7 +27,7 @@ Brief đang có trong ô:
 
 Dò trùng (bắt buộc, trước khi viết):
 {do_trung}
-- TRÙNG THÌ LÀM CÁI KHÁC (luật 1b, fen đổi 03/11, mọi kiểu A, B, C): chủ đề đã có bài (cùng câu hỏi chính, cùng cặp máy so sánh, cùng bộ mẹo), đăng bao lâu rồi cũng vậy, thì tự chọn chủ đề chưa có bài, gần ý fen nhất, đúng kênh, đúng loại bài (xem cả mục "Chưa làm" của danh sách content), rồi viết brief và ghi file luôn, không dừng, không hỏi lại. Dòng 1 câu trả lời cuối thêm " · đổi vì trùng <tên bài đã làm, tối đa 8 chữ>".
+- TRÙNG THÌ LÀM CÁI KHÁC (luật 1b, fen đổi 03/11; chỉ khi Claude tự chọn chủ đề; fen nêu chủ đề cụ thể thì luật 1h thắng: viết đúng, chỉ báo trùng): chủ đề đã có bài (cùng câu hỏi chính, cùng cặp máy so sánh, cùng bộ mẹo), đăng bao lâu rồi cũng vậy, thì tự chọn chủ đề chưa có bài, gần ý fen nhất, đúng kênh, đúng loại bài (xem cả mục "Chưa làm" của danh sách content), rồi viết brief và ghi file luôn, không dừng, không hỏi lại. Dòng 1 câu trả lời cuối thêm " · đổi vì trùng <tên bài đã làm, tối đa 8 chữ>".
   Chỉ làm lại đúng chủ đề cũ khi chủ đề / ghi chú fen ghi rõ "làm lại". Bài định kỳ (bảng giá tháng, cập nhật bảng giá) mỗi kỳ là chủ đề mới, viết bình thường.
 - Không trùng chủ đề nhưng có ý slide đã dùng ở bài trước: bỏ ý đó, thay ý khác (không cần báo).
 
