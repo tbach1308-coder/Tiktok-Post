@@ -2776,6 +2776,8 @@ THEME_XEM = {}      # id -> {"tt": dang|ok|loi, "t", "ghi"}
 # fen 10/11 13h11 "kho theme không lấy về luôn được hả hay phải nhập link": thư mục Canva "POLY Theme" = kho theme.
 # Fen bỏ thiết kế (mẫu có sẵn đã bấm dùng, hay tự làm) vào thư mục đó, app tự lấy về (mở Kho theme quá 30 phút thì tự đồng bộ).
 THEME_DB = {"tt": "", "t": 0, "ghi": "", "moi": 0}
+# 13/11: 2 lệnh lấy theme tới cùng lúc (mở Kho theme ở 2 cửa sổ) cùng qua được bước kiểm "đang lấy" -> Claude chạy 2 lần. Khoá bước kiểm + đánh dấu.
+THEME_BAT_KHOA = threading.Lock()
 # fen 10/11 13h20 "cho custom theme trong kho": nhân bản theme thành theme mới + chỉnh cơ bản ngay trong app (màu chủ đạo, màu nền,
 # thay chữ, ghi chú) -> 1 lượt Claude (sonnet) làm trên Canva. Chỉnh theme có sẵn: copy bản cũ vào thư mục "POLY Theme cũ" trước.
 THEME_SUA = {}      # id theme gốc -> {"tt": dang|ok|loi, "t", "ghi", "kieu": nhan-ban|sua}
@@ -2972,15 +2974,16 @@ def _doan_dang(x):
 
 
 def theme_dong_bo_bat(ep=False):
-    if THEME_DB.get("tt") == "dang" and now() - THEME_DB.get("t", 0) < 300:
-        return
-    if not ep and now() - THEME_DB.get("t", 0) < 1800 and THEME_DB.get("tt") == "ok":
-        return
-    cmd = resolve_claude()
-    if not cmd:
-        THEME_DB.update({"tt": "loi", "t": now(), "ghi": "chưa có Claude Code"})
-        return
-    THEME_DB.update({"tt": "dang", "t": now(), "ghi": "", "moi": 0})
+    with THEME_BAT_KHOA:
+        if THEME_DB.get("tt") == "dang" and now() - THEME_DB.get("t", 0) < 300:
+            return
+        if not ep and now() - THEME_DB.get("t", 0) < 1800 and THEME_DB.get("tt") == "ok":
+            return
+        cmd = resolve_claude()
+        if not cmd:
+            THEME_DB.update({"tt": "loi", "t": now(), "ghi": "chưa có Claude Code"})
+            return
+        THEME_DB.update({"tt": "dang", "t": now(), "ghi": "", "moi": 0})
     threading.Thread(target=_theme_dong_bo_chay, args=(cmd,), daemon=True).start()
 
 
@@ -3193,6 +3196,8 @@ def theme_cv(data=None, may=None):
             else:
                 t.pop("kc", None)
             write_json(THEME_CV_FILE, doc)
+        # 13/11 fen "tìm lỗi mất sao kho chung": ghi ngay từng lần bật / tắt (trước chỉ có dòng "kho chung dua" 15 giây sau)
+        log("kho chung %s: %s %s" % ("bat" if data.get("bat", True) else "TAT", t["id"], short(str(t.get("ten") or ""), 50)))
     if data.get("nhan_ban"):
         data["nhan_ban"] = dict(data["nhan_ban"], _may=may)
     if data.get("them") or data.get("sua"):
@@ -3508,14 +3513,15 @@ def kho_chung_tai():
 
 
 def _theme_xem_bat(t):
-    x = THEME_XEM.get(t["id"]) or {}
-    if x.get("tt") == "dang" and now() - x.get("t", 0) < 240:
-        return
-    cmd = resolve_claude()
-    if not cmd:
-        THEME_XEM[t["id"]] = {"tt": "loi", "t": now(), "ghi": "chưa có Claude Code"}
-        return
-    THEME_XEM[t["id"]] = {"tt": "dang", "t": now(), "ghi": ""}
+    with THEME_BAT_KHOA:
+        x = THEME_XEM.get(t["id"]) or {}
+        if x.get("tt") == "dang" and now() - x.get("t", 0) < 240:
+            return
+        cmd = resolve_claude()
+        if not cmd:
+            THEME_XEM[t["id"]] = {"tt": "loi", "t": now(), "ghi": "chưa có Claude Code"}
+            return
+        THEME_XEM[t["id"]] = {"tt": "dang", "t": now(), "ghi": ""}
     threading.Thread(target=_theme_xem_chay, args=(cmd, dict(t)), daemon=True).start()
 
 
@@ -7226,6 +7232,11 @@ def main():
         HAN_MUC.update({k: hm.get(k) for k in ("het", "chu", "reset", "reset_t", "t")})
         HAN_MUC["bao"] = True
     log("mo app cong %d" % port)
+    try:      # 13/11: ghi theme đang ở kho chung lúc mở app, so với lần tắt / bật cuối để biết kho chung có bị đổi khi app không chạy
+        kc = [t["id"] for t in theme_cv_ds() if t.get("kc") and not t.get("may") and t.get("nguon") != "kho-chung"]
+        log("kho chung luc mo app: %d theme Canva %s" % (len(kc), ",".join(kc)))
+    except Exception:
+        pass
     print("Poly Dung Bai: http://127.0.0.1:%d" % port)
     threading.Thread(target=claude_info, daemon=True).start()
     threading.Thread(target=theo_doi, daemon=True).start()

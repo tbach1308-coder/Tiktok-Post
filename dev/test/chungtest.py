@@ -82,7 +82,7 @@ s,b,_=req(K,'/api/theme-canva',{"sua":{"id":tmac,"ten":"Theme Mac doi ten","kenh
 s,b,_=req(APP,'/api/theme-canva',{"xoa":tmac}); check('máy shop bỏ theme riêng máy khác: không ăn', any(t['id']==tmac for t in req(K,'/api/theme-canva',h=T)[1]['ds']))
 s,b,_=req(K,'/api/theme-canva',{"them":{"link":CV % RD(),"ten":"x"}},h=T)
 check('máy khác thêm được thiết kế máy shop đang để riêng (thành bản riêng)', s==200, (s,b))
-s,b,_=req(K,'/api/theme-canva/anh/%s' % next(t['id'] for t in req(APP,'/api/theme-canva',{"them":{"link":CV % RD(),"ten":"Shop3"}})[1]['ds'] if t['ten']=='Shop3'),h=T)
+s,b,_=req(K,'/api/theme-canva/anh/%s' % max((t for t in req(APP,'/api/theme-canva',{"them":{"link":CV % RD(),"ten":"Shop3"}})[1]['ds'] if t['ten']=='Shop3'), key=lambda t: t.get('t') or 0)['id'],h=T)   # Shop3 vừa thêm (bản cũ có thể đã vào kho chung)
 check('ảnh theme riêng máy shop: máy khác không mở được', s==404, s)
 # mẫu Canva của kênh: riêng
 old=req(APP,'/api/canva-cai')[1]['mau']
