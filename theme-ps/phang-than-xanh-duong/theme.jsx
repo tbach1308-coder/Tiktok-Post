@@ -259,6 +259,18 @@ function biaTiem(o) {
   var BOT = o.bot || 1080, r = 26, s = W / 941, cx = W / 2, TF = THEME.font_bia ? pick(THEME.font_bia.concat([F.T])) : F.T;
   var P = rect(0, 0, W, H, 0, THEME.nen, "Giấy be");
   themeHat(P);
+  // tieu de ve TRUOC anh tiem: lop nao ve sau anh cung bi khung anh cat mat (fen 13/11: bia trong chu)
+  // chu tron xanh la vien kem + nau, dong nho nau; ca cum can giua trong dai duoi anh
+  var ls = [], y = BOT + 30, mau = THEME.bia_mau || THEME.bang;
+  if (o.t1) { var A1 = themeChuBong(o.t1, TF, 88, mau, cx, y + 88, 960, "Tiêu đề - dòng 1"); ls = ls.concat(A1); y = bb(A1[0])[3] + 6; }
+  if (o.t2) { var A2 = themeChuBong(o.t2, TF, 88, mau, cx, y + 88, 960, "Tiêu đề - dòng 2"); ls = ls.concat(A2); y = bb(A2[0])[3] + 6; }
+  if (o.nho) { var N = text(o.nho, F.B, 38, THEME.vien_nau || "4A3631", cx, y + 52, { align: Justification.CENTER, maxW: 900, name: "Dòng nhỏ" }); ls.push(N); }
+  if (ls.length) {
+    var t = 1e9, b = -1e9;
+    for (var i = 0; i < ls.length; i++) { try { ls[i].grouped = false; } catch (e3) {} var qq = bb(ls[i]); t = Math.min(t, qq[1]); b = Math.max(b, qq[3]); }
+    var dy = (BOT + 12 + H - 30) / 2 - (t + b) / 2;
+    for (var j = 0; j < ls.length; j++) ls[j].translate(0, dy);
+  }
   if (a && dir) {
     // khung anh: mep duoi luon nhu mai hien (1 lop), anh tiem cat theo khung (clipping)
     var K = themeVungLuon(0, BOT, r, THEME.vien_nau || "4A3631", "Khung ảnh tiệm");
@@ -268,20 +280,12 @@ function biaTiem(o) {
       L.resize(pct, pct, AnchorPosition.TOPLEFT); q = bb(L);
       L.translate(-q[0], -a[1] * (q[2] - q[0]) / 941 - q[1]);
       L.grouped = true;
-      THEME_FX0(K, { stroke: { hex: THEME.vien_nau || "4A3631", size: 4, op: 100 } });
+      // nhap anh vao khung thanh 1 lop: neu de nguyen nhom cat thi chu tieu de ve sau cung bi khung cat mat (fen 13/11: bia trong chu)
+      var M = K;
+      try { M = L.merge(); M.name = "Ảnh tiệm - " + k; } catch (e2) { THEME_LOG += "Theme: khong nhap duoc anh tiem vao khung (" + e2.message + ")\n"; }
+      THEME_FX0(M, { stroke: { hex: THEME.vien_nau || "4A3631", size: 4, op: 100 } });
     } catch (e) { THEME_LOG += "Theme: khong dat duoc anh tiem " + a[0] + " (" + e.message + ")\n"; }
   } else THEME_LOG += "Theme: thieu anh tiem (THEME_DIR / tiem." + k + ")\n";
-  // tieu de: chu tron xanh la vien kem + nau, dong nho nau; ca cum can giua trong dai duoi anh
-  var ls = [], y = BOT + 30, mau = THEME.bia_mau || THEME.bang;
-  if (o.t1) { var A1 = themeChuBong(o.t1, TF, 88, mau, cx, y + 88, 960, "Tiêu đề - dòng 1"); ls = ls.concat(A1); y = bb(A1[0])[3] + 6; }
-  if (o.t2) { var A2 = themeChuBong(o.t2, TF, 88, mau, cx, y + 88, 960, "Tiêu đề - dòng 2"); ls = ls.concat(A2); y = bb(A2[0])[3] + 6; }
-  if (o.nho) { var N = text(o.nho, F.B, 38, THEME.vien_nau || "4A3631", cx, y + 52, { align: Justification.CENTER, maxW: 900, name: "Dòng nhỏ" }); ls.push(N); }
-  if (ls.length) {
-    var t = 1e9, b = -1e9;
-    for (var i = 0; i < ls.length; i++) { var qq = bb(ls[i]); t = Math.min(t, qq[1]); b = Math.max(b, qq[3]); }
-    var dy = (BOT + 12 + H - 30) / 2 - (t + b) / 2;
-    for (var j = 0; j < ls.length; j++) ls[j].translate(0, dy);
-  }
 }
 var THEME_NEWDOC0 = newDoc;
 newDoc = function (name) {
