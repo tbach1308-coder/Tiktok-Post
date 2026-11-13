@@ -30,20 +30,39 @@ check('mở Chrome app kèm #vao=token', ('--app=https://%s/#vao=%s' % (host, to
 check('máy shop có máy tên tiếng Việt', any(m['ten']=='MacBook Thử Quân' for m in api('/api/chung')['may']))
 os.makedirs(HOME+'/Applications/Google Chrome.app', exist_ok=True)
 rc,nk,con=chay([], M)
-check('lần 2: không hỏi gì, mở luôn bằng cửa sổ Chrome riêng', 'HOI' not in nk and 'OPEN: -na '+HOME+'/Applications/Google Chrome.app --args --app=https://' in nk and '--user-data-dir='+HOME+'/Library/Application Support/PolyDungBaiChung/chrome' in nk, nk)
+check('lần 2: không hỏi gì; .app không có file chạy thì mở cửa sổ Chrome riêng bằng open như cũ', 'HOI' not in nk and 'OPEN: -na '+HOME+'/Applications/Google Chrome.app --args --app=https://' in nk and '--user-data-dir='+HOME+'/Library/Application Support/PolyDungBaiChung/chrome' in nk, nk)
+# fen 13/11 17h41: mở app con là Chrome bật thêm 1 cửa sổ thường -> chạy thẳng file chạy trong Chrome.app (không qua open)
+def chrome_gia(app):
+    os.makedirs(app+'/Contents/MacOS', exist_ok=True); f=app+'/Contents/MacOS/'+os.path.basename(app)[:-4]
+    open(f,'w').write('#!/bin/bash\necho "CHROME: $*" >> "$MG/nhatky"\n'); os.chmod(f,0o755)
+def cho_chrome():
+    for _ in range(40):
+        if 'CHROME:' in open(MG+'/nhatky').read(): break
+        time.sleep(0.1)
+    return open(MG+'/nhatky').read()
+chrome_gia(HOME+'/Applications/Google Chrome.app')
+rc,nk,con=chay([], M); nk=cho_chrome()
+check('có Chrome.app: chạy thẳng file chạy, không qua open (không bật thêm cửa sổ thường)', 'OPEN' not in nk and ('CHROME: --app=https://%s/#vao=' % host) in nk and '--user-data-dir='+HOME+'/Library/Application Support/PolyDungBaiChung/chrome --no-first-run' in nk, nk)
 M2={'link-moi-thu.trycloudflare.com': 8791}
-rc,nk,con=chay(['https://link-moi-thu.trycloudflare.com'], M2)
-check('link đổi: hỏi link mới, không hỏi mã', nk.count('HOI')==1 and 'Không mở được link cũ' in nk and 'link-moi-thu' in nk.split('OPEN')[-1], nk)
+rc,nk,con=chay(['https://link-moi-thu.trycloudflare.com'], M2); nk=cho_chrome()
+check('link đổi: hỏi link mới, không hỏi mã', nk.count('HOI')==1 and 'Không mở được link cũ' in nk and 'CHROME: --app=https://link-moi-thu' in nk, nk)
 mid=[m['id'] for m in api('/api/chung')['may'] if m['ten']=='MacBook Thử Quân'][-1]
 api('/api/chung',{"bo":mid}); ma=api('/api/chung',{"ma_moi":True})['ma']
-rc,nk,con=chay([ma, 'MacBook Thử Quân'], M2)
-check('bị bỏ: báo + hỏi mã mới rồi vào', 'đã bị fen bỏ' in nk and 'OPEN' in nk, nk)
+rc,nk,con=chay([ma, 'MacBook Thử Quân'], M2); nk=cho_chrome()
+check('bị bỏ: báo + hỏi mã mới rồi vào', 'đã bị fen bỏ' in nk and 'CHROME: --app=https://link-moi-thu' in nk, nk)
 rc,nk,con=chay(['__HUY__'], {})
-check('link chết + bấm Huỷ: thoát êm, không mở', rc==0 and 'OPEN' not in nk, (rc, nk))
+time.sleep(0.5); nk=open(MG+'/nhatky').read()
+check('link chết + bấm Huỷ: thoát êm, không mở', rc==0 and 'OPEN' not in nk and 'CHROME' not in nk, (rc, nk))
 # 13/11 fen: Mac mở thành tab Chrome (Chrome không ở /Applications) -> tìm Chrome theo tên app, không có thì Edge / Brave, hết thì trình duyệt mặc định
 shutil.rmtree(HOME+'/Applications/Google Chrome.app', ignore_errors=True)
 rc,nk,con=chay([], M2)
-check('Chrome không ở thư mục Ứng dụng: hỏi macOS theo tên, vẫn mở cửa sổ riêng', 'OPEN: -Ra Google Chrome' in nk and 'OPEN: -na Google Chrome --args --app=https://link-moi-thu' in nk, nk)
+check('Chrome không ở thư mục Ứng dụng, Spotlight không thấy: hỏi macOS theo tên, mở cửa sổ riêng bằng open', 'OPEN: -Ra Google Chrome' in nk and 'OPEN: -na Google Chrome --args --app=https://link-moi-thu' in nk, nk)
+chrome_gia(MG+'/noikhac/Google Chrome.app'); open(MG+'/mdfind','w').write(MG+'/noikhac/Google Chrome.app\n')
+try:
+    rc,nk,con=chay([], M2); nk=cho_chrome()
+finally:
+    os.remove(MG+'/mdfind')
+check('Chrome để chỗ khác: Spotlight tìm ra, chạy thẳng file chạy', "MDFIND: kMDItemCFBundleIdentifier == 'com.google.Chrome'" in nk and 'OPEN: -na' not in nk and 'CHROME: --app=https://link-moi-thu' in nk, nk)
 open(MG+'/khong_chrome','w').write('1')
 try:
     rc,nk,con=chay([], M2)

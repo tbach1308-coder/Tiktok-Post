@@ -129,7 +129,24 @@ if [ -z "$CH" ]; then
     if open -Ra "$n" >/dev/null 2>&1; then CH="$n"; break; fi
   done
 fi
-if [ -n "$CH" ]; then
+# 13/11 17h41 fen: mo app con thi Chrome bat them 1 cua so Chrome thuong. Mo qua "open -a" thi macOS gui kem lenh
+# "mo app" cho Chrome -> Chrome mo them cua so thuong. Gio chay thang file chay trong .app (khong qua open): chi co cua so app;
+# cua so rieng dang chay thi Chrome tu chuyen lenh cho no. Khong tim thay file chay thi moi dung open nhu cu.
+APPD=""
+case "$CH" in
+  /*) APPD="$CH" ;;
+  "Google Chrome") APPD=$(mdfind "kMDItemCFBundleIdentifier == 'com.google.Chrome'" 2>/dev/null | grep '\.app$' | head -n 1) ;;
+  "Microsoft Edge") APPD=$(mdfind "kMDItemCFBundleIdentifier == 'com.microsoft.edgemac'" 2>/dev/null | grep '\.app$' | head -n 1) ;;
+  "Brave Browser") APPD=$(mdfind "kMDItemCFBundleIdentifier == 'com.brave.Browser'" 2>/dev/null | grep '\.app$' | head -n 1) ;;
+esac
+BIN=""
+if [ -n "$APPD" ]; then
+  b="$APPD/Contents/MacOS/$(basename "$APPD" .app)"
+  [ -f "$b" ] && [ -x "$b" ] && BIN="$b"
+fi
+if [ -n "$BIN" ]; then
+  nohup "$BIN" --app="$MO" --user-data-dir="$D/chrome" --no-first-run --no-default-browser-check >/dev/null 2>&1 &
+elif [ -n "$CH" ]; then
   open -na "$CH" --args --app="$MO" --user-data-dir="$D/chrome" --no-first-run --no-default-browser-check
 else
   open "$MO"

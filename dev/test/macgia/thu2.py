@@ -29,5 +29,5 @@ open(MG+'/hang','w').write(ma+'\nMac Kho\n'); open(MG+'/nhatky','w').write(''); 
 env=dict(os.environ, HOME=HOME, MG=MG, PATH=MG+'/bin:'+os.environ['PATH'], POLY_OSA=MG+'/bin/osascript', POLY_CURL=MG+'/bin/curl')
 subprocess.run(['bash', sh], env=env, timeout=120)
 nk=open(MG+'/nhatky').read()
-check('app Mac tải từ link: không hỏi link, chỉ mã + tên', 'Dán link' not in nk and nk.count('HOI')==2 and ('OPEN: ' + url) in nk, nk)
+check('app Mac tải từ link: không hỏi link, chỉ mã + tên', 'Dán link' not in nk and nk.count('HOI')==2 and ('--app=' + url + '/#vao=') in nk, nk)
 print('KẾT QUẢ: %d đạt, %d lỗi' % tuple(ok))

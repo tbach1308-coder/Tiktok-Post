@@ -1,0 +1,5 @@
+#!/bin/bash
+# mdfind giả: có file $MG/mdfind thì in đường dẫn .app trong đó (giả như Spotlight tìm thấy), không thì không in gì
+echo "MDFIND: $*" >> "$MG/nhatky"
+[ -f "$MG/mdfind" ] && cat "$MG/mdfind"
+exit 0
