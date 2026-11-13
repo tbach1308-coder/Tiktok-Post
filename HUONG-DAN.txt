@@ -83,6 +83,9 @@ KHO THEME CANVA (10/11)
   ("Glass · Tím hồng", "Glass · Xanh ngọc": nền ảnh thật làm mờ + thẻ kính trong). Bìa có 2 kiểu như ảnh mẫu fen gửi: kiểu quảng cáo
   (tên máy rất to, slogan, máy xòe quạt, 2 thông số) và kiểu tính năng (2 dòng tiêu đề, số to mờ phía sau, máy nghiêng tràn mép).
   Bấm "▶ Làm bài" ở theme → viết brief → Chạy: Claude dựng bằng Photoshop theo màu, font, nền của theme; brief bao nhiêu slide làm bấy nhiêu.
+  Thêm 13/11 tối (xu hướng 2026, tìm từ nhiều nguồn): "Bento · Cloud Dancer" (lưới ô bo tròn kiểu trang sản phẩm Apple trên màu
+  Pantone 2026 trắng mây + màu phấn; bìa có ô ảnh máy + 2 ô thông số, hợp bài so sánh / thông số) và "Ghi chú iPhone · Tối" (kiểu
+  ảnh chụp app Ghi chú chế độ tối: dòng kẻ, chữ vàng, danh sách tick; hợp bài mẹo, danh sách nên / không nên).
 - Bài mới, hàng "🎨 Theme": chỉ hiện đúng theme đang chọn (chưa chọn: "Không theme" / "Mẫu kênh"). Bấm "＋ Chọn theme" / "Đổi theme"
   → Kho theme mở ra, bấm "✓ Chọn theme này" là quay lại đúng bài đang viết (brief giữ nguyên). Bấm ✕ trên theme là bỏ.
   Sửa slide bài đó cũng giữ theme. Không chọn theme thì Photoshop / Canva dựng như cũ.
@@ -203,6 +206,9 @@ LÀM 1 BÀI
   App con Mac bản 13/11 tối: mở app không còn bật thêm 1 cửa sổ Chrome thường. Máy Mac đã cài bản cũ: mở link …/tai,
   bấm "Tải cho Mac", giải nén, chép đè app cũ (link + mã đã nhập vẫn giữ, không phải nhập lại).
   Link đổi khi máy này khởi động lại / mất mạng lâu: bot Remote báo link mới trong Telegram, app Mac tự hỏi link mới.
+  Cập nhật máy con (13/11): có bản app mới thì trong hộp Dùng chung bấm "🔄 Cập nhật máy con" → máy con đang mở app tự tải
+  bản mới, không phải bấm gì (máy đang gõ dở / có ảnh chưa gửi thì tự tải khi rảnh, chữ nháp vẫn giữ). Cạnh tên mỗi máy ghi
+  "✓ bản mới" hoặc "⏳ bản cũ". Máy chưa mở app thì lần mở sau tự là bản mới.
   Trên máy khác: Đăng TikTok web và Mở thư mục mở trên máy này nên dùng "⬇ Tải slide + caption" hoặc Gửi Telegram.
   Chỉ thêm máy của người mình tin; không dùng nữa thì bấm Bỏ. Có máy mới vào, bot Remote báo trong Telegram.
   RIÊNG TỪNG MÁY (12/11): máy khác chỉ thấy bài, nháp, lịch sử brief của chính máy đó; máy shop (admin) thấy và quản lý hết

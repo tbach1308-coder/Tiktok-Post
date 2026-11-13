@@ -1,0 +1,85 @@
+{
+ "id": "bento-cloud-dancer",
+ "ten": "Bento · Cloud Dancer",
+ "kenh": "",
+ "mo_ta": "Xu hướng 2026: lưới bento (ô bo tròn nhiều cỡ như keynote / trang sản phẩm Apple) trên màu Pantone 2026 Cloud Dancer (trắng mây) + bộ màu phấn Powdered Pastels. Bìa = lưới ô: tiêu đề trên ô than, ảnh máy trên ô xanh phấn, 2 ô thông số vàng / hồng đào, ô cuối có nút mũi tên. Trang trong: viền trắng mây, ô lớn màu than chứa nội dung, ô phấn nhỏ. Phẳng, không bóng đổ.",
+ "nen": "F0EEE9",
+ "nen2": "F0EEE9",
+ "bang": "1C1C1E",
+ "the": "2C2C2E",
+ "inkbg": "2C2C2E",
+ "muc": "1C1C1E",
+ "phan": [
+  "F3E5A6",
+  "CDE0F3",
+  "F5D6C6",
+  "EAD6DE"
+ ],
+ "nhan": "5E6AD2",
+ "nhan_dam": "4B56B8",
+ "nhan_nhat": "B7D2F2",
+ "vang": "F3E5A6",
+ "ghi_nen": "F5D6C6",
+ "ghi_chu": "1C1C1E",
+ "do": "FF7A7A",
+ "font_tieu_de": [
+  "UTMNeoSansIntelBold",
+  "UTM-Neo-Sans-IntelBold",
+  "UTMAvoBold"
+ ],
+ "font_than": [
+  "UTMAvoBold",
+  "UTMNeoSansIntelBold"
+ ],
+ "font_bia": [
+  "UTMNeoSansIntelBold",
+  "UTM-Neo-Sans-IntelBold",
+  "UTMAvoBold"
+ ],
+ "co_tieu_de": 0.9,
+ "giu_vien": false,
+ "trang_tri": "bento",
+ "xem": {
+  "bia_bento": {
+   "t1": "MacBook Air M1",
+   "t2": "Vẫn đáng mua?",
+   "nho": "Mỏng nhẹ, chạy mát, không quạt",
+   "may": "may.png",
+   "so1": [
+    "M1",
+    "Chip Apple"
+   ],
+   "so2": [
+    "18h",
+    "Pin xem video"
+   ],
+   "chan": "Máy likenew, có sẵn tại POLY STORE"
+  },
+  "pill": "MẸO 1",
+  "tieu": "BẬT NGUỒN ĐIỆN THẤP",
+  "phu": "Pin dùng lâu hơn khi đi học, đi làm",
+  "ten": "MacBook Air M1",
+  "cau": "M1 · 8GB · 256GB",
+  "gia": "11.990.000đ",
+  "y": [
+   [
+    "check",
+    "Mở Cài đặt hệ thống > Pin"
+   ],
+   [
+    "check",
+    "Bật Chế độ nguồn điện thấp"
+   ],
+   [
+    "x",
+    "Đừng bật khi xuất video nặng"
+   ]
+  ],
+  "ghi": [
+   "Pin MacBook tụt nhanh?",
+   "Ghé POLY đo chu kỳ pin miễn phí"
+  ],
+  "moc": "Xem mẹo 2",
+  "hoi": "Bạn mua Mac\rđể học hay làm?"
+ }
+}

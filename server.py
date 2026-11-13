@@ -6509,7 +6509,7 @@ def mac_chuan_bi():
 # nhập gì. Máy khác làm được mọi việc như máy shop, trừ CHUNG_CAM: việc mở cửa sổ / thư mục / Chrome trên chính máy shop
 # (máy kia không thấy), tắt app, quản lý dùng chung (tránh tự khoá mình). Mọi việc chạy trên máy này bằng tài khoản Claude của fen.
 CHUNG = {"srv": None, "pid": 0, "pid_t": 0, "url": "", "loi": "", "dang": "", "ma": "", "ma_luc": 0, "sai": 0, "thu": [],
-         "khoi": 0, "kiem": 0, "rot": 0, "lan": {}}
+         "khoi": 0, "kiem": 0, "rot": 0, "lan": {}, "ui": {}, "ep_ui": 0}
 CHUNG_KHOA = threading.Lock()
 CHUNG_DIR = os.path.join(APP, "_cf")
 CHUNG_MA_HAN = 900
@@ -6632,15 +6632,26 @@ def chung_nguoi():
     return [{"id": k, "ten": v or k} for k, v in ds.items()]
 
 
+def ui_ban():
+    """Bản giao diện hiện tại (giờ sửa ui/index.html): trang so với số này để biết có bản mới."""
+    try:
+        return int(os.path.getmtime(os.path.join(UI, "index.html")))
+    except OSError:
+        return 0
+
+
 def chung_tt():
     ma = CHUNG["ma"] if CHUNG["ma"] and now() - CHUNG["ma_luc"] < CHUNG_MA_HAN else ""
     song = _cf_song()
-    ds = [{"id": k, "ten": v.get("ten") or "Máy khác", "t": v.get("t"), "lan": CHUNG["lan"].get(k), "tg": str(v.get("tg") or "")}
+    uiv = str(ui_ban())
+    # ui_moi: máy con đang mở app bản giao diện mới nhất chưa (None = chưa thấy máy đó mở app từ lúc máy shop mở app)
+    ds = [{"id": k, "ten": v.get("ten") or "Máy khác", "t": v.get("t"), "lan": CHUNG["lan"].get(k), "tg": str(v.get("tg") or ""),
+           "ui_moi": (CHUNG["ui"].get(k) == uiv) if CHUNG["ui"].get(k) else None}
           for k, v in (CFG.get("chung_may") or {}).items() if isinstance(v, dict)]
     return {"bat": bool(CFG.get("chung_bat")), "url": CHUNG["url"] if song else "", "chay": song and bool(CHUNG["url"]),
             "dang": CHUNG["dang"], "loi": CHUNG["loi"], "ma": ma, "ma_con": max(0, int(CHUNG_MA_HAN - (now() - CHUNG["ma_luc"]))) if ma else 0,
             "may": sorted(ds, key=lambda x: x.get("t") or 0), "co_cf": os.path.isfile(cf_exe()), "app_mac": os.path.isfile(APP_MAC_ZIP),
-            "app_win": os.path.isfile(APP_WIN_EXE), "nguoi": chung_nguoi()}
+            "app_win": os.path.isfile(APP_WIN_EXE), "nguoi": chung_nguoi(), "ep_ui": CHUNG["ep_ui"]}
 
 
 def chung_xem_may(mid):
@@ -6663,9 +6674,15 @@ def chung_xem_may(mid):
 
 
 def chung_cai(data=None):
-    """GET/POST /api/chung (chỉ cổng app gốc): {bat: true|false}, {ma_moi: true}, {bo: <mã máy>}."""
+    """GET/POST /api/chung (chỉ cổng app gốc): {bat: true|false}, {ma_moi: true}, {bo: <mã máy>}, {cap_nhat: true}."""
     import secrets
     data = data or {}
+    if data.get("cap_nhat"):
+        # fen 13/11 20h26 "app con không cần bấm update, mình cho nút chủ động bấm update luôn": máy con đang mở app thấy số này
+        # tăng thì tự tải bản giao diện mới (đang dở tay: ảnh chưa gửi, đang gõ, thì tải ngay khi rảnh), không phải bấm Cập nhật
+        CHUNG["ep_ui"] = now()
+        log("dung chung: day cap nhat giao dien cho may con (ban %s)" % ui_ban())
+        return chung_tt()
     if isinstance(data.get("tg"), dict) and data["tg"].get("may"):     # gán Telegram nhận bài riêng cho 1 máy
         ds = dict(CFG.get("chung_may") or {})
         mid, uid = str(data["tg"]["may"]), data["tg"].get("nguoi")
@@ -7137,14 +7154,11 @@ class H(BaseHTTPRequestHandler):
                 return self.send(200, nhap_doc())
             if u.path == "/api/jobs":
                 # "ui": ban giao dien hien tai, trang tu tai lai khi doi (fen khoi phai dong mo app)
-                try:
-                    uiv = int(os.path.getmtime(os.path.join(UI, "index.html")))
-                except OSError:
-                    uiv = 0
+                uiv = ui_ban()
                 ds = list_jobs()
                 if self.may():           # máy dùng chung: chỉ bài máy đó làm; máy shop thấy hết
                     ds = [j for j in ds if (j.get("khach") or {}).get("id") == self.may()]
-                return self.send(200, {"jobs": ds, "ui": uiv, "han_muc": han_muc_tt(), "dung": _dung_tuan_gon(),
+                return self.send(200, {"jobs": ds, "ui": uiv, "ep_ui": CHUNG["ep_ui"], "han_muc": han_muc_tt(), "dung": _dung_tuan_gon(),
                                        "remote": {"bat": bool(CFG.get("tg_lenh")), "noi": tgl_noi(), "loi": bool(tgl_trang_thai()["loi"])},
                                        "chung": {"bat": bool(CFG.get("chung_bat")), "chay": bool(CHUNG["url"]) and _cf_song(), "loi": bool(CHUNG["loi"])}})
             m = re.fullmatch(r"/api/job/([\w-]+)", u.path)
@@ -7369,6 +7383,8 @@ class HK(H):
             return False
         self.khach = m
         CHUNG["lan"][m["id"]] = now()
+        if self.headers.get("X-Poly-Ui"):
+            CHUNG["ui"][m["id"]] = str(self.headers.get("X-Poly-Ui"))[:20]
         if any(re.fullmatch(r, p) for r in CHUNG_CAM.get(self.command, ())):
             self.send(403, {"err": "Việc này mở trên chính máy shop (máy này không thấy): làm trên máy shop"})
             return False

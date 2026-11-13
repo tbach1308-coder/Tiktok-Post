@@ -737,7 +737,8 @@ function xoaNhapId(id){
 S.seen = store.get('poly-da-xem', {}); S.det = store.get('poly-chi-tiet', false);
 
 async function api(path, body) {
-  const r = await fetch(path, body === undefined ? {} : {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)});
+  const hd = KHACH && S.ui ? {'X-Poly-Ui': String(S.ui)} : {};      // máy con báo bản giao diện đang mở (máy shop thấy máy nào đã cập nhật)
+  const r = await fetch(path, body === undefined ? {headers: hd} : {method:'POST', headers: Object.assign({'Content-Type':'application/json'}, hd), body:JSON.stringify(body)});
   const j = await r.json().catch(() => ({}));
   if (!r.ok) { const er = new Error(j.err || ('Lỗi ' + r.status)); er.status = r.status;
     if (r.status === 401 && j.chua_vao && KHACH && S.khach && !$('#vaoBox')) manVao();      // máy dùng chung đang dùng thì bị fen bỏ
@@ -1091,6 +1092,13 @@ async function loadJobs(){
     const j = await api('/api/jobs'); S.fail = 0; $('#offline')?.remove();
     // fen 13/11 15h30 "cho máy con tự hiện thông báo bấm update khi có bản mới": máy con không tự tải lại, luôn hiện nút Cập nhật
     if (j.ui) { if (!S.ui) S.ui = j.ui; else if (j.ui !== S.ui) { if (!KHACH && canReload()) { taiLaiUi(); return; } uiMoiBao(); } }
+    // fen 13/11 20h26 "app con không cần bấm update, mình cho nút chủ động bấm update": máy shop bấm "Cập nhật máy con" (ep_ui tăng)
+    // -> máy con tự tải bản mới; đang dở tay (đang gõ, ảnh chưa gửi) thì chờ rảnh mới tải, chữ nháp vẫn giữ
+    if (KHACH) {
+      if (S.epUi == null) S.epUi = j.ep_ui || 0;
+      else if ((j.ep_ui || 0) > S.epUi) { S.epUi = j.ep_ui; if (j.ui && S.ui && j.ui !== S.ui) S.choTai = true; }
+      if (S.choTai && canReload()) { taiLaiUi(); return; }
+    }
     rmChip(j.remote); chungChip(j.chung);
     if (j.han_muc && S.health && (!!S.health.han_muc?.het !== !!j.han_muc.het || (S.health.han_muc || {}).gio !== j.han_muc.gio)) { S.health.han_muc = j.han_muc; health(); }
     if (j.dung && S.health && S.health.dung && (j.dung.pt >= 80) !== !!S.health.dung.canh_bao) health();
@@ -2183,10 +2191,12 @@ function chungDlg(){
       h += r.ma ? `<div class="rmma"><div>Mã cho máy mới (dùng 1 lần, ${Math.ceil(r.ma_con / 60)} phút):</div><div class="chma">${esc(r.ma)}</div>
           <p class="pnote">Trên máy kia: mở app Mac (hoặc mở link bằng Chrome / Safari) → dán link → nhập mã này + tên máy.</p></div>`
         : `<div class="acts" style="justify-content:flex-start"><button class="btn sm pri" id="chMa">＋ Thêm máy (lấy mã)</button></div>`;
-      h += (r.may || []).length ? `<div style="margin-top:8px"><b>Máy đang dùng chung</b>${r.may.map(x => `<div class="chmay"><div><button class="chten" data-xemmay="${esc(x.id)}" title="Xem máy này đang làm gì: bản nháp đang viết, bài đang làm, bài gần đây">👤 ${esc(x.ten)} ›</button><small>vào ${x.t ? (d => String(d.getDate()).padStart(2, '0') + '/' + String(d.getMonth() + 1).padStart(2, '0'))(new Date(x.t * 1000)) : ''}${x.lan ? ' · dùng gần nhất ' + hm(x.lan) : ''}</small></div>
+      h += (r.may || []).length ? `<div style="margin-top:8px"><b>Máy đang dùng chung</b>${r.may.map(x => `<div class="chmay"><div><button class="chten" data-xemmay="${esc(x.id)}" title="Xem máy này đang làm gì: bản nháp đang viết, bài đang làm, bài gần đây">👤 ${esc(x.ten)} ›</button><small>vào ${x.t ? (d => String(d.getDate()).padStart(2, '0') + '/' + String(d.getMonth() + 1).padStart(2, '0'))(new Date(x.t * 1000)) : ''}${x.lan ? ' · dùng gần nhất ' + hm(x.lan) : ''}${x.ui_moi === true ? ' · <span class="okc">✓ bản mới</span>' : x.ui_moi === false ? ' · <span class="stc">⏳ bản cũ</span>' : ''}</small></div>
           <select class="in chtg" data-tg="${esc(x.id)}" title="Bài máy này làm xong / bấm Gửi Telegram thì bot gửi riêng cho người này"><option value="">📩 Không gửi Telegram</option>${(r.nguoi || []).map(n => `<option value="${esc(n.id)}"${String(x.tg) === String(n.id) ? ' selected' : ''}>📩 ${esc(n.ten)}</option>`).join('')}</select>
           <button class="btn sm ghost" data-bo="${esc(x.id)}">Bỏ</button></div>`).join('')}
-          <p class="pnote">📩 = bài máy đó làm thì bot gửi riêng cho ai (người đó bấm Start bot 1 lần mới hiện trong danh sách).</p></div>` : '';
+          <p class="pnote">📩 = bài máy đó làm thì bot gửi riêng cho ai (người đó bấm Start bot 1 lần mới hiện trong danh sách).</p>
+          <div class="acts" style="justify-content:flex-start;margin-top:6px"><button class="btn sm" id="chCapNhat">🔄 Cập nhật máy con</button>${r.ep_ui ? `<small class="stc">đã gửi lúc ${hm(r.ep_ui)}</small>` : ''}</div>
+          <p class="pnote">Bấm là máy con đang mở app tự tải bản mới, khỏi bấm gì. Máy đang gõ dở / có ảnh chưa gửi thì tự tải khi rảnh, chữ nháp vẫn giữ. Máy chưa mở app thì lần mở sau là bản mới.</p></div>` : '';
     }
     h += `<p class="pnote" style="margin-top:10px">Hoặc tải file ở đây rồi gửi qua Zalo / Telegram: ${r.app_win ? '<a href="/tai-app-win">⬇ App Windows (.exe)</a>' : ''}${r.app_win && r.app_mac ? ' · ' : ''}${r.app_mac ? '<a href="/tai-app-mac">⬇ App Mac (.zip)</a>' : ''}</p>`;
     setH($('#chSt'), h); $('#chErr').textContent = '';
@@ -2194,6 +2204,7 @@ function chungDlg(){
     on('chChep', () => navigator.clipboard.writeText(r.url).then(() => toast('Đã chép link'), () => toast('Không chép được', true)));
     on('chChepTai', () => navigator.clipboard.writeText(r.url + '/tai').then(() => toast('Đã chép link tải app'), () => toast('Không chép được', true)));
     on('chMa', () => gui({ma_moi: true})); on('chThu', () => gui({bat: true}));
+    on('chCapNhat', async () => { await gui({cap_nhat: true}); toast('Đã gửi: máy con đang mở app sẽ tự tải bản mới'); });
     m.querySelectorAll('[data-tg]').forEach(b => b.onchange = () => gui({tg: {may: b.dataset.tg, nguoi: b.value}}));
     m.querySelectorAll('[data-bo]').forEach(b => b.onclick = () => { if (confirm('Bỏ máy này khỏi dùng chung? Máy đó phải nhập mã mới mới vào lại được.')) gui({bo: b.dataset.bo}); });
     m.querySelectorAll('[data-xemmay]').forEach(b => b.onclick = () => { dong(); mayXem(b.dataset.xemmay); });
