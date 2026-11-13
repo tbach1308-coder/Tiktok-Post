@@ -3070,8 +3070,16 @@ def _theme_dong_bo_chay(cmd):
                 except OSError:
                     pass
         for t in doc["ds"]:      # theme lấy từ thư mục mà fen đã đưa ra khỏi thư mục: ẩn (không xoá)
-            if t.get("nguon") == "thu-muc" and t.get("ma") not in trong and not t.get("an"):
-                t["an"] = now()
+            if t.get("nguon") != "thu-muc":
+                continue
+            if t.get("ma") in trong:
+                t.pop("vang", None)
+            elif not t.get("an"):
+                # 13/11: lượt haiku có lần chỉ liệt kê 3/7 thiết kế -> ẩn nhầm 4 theme. Chỉ ẩn khi 2 lượt liền nhau đều không thấy.
+                t["vang"] = int(t.get("vang") or 0) + 1
+                if t["vang"] >= 2:
+                    t["an"] = now()
+                    t.pop("vang", None)
         write_json(THEME_CV_FILE, doc)
     THEME_DB.update({"tt": "ok", "t": now(), "ghi": "", "moi": moi, "so": len(trong)})
     log("theme dong bo: %d thiet ke trong thu muc, %d moi" % (len(trong), moi))

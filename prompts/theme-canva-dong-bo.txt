@@ -3,6 +3,6 @@ Lấy danh sách theme từ thư mục Canva "{thu_muc}" của fen cho kho theme
 Công cụ Canva là các công cụ mcp__claude_ai_Canva__* (nạp nền vài giây sau khi phiên mở). Chưa thấy thì ToolSearch tìm "Canva" (chưa có thì chờ 5 giây bằng python -c "import time; time.sleep(5)" rồi tìm lại, đủ 4 lần). Vẫn không có: trả lời đúng 1 dòng "THEME_LOI Chưa nối được Canva" và dừng.
 
 1. search-folders query "{thu_muc}", ownership "owned". Lấy thư mục tên đúng "{thu_muc}". Không có thì create-folder tên "{thu_muc}", parent_folder_id "root", rồi trả lời "THEME_DS []" và dừng.
-2. list-folder-items thư mục đó, item_types ["design"], sort_by "modified_descending" (có continuation thì gọi tiếp tới hết, tối đa 60 thiết kế).
+2. list-folder-items thư mục đó, item_types ["design"], sort_by "modified_descending" (có continuation thì gọi tiếp tới hết, tối đa 60 thiết kế). Lấy TẤT CẢ thiết kế trong thư mục, không lọc theo tên (tên không có chữ "Theme" vẫn lấy).
 3. Trả lời cuối cùng đúng 1 dòng, không thêm chữ nào khác (JSON 1 dòng, tên giữ nguyên):
 THEME_DS [{"ma": "<mã D…>", "ten": "<title>", "so_trang": <page_count>}, ...]
