@@ -4,7 +4,7 @@ Chủ shop (gọi **"fen"**, Claude xưng **"mình"**) dùng app này trên máy
 (Laptop @polystorelaptop, iPad @poly.store) bằng Photoshop / Canva. Trả lời **tiếng Việt, ngắn, đúng việc**, không thuật ngữ lập trình.
 Cần fen quyết thì hỏi bằng lựa chọn (AskUserQuestion), có 1 lựa chọn "(Recommended)".
 
-Đọc trước khi làm: `README.md` (bố cục repo, Mac), `PROJECT.md` (hồ sơ + nhật ký từng yêu cầu của fen, mới nhất ở cuối mục Nhật ký),
+Đọc trước khi làm: `README.md` (bố cục repo, Mac), `PROJECT.md` (hồ sơ + nhật ký từng yêu cầu của fen, mới nhất ở ĐẦU mục 7. Nhật ký),
 `HUONG-DAN.txt` (cách dùng cho fen). Mỗi lần sửa: ghi 1 dòng nhật ký vào `PROJECT.md` + cập nhật `HUONG-DAN.txt` nếu fen thấy khác.
 
 ## Máy shop
