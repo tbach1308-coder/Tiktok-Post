@@ -2,6 +2,15 @@
 // Trang TikTok không gọi thẳng 127.0.0.1 được, nên nhờ service worker (có quyền host) lấy hộ.
 // Mã bài giữ THEO TỪNG TAB (storage.session, key "tab<id>"): tab khác hay trang mở tay không bị gắn nhầm bài.
 const APP = 'http://127.0.0.1:8777';
+// Máy con (fen 13/11 17h05): app máy shop mở qua link Cloudflare; trang app nhờ tiện ích mở TikTok và giao link app + khoá riêng
+// của bài ("app<mã bài>" trong storage.session, trang TikTok không đọc được). Bài không có thì lấy ở app trên chính máy này như cũ.
+async function nguon(id) { const k = 'app' + id, o = id ? (await chrome.storage.session.get(k))[k] : null; return o && o.base ? o : { base: APP, k: '' }; }
+async function goi(id, duong, opt) {
+  const s = await nguon(id), h = Object.assign({}, (opt && opt.headers) || {});
+  if (s.k) h['X-Poly-TK'] = s.k;
+  return fetch(new URL(duong, s.base).href, Object.assign({}, opt || {}, { headers: h }));
+}
+const guiApp = (id, duong, data) => goi(id, duong, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
 const HAN = 10 * 60 * 1000;          // việc của tab quá 10 phút thì bỏ
 let q = Promise.resolve();           // xử lý tuần tự: 2 khung cùng xin nhận việc thì chỉ 1 khung được
 const tuanTu = f => (q = q.then(f, f));
@@ -17,22 +26,32 @@ chrome.tabs.onUpdated.addListener(async (t, info) => {
   const k = 'dang' + t, o = (await chrome.storage.session.get(k))[k];
   if (!o || Date.now() - o.t > 3 * 60000) return;
   await chrome.storage.session.remove(k);
-  fetch(APP + '/api/tiktok-dang', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: o.id, ok: true, qua: 'chuyen-trang', lich: o.lich || 0, brand: o.brand }) }).catch(() => {});
+  guiApp(o.id, '/api/tiktok-dang', { id: o.id, ok: true, qua: 'chuyen-trang', lich: o.lich || 0, brand: o.brand }).catch(() => {});
 });
 
 chrome.runtime.onMessage.addListener((msg, sender, send) => {
   if (!msg || !msg.poly) return;
+  if (msg.poly === 'mo-app') {   // trang app (máy con) bấm Đăng TikTok (web): nhớ link app + khoá của bài, mở TikTok Studio
+    let base = '';
+    try { base = sender.origin || new URL(sender.url).origin; } catch (e) {}
+    const id = String(msg.id || ''), k = String(msg.k || ''), url = String(msg.url || '');
+    if (!/^https:\/\/[\w.-]+$/.test(base) || !/^[\w-]{6,64}$/.test(id) || !/^[0-9a-f]{40,64}$/.test(k) || !url.startsWith('https://www.tiktok.com/')) { send({ err: 'Dữ liệu mở TikTok không đúng' }); return; }
+    chrome.storage.session.set({ ['app' + id]: { base, k, t: Date.now() } })
+      .then(() => chrome.tabs.create({ url }))
+      .then(() => send({ ok: true }), e => send({ err: String((e && e.message) || e) }));
+    return true;
+  }
   if (msg.poly === 'lay') {
     lay(msg.id).then(send, e => send({ err: String((e && e.message) || e) }));
     return true;
   }
   if (msg.poly === 'nhac') {   // ghi bài nhạc vừa chọn vào sổ của app (lần sau không chọn lại)
-    fetch(APP + '/api/tiktok-nhac', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(msg.data) })
+    guiApp((msg.data || {}).id, '/api/tiktok-nhac', msg.data)
       .then(r => send({ ok: r.ok }), () => send({ ok: false }));
     return true;
   }
   if (msg.poly === 'dang') {   // TikTok báo đăng / hẹn xong mà không chuyển trang -> app ghi vào bài
-    fetch(APP + '/api/tiktok-dang', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(msg.data) })
+    guiApp((msg.data || {}).id, '/api/tiktok-dang', msg.data)
       .then(r => send({ ok: r.ok }), () => send({ ok: false }));
     if (sender.tab) chrome.storage.session.remove('dang' + sender.tab.id);
     return true;
@@ -91,14 +110,17 @@ chrome.runtime.onMessage.addListener((msg, sender, send) => {
 
 async function lay(id) {
   let r;
-  try { r = await fetch(APP + '/api/tiktok/' + encodeURIComponent(id)); }
-  catch (e) { throw new Error('Không nối được app Poly Dựng Bài. Mở app (icon ngoài Desktop) rồi bấm Điền lại.'); }
+  const may = !!(await nguon(id)).k;
+  const khongNoi = may ? 'Không nối được app máy shop (mạng chập chờn, hoặc link app vừa đổi). Mở bài trong app, bấm lại Đăng TikTok (web).'
+    : 'Không nối được app Poly Dựng Bài. Mở app (icon ngoài Desktop) rồi bấm Điền lại.';
+  try { r = await goi(id, '/api/tiktok/' + encodeURIComponent(id)); }
+  catch (e) { throw new Error(khongNoi); }
   const d = await r.json().catch(() => ({}));
   if (!r.ok) throw new Error(d.err || ('App báo lỗi ' + r.status));
   d.anh = [];
   for (const f of d.files || []) {
     let rr;
-    try { rr = await fetch(f.url); } catch (e) { throw new Error('Không nối được app Poly Dựng Bài khi lấy ' + f.name + '. Bấm Điền lại.'); }
+    try { rr = await goi(id, f.url); } catch (e) { throw new Error('Lấy ' + f.name + ' bị đứt. ' + khongNoi); }
     if (!rr.ok) throw new Error('Thiếu slide ' + f.name + ' (vừa bị xoá hoặc đổi tên?). Mở lại bài trong app rồi bấm Điền lại.');
     d.anh.push({ name: f.name, b64: toB64(await rr.arrayBuffer()) });
   }

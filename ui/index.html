@@ -58,6 +58,7 @@ a{color:var(--gl)}
 .kmtt details{font-size:12.5px;color:var(--mut)} .kmtt details .in{margin-top:6px;width:100%}
 .kmtt .acts{display:flex;gap:8px;justify-content:flex-end}
 .mbox{max-height:92vh;overflow:auto}
+ol.extb{margin:6px 0 14px 20px;padding:0;display:grid;gap:10px;font-size:13.5px;line-height:1.5}ol.extb code{background:var(--input);padding:1px 6px;border-radius:6px}ol.extb .btn{vertical-align:middle}
 .post .pnote .hen{color:var(--y)}
 .chatb{margin-top:8px;border:1px solid var(--line2);border-radius:12px;background:var(--panel);padding:8px}
 .chatl{max-height:220px;overflow:auto;display:flex;flex-direction:column;gap:6px}
@@ -465,7 +466,7 @@ select.in.msel option{background:var(--panel);color:var(--tx)}
 /* dùng chung (fen 12/11 "máy khác vẫn sài được full chức năng"): chỉ ẩn nút mở cửa sổ / thư mục / Chrome trên chính máy shop */
 .chikhach{display:none}body.khach .chikhach{display:inline}
 /* fen 13/11 14h49 "kho này máy con không cần hiện": ô 📦 Kho Polysto chỉ máy shop */
-body.khach #bChung,body.khach #bOpen,body.khach #bDang,body.khach #bCoSan,body.khach .thdb,body.khach #thKcd,body.khach .khor{display:none!important}
+body.khach #bChung,body.khach #bOpen,body.khach #bCoSan,body.khach .thdb,body.khach #thKcd,body.khach .khor{display:none!important}
 .thkch{margin:22px 0 2px;font-size:16px}.thkch span{font-size:12.5px;color:var(--mut);font-weight:500}
 .thg>.pnote{grid-column:1/-1;margin:0}.thpage #thG>.pnote{font-size:12.5px;color:var(--mut)}
 #thKcG .thg{margin-top:8px}.thbat{color:var(--o, #f0a020);font-size:12.5px;font-weight:600;border:1px dashed currentColor;border-radius:99px;padding:3px 10px}
@@ -1862,6 +1863,10 @@ function capLen(t){
 const normCap = t => (t || '').replace(/\r\n?/g, '\n').replace(/\s+$/, '');
 function renderPost(){
   const d = S.data, j = d.job, w = $('#postWrap'), sl = d.slides || [];
+  if (KHACH && S.moSau === j.id && !j.sau_caption && j.status !== 'dang-chay') {   // máy con: Claude viết caption xong thì mở TikTok trên máy này
+    S.moSau = null;
+    if (j.status === 'xong' && (d.caption || '').trim()) moTiktokMay(j.id).then(() => { toast('Caption xong: đã mở TikTok trên máy này, kiểm rồi tự bấm Post'); reload(); }, e => toast(e.message, true));
+  }
   if (j.status !== 'xong' || !sl.length) { setH(w, ''); return; }
   // fen 30/10 18h15: Laptop cũng Đăng TikTok (web) như iPad, Chrome hồ sơ riêng; vẫn giữ Gửi Telegram để đăng bằng điện thoại
   // fen 5/11: iPad cũng có nút Gửi Telegram như Laptop
@@ -1905,6 +1910,44 @@ ${esc(d.caption || '')}</textarea>
   const hd = $('#bHenDang'); if (hd) hd.onclick = () => henDangDialog(j);
   const hh = $('#henHuy'); if (hh) hh.onclick = async ev => { ev.preventDefault(); try { await api('/api/job/' + j.id + '/hen-dang', {huy: true}); toast('Đã huỷ hẹn đăng'); reload(); } catch(e) { toast(e.message, true); } };
   $('#bDaDang').onclick = async () => { try { await api('/api/job/' + j.id + '/da-dang', {bo: !!j.da_dang}); toast(j.da_dang ? 'Đã bỏ đánh dấu' : 'Đã đánh dấu đã đăng'); reload(); loadJobs(); } catch(e) { toast(e.message, true); } };
+}
+/* ---------- máy con: Đăng TikTok (web) bằng tiện ích Poly TikTok trên Chrome máy con (fen 13/11 17h05 "cho máy con full chức năng này") ----------
+   Tiện ích (app.js) gắn data-poly-tiktok = bản vào trang app; bấm Đăng: app máy shop đưa khoá riêng của bài, trang nhờ tiện ích mở TikTok Studio,
+   tiện ích lấy slide + caption qua link Cloudflare bằng khoá đó (không mở Chrome máy shop). */
+const EXT_MIN = '0.11.0';
+const extBan = () => document.documentElement.dataset.polyTiktok || '';
+const banSo = v => String(v).split('.').map(x => parseInt(x, 10) || 0);
+function extDu(){ const a = banSo(extBan()), b = banSo(EXT_MIN); if (!extBan()) return false; for (let i = 0; i < 3; i++) { if ((a[i] || 0) !== (b[i] || 0)) return (a[i] || 0) > (b[i] || 0); } return true; }
+async function moTiktokMay(id){
+  const r = await api('/api/job/' + id + '/tiktok-may', {});
+  const x = await new Promise(res => {
+    const f = e => { if (e.source === window && e.data && e.data.poly === 'mo-tiktok-xong' && e.data.id === id) { removeEventListener('message', f); clearTimeout(t); res(e.data); } };
+    const t = setTimeout(() => { removeEventListener('message', f); res({ok: false, err: 'Tiện ích Poly TikTok không trả lời: tải lại trang app (F5) rồi bấm lại'}); }, 8000);
+    addEventListener('message', f);
+    window.postMessage({poly: 'mo-tiktok', id, k: r.k, url: r.url}, location.origin);
+  });
+  if (!x.ok) throw new Error(x.err || 'Tiện ích chưa mở được TikTok');
+  return x;
+}
+function extDlg(cu){
+  if ($('#extBox')) return;
+  const ua = navigator.userAgent, mac = /Mac/i.test(navigator.platform || ua), chromeOk = /Chrome\//.test(ua) && !/OPR\//.test(ua);
+  const m = document.createElement('div'); m.className = 'modal on';
+  m.innerHTML = `<div class="mbox" id="extBox"><h3>${cu ? 'Cập nhật' : 'Cài'} tiện ích Poly TikTok cho máy này</h3>
+    ${chromeOk ? '' : '<p class="err">Máy này đang mở app bằng trình duyệt không cài được tiện ích (Safari…). Mở link app bằng <b>Google Chrome</b> rồi làm các bước dưới.</p>'}
+    <p class="pnote">Cài 1 lần cho Chrome máy này. Xong bấm <b>Đăng TikTok (web)</b> là Chrome mở TikTok Studio, gắn sẵn slide + caption + nhạc + giờ hẹn + Your brand như máy shop; người đăng tự kiểm rồi tự bấm Post (tiện ích không tự đăng).${cu ? ' Máy này đang có bản ' + esc(cu) + ', cần bản ' + EXT_MIN + ' trở lên.' : ''}</p>
+    <ol class="extb">
+      <li><a class="btn sm pri" href="/tai-tiktok-ext" download>⬇ Tải tiện ích</a> rồi giải nén (${mac ? 'bấm đúp file .zip vừa tải' : 'chuột phải file .zip vừa tải → Extract All'}): có thư mục <b>Poly TikTok</b>${cu ? '. Chép đè lên thư mục Poly TikTok cũ (đúng chỗ đã cài lần trước)' : '. Để thư mục này ở chỗ cố định (vd Documents), đừng xoá'}.</li>
+      <li>Chrome mở địa chỉ <code>chrome://extensions</code> <button class="btn sm ghost" id="extChep">Chép địa chỉ</button> (dán vào ô địa chỉ), bật <b>Chế độ dành cho nhà phát triển</b> (Developer mode) ở góc phải trên.</li>
+      <li>${cu ? 'Ở thẻ <b>Poly TikTok</b> bấm nút ⟳ (Tải lại).' : 'Bấm <b>Tải tiện ích đã giải nén</b> (Load unpacked), chọn thư mục <b>Poly TikTok</b>.'}</li>
+      <li>Đăng nhập TikTok của kênh trên Chrome này, quay lại app bấm <b>Đã cài xong</b> (trang tải lại), rồi bấm Đăng TikTok (web).</li>
+    </ol>
+    <div class="acts"><button class="btn" id="extDong">Đóng</button><button class="btn pri" id="extLai">Đã cài xong</button></div></div>`;
+  document.body.appendChild(m);
+  const dong = () => m.remove();
+  $('#extDong').onclick = dong; m.onclick = e => { if (e.target === m) dong(); };
+  $('#extChep').onclick = () => navigator.clipboard.writeText('chrome://extensions').then(() => toast('Đã chép: dán vào ô địa chỉ Chrome'), () => toast('Không chép được, gõ tay chrome://extensions', true));
+  $('#extLai').onclick = () => { if (extDu()) { dong(); toast('Tiện ích Poly TikTok ' + extBan() + ' đã sẵn sàng'); return; } taiLaiUi(); };
 }
 // Hẹn giờ đăng (iPad): nút nhanh khung 19–22h (giờ đăng của kênh), giờ tròn 5 phút (TikTok chọn phút theo bước 5)
 function henDangGoiY(ngay){
@@ -1968,6 +2011,7 @@ async function dang(b, ipad){   // ipad = true: Đăng TikTok (web, cả 2 kênh
   S.dangGui = S.dangGui || {};
   if (S.dangGui[id]) return;
   const gui = (S.data.da_gui || []).filter(x => x.kieu === (ipad ? 'tiktok' : 'telegram')).pop();
+  if (ipad && KHACH && !extDu()) return extDlg(extBan());   // máy con chưa có tiện ích Poly TikTok (hoặc bản cũ): hướng dẫn cài
   if (gui && !confirm(ipad ? `Đã mở TikTok cho bài này lúc ${hm(gui.t)}. Mở lại?` : `Đã gửi Telegram ${gui.thieu ? gui.n + '/' + gui.tong + ' slide ' : ''}lúc ${hm(gui.t)}. Gửi lại cả bài?`)) return;
   S.dangGui[id] = true;                                     // khoá TRƯỚC khi lưu caption: bấm đúp không ra 2 lần gửi
   b.disabled = true; b.textContent = ipad ? 'Đang mở…' : 'Đang gửi…';
@@ -1975,10 +2019,11 @@ async function dang(b, ipad){   // ipad = true: Đăng TikTok (web, cả 2 kênh
     if (!await saveCap()) return;
     if (!normCap($('#capT')?.value).split('\n')[0].trim()) {   // chưa có caption: Claude viết caption + hashtag rồi app tự đăng tiếp
       await api('/api/job/' + id + '/viet-caption', {sau: ipad ? 'tiktok' : 'telegram'});
-      toast('Bài chưa có caption: Claude đang viết caption + hashtag (1–2 phút), xong app tự ' + (ipad ? 'mở TikTok' : 'gửi Telegram'));
+      if (ipad && KHACH) S.moSau = id;
+      toast('Bài chưa có caption: Claude đang viết caption + hashtag (1–2 phút), xong app tự ' + (ipad ? (KHACH ? 'mở TikTok trên máy này (để trang app mở)' : 'mở TikTok') : 'gửi Telegram'));
       return;
     }
-    const r = await api('/api/job/' + id + (ipad ? '/tiktok' : '/telegram'), {});
+    const r = ipad && KHACH ? await moTiktokMay(id) : await api('/api/job/' + id + (ipad ? '/tiktok' : '/telegram'), {});
     toast(ipad ? 'Đã mở TikTok: tiện ích điền bài, fen kiểm rồi tự bấm ' + (j.hen_dang && !j.da_dang ? '⏰ Hẹn giờ (' + henTxt(j.hen_dang) + ') ở khung Poly, rồi Schedule' : 'Post') : 'Đã gửi ' + r.n + ' slide + caption qua Telegram');
   } catch(e) {
     if (e.message.startsWith('CAI_TELEGRAM')) tgDialog(e.message.split('|')[1]);
