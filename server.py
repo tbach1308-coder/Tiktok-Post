@@ -558,6 +558,18 @@ def model_cai(data=None):
 AGENT_OPUS = 'luôn gọi với model "opus" (tham số model của Agent), kể cả khi phiên này chạy model khác.'
 
 
+KHACH_MODEL = "sonnet"     # fen 13/11 15h22 "máy con sẽ ưu tiên chọn model làm nhanh"
+
+
+def model_cho(job, k):
+    """Model "Theo cài đặt" của 1 việc trong bài. Bài máy dùng chung: Opus / mặc định tài khoản đổi thành Sonnet (nhanh);
+    máy đó tự chọn Opus trong ô Model thì vẫn theo lựa chọn (job.model / model_sua / model_duyet)."""
+    m = model_viec(k)
+    if (job or {}).get("khach") and m in ("", "opus"):
+        return KHACH_MODEL
+    return m
+
+
 def cau_model_duyet(m):
     return ('luôn gọi với model "%s" (tham số model của Agent), kể cả khi phiên này chạy model khác.' % m) if m else \
         "gọi theo model của phiên này (không ghi tham số model của Agent)."
@@ -1521,7 +1533,7 @@ def start_run(job, prompt, kind, resume=None, label=None, model=None, them_dir=N
     if AGENT_OPUS in prompt:      # agent duyệt + thiết kế: theo lựa chọn của bài, không có thì theo Kiểm máy > Model
         md = job.get("model_duyet")
         prompt = prompt.replace(AGENT_OPUS, cau_model_duyet(md if md in MODEL_VIEC["model_duyet"][1] and md is not None
-                                                            else model_viec("model_duyet_canva" if job.get("dung_bang") == "canva" else "model_duyet")))
+                                                            else model_cho(job, "model_duyet_canva" if job.get("dung_bang") == "canva" else "model_duyet")))
     if doi_goc():   # lệnh mẫu ghi đường dẫn máy shop (E:/Social Claude/...): đổi sang thư mục máy này (Mac / máy mới)
         prompt = mac_doi(prompt, mac_bang_cfg())
     if job.get("khach") and kind != "quy-tac":
@@ -1534,15 +1546,17 @@ def start_run(job, prompt, kind, resume=None, label=None, model=None, them_dir=N
         args += ["--permission-mode", mode]
     if model is None:
         if kind == "caption":
-            model = model_viec("model_caption")
+            model = model_cho(job, "model_caption")
         elif kind == "brief":
             model = job.get("model") if job.get("model") is not None else model_viec("model_brief")
+            if job.get("khach") and not job.get("model") and model in ("", "opus"):
+                model = KHACH_MODEL
         elif kind == "quy-tac":
             model = model_viec("model_quytac")
         elif kind in ("sua", "tiep"):      # fen 10/11 15h24: model chọn cho lần dựng không lan sang Sửa / Chạy tiếp
-            model = job.get("model_sua") if job.get("model_sua") in MODEL_VIEC["model_sua"][1] and job.get("model_sua") else model_viec("model_sua")
+            model = job.get("model_sua") if job.get("model_sua") in MODEL_VIEC["model_sua"][1] and job.get("model_sua") else model_cho(job, "model_sua")
         else:
-            model = job.get("model") or model_viec("model_dung_canva" if job.get("dung_bang") == "canva" else "model_dung")
+            model = job.get("model") or model_cho(job, "model_dung_canva" if job.get("dung_bang") == "canva" else "model_dung")
     if model not in MODEL_OK:
         model = ""
     if model:

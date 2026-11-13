@@ -53,7 +53,7 @@ for path,d in [('/api/chung',{"bat":False}),('/api/job/%s/mo'%ojid,{}),('/api/jo
     s,b,_=req(K,path,d,h=T); check('POST %s: chặn' % path.replace(ojid,'<bài shop>'), s in (403,404), (s,b))
 check('bài máy shop còn nguyên', req(APP,'/api/job/'+ojid)[0]==200)
 s,b,_=req(K,'/api/telegram',{},h=T); check('POST /api/telegram (xem cài đặt): được', s==200, (s,b))
-s,b,_=req(K,'/api/quy-tac',{},h=T); check('POST /api/quy-tac: tới được hàm (không 403)', s!=403, (s,b))
+s,b,_=req(K,'/api/quy-tac',{},h=T); check('POST /api/quy-tac: máy khách bị chặn (fen 13/11: chỉ máy shop đổi quy tắc)', s==403, (s,b))
 check('app vẫn sống sau /api/tat bị chặn', req(APP,'/api/ping')[0]==200)
 s,b,_=req(K,'/api/jobs',h={'Host':HOST,'X-Poly-Khach':TOK,'Origin':'https://evil.example'}); check('origin lạ: 403', s==403, (s,b))
 s,b,_=req(K,'/api/jobs',h={'Host':HOST,'X-Poly-Khach':TOK,'Origin':URL}); check('origin đúng link: 200', s==200, (s,b))
