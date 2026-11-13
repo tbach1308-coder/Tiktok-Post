@@ -745,6 +745,10 @@ async function api(path, body) {
   return j;
 }
 function setH(el, h){ if (el && el._h !== h) { el._h = h; el.innerHTML = h; return true; } return false; }
+// fen 13/11 18h50 "tối ưu app": cửa sổ app để nền / thu nhỏ thì các vòng hỏi máy chủ 30 giây mới hỏi 1 lần (trước 1,5–6 giây),
+// đồng hồ vẫn chạy nhịp cũ nên mở app lên là hỏi lại ngay. k = tên vòng hỏi; app đang hiện thì luôn cho hỏi.
+const NHIP_AN = 30000, _hoiLuc = {};
+function duocHoi(k){ const t = Date.now(); if (document.hidden && t - (_hoiLuc[k] || 0) < NHIP_AN) return false; _hoiLuc[k] = t; return true; }
 function toast(t, bad){ const el = $('#toast'); el.textContent = t; el.className = 'toast on' + (bad ? ' bad' : ''); clearTimeout(toast.t); toast.t = setTimeout(() => el.className = 'toast', 3200); }
 const nowS = () => Date.now()/1000 + S.offset;
 function ago(t){ if (!t) return ''; const s = Math.max(0, nowS() - t); if (s < 60) return 'mới đây'; if (s < 3600) return Math.floor(s/60) + ' phút trước'; if (s < 86400) return Math.floor(s/3600) + ' giờ trước';
@@ -960,7 +964,7 @@ function remote(){
     catch(e) { if (e.message.startsWith('CAI_TELEGRAM')) { dong(); tgDialog(e.message.split('|')[1]); } else $('#rmErr').textContent = e.message; }
   };
   m.querySelectorAll('#rmSeg [data-b]').forEach(b => b.onclick = () => gui({bat: b.dataset.b === '1'}));
-  const tai = async () => { try { ve(await api('/api/tg-lenh')); } catch(e) {} if ($('#rmBox')) remote.t = setTimeout(tai, 3000); };
+  const tai = async () => { if (duocHoi('rm')) try { ve(await api('/api/tg-lenh')); } catch(e) {} if ($('#rmBox')) remote.t = setTimeout(tai, 3000); };
   tai();
 }
 /* nút Quy tắc (fen 30/10 11h04 "có chỗ nào trong app cho mình update các quy tắc mới"): ghi luật mới cho mọi bài sau, không đụng bài */
@@ -1002,6 +1006,7 @@ async function qtGhi(){
 }
 async function qtTai(){
   clearTimeout(qtTai.t);
+  if (!duocHoi('qt')) { qtTai.t = setTimeout(qtTai, 4000); return; }
   let r; try { r = await api('/api/quy-tac'); } catch(e) { const el = $('#qtDs'); if (el) setH(el, `<p class="err">${esc(e.message)}</p>`); return; }
   const chay = v => v.status === 'dang-chay' || v.status === 'moi';
   const dang = new Set((r.viec || []).filter(chay).map(v => v.id));
@@ -1379,6 +1384,7 @@ async function pollBrief(f){
   f = f || S.form; const id = f.briefJob;
   clearTimeout(f._t);
   if (!id) return;
+  if (!duocHoi('vb' + (f.id || ''))) { f._t = setTimeout(() => pollBrief(f), 3000); return; }
   const hien = () => S.view === 'new' && S.form === f;
   const st = () => hien() ? $('#vbSt') : null, b = () => hien() ? $('#bVietBrief') : null;
   if (b()) { b().disabled = true; b().textContent = 'Claude đang viết…'; }
@@ -1462,6 +1468,7 @@ async function guiChat(f){
 }
 async function pollChat(f){
   const id = f.chatJob; clearTimeout(f._tc); if (!id) return;
+  if (!duocHoi('ct' + (f.id || ''))) { f._tc = setTimeout(() => pollChat(f), 2500); return; }
   let d; try { d = await api('/api/job/' + id + '?since=0'); } catch(e) { f._tc = setTimeout(() => pollChat(f), 4000); return; }
   if (f.chatJob !== id || !S.nhap.ds.includes(f)) return;
   if (d.job.status === 'dang-chay' || d.job.status === 'moi') { f._tc = setTimeout(() => pollChat(f), S.form === f ? 2500 : 6000); veChat(f); return; }
@@ -1518,6 +1525,7 @@ async function reload(){ stopPoll(); S.since = 0; S.events = []; S.data = null; 
 async function poll(first){
   if (S.view !== 'job') return;
   const id = S.jobId, gen = S.gen;
+  if (!first && !duocHoi('bai')) { S.timer = setTimeout(() => poll(false), 1500); return; }   // app để nền: 30 giây hỏi 1 lần
   try {
     const d = await api('/api/job/' + id + '?since=' + S.since);
     if (S.jobId !== id || S.gen !== gen) return;
@@ -2081,7 +2089,7 @@ function cvVe(st){
   S.cv = st; const [d, t] = CV_TT[st.tt] || CV_TT['chua-kiem'];
   setH($('#bCv'), `<span class="dot ${d}"></span><span>${CV_NGAN[st.tt] || 'Canva'}</span>`); $('#bCv').title = t + ' · bấm để kiểm, xem cách nối';
   const b = $('#cvTt'); if (b) setH(b, cvChu(st));
-  clearTimeout(S._cvT); if (st.tt === 'dang') S._cvT = setTimeout(cvChip, 3000);
+  clearTimeout(S._cvT); if (st.tt === 'dang') S._cvT = setTimeout(function cho(){ if (duocHoi('cv')) cvChip(); else S._cvT = setTimeout(cho, 3000); }, 3000);
 }
 const cvChu = st => `<b>${esc((CV_TT[st.tt] || CV_TT['chua-kiem'])[1])}</b>${st.t ? ` · ${st.tt === 'dang' ? 'bắt đầu' : 'biết lúc'} ${hm(st.t)}${st.nguon ? ' (' + esc(st.nguon) + ')' : ''}` : ''}${st.ghi ? '<br><span class="stc">' + esc(st.ghi) + '</span>' : ''}`;
 async function cvChip(kiem){
@@ -2192,7 +2200,7 @@ function chungDlg(){
   };
   const gui = async d => { try { ve(await api('/api/chung', d)); if ('bat' in d && !d.bat) toast('Đã tắt dùng chung'); } catch(e) { $('#chErr').textContent = e.message; } };
   m.querySelectorAll('#chSeg [data-b]').forEach(b => b.onclick = () => gui({bat: b.dataset.b === '1'}));
-  const tai = async () => { try { ve(await api('/api/chung')); } catch(e) {} if ($('#chBox')) chungDlg.t = setTimeout(tai, 3000); };
+  const tai = async () => { if (duocHoi('ch')) try { ve(await api('/api/chung')); } catch(e) {} if ($('#chBox')) chungDlg.t = setTimeout(tai, 3000); };
   tai();
 }
 // fen 13/11 15h03 "bấm vô chỗ máy Quân thấy Quân đang làm gì luôn": hộp xem 1 máy dùng chung (tự làm mới 4 giây)
@@ -2220,7 +2228,7 @@ function mayXem(id){
     m.querySelectorAll('[data-bai]').forEach(b => b.onclick = () => { dong(); openJob(b.dataset.bai); });
     $('#myErr').textContent = '';
   };
-  const tai = async () => { try { ve(await api('/api/chung/may?id=' + encodeURIComponent(id))); } catch(e) { if ($('#myErr')) $('#myErr').textContent = e.message; } if ($('#myBox')) mayXem.t = setTimeout(tai, 4000); };
+  const tai = async () => { if (duocHoi('my')) try { ve(await api('/api/chung/may?id=' + encodeURIComponent(id))); } catch(e) { if ($('#myErr')) $('#myErr').textContent = e.message; } if ($('#myBox')) mayXem.t = setTimeout(tai, 4000); };
   tai();
 }
 /* ---------- bắt đầu ---------- */
@@ -2317,7 +2325,7 @@ async function khoTheme(){
       : db.tt === 'loi' ? 'Chưa lấy được: ' + (db.ghi || '') : '';
     const bo = r.bo_ds || [];
     setH($('#thBo'), bo.length ? `Đã bỏ khỏi kho: ${bo.map(t => `<a href="#" data-hien="${t.id}" title="Hiện lại trong kho">↩ ${esc(tenGon(t))}</a>`).join(' · ')}` : '');
-    clearInterval(S._thT); if (db.tt === 'dang' || ds.some(t => (t.xem || {}).tt === 'dang' || (t.sua || {}).tt === 'dang')) S._thT = setInterval(tai, 5000);
+    clearInterval(S._thT); if (db.tt === 'dang' || ds.some(t => (t.xem || {}).tt === 'dang' || (t.sua || {}).tt === 'dang')) S._thT = setInterval(() => { if (duocHoi('th')) tai(); }, 5000);
     if (moInfo && ds.some(t => t.id === moInfo)) return;      // đang sửa Thông tin 1 theme: không vẽ lại kẻo mất chữ đang gõ
     moInfo = '';
     // fen 12/11 19h35: mỗi máy theme riêng + kho chung; 19h42 "hiển thị template lấy từ drive như canva": kho chung là 1 lưới thẻ riêng
@@ -2449,7 +2457,7 @@ async function khoTheme(){
     const veTrang = r => { if (!$('#edTr') || e.dataset.tid !== t.id) return;
       const st = $('#edTrSt'), g = $('#edTr'), co = (r.trang || []).length;
       clearInterval(S._thTr);
-      if (r.tt === 'dang') { setH(st, `<span>⏳ Đang tải các trang từ Canva… (khoảng 1 phút)</span>`); if (!co) setH(g, ''); S._thTr = setInterval(async () => { try { veTrang(await api('/api/theme-canva/trang/' + t.id)); } catch(err) {} }, 4000); return; }
+      if (r.tt === 'dang') { setH(st, `<span>⏳ Đang tải các trang từ Canva… (khoảng 1 phút)</span>`); if (!co) setH(g, ''); S._thTr = setInterval(async () => { if (!duocHoi('tr')) return; try { veTrang(await api('/api/theme-canva/trang/' + t.id)); } catch(err) {} }, 4000); return; }
       setH(st, r.tt === 'loi' ? `<span class="err">Chưa tải được các trang: ${esc(r.ghi || '')}</span><a href="#" id="edTrLai">Thử lại</a>`
         : co ? `<span>Bấm thẳng vào chữ trên trang để sửa (hoặc sửa ở ô dưới trang). Chữ đã đổi hiện ngay trên trang, viền tím. ${nb ? 'Chữ sửa áp vào bản nhân bản.' : ''}</span><a href="#" id="edTrLai">Tải lại trang</a>` : '');
       const la = $('#edTrLai'); if (la) la.onclick = async ev => { ev.preventDefault(); try { veTrang(await api('/api/theme-canva', {trang: t.id, ep: true})); } catch(err) { $('#thErr').textContent = err.message; } };
@@ -2499,7 +2507,8 @@ async function khoTheme(){
   try { ve(await api('/api/theme-canva', {dong_bo: true})); } catch(e) { tai(); }   // mở kho là tự lấy (quá 30 phút mới lấy lại)
 }
 khoiDong().then(ok => ok && Promise.all([loadJobs(), loadNhap()])).then(v => { if (!v) return; if (location.hash === '#theme') return khoTheme(); const h = (location.hash.match(/bai=([\w-]+)/) || [])[1], moi = location.hash === '#moi'; const r = !moi && ((h && S.jobs.find(j => j.id === h)) || S.jobs.find(j => j.status === 'dang-chay')); r ? openJob(r.id) : newView(); });
-setInterval(loadJobs, 5000); setInterval(() => health(), 120000);
+setInterval(() => { if (duocHoi('ds')) loadJobs(); }, 5000); setInterval(() => health(), 120000);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) { _hoiLuc.ds = Date.now(); loadJobs(); } });
 </script>
 </body>
 </html>

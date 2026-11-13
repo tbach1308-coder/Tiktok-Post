@@ -11,6 +11,7 @@ Trang thai luon doc lai tu file log, nen tat app giua chung roi mo lai van xem t
 """
 import base64
 import collections
+import gzip
 import io
 import json
 import math
@@ -287,6 +288,41 @@ def job_dir(jid):
 
 def load_job(jid):
     return read_json(os.path.join(job_dir(jid), "job.json"))
+
+
+# ---------- nhớ job.json để đọc danh sách bài (fen 13/11 18h50 "tối ưu app") ----------
+# Danh sách bài (mỗi máy mở app hỏi 5 giây/lần) và hàng chờ hẹn (15 giây/lần) trước đây mở + đọc lại ~230 job.json mỗi lần.
+# Giờ nhớ theo giờ sửa + cỡ file: chỉ đọc lại bài vừa đổi. File vừa sửa trong 3 giây gần đây luôn đọc lại (ổ FAT/exFAT
+# ghi giờ sửa thô, 2 lần ghi sát nhau có thể trùng giờ). CHỈ ĐỌC: nơi gọi không được sửa dict trả về (sửa thì load_job).
+_JOB_NHO = {}
+_JOB_NHO_KHOA = threading.Lock()
+
+
+def job_nho(jid):
+    p = os.path.join(JOBS, jid, "job.json")
+    try:
+        st = os.stat(p)
+    except OSError:
+        with _JOB_NHO_KHOA:
+            _JOB_NHO.pop(jid, None)
+        return None
+    k = (st.st_mtime_ns, st.st_size)
+    with _JOB_NHO_KHOA:
+        c = _JOB_NHO.get(jid)
+    if c and c[0] == k and time.time() - st.st_mtime > 3:
+        return c[1]
+    j = read_json(p)
+    if isinstance(j, dict):
+        with _JOB_NHO_KHOA:
+            _JOB_NHO[jid] = (k, j)
+    return j
+
+
+def job_nho_don(con):
+    """Bỏ khỏi bộ nhớ các bài không còn trong thư mục jobs (đã dời đi)."""
+    with _JOB_NHO_KHOA:
+        for jid in [x for x in _JOB_NHO if x not in con]:
+            _JOB_NHO.pop(jid, None)
 
 
 def save_job(job):
@@ -3406,8 +3442,10 @@ def kho_chung_dua(chon):
         raise ValueError("Máy này chưa có Google Drive cho máy tính (ổ Google Drive). Đưa lên kho chung làm ở máy shop.")
     os.makedirs(d, exist_ok=True)
     f = os.path.join(d, KHO_CHUNG_TEN)
-    cu = read_json(f, None) if (os.path.isfile(f) and chon is not True) else None     # True: kho chung = đúng kho máy này
-    ds = [x for x in ((cu or {}).get("ds") or []) if isinstance(x, dict) and x.get("ma")]
+    cu = read_json(f, None) if os.path.isfile(f) else None
+    ds_cu = [x for x in ((cu or {}).get("ds") or []) if isinstance(x, dict) and x.get("ma")]
+    cu_theo_ma = {x["ma"]: x for x in ds_cu}
+    ds = [] if chon is True else [dict(x) for x in ds_cu]     # True: kho chung = đúng kho máy này
     theo_ma = {x["ma"]: x for x in ds}
     them = 0
     for t in theme_cv_ds():
@@ -3421,16 +3459,27 @@ def kho_chung_dua(chon):
                 anh = base64.b64encode(fh.read()).decode("ascii")
         x = {"ma": t["ma"], "ten": t.get("ten") or "", "kenh": t.get("kenh") or "", "dang": t.get("dang") or [], "so_trang": t.get("so_trang"),
              "link": t.get("link_chia_se") or t.get("link"), "chia_se": bool(t.get("link_chia_se")), "anh": anh, "t": now()}
+        c = cu_theo_ma.get(t["ma"])
+        if c is None:
+            them += 1
+        elif all(c.get(k) == v for k, v in x.items() if k != "t"):
+            x["t"] = c.get("t", x["t"])           # theme không đổi: giữ giờ cũ (để biết kho có đổi hay không)
         if t["ma"] not in theo_ma:
             ds.append(x)
-            them += 1
+            theo_ma[t["ma"]] = x
         else:
             theo_ma[t["ma"]].clear()
             theo_ma[t["ma"]].update(x)
+    chua = sum(1 for x in ds if not x.get("chia_se"))
+    if cu and cu.get("ver") == 1 and cu.get("ds") == ds:
+        # fen 13/11 18h50 "tối ưu app": kho không đổi thì khỏi ghi lại (trước ghi mỗi lần đồng bộ, Drive phải tải lên lại; log còn báo "10 moi")
+        KHO_CHUNG_TT["dua"] = {"tt": "ok", "t": now(), "so": len(ds), "moi": 0, "chua_chia_se": chua}
+        log("kho chung dua: %d theme, khong doi -> khong ghi lai" % len(ds))
+        return
     out = {"ver": 1, "t": now(), "ds": ds}
     with open(f, "w", encoding="utf-8") as fh:      # ghi đè tại chỗ: Drive giữ nguyên mã file nên link chia sẻ không đổi
         json.dump(out, fh, ensure_ascii=False)
-    KHO_CHUNG_TT["dua"] = {"tt": "ok", "t": now(), "so": len(ds), "moi": them, "chua_chia_se": sum(1 for x in ds if not x.get("chia_se"))}
+    KHO_CHUNG_TT["dua"] = {"tt": "ok", "t": now(), "so": len(ds), "moi": them, "chua_chia_se": chua}
     log("kho chung dua: %d theme (%d moi) -> %s" % (len(ds), them, f))
 
 
@@ -5290,10 +5339,12 @@ def _chay_lich_1():
     if now() - (KHO_CHUNG_TT.get("tai") or {}).get("t", 0) > 7200:
         kho_chung_tu_tai()
     jobs = []
-    for jid in sorted(os.listdir(JOBS)) if os.path.isdir(JOBS) else []:
-        j = read_json(os.path.join(JOBS, jid, "job.json"))
+    ids = sorted(os.listdir(JOBS)) if os.path.isdir(JOBS) else []
+    for jid in ids:
+        j = job_nho(jid)                   # chỉ đọc (sửa thì load_job trong LOCK như dưới)
         if j:
             jobs.append(j)
+    job_nho_don(set(ids))
     # a) viết caption xong -> mở TikTok / gửi Telegram như fen đã bấm
     for j in jobs:
         if j.get("sau_caption") and j.get("status") in ("xong", "loi", "dung"):
@@ -5872,7 +5923,7 @@ def list_jobs():
     if not os.path.isdir(JOBS):
         return out
     for jid in sorted(os.listdir(JOBS), reverse=True)[:200]:
-        job = read_json(os.path.join(JOBS, jid, "job.json"))
+        job = job_nho(jid)                 # nhớ theo giờ sửa: chỉ đọc lại bài vừa đổi (fen 13/11 "tối ưu app")
         if not job or job.get("loai") in VIEC_AN or job.get("an"):   # việc "Viết brief", "Ghi quy tắc" không phải bài; "an": đã dọn
             continue
         if job.get("status") == "dang-chay":
@@ -6998,7 +7049,10 @@ class H(BaseHTTPRequestHandler):
                 if not fp.startswith(UI + os.sep) or not os.path.isfile(fp):
                     return self.send(404, {"err": "không có"})
                 with open(fp, "rb") as f:
-                    return self.send(200, f.read(), mimetypes.guess_type(fp)[0] or "application/octet-stream")
+                    # font / icon không bao giờ đổi: trình duyệt nhớ 1 ngày (trước "no-store": mỗi lần mở app tải lại ~170KB font,
+                    # máy con qua mạng càng chậm; fen 13/11 19h02 "đảm bảo máy admin và máy con chạy trơn")
+                    return self.send(200, f.read(), mimetypes.guess_type(fp)[0] or "application/octet-stream",
+                                     None if fp.endswith(".html") else {"Cache-Control": "max-age=86400"})
             if u.path == "/api/ping":
                 return self.send(200, {"ok": True})
             if u.path == "/api/chung":
@@ -7277,6 +7331,22 @@ class HK(H):
     """Cổng khách (dùng chung, fen 12/11): cùng các trang / lệnh của app, phải có mã thiết bị; chặn CHUNG_CAM.
     Nháp riêng từng máy (2 máy cùng sửa 1 danh sách nháp sẽ đè nhau), bài máy khách tạo ghi tên máy."""
     khach = None
+
+    # fen 13/11 19h02 "đảm bảo máy admin và máy con chạy trơn": máy con nhận trang / dữ liệu qua mạng (đường nối Cloudflare,
+    # mạng tải lên của shop) -> nén gzip chữ / JSON: trang app ~250KB -> ~60KB, danh sách bài ~19KB -> ~4KB mỗi lần hỏi.
+    # Ảnh, font, file tải về đã nén sẵn: gửi nguyên. Trình duyệt không nhận gzip thì gửi nguyên như cũ.
+    NEN_LOAI = ("application/json", "text/", "application/javascript")
+
+    def send(self, code, body, ctype="application/json; charset=utf-8", extra=None):
+        if isinstance(body, (dict, list)):
+            body = json.dumps(body, ensure_ascii=False).encode("utf-8")
+        elif isinstance(body, str):
+            body = body.encode("utf-8")
+        if len(body) > 1400 and ctype.startswith(self.NEN_LOAI) and "gzip" in (self.headers.get("Accept-Encoding") or "").lower() \
+                and not any(k.lower() == "content-encoding" for k in (extra or {})):
+            body = gzip.compress(body, 6)
+            extra = dict(extra or {}, **{"Content-Encoding": "gzip", "Vary": "Accept-Encoding"})
+        return H.send(self, code, body, ctype, extra)
 
     def local_only(self):
         host = self.headers.get("Host") or ""

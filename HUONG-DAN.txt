@@ -6,6 +6,8 @@ MỞ APP
 - Nhấp đúp icon "Poly Dung Bai" ngoài Desktop (hoặc file "Poly Dung Bai.vbs" trong thư mục này).
 - App mở thành cửa sổ riêng (Edge, hồ sơ riêng trong thư mục _edge, không tự dịch sang tiếng Anh).
   Tắt cửa sổ thì bài đang chạy vẫn chạy tiếp, mở lại là thấy. Có bản app mới thì trang tự tải lại.
+- Cửa sổ app thu nhỏ / bị che (13/11 tối ưu): app 30 giây mới hỏi máy chủ 1 lần cho đỡ tốn máy, nên báo "bài xong"
+  có thể trễ tới 30 giây; mở app lên là cập nhật ngay. Máy dùng chung nhận trang app nén (nhẹ ~3 lần), font nhớ 1 ngày.
 - App chạy trên máy này, cổng 8777 (cổng 8765 là của tool đăng bài, không dùng chung).
 
 ĐĂNG NHẬP CLAUDE CODE: TÀI KHOẢN NÀO CŨNG LÀM ĐƯỢC
