@@ -118,7 +118,9 @@ a.btn{color:var(--tx);text-decoration:none}
 .side .new .thbtn.on{border-color:#8b5cf6;background:#241a3d;color:#e3d8ff}
 .thpage .pnote{max-width:860px}
 .thpage .thg{grid-template-columns:repeat(auto-fill,minmax(148px,168px));gap:10px}
-.thpage .thc{padding:6px;gap:4px}.thpage .thc b{font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.thpage .thc{padding:6px;gap:4px;display:flex;flex-direction:column}.thpage .thc .thb{margin-top:auto}.thpage .thc small.thm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}   /* fen 13/11 10h25 "nằm lộn xộn quá": chữ 1 dòng, hàng nút luôn ở đáy thẻ */
+.thpage .thc .thb .kctg.sao{flex:0 0 auto;border-radius:7px;padding:3px 8px;font-size:14px;line-height:1}
+.thpage .thc b{font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .thpage .thc small{font-size:11px}.thpage .thc .kctg{font-size:11px;padding:2px 7px}
 .thpage .thc .thb{gap:4px;flex-wrap:nowrap}.thpage .thc .thb [data-dung],.thpage .thc .thb [data-dungps]{flex:1 1 auto}.thpage .thc .thb [data-more]{flex:0 0 auto;padding:4px 9px;font-size:12px}   /* fen 12/11 21h55 "bỏ mấy phần nhân bản với cây bút phía dưới đi": Chỉnh / Nhân bản vào nút ⋯ */.thpage .thc .thb [data-dung],.thpage .thc .thb [data-dungps]{padding:5px 8px;font-size:12px}
 .thform{display:grid;gap:8px;border:1px solid var(--line2);border-radius:10px;padding:12px;background:var(--panel2);margin-top:8px}
@@ -2252,7 +2254,7 @@ async function khoTheme(){
   // fen 12/11 21h18 "sao chưa hiển thị thêm": theme Photoshop cũng hiện trong mục ☁️ Kho chung của tab Canva (thePs dùng chung 2 chỗ)
   // fen 12/11 21h20 "hiển thị giống canva ở trên": thẻ y như thẻ theme Canva (1 ảnh bìa 3:4, tên, dòng nhỏ, nhãn kho chung, ▶ Làm bài)
   const thePs = t => `<div class="thc thps" data-id="${t.id}"><div class="tha" title="${esc(t.mo_ta || '')}">${t.anh && t.anh[0] ? `<img src="${esc(t.anh[0])}" alt="">` : '<span>Chưa có ảnh xem trước</span>'}</div>
-      <b title="${esc(t.ten)}">${esc(t.ten)}</b><small>${t.kenh ? esc(KENH[t.kenh].ten) : 'Cả 2 kênh'} · Photoshop · ${esc(t.kieu || 'phẳng')}</small>
+      <b title="${esc(t.ten)}">${esc(t.ten)}</b><small class="thm">${t.kenh ? esc(KENH[t.kenh].ten) : 'Cả 2 kênh'} · Photoshop · ${esc(t.kieu || 'phẳng')}</small>
       <small class="kcb">☁️ Kho chung</small>
       <div class="thb"><button class="btn sm pri" data-dungps="${t.id}" title="${choBai ? 'Dùng theme này cho bài đang viết' : 'Mở bài mới với theme này'}, làm bằng Photoshop">${nutDung}</button></div></div>`;
   const vePs = ds2 => { S.themePsDs = ds2; if (!$('#thPsG')) return;
@@ -2298,12 +2300,13 @@ async function khoTheme(){
         : sx.tt === 'ok' && nowS() - sx.t < 3600 ? `<small class="thst ok">${sx.kieu === 'nhan-ban' ? 'Đã nhân bản' : 'Đã chỉnh'}${sx.ghi ? ': ' + esc(sx.ghi) : ''}</small>` : '';
       const chung = kc ? (t.chia_se ? '<small class="kcb">☁️ Từ kho chung của fen</small>' : '<small class="kcw" title="Fen chưa chia sẻ thiết kế này trên Canva, tài khoản Canva của máy này có thể không mở được">⚠ Kho chung · fen chưa chia sẻ</small>')
         : KHACH ? (rieng ? '<small class="kcb">🔒 Riêng máy này</small>' : '<small class="kcb">☁️ Kho chung (máy shop)</small>')
-        : trongKc ? `<button class="kctg on" data-kc="${t.id}" title="Bấm để bỏ ra khỏi kho chung (chỉ máy shop thấy)">★ Bỏ khỏi kho chung</button>`
-        : `<button class="kctg${t.kc ? ' on' : ''}" data-kc="${t.id}" title="${t.kc ? 'Đang trong kho chung: máy dùng chung và máy tải kho chung thấy, dùng được. Bấm để bỏ ra (chỉ máy shop thấy)' : 'Chỉ máy shop thấy. Bấm để đưa vào kho chung cho máy khác dùng'}">${t.kc ? '★ Trong kho chung' : '☆ Vào kho chung'}</button>`
-          + (t.kc && S.kcDung && KC_DRIVE && !t.chia_se ? '<small class="kcw" title="Máy cài app khác tải kho chung có thể không mở được theme này. Thêm link: ⋯ → Thông tin → Link chia sẻ Canva">☁️ Chưa chia sẻ cho máy khác</small>' : '');
+        : (t.kc && S.kcDung && KC_DRIVE && !t.chia_se ? '<small class="kcw" title="Máy cài app khác tải kho chung có thể không mở được theme này. Thêm link: ⋯ → Thông tin → Link chia sẻ Canva">☁️ Chưa chia sẻ cho máy khác</small>' : '');
+      // fen 13/11 10h25 "nằm lộn xộn quá": nút kho chung thành ngôi sao nhỏ cùng hàng ▶ Làm bài / ⋯ (thẻ không còn dòng chip cao thấp khác nhau)
+      const sao = kc || KHACH ? '' : `<button class="kctg sao${t.kc ? ' on' : ''}" data-kc="${t.id}" title="${t.kc ? 'Đang trong kho chung: máy dùng chung và máy tải kho chung thấy, dùng được. Bấm để bỏ ra (chỉ máy shop thấy)' : 'Chỉ máy shop thấy. Bấm để đưa vào kho chung cho máy khác dùng'}">${t.kc ? '★' : '☆'}</button>`;
+      const meta = `${t.kenh ? KENH[t.kenh].ten : 'Cả 2 kênh'}${(t.dang || []).length ? ' · ' + t.dang.map(tenDang).join(', ') : ''}${t.so_trang ? ' · ' + t.so_trang + ' trang' : ''}${t.goc ? ' · bản nhân' : ''}`;
       return `<div class="thc" data-id="${t.id}"><div class="tha">${anh}</div><b title="${esc(t.ten)}">${esc(tenGon(t))}</b>
-        <small>${t.kenh ? esc(KENH[t.kenh].ten) : 'Cả 2 kênh'}${(t.dang || []).length ? ' · ' + t.dang.map(tenDang).map(esc).join(', ') : ''}${t.so_trang ? ' · ' + t.so_trang + ' trang' : ''}${t.goc ? ' · bản nhân' : ''}</small>${chung}${tt}
-        <div class="thb"><button class="btn sm pri" data-dung="${t.id}" title="${choBai ? 'Dùng theme này cho bài đang viết' : 'Mở bài mới với theme này'}, làm bằng Canva">${nutDung}</button><button class="btn sm ghost" data-more="${t.id}" title="Thêm: ${rieng ? 'chỉnh, ' : ''}nhân bản, mở Canva…">⋯</button></div>
+        <small class="thm" title="${esc(meta)}">${esc(meta)}</small>${chung}${tt}
+        <div class="thb"><button class="btn sm pri" data-dung="${t.id}" title="${choBai ? 'Dùng theme này cho bài đang viết' : 'Mở bài mới với theme này'}, làm bằng Canva">${nutDung}</button>${sao}<button class="btn sm ghost" data-more="${t.id}" title="Thêm: ${rieng ? 'chỉnh, ' : ''}nhân bản, mở Canva…">⋯</button></div>
         <div class="thmore"${moMore === t.id ? '' : ' hidden'}>${rieng ? `<button class="btn sm ghost" data-chinh="${t.id}"${ban ? ' disabled' : ''} title="Sửa chữ, màu ngay trong app, Claude lưu lên Canva (bản cũ được cất lại)">✏️ Chỉnh</button>` : ''}<button class="btn sm ghost" data-nb="${t.id}"${ban ? ' disabled' : ''} title="Tạo theme mới từ theme này, chỉnh luôn nếu muốn">⧉ Nhân bản</button><a class="btn sm ghost" href="${esc(t.link)}" target="_blank" rel="noopener">Mở Canva</a>${rieng ? `<button class="btn sm ghost" data-info="${t.id}" title="Đổi tên, kênh, dạng bài, link chia sẻ (không đụng thiết kế)">Thông tin</button><button class="btn sm ghost" data-xem="${t.id}"${x.tt === 'dang' ? ' disabled' : ''}>${t.anh ? 'Làm mới ảnh' : 'Lấy ảnh'}</button><button class="btn sm ghost" data-xoa="${t.id}">Bỏ khỏi kho</button>` : ''}</div>
         <div class="thinfo" hidden></div></div>`; };
     setH($('#thG'), dsRieng.length ? dsRieng.map(t => the(t)).join('')
