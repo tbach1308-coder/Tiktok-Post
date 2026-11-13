@@ -1,4 +1,4 @@
-# fen 13/11 15h22 "máy con sẽ ưu tiên chọn model làm nhanh": bài máy dùng chung để mặc định chạy Sonnet (cả agent duyệt), tự chọn Opus thì theo
+# fen 13/11 15h22 "máy con sẽ ưu tiên chọn model làm nhanh" + 15h34 "ở máy con chạy bằng sonnet là dc": bài máy dùng chung luôn chạy Sonnet (cả agent duyệt)
 import json, os, time, urllib.request
 A='http://127.0.0.1:8790'; K='http://127.0.0.1:8791'; J='/home/claude/bug3/tgl/jobs'
 ok=[0,0]
@@ -33,7 +33,7 @@ check('máy khách, Model mặc định: dựng bằng Sonnet', m1=='sonnet', m1
 check('máy khách: agent duyệt cũng Sonnet', 'model "sonnet"' in p1 or 'AGENT' not in p1, p1[-400:])
 k2=req(K,'/api/run',{"kenh":"laptop","brief":"Bìa: MÁY KHÁCH CHỌN OPUS\nSlide 2: x","model":"opus","theme_ps":"phang-xanh-dem"},H)['id']
 m2,_=model_run(k2)
-check('máy khách tự chọn Opus: theo lựa chọn', m2=='opus', m2)
+check('máy khách gửi Opus: vẫn chạy Sonnet (fen 15h34: máy con chỉ Sonnet)', m2=='sonnet', m2)
 s1=req(A,'/api/run',{"kenh":"laptop","brief":"Bìa: MÁY SHOP MẶC ĐỊNH\nSlide 2: x"})['id']
 m3,_=model_run(s1)
 check('máy shop mặc định: vẫn theo Kiểm máy (Opus)', m3=='opus', m3)
