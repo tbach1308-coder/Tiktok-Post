@@ -23,6 +23,9 @@ Cần fen quyết thì hỏi bằng lựa chọn (AskUserQuestion), có 1 lựa 
    Đọc / gọi API app trên máy shop: khung trình duyệt trong app Claude (built-in browser) mở `http://127.0.0.1:8777`.
 
 ## Luật của fen (giữ nguyên)
+- **Update GitHub liên tục** (fen 13/11 11h56 "update liên tục để khi cần mình làm tiếp dc", fen hay đổi tài khoản Claude):
+  mỗi lần sửa xong 1 việc (kể cả việc nhỏ / chỉ sửa Canva) là ghi 1 dòng nhật ký `PROJECT.md` (mã thiết kế Canva, id theme, việc còn dở)
+  rồi commit + push ngay, không gom để cuối buổi. Script máy thử sửa ở `/home/claude/bug3` thì chép lại vào `dev/test/` trước khi commit.
 - Cài / chạy / cập nhật công cụ gì trên máy fen: hỏi trước. Mỗi lần khởi động lại app: hỏi trước.
 - Soát lỗi xong: báo danh sách lỗi cho fen trước rồi mới sửa.
 - Không xoá hẳn file: dời vào `_to_delete`. Không nhập mật khẩu / token / API key. Không vượt captcha. Không đổi cài đặt hệ thống.
