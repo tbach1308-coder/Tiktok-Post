@@ -1571,7 +1571,7 @@ function renderBrief(){
   const j = S.data.job, a = j.anh || [], sua = j.sua || [];
   $('#brief').innerHTML = `<summary>Brief gốc${a.length ? ' · ' + a.length + ' ảnh fen gửi' : ''}${sua.length ? ' · ' + sua.length + ' lần sửa' : ''}</summary>
     <pre>${esc(j.brief)}${j.ghi_chu ? '\n\nGhi chú: ' + esc(j.ghi_chu) : ''}</pre>
-    ${a.length ? `<h4>Ảnh fen gửi</h4><div class="ths">${a.map((p, i) => `<div class="th"><img src="/file?p=${encodeURIComponent(p)}" alt=""><b>${i + 1}</b></div>`).join('')}</div>` : ''}
+    ${a.length ? `<h4>Ảnh fen gửi</h4><div class="ths">${a.map((p, i) => `<div class="th"><img src="/file?p=${encodeURIComponent(p)}&w=160" alt=""><b>${i + 1}</b></div>`).join('')}</div>` : ''}
     ${sua.length ? `<h4>Đã yêu cầu sửa</h4><ul>${sua.map(x => `<li>${hm(x.t)}${x.slides && x.slides.length ? ' · slide ' + x.slides.join(', ') : ''} · ${esc(x.text)}</li>`).join('')}</ul>` : ''}`;
 }
 function lastError(){ for (let i = S.events.length - 1; i >= 0; i--) if (S.events[i].k === 'error') return S.events[i].x; return ''; }
@@ -1689,7 +1689,7 @@ function updateJob(){
   let sh = '';
   if (sl.length || (live && exp)) {
     const coSua = !live && j.status !== 'hen' && sl.length > 0;   // fen 29/10 18h34: ghi sửa ngay dưới từng slide, sửa 1 lượt
-    sh = `<div class="slides">${sl.map((s, i) => { const nut = `<button class="sl" data-i="${i}" title="Bấm để xem to"><img loading="lazy" src="/file?p=${encodeURIComponent(s.path)}&t=${s.mt}" alt=""><b>${s.n}</b></button>`;
+    sh = `<div class="slides">${sl.map((s, i) => { const nut = `<button class="sl" data-i="${i}" title="Bấm để xem to"><img loading="lazy" src="/file?p=${encodeURIComponent(s.path)}&t=${s.mt}&w=400" alt=""><b>${s.n}</b></button>`;
       return coSua ? `<div class="slc" data-fn="${s.n}">${nut}<textarea class="in slfix" data-fn="${s.n}" rows="2" placeholder="Sửa slide ${s.n}… (dán / kéo ảnh vào được)"></textarea><div class="slanh" data-fn="${s.n}"></div></div>` : nut; }).join('')}`;
     if (live) for (let n = sl.length + 1; n <= exp; n++) sh += `<div class="sl wait"><span>${n === sl.length + 1 ? 'Đang dựng…' : ''}</span><b>${n}</b></div>`;
     sh += '</div>';

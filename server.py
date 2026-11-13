@@ -10,6 +10,8 @@ Moi bai = 1 thu muc trong jobs/<id>/ : job.json, brief, anh fen gui, stream-N.js
 Trang thai luon doc lai tu file log, nen tat app giua chung roi mo lai van xem tiep duoc.
 """
 import base64
+import collections
+import io
 import json
 import math
 import mimetypes
@@ -5905,9 +5907,70 @@ def bia_bai(job):
     if c and c[0] == mt:
         return c[1]
     sl = list_slides(f)
-    url = ("/file?p=" + quote(sl[0]["path"]) + "&t=%d" % sl[0]["mt"]) if sl else ""
+    url = ("/file?p=" + quote(sl[0]["path"]) + "&t=%d&w=96" % sl[0]["mt"]) if sl else ""
     _BIA[f] = (mt, url)
     return url
+
+
+# ---------- ảnh thu nhỏ (fen 13/11 "tối ưu": ảnh bìa 36x48 ở cột trái đang tải nguyên slide ~2MB, lưới slide mở 1 bài ~15MB) ----------
+# /file?...&w=96|160|400 -> JPEG nhỏ, nhớ trong RAM (không ghi đĩa) theo giờ sửa + cỡ file; bấm xem to vẫn là ảnh gốc.
+# Máy không có Pillow (thư viện ảnh) thì gửi ảnh gốc như cũ.
+ANH_NHO_W = (96, 160, 400)
+ANH_NHO_TOI_DA = 48 * 1024 * 1024
+_ANH_NHO = {"d": collections.OrderedDict(), "byte": 0, "pil": None}
+_ANH_NHO_KHOA = threading.Lock()
+
+
+def anh_nho(p, w):
+    """Bytes JPEG rộng w của ảnh p, None = gửi ảnh gốc (cỡ lạ, thiếu Pillow, ảnh gốc đã nhỏ hơn, lỗi đọc)."""
+    try:
+        w = int(w)
+        st = os.stat(p)
+    except (TypeError, ValueError, OSError):
+        return None
+    if w not in ANH_NHO_W or _ANH_NHO["pil"] is False:
+        return None
+    k = (os.path.normcase(os.path.realpath(p)), w)
+    with _ANH_NHO_KHOA:
+        c = _ANH_NHO["d"].get(k)
+        if c and c[0] == st.st_mtime_ns and c[1] == st.st_size:
+            _ANH_NHO["d"].move_to_end(k)
+            return c[2]
+    try:
+        from PIL import Image
+        _ANH_NHO["pil"] = True
+    except ImportError:
+        _ANH_NHO["pil"] = False
+        return None
+    try:
+        with Image.open(p) as im:
+            im.draft("RGB", (w, w * 4))
+            if im.mode in ("RGBA", "LA") or (im.mode == "P" and "transparency" in im.info):
+                a = im.convert("RGBA")
+                ra = Image.new("RGB", a.size, (255, 255, 255))
+                ra.paste(a, mask=a.split()[-1])
+            else:
+                ra = im.convert("RGB")
+        if ra.width > w:
+            ra.thumbnail((w, max(1, ra.height * w // ra.width + 1)))
+        buf = io.BytesIO()
+        ra.save(buf, "JPEG", quality=82, optimize=True)
+        b = buf.getvalue()
+    except Exception:
+        return None
+    if len(b) >= st.st_size:
+        b = None
+    with _ANH_NHO_KHOA:
+        d = _ANH_NHO["d"]
+        cu = d.pop(k, None)
+        if cu:
+            _ANH_NHO["byte"] -= len(cu[2] or b"")
+        d[k] = (st.st_mtime_ns, st.st_size, b)
+        _ANH_NHO["byte"] += len(b or b"")
+        while _ANH_NHO["byte"] > ANH_NHO_TOI_DA and len(d) > 1:
+            _, x = d.popitem(last=False)
+            _ANH_NHO["byte"] -= len(x[2] or b"")
+    return b
 
 
 # ---------- mở bài có sẵn (làm trước khi có app / làm ở tab Design): để gửi Telegram, đăng TikTok, sửa ----------
@@ -6887,7 +6950,9 @@ class H(BaseHTTPRequestHandler):
         self.send_response(code)
         self.send_header("Content-Type", ctype)
         self.send_header("Content-Length", str(len(body)))
-        self.send_header("Cache-Control", "no-store")
+        # trước đây luôn gửi thêm "no-store" nên "max-age" của ảnh không có tác dụng (trình duyệt tải lại ảnh hoài)
+        if not any(k.lower() == "cache-control" for k in (extra or {})):
+            self.send_header("Cache-Control", "no-store")
         for k, v in (extra or {}).items():
             self.send_header(k, v)
         self.end_headers()
@@ -7039,8 +7104,14 @@ class H(BaseHTTPRequestHandler):
                 ctype = mimetypes.guess_type(p)[0] or "application/octet-stream"
                 if not ctype.startswith(("image/", "text/")):
                     return self.send(403, {"err": "loại file không cho xem"})
+                # link có giờ sửa file (&t=) thì sửa file là đổi link: trình duyệt nhớ 1 ngày khỏi tải lại; &w= ảnh thu nhỏ
+                nho = {"Cache-Control": "max-age=86400" if q.get("t") else "max-age=5"}
+                if q.get("w") and ctype.startswith("image/"):
+                    b = anh_nho(p, q["w"][0])
+                    if b:
+                        return self.send(200, b, "image/jpeg", nho)
                 with open(p, "rb") as f:
-                    return self.send(200, f.read(), ctype, {"Cache-Control": "max-age=5"})
+                    return self.send(200, f.read(), ctype, nho)
             m = re.fullmatch(r"/api/job/([\w-]+)/log", u.path)
             if m:
                 d = job_dir(m.group(1))
