@@ -46,7 +46,6 @@ a{color:var(--gl)}
 .kmtt .in{height:34px;padding:0 10px;color:var(--tx);background:var(--input)}
 .kmtt select.in option{background:var(--panel);color:var(--tx)}
 .kmtt .err:empty{display:none}
-.kmtt label.kmck{display:flex;gap:8px;align-items:center;color:var(--tx)} .kmtt label.kmck input{accent-color:var(--g);width:16px;height:16px}
 .kmtt details{font-size:12.5px;color:var(--mut)} .kmtt details .in{margin-top:6px;width:100%}
 .kmtt .acts{display:flex;gap:8px;justify-content:flex-end}
 .mbox{max-height:92vh;overflow:auto}
@@ -153,7 +152,6 @@ body:not(.kcdrive) .thkcd{display:none!important}   /* fen 12/11 21h47 "d·∫•u c√
 .thed .edmau{display:flex;gap:18px;flex-wrap:wrap;font-size:13px;color:var(--tx)}
 .thed .edmau label{display:inline-flex;align-items:center;gap:6px;cursor:pointer}
 .thed .edmau input[type=color]{width:34px;height:24px;border:0;background:none;padding:0;cursor:pointer}
-.thed .edthay{align-items:center}.thed .edthay span{color:var(--mut)}
 .thed a{font-size:12.5px}
 .thed textarea.in{min-height:56px;height:64px;resize:vertical}
 .thed .etst{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:13px;color:var(--mut)}
@@ -211,15 +209,6 @@ body:not(.kcdrive) .thkcd{display:none!important}   /* fen 12/11 21h47 "d·∫•u c√
 .nhbtn{display:flex;gap:6px;flex-wrap:wrap;margin-left:auto}
 .ji .bia.nhb{display:flex;align-items:center;justify-content:center;font-size:17px}
 
-.nht{display:inline-flex;align-items:center;gap:6px;max-width:240px;height:32px;padding:0 6px 0 11px;border:1px solid var(--line2);background:var(--panel);border-radius:9px;cursor:pointer;font-size:12.5px;color:var(--mut)}
-.nht:hover{border-color:var(--g);color:var(--tx)}
-.nht.on{border-color:var(--g);background:var(--gsoft, rgba(46,160,90,.14));color:var(--tx);font-weight:600}
-.nht .tx{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.nht .ic{font-size:12px}
-.nht .x{border:0;background:none;color:var(--dim);cursor:pointer;font-size:11px;padding:2px 4px;border-radius:5px}
-.nht .x:hover{color:var(--tx);background:var(--line)}
-.nhadd{height:32px;padding:0 12px;border:1px dashed var(--line2);background:none;border-radius:9px;color:var(--mut);cursor:pointer;font:inherit;font-size:12.5px}
-.nhadd:hover{border-color:var(--g);color:var(--tx)}
 .mbox.wide{width:min(780px,94vw)}
 .lsbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:0 0 10px}
 .lsbar .chips{margin:0}
@@ -316,11 +305,6 @@ h1{font-size:26px;margin:0 0 4px;font-weight:800;letter-spacing:-.01em}
 textarea.in{height:auto;resize:vertical;min-height:240px;line-height:1.55;font-size:14px}
 textarea.in.small{min-height:70px}
 #fBrief{min-height:440px}
-.datec{display:flex;gap:8px}
-.datec .q{border:1px solid var(--edge);background:var(--input);border-radius:11px;padding:0 12px;height:44px;font-weight:600;font-size:13px;color:var(--mut)}
-.datec .q:hover{border-color:var(--g);color:var(--text)}
-.datec .q.on{border-color:var(--g);color:var(--gl);background:var(--gnote)}
-.datec .in{flex:1;min-width:90px}
 .drop{border:1.5px dashed var(--edge);border-radius:12px;padding:14px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;min-height:84px;transition:.15s;background:var(--input)}
 .drop.hot{border-color:var(--g);background:var(--gnote)}
 .drop .hint{color:var(--mut);font-size:13px;flex:1;min-width:220px}
@@ -332,12 +316,9 @@ textarea.in.small{min-height:70px}
 .foot{position:sticky;bottom:0;z-index:5;display:flex;align-items:center;gap:16px;margin:18px -28px 0;padding:14px 28px 16px;background:linear-gradient(to top,var(--bg) 78%,rgba(18,18,18,0))}
 .foot .btn.pri{padding:12px 36px;font-size:15px;border-radius:12px}
 .foot p{margin:0;color:var(--mut);font-size:13px}
-.fast{display:flex;align-items:center;gap:7px;color:var(--text);font-size:13px;font-weight:600;white-space:nowrap;cursor:pointer}
 select.in.msel{height:40px;width:auto;min-width:150px;padding:0 10px;font-size:13px;font-weight:600;color:var(--tx);background:var(--input)}
 select.in.msel option{background:var(--panel);color:var(--tx)}
 .mlab{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--mut);white-space:nowrap}
-.fast input{accent-color:var(--g);width:16px;height:16px}
-.fast i{color:var(--dim);font-style:normal;font-weight:500}
 .fastc{color:var(--ytext);background:var(--ysoft);border-radius:99px;padding:2px 9px;font-size:11.5px;font-weight:700}
 .foot .err:not(:empty){margin-top:4px;font-weight:600}
 .err{color:#ff7a66;font-size:13px}

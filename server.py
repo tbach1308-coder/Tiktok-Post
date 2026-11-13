@@ -213,7 +213,6 @@ def doi_goc():
 
 LOCK = threading.RLock()
 STATE = {}  # job_id -> parsed state cache
-WATCHERS = {}  # job_id -> thread
 
 
 # ---------------------------------------------------------------- tien ich
@@ -5537,26 +5536,6 @@ def danh_dau_dang(jid, data):
     return {"ok": True}
 
 
-def quan_ly(may=None):
-    """Trang Quản lý bài: chờ đăng / đã hẹn / đã đăng."""
-    ds = []
-    base = "/file?p="
-    for jid in (sorted(os.listdir(JOBS), reverse=True)[:300] if os.path.isdir(JOBS) else []):
-        j = read_json(os.path.join(JOBS, jid, "job.json"))
-        if not j or j.get("loai") in VIEC_AN or j.get("an"):
-            continue
-        if may and (j.get("khach") or {}).get("id") != may:
-            continue
-        sl = list_slides(j.get("thu_muc_bai")) if j.get("status") == "xong" else []
-        ten, ngay = ten_hien(j)
-        gui = [x for x in (j.get("da_gui") or []) if x.get("kieu") in ("tiktok", "telegram")]
-        ds.append({"id": jid, "kenh": j.get("kenh"), "ten": ten, "ngay": ngay, "status": j.get("status"), "created": j.get("created"),
-                   "hen_luc": j.get("hen_luc"), "hen_dang": j.get("hen_dang"), "da_dang": j.get("da_dang"), "dang_loi": j.get("dang_loi"),
-                   "nhac": j.get("nhac"), "gui": gui[-1] if gui else None, "n": len(sl),
-                   "bia": (base + quote(sl[0]["path"]) + "&t=%d" % sl[0]["mt"]) if sl else ""})
-    return {"ds": ds, "now": now()}
-
-
 def _cung_may(j, may):
     """fen 13/11 15h36 "bài máy nào tính trùng trên máy đó thôi, không tính tổng hết bài các máy": may = mã máy dùng chung, None = máy shop."""
     return ((j.get("khach") or {}).get("id") or None) == (may or None)
@@ -7035,8 +7014,6 @@ class H(BaseHTTPRequestHandler):
                 return self.send(200, canva_tt())
             if u.path == "/api/quy-tac":
                 return self.send(200, quy_tac_ds())
-            if u.path == "/api/quan-ly":
-                return self.send(200, quan_ly(self.may()))
             if u.path == "/api/nhap":
                 return self.send(200, nhap_doc())
             if u.path == "/api/jobs":
