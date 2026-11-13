@@ -974,12 +974,12 @@ function quyTac(){
   if ($('#qtBox')) return;
   const m = document.createElement('div'); m.className = 'modal on';
   m.innerHTML = `<div class="mbox qtbox" id="qtBox"><h3>Quy tắc</h3>
-    <p class="pnote">Ghi quy tắc mới cho mọi bài sau. Claude ghi vào đúng file luật (file quy tắc, sổ thiết kế, plugin dựng bài, lệnh viết brief của app), không sửa bài nào. Muốn sửa luôn 1 bài thì dùng ô "Sửa chung / nhắc quy tắc" trong bài đó.</p>
+    ${KHACH ? '<p class="pnote">Quy tắc dùng chung cho cả shop, <b>chỉ máy shop thêm / sửa được</b>. Máy này xem được quy tắc mới nhất ở dưới; muốn thêm quy tắc thì nhắn fen.</p>' : '<p class="pnote">Ghi quy tắc mới cho mọi bài sau. Claude ghi vào đúng file luật (file quy tắc, sổ thiết kế, plugin dựng bài, lệnh viết brief của app), không sửa bài nào. Muốn sửa luôn 1 bài thì dùng ô "Sửa chung / nhắc quy tắc" trong bài đó.</p>'}
     <div class="kseg qtpv">${Object.entries(QT_PV).map(([k, t]) => `<button data-pv="${k}" class="${QT.pv === k ? 'on' : ''}">${t}</button>`).join('')}</div>
     <textarea class="in" id="qtText" placeholder="vd: slide cuối bỏ dòng &quot;Comment kèm ngân sách, Poly chọn máy 👇&quot;; bìa iPad ưu tiên ảnh máy chụp ở shop…">${esc(QT.text)}</textarea>
     <div class="drop qtdrop" id="qtDrop"><div class="hint">Ảnh minh hoạ (không bắt buộc): dán ${phimDan()}, kéo thả hoặc <a href="#" id="qtPick">chọn file</a>.</div></div><input type="file" id="qtFile" accept="image/*" multiple hidden>
     <p class="err" id="qtErr"></p>
-    <div class="acts"><button class="btn" id="qtDong">Đóng</button><button class="btn pri" id="qtGhi">Ghi quy tắc</button></div>
+    <div class="acts"><button class="btn" id="qtDong">Đóng</button>${KHACH ? '' : '<button class="btn pri" id="qtGhi">Ghi quy tắc</button>'}</div>
     <div class="qtds" id="qtDs"></div></div>`;
   document.body.appendChild(m);
   const dong = () => m.remove();
@@ -988,6 +988,8 @@ function quyTac(){
   const t = $('#qtText'); t.oninput = () => { QT.text = t.value; };
   t.onkeydown = e => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); qtGhi(); } };
   setupPick($('#qtFile'), $('#qtPick'), QT.anh, $('#qtDrop')); renderThumbs($('#qtDrop'), QT.anh);
+  // fen 13/11 15h14 "chỉ có máy admin mới có quyền thay đổi": máy dùng chung chỉ xem quy tắc
+  if (KHACH) { m.querySelectorAll('.qtpv, #qtText, #qtDrop').forEach(x => x.remove()); qtTai(); return; }
   $('#qtGhi').onclick = qtGhi;
   t.focus(); qtTai();
 }
@@ -1746,7 +1748,7 @@ function renderFix(){
   w.innerHTML = `<div class="card mt fix" id="fixCard">
     <div class="sec">Sửa bài</div>
     <p class="fixtom" id="fixTom"></p>
-    <span class="lbl">Sửa chung / nhắc quy tắc <i>(Claude sửa bài này và ghi vào file quy tắc cho bài sau)</i></span>
+    <span class="lbl">${KHACH ? 'Sửa chung <i>(chỉ bài này; quy tắc chỉ máy shop đổi được)</i>' : 'Sửa chung / nhắc quy tắc <i>(Claude sửa bài này và ghi vào file quy tắc cho bài sau)</i>'}</span>
     <textarea class="in" id="fixText" placeholder="Sửa cả bài hoặc nhắc thêm quy tắc, vd: chữ cả bài to hơn; bìa luôn dùng ảnh máy tách nền đặt to, không đóng khung…">${esc(df.text)}</textarea>
     <div class="drop mt" id="fdrop" style="min-height:60px"><div class="hint">Ảnh mới (nếu có): kéo thả, dán, hoặc <a href="#" id="fpick">chọn file</a>.</div></div>
     <input type="file" id="ffile" accept="image/*" multiple hidden>
@@ -1795,7 +1797,7 @@ async function doFix(){
   const anh = [];
   const txt = ds.map(n => { const a = (df.perAnh[n] || []).map((x, k) => { const ext = ((x.name || '').match(/\.\w+$/) || ['.png'])[0]; anh.push({name: 'slide' + n + '-' + (k + 1) + ext, data: x.data}); return 'slide' + n + '-' + (k + 1) + ext; });
       return 'Slide ' + n + ': ' + (mot(df.per[n] || '') || 'dùng ảnh fen gửi') + (a.length ? ' (ảnh fen gửi cho slide này: ' + a.join(', ') + ')' : ''); })
-    .concat(chung ? ['Chung (fen nhắc, ghi thành quy tắc): ' + mot(chung)] : []).join(' | ');
+    .concat(chung ? [(KHACH ? 'Chung (chỉ bài này, không ghi quy tắc): ' : 'Chung (fen nhắc, ghi thành quy tắc): ') + mot(chung)] : []).join(' | ');
   df.anh.forEach(x => anh.push(x));
   if (!txt) { const o = document.querySelector('.slfix'); (o || $('#fixText')).classList.add('bad'); (o || $('#fixText')).focus(); $('#fixErr').textContent = 'Ghi cần sửa vào ô dưới slide (vd: slide 3 đổi ảnh) hoặc ô sửa chung.'; return; }
   const b = $('#bFix'); b.disabled = true; b.dataset.busy = 1; b.textContent = 'Đang gửi…';

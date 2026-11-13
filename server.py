@@ -1505,6 +1505,13 @@ def doi_tai_khoan():
 
 
 # ---------------------------------------------------------------- chay Claude
+# fen 13/11 15h14 "chỉ có máy admin mới có quyền thay đổi" (quy tắc): bài / brief máy dùng chung yêu cầu thì Claude không ghi luật
+KHACH_KHONG_LUAT = ("\n\nLƯU Ý QUYỀN: lượt này do 1 máy dùng chung (không phải máy shop của fen) yêu cầu. Chỉ làm / sửa đúng bài này. "
+                    "KHÔNG ghi, KHÔNG sửa file luật / quy tắc (POLY-quy-tac-lam-content.md, SO-DO-LUAT.md, sổ dựng, plugin dựng bài, "
+                    "lệnh mẫu của app, luat-chung.md) kể cả khi lệnh trên bảo ghi luật rút ra; mục \"Chung\" chỉ áp cho bài này. "
+                    "Chỉ máy shop (admin) mới đổi quy tắc.")
+
+
 def start_run(job, prompt, kind, resume=None, label=None, model=None, them_dir=None):
     cmd = resolve_claude()
     if not cmd:
@@ -1517,6 +1524,8 @@ def start_run(job, prompt, kind, resume=None, label=None, model=None, them_dir=N
                                                             else model_viec("model_duyet_canva" if job.get("dung_bang") == "canva" else "model_duyet")))
     if doi_goc():   # lệnh mẫu ghi đường dẫn máy shop (E:/Social Claude/...): đổi sang thư mục máy này (Mac / máy mới)
         prompt = mac_doi(prompt, mac_bang_cfg())
+    if job.get("khach") and kind != "quy-tac":
+        prompt += KHACH_KHONG_LUAT
     with open(os.path.join(d, "prompt-%d.txt" % n), "w", encoding="utf-8") as f:
         f.write(prompt)
     args = cmd + ["-p", "--output-format", "stream-json", "--verbose"]
@@ -6325,7 +6334,7 @@ CHUNG_KHOA = threading.Lock()
 CHUNG_DIR = os.path.join(APP, "_cf")
 CHUNG_MA_HAN = 900
 CHUNG_CAM = {"GET": (r"/api/chung", r"/api/chung/may", r"/api/bai-co-san"),
-             "POST": (r"/api/tat", r"/api/login", r"/api/cai-claude", r"/api/chung", r"/api/tiktok-(soi|dang|nhac)",
+             "POST": (r"/api/tat", r"/api/login", r"/api/cai-claude", r"/api/chung", r"/api/tiktok-(soi|dang|nhac)", r"/api/quy-tac",
                       r"/api/job/[\w-]+/(mo|tiktok)", r"/api/bai-co-san")}
 CHUNG_TM = {}       # mã máy -> (lúc, [thư mục bài của máy đó]) để kiểm /file nhanh
 

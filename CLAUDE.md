@@ -45,7 +45,7 @@ cd /home/claude/bug3 && python3 tgltest.py && python3 tglnhom.py && python3 tglm
 node chungui.js ; node khotheme.js                # Playwright (Chromium có sẵn)
 ```
 - `themeps.py` kho theme Photoshop (26) + `themepsui.js` giao diện (33); `tgltest.py` Remote chat riêng (49), `tglnhom.py` Remote trong nhóm (26), `tglmig.py` nhóm lên supergroup, `tglrieng.py` bài gửi riêng từng người (14), `chungtest.py` dùng chung
-  (máy khác, quyền, bài / theme riêng từng máy, 82), `chungui.js` / `khotheme.js` giao diện, `mayxem.js` hộp xem 1 máy dùng chung. Script ghi đường dẫn `/home/claude/bug3`;
+  (máy khác, quyền, bài / theme riêng từng máy, 82), `chungui.js` / `khotheme.js` giao diện, `mayxem.js` hộp xem 1 máy dùng chung, `quytacchung.js` quy tắc chỉ máy shop đổi (7). Script ghi đường dẫn `/home/claude/bug3`;
   tạo chỗ khác thì `tao-may-thu.py <thư mục>` tự đổi. Repo nên clone ở `/home/claude/tiktok-post` (script app Mac / Windows trỏ vào đó).
 - App Mac / Windows "dùng chung": `packaging/mac-chung/build.py`, `packaging/win-chung/build.sh` (mingw) → `dist/`; thử:
   `macgia/thu.py`, `macgia/thu2.py` (lệnh macOS giả), `winthu.py` (wine). Bộ cài app đầy đủ: `packaging/build.sh` (NSIS).
