@@ -11,19 +11,20 @@ const check = (n, c, x) => { c ? ok++ : bad++; console.log((c ? '✓ ' : '✗ ')
     await p.goto(A + '/'); await p.waitForTimeout(1500);
     await p.evaluate(() => khoTheme()); await p.waitForTimeout(600);
     const rongCv = await p.evaluate(() => document.documentElement.scrollWidth);
-    await p.waitForSelector('#thKcG .thps', { timeout: 8000 }).catch(() => {});
-    const kc = await p.$$eval('#thKcG .thps b', x => x.map(e => e.textContent));
-    check(ten + ': mục ☁️ Kho chung (tab Canva) hiện 6 theme Photoshop', kc.length === 6, kc);
-    check(ten + ': số theme kho chung ghi đúng', /^· \d+$/.test(await p.$eval('#thKcN', e => e.textContent)) && (await p.$$eval('#thKcG h4', x => x.map(e => e.textContent))).includes('🖌 Photoshop · 6'), await p.$eval('#thKcN', e => e.textContent));
+    await p.waitForSelector('#thPsG .thps', { state: 'attached', timeout: 8000 }).catch(() => {}); await p.waitForTimeout(600);
+    // fen 13/11 11h35 "hiển thị theme theo tag": tab Canva chỉ theme Canva, theme Photoshop chỉ ở tab Photoshop
+    const kc = await p.$$eval('#thCvWrap .thps b', x => x.map(e => e.textContent));
+    check(ten + ': tab Canva (cả mục ☁️ Kho chung) không có theme Photoshop', kc.length === 0, kc);
+    const nKc = await p.$eval('#thKcN', e => e.textContent), soKc = await p.$$eval('#thKcG .thc', x => x.length);
+    check(ten + ': số theme kho chung = số thẻ Canva trong kho chung', nKc === (soKc ? '· ' + soKc : ''), [nKc, soKc]);
     check(ten + ': nút tab ghi số theme Photoshop', /Photoshop · 6/.test(await p.$eval('#thKieu [data-k=ps]', e => e.textContent)));
-    const co = await p.evaluate(() => { const a = document.querySelector('#thKcG .thc:not(.thps) .tha'), b = document.querySelector('#thKcG .thps .tha'), c = document.querySelector('#thG .thc .tha');
-      const r = e => e && e.getBoundingClientRect(); const x = r(b), y = r(a) || r(c); return x && y ? [Math.round(x.width), Math.round(y.width), Math.round(x.height / x.width * 100)] : null; });
-    check(ten + ': ảnh thẻ Photoshop cùng cỡ thẻ Canva (3:4)', co && Math.abs(co[0] - co[1]) <= 2 && co[2] === 133, co);
-    if (ten === 'rong') { await p.screenshot({ path: '/home/claude/bug3/shots/theme-ps-khochung.png', fullPage: true });
-      await p.click('#thKcG [data-dungps="phang-xanh-dem"]'); await p.waitForTimeout(800);
-      check('▶ Làm bài ở mục Kho chung: mở Bài mới với theme Photoshop', await p.$$eval('#thPick [data-thps="phang-xanh-dem"].on', x => x.length) === 1);
-      await p.evaluate(() => khoTheme()); await p.waitForTimeout(800); }
+    const soCv = await p.$$eval('#thCvWrap .thc', x => new Set(x.map(e => e.dataset.id)).size);
+    check(ten + ': nút tab Canva ghi số theme Canva', (await p.$eval('#thKieu [data-k=cv]', e => e.textContent)) === '🎨 Canva · ' + soCv, [await p.$eval('#thKieu [data-k=cv]', e => e.textContent), soCv]);
+    const yCv = await p.evaluate(() => { const e = document.querySelector('#thCvWrap .thc .tha'); return e ? Math.round(e.getBoundingClientRect().width) : 0; });
+    if (ten === 'rong') await p.screenshot({ path: '/home/claude/bug3/shots/theme-ps-khochung.png', fullPage: true });
     await p.click('#thKieu [data-k=ps]'); await p.waitForSelector('#thPsG .thps', { timeout: 8000 }); await p.waitForTimeout(1200);
+    const co = await p.evaluate(() => { const e = document.querySelector('#thPsG .thps .tha'); if (!e) return null; const r = e.getBoundingClientRect(); return [Math.round(r.width), Math.round(r.height / r.width * 100)]; });
+    check(ten + ': ảnh thẻ Photoshop cùng cỡ thẻ Canva (3:4)', co && yCv && Math.abs(co[0] - yCv) <= 2 && co[1] === 133, [co, yCv]);
     const the = await p.$$eval('#thPsG .thps', x => x.map(e => ({ ten: e.querySelector('b').textContent, anh: e.querySelectorAll('.tha img').length, kc: !!e.querySelector('.kcb') })));
     check(ten + ': tab Photoshop có 6 theme, thẻ giống Canva (1 ảnh bìa) + nhãn kho chung', the.length === 6 && the.every(t => t.anh === 1 && t.kc), the);
     const anhOk = await p.$$eval('#thPsG img', x => x.every(i => i.complete && i.naturalWidth > 0));

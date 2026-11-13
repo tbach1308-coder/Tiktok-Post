@@ -2245,7 +2245,7 @@ async function khoTheme(){
   $('#thKieu').onclick = e => { const b = e.target.closest('[data-k]'); if (!b) return; S.thKieu = b.dataset.k;
     document.querySelectorAll('#thKieu button').forEach(x => x.classList.toggle('on', x === b));
     $('#thPsWrap').hidden = S.thKieu !== 'ps'; $('#thCvWrap').hidden = S.thKieu === 'ps'; };
-  // fen 12/11 21h18 "sao chưa hiển thị thêm": theme Photoshop cũng hiện trong mục ☁️ Kho chung của tab Canva (thePs dùng chung 2 chỗ)
+  // fen 12/11 21h18 theme Photoshop từng hiện cả trong mục ☁️ Kho chung tab Canva; 13/11 11h35 "hiển thị theme theo tag": chỉ còn ở tab Photoshop
   // fen 12/11 21h20 "hiển thị giống canva ở trên": thẻ y như thẻ theme Canva (1 ảnh bìa 3:4, tên, dòng nhỏ, nhãn kho chung, ▶ Làm bài)
   const thePs = t => `<div class="thc thps" data-id="${t.id}"><div class="tha" title="${esc(t.mo_ta || '')}">${t.anh && t.anh[0] ? `<img src="${esc(t.anh[0])}" alt="">` : '<span>Chưa có ảnh xem trước</span>'}</div>
       <b title="${esc(t.ten)}">${esc(t.ten)}</b><small class="thm">${t.kenh ? esc(KENH[t.kenh].ten) : 'Cả 2 kênh'} · Photoshop · ${esc(t.kieu || 'phẳng')}</small>
@@ -2308,14 +2308,15 @@ async function khoTheme(){
       : `<p class="pnote">${KHACH ? 'Máy này chưa có theme riêng. Dán link 1 thiết kế Canva ở trên, hoặc bấm ⧉ Nhân bản 1 theme kho chung bên dưới để có bản riêng.'
         : 'Kho trống. Trên Canva bỏ thiết kế vào thư mục POLY Theme rồi bấm Lấy từ Canva.'}</p>`);
     if (!dsRieng.length && !KHACH && dsChung.length) setH($('#thG'), '');
-    const psChung = S.themePsDs || [], nChung = dsChung.length + psChung.length;
+    // fen 13/11 11h35 "cho hiển thị theme theo tag này đi": tab Canva chỉ theme Canva (kể cả kho chung), theme Photoshop chỉ ở tab Photoshop
+    const nChung = dsChung.length, nCv = new Set([...dsRieng, ...dsChung]).size;
+    const nbCv = $('#thKieu [data-k=cv]'); if (nbCv) nbCv.textContent = '🎨 Canva' + (nCv ? ' · ' + nCv : '');
     setH($('#thKcN'), nChung ? '· ' + nChung : '');
     setH($('#thKcGhi'), nChung ? (KHACH ? 'Theme fen để chung: bấm ▶ Làm bài là dùng; muốn chỉnh thì ⧉ Nhân bản thành bản riêng của máy này.'
         : KC_DRIVE ? 'Máy dùng chung và máy cài app khác (tải kho chung trên Drive) thấy đúng các theme này.' : '')
-      : (KHACH ? 'Fen chưa để theme nào vào kho chung.' : 'Chưa có theme nào trong kho chung. Bấm ☆ ở thẻ theme phía trên để máy khác dùng được.'));
-    // fen 13/11 11h09 "kho nào nằm kho đó nha, không lẫn lộn, vẫn hiển thị thấy hết": Kho chung chia 2 nhóm Canva / Photoshop, mỗi nhóm 1 lưới
-    const nhom = (ten, n, h) => n ? `<h4 class="thkcs">${ten} <span>· ${n}</span></h4><div class="thg">${h}</div>` : '';
-    setH($('#thKcG'), nhom('🎨 Canva', dsChung.length, dsChung.map(t => the(t, KHACH)).join('')) + nhom('🖌 Photoshop', psChung.length, psChung.map(thePs).join('')));
+      : (KHACH ? 'Fen chưa để theme Canva nào vào kho chung.' : 'Chưa có theme Canva nào trong kho chung. Bấm ☆ ở thẻ theme phía trên để máy khác dùng được.'));
+    // (11h09 kho chung chia nhóm Canva / Photoshop → 11h35 theo tab: theme Photoshop chỉ ở tab Photoshop)
+    setH($('#thKcG'), nChung ? `<div class="thg">${dsChung.map(t => the(t, KHACH)).join('')}</div>` : '');
   };
   // Thông tin ngay trên ô theme (fen 10/11 15h13 "rà lại làm cho logic")
   const moThongTin = (t, the) => { const f = the.querySelector('.thinfo'); if (!f) return; moInfo = t.id; moMore = ''; the.querySelector('.thmore').hidden = true; f.hidden = false; const c = new Set(t.dang || []);

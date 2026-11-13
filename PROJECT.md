@@ -110,6 +110,7 @@ Không dùng lại:
 - [ ] Agent bắt lỗi app định kỳ theo checklist. Lần 18h04 bị dừng khi fen gửi tin chen ngang (Claude báo nhầm là đang chạy); chạy lại 19h20 trên bản chụp `snap-1920`.
 
 ## 7. Nhật ký
+- 13/11 11h35: fen gửi ảnh nút "🎨 Canva | 🖌 Photoshop · 6", "cho hiển thị theme theo tag này đi" → tab Canva chỉ theme Canva (mục ☁️ Kho chung chỉ còn theme Canva, bỏ nhóm Photoshop), theme Photoshop chỉ ở tab Photoshop; nút tab Canva ghi số "🎨 Canva · N". Test themepsui sửa theo (31).
 - 13/11 11h31: fen "vẫn quá nhiều" (đầu tab Canva của Kho theme) → bỏ đoạn giới thiệu dài (thành chữ hiện khi rê chuột nút 🔄 Lấy từ Canva; máy khách còn 1 dòng ngắn), trạng thái gọn "7 thiết kế · 11:08", "Dán link Canva", lưới trên trống thì ẩn hẳn (không ghi chú), tiêu đề "☁️ Kho chung · 13" bỏ "(6 Photoshop)" + bỏ dòng "Máy dùng chung thấy…" (thành chữ rê chuột). Test themepsui kiểm nhóm "🖌 Photoshop · 6".
 - 13/11 11h28: fen gửi ảnh dòng ghi chú lưới trên bị dồn thành cột hẹp, "làm gọn chỗ này" → ghi chú trong lưới theme trải hết bề ngang (`.thg>.pnote{grid-column:1/-1}`), chữ ngắn 1 dòng nhỏ: "Theme mới lấy từ Canva hiện ở đây · bấm ☆ để đưa xuống Kho chung."
 - 13/11 11h21: fen gửi ảnh "hiển thị dư rồi nè" (7 theme Canva hiện 2 lần: lưới trên + Kho chung) → trên máy shop theme đã vào kho chung (★) chỉ hiện ở mục ☁️ Kho chung (thẻ vẫn đủ ✏️ Chỉnh / ⋯ / ★), lưới trên chỉ còn theme chưa vào kho chung (trống thì ghi "Theme nào cũng đã ở Kho chung…"). Máy khách không đổi.
