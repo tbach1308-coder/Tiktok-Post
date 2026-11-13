@@ -91,7 +91,8 @@ check('máy khác lưu mẫu Canva riêng', b['mau']['laptop'].endswith('DAGmauM
 check('mẫu Canva máy shop giữ nguyên', req(APP,'/api/canva-cai')[1]['mau']==old)
 check('máy khác đọc lại mẫu của mình', req(K,'/api/canva-cai',h=T)[1]['mau']['laptop'].endswith('DAGmauMac/x/edit'))
 # chạy bài
-s,b,_=req(K,'/api/run',{"kenh":"laptop","brief":"Bìa: THỬ DÙNG CHUNG\nSlide 2: máy test","tu_tg":True,"_khach":{"id":"gia","ten":"gia"}},h=T)
+s,b,_=req(K,'/api/run',{"kenh":"laptop","brief":"Bìa: THỬ KHÔNG THEME\nSlide 2: x"},h=T); check('máy khác làm Photoshop không chọn theme: bị chặn (fen 13/11: không dùng theme shop)', s==400 and 'chọn 1 theme' in (b.get('err') or ''), (s,b))
+s,b,_=req(K,'/api/run',{"kenh":"laptop","brief":"Bìa: THỬ DÙNG CHUNG\nSlide 2: máy test","tu_tg":True,"_khach":{"id":"gia","ten":"gia"},"theme_ps":"phang-xanh-dem"},h=T)
 check('khách Chạy: tạo bài', s==200 and b.get('id'), (s,b)); kj=b.get('id')
 jj=json.load(open('/home/claude/bug3/tgl/jobs/%s/job.json'%kj,encoding='utf-8')) if kj else {}
 check('bài ghi tên máy khách, bỏ _khach / tu_tg trang gửi', (jj.get('khach') or {}).get('ten')=='MacBook Quân' and not jj.get('tu_tg'), jj.get('khach'))

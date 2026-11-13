@@ -16,8 +16,9 @@ const j = (u, d) => fetch(A + u, { method: d ? 'POST' : 'GET', headers: { 'Conte
   await p.waitForSelector('#khc:not([hidden])', { timeout: 10000 }); await p.waitForTimeout(1500);
   out.khc = await p.$eval('#khc', x => x.textContent);
   out.an = await p.evaluate(() => ['#bChung', '#bRm', '#bQt', '#bTg', '#hc', '.khor'].map(s => [s, !!document.querySelector(s) && getComputedStyle(document.querySelector(s)).display !== 'none']));   // .khor: ô 📦 Kho Polysto (fen 13/11: máy con không hiện)
+  out.thBat = await p.evaluate(() => { const e = document.querySelector('#thPick .thbat'); return e ? e.textContent : null; });   // fen 13/11: máy con phải chọn theme
   await p.screenshot({ path: 'shots/chung-khach.png' });
-  const done = await p.evaluate(async () => { const r = await fetch('/api/run', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({kenh: 'laptop', brief: 'Bìa: BÀI MÁY KHÁC\nSlide 2: x'})}).then(r => r.json());
+  const done = await p.evaluate(async () => { const r = await fetch('/api/run', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({kenh: 'laptop', brief: 'Bìa: BÀI MÁY KHÁC\nSlide 2: x', theme_ps: 'phang-xanh-dem'})}).then(r => r.json());
     for (let i = 0; i < 90; i++) { const v = await fetch('/api/job/' + r.id).then(x => x.json()); if ((v.job || {}).status === 'xong') return {id: r.id}; await new Promise(x => setTimeout(x, 1000)); } return {id: r.id}; });
   await p.goto(H + '/#bai=' + done.id); await p.reload(); await p.waitForSelector('.post', { state: 'attached', timeout: 10000 }); await p.waitForTimeout(1200);
   out.post = await p.evaluate(() => ({ zip: !!document.querySelector('#bZip'), dang: getComputedStyle(document.querySelector('#bDang')).display, tg: getComputedStyle(document.querySelector('#bGuiTg')).display, mo: document.querySelector('#bOpen') ? getComputedStyle(document.querySelector('#bOpen')).display : 'không có' }));

@@ -14,7 +14,7 @@ let ok = 0, bad = 0; const check = (n, c, x) => { c ? ok++ : bad++; console.log(
   check('máy khách không ghi được quy tắc (403)', ghi.s === 403, ghi);
   const xem = await j(K + '/api/quy-tac', null, HT);
   check('máy khách vẫn xem được quy tắc', xem.s === 200, xem.s);
-  const run = (await j(K + '/api/run', { kenh: 'laptop', brief: 'Bìa: BÀI QUY TẮC KHÁCH\nSlide 2: x' }, HT)).b;
+  const run = (await j(K + '/api/run', { kenh: 'laptop', brief: 'Bìa: BÀI QUY TẮC KHÁCH\nSlide 2: x', theme_ps: 'phang-xanh-dem' }, HT)).b;
   await new Promise(x => setTimeout(x, 1500));
   const pk = fs.readFileSync('/home/claude/bug3/tgl/jobs/' + run.id + '/prompt-1.txt', 'utf8');
   check('lệnh dựng bài của máy khách có dặn không ghi luật', pk.includes('KHÔNG ghi, KHÔNG sửa file luật'), pk.slice(-300));

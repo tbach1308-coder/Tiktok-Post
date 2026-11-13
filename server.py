@@ -1724,6 +1724,9 @@ def create_job(data):
             raise ValueError("Kênh %s chưa có mẫu Canva: vào Kiểm máy > Canva dán link thiết kế mẫu, hoặc chọn Dựng bằng Photoshop"
                              % CFG["kenh"].get(kenh, {}).get("ten", kenh))
         job["dung_bang"] = "canva"
+    elif isinstance(data.get("_khach"), dict) and not data.get("theme_ps"):
+        # fen 13/11 15h25 "máy con không sài chung theme shop, bắt chọn theme khác": máy dùng chung làm Photoshop phải chọn theme kho
+        raise ValueError("Máy này phải chọn 1 theme trước khi chạy (theme mặc định của shop chỉ máy shop dùng): bấm ＋ Chọn theme")
     elif data.get("theme_ps"):      # fen 12/11: theme Photoshop trong kho chung (bộ phong cách phẳng)
         tp = theme_ps_tim(data.get("theme_ps"))
         if not tp:

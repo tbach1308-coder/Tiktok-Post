@@ -485,7 +485,7 @@ select.in.msel option{background:var(--panel);color:var(--tx)}
 body.khach #bChung,body.khach #bOpen,body.khach #bDang,body.khach #bCoSan,body.khach .thdb,body.khach #thKcd,body.khach .khor{display:none!important}
 .thkch{margin:22px 0 2px;font-size:16px}.thkch span{font-size:12.5px;color:var(--mut);font-weight:500}
 .thg>.pnote{grid-column:1/-1;margin:0}.thpage #thG>.pnote{font-size:12.5px;color:var(--mut)}
-#thKcG .thg{margin-top:8px}
+#thKcG .thg{margin-top:8px}.thbat{color:var(--o, #f0a020);font-size:12.5px;font-weight:600;border:1px dashed currentColor;border-radius:99px;padding:3px 10px}
 #thKcG:empty,#thG:empty,#thKcGhi:empty,#thErr:empty,#thBo:empty{display:none}.thpage .chikhach{display:none}body.khach .thpage .chikhach{display:block}
 .thc .kctg{justify-self:start;font:inherit;font-size:11.5px;border:1px solid var(--line2);border-radius:99px;background:none;color:var(--mut);padding:2px 9px;cursor:pointer}
 .thc .kctg:hover{color:var(--tx)}.thc .kctg.on{border-color:#c9a227;color:#f1d27a;background:#2e2610}
@@ -1322,6 +1322,7 @@ function newView(){
     const chT = thCo ? ths.find(t => t.id === f.theme) : null, chP = psCo ? psDs.find(t => t.id === f.themePs) : null;
     const chip = chT ? `<button data-th="${chT.id}" class="on" title="${esc(chT.ten)} · làm bằng Canva · bấm để bỏ chọn">${chT.anh ? `<img src="${esc(chT.anh)}" alt="">` : ''}${esc(tenGon(chT))}<b class="thx" title="Bỏ chọn theme">✕</b></button>`
       : chP ? `<button data-thps="${chP.id}" class="ps on" title="${esc(chP.ten)} · làm bằng Photoshop · bấm để bỏ chọn">${chP.anh && chP.anh[0] ? `<img src="${esc(chP.anh[0])}" alt="">` : ''}${esc(chP.ten)}<b class="thx" title="Bỏ chọn theme">✕</b></button>`
+      : KHACH && !cv ? `<span class="thbat" title="Theme mặc định của shop chỉ máy shop dùng">⚠ Máy này phải chọn 1 theme</span>`     // fen 13/11 15h25 "máy con không sài chung theme shop, bắt chọn theme khác"
       : `<button data-th="-" class="on" title="${cv ? 'Canva dùng mẫu của kênh (Kiểm máy > Canva)' : 'Photoshop tự vẽ theo bộ dựng của shop'}">${cv ? 'Mẫu kênh' : 'Không theme'}</button>`;
     setH($('#thPick'), `<div class="thpick"><span class="lbl">🎨 Theme</span>${chip}${chT || chP ? `<span class="thmot">${chT && f.themeTu ? 'app tự chọn theo dạng bài · ' : ''}${chP ? 'làm bằng Photoshop' : 'làm bằng Canva'} · bấm ✕ để bỏ</span>` : ''}<a href="#" id="thMo">${ths.length || psDs.length ? (chT || chP ? 'Đổi theme' : '＋ Chọn theme') : '＋ Kho theme đang trống, thêm theme'}</a></div>`);
     document.querySelectorAll('#thPick [data-th]').forEach(b => b.onclick = () => { f.themeTu = 0; if (b.dataset.th === '-' || (thCo && f.theme === b.dataset.th)) { f.theme = ''; f.themeBo = 1; if (b.dataset.th === '-') f.themePs = ''; } else { f.theme = b.dataset.th; f.dung = 'canva'; } saveForm(); veDung(); });
@@ -1491,6 +1492,10 @@ async function runNew(henLuc){
   if (typeof henLuc !== 'number') henLuc = 0;
   if (!f.brief || f.brief.trim().length < 5) { const t = $('#fBrief'); t.classList.add('bad'); t.scrollIntoView({block:'center', behavior:'smooth'}); t.focus(); $('#fErr').textContent = 'Dán brief từng slide vào ô Brief trước đã.'; return; }
   if (!henLuc && !canRun()) { renderBanner(); $('#main').scrollTo({top:0, behavior:'smooth'}); return; }
+  if (KHACH && f.dung !== 'canva' && !f.themePs) {   // fen 13/11 15h25: máy con không dùng theme mặc định của shop
+    setH($('#fErr'), 'Máy này phải chọn 1 theme trước khi chạy (theme mặc định của shop chỉ máy shop dùng). <a href="#" id="fThChon">＋ Chọn theme</a>');
+    $('#fThChon').onclick = ev => { ev.preventDefault(); const tm = $('#thMo'); if (tm) tm.click(); };
+    const tp = $('#thPick'); if (tp) tp.scrollIntoView({block: 'center', behavior: 'smooth'}); return; }
   if (f.dung === 'canva' && S.cv && S.cv.tt === 'chua') {   // fen 10/11 15h24: Canva chưa nối thì báo ngay, không để chạy mấy phút rồi mới lỗi
     setH($('#fErr'), 'Canva đang <b>chưa nối</b>: bài Canva sẽ không chạy được. <a href="#" id="fCvKiem">Kiểm lại Canva</a> (nối rồi thì bấm Chạy lại), hoặc chọn 🖌 Photoshop.');
     $('#fCvKiem').onclick = ev => { ev.preventDefault(); $('#fErr').textContent = 'Đang kiểm Canva…'; cvChip(true).then(() => { $('#fErr').textContent = S.cv && S.cv.tt === 'chua' ? 'Canva vẫn chưa nối: vào claude.ai > Customize > Connectors > Canva bấm Connect.' : 'Đang kiểm Canva, xong bấm Chạy lại.'; }); };

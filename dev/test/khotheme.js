@@ -9,7 +9,7 @@ const k = (u, tok, d) => fetch('http://127.0.0.1:8791' + u, { method: d ? 'POST'
   const v = await k('/api/chung/vao', '', { ma: m.ma, ten: 'Mac Quân' });
   const R = () => Math.random().toString(36).slice(2, 12).padEnd(10, 'x').slice(0, 10);
   await k('/api/theme-canva', v.token, { them: { link: `https://www.canva.com/design/D${R()}/a/edit`, ten: 'Theme riêng của Mac', kenh: 'ipad' } });
-  const run = await k('/api/run', v.token, { kenh: 'laptop', brief: 'Bìa: BÀI CỦA MAC QUÂN\nSlide 2: x' });
+  const run = await k('/api/run', v.token, { kenh: 'laptop', brief: 'Bìa: BÀI CỦA MAC QUÂN\nSlide 2: x', theme_ps: 'phang-xanh-dem' });
   const b = await chromium.launch({ args: ['--host-resolver-rules=MAP poly-thu.example 127.0.0.1:8791'] });
   const out = {}, errs = [];
   const p = await b.newPage({ viewport: { width: 1440, height: 1000 } }); p.on('pageerror', e => errs.push('chu: ' + e.message));

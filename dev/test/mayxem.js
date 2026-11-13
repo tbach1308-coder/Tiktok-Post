@@ -10,7 +10,7 @@ const j = (u, d, h) => fetch(u, { method: d ? 'POST' : 'GET', headers: Object.as
   const v = (await j(K + '/api/chung/vao', { ma, ten: 'Mac Xem Thử' }, H)).b;
   const HT = Object.assign({ 'X-Poly-Khach': v.token }, H); v.id = (await j(K + '/api/chung/toi', null, HT)).b.id;
   await j(K + '/api/nhap', { ds: [{ id: 'nxem1', kenh: 'ipad', chude: 'Top 3 iPad cho sinh viên', brief: 'Bìa: TOP 3 IPAD CHO SINH VIÊN\nSlide 2: iPad Gen 9\nSlide 3: iPad Air 5', t: Date.now() }], cur: 'nxem1' }, HT);
-  const run = (await j(K + '/api/run', { kenh: 'laptop', brief: 'Bìa: BÀI CỦA MAC XEM THỬ\nSlide 2: x' }, HT)).b;
+  const run = (await j(K + '/api/run', { kenh: 'laptop', brief: 'Bìa: BÀI CỦA MAC XEM THỬ\nSlide 2: x', theme_ps: 'phang-xanh-dem' }, HT)).b;
   const cam = await j(K + '/api/chung/may?id=' + v.id, null, HT);
   const api = (await j(A + '/api/chung/may?id=' + v.id)).b;
   const b = await chromium.launch(); const p = await b.newPage({ viewport: { width: 1440, height: 1000 } }); const errs = []; p.on('pageerror', e => errs.push(e.message));

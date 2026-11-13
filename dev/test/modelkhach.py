@@ -27,11 +27,11 @@ def args_cua(jid):
 def model_run(jid):
     jb, r0 = args_cua(jid)
     return (r0 or {}).get('model'), open(os.path.join(J,jid,'prompt-1.txt'),encoding='utf-8').read() if r0 else ''
-k1=req(K,'/api/run',{"kenh":"laptop","brief":"Bìa: MODEL MẶC ĐỊNH MÁY KHÁCH\nSlide 2: x"},H)['id']
+k1=req(K,'/api/run',{"kenh":"laptop","brief":"Bìa: MODEL MẶC ĐỊNH MÁY KHÁCH\nSlide 2: x","theme_ps":"phang-xanh-dem"},H)['id']
 m1,p1=model_run(k1)
 check('máy khách, Model mặc định: dựng bằng Sonnet', m1=='sonnet', m1)
 check('máy khách: agent duyệt cũng Sonnet', 'model "sonnet"' in p1 or 'AGENT' not in p1, p1[-400:])
-k2=req(K,'/api/run',{"kenh":"laptop","brief":"Bìa: MÁY KHÁCH CHỌN OPUS\nSlide 2: x","model":"opus"},H)['id']
+k2=req(K,'/api/run',{"kenh":"laptop","brief":"Bìa: MÁY KHÁCH CHỌN OPUS\nSlide 2: x","model":"opus","theme_ps":"phang-xanh-dem"},H)['id']
 m2,_=model_run(k2)
 check('máy khách tự chọn Opus: theo lựa chọn', m2=='opus', m2)
 s1=req(A,'/api/run',{"kenh":"laptop","brief":"Bìa: MÁY SHOP MẶC ĐỊNH\nSlide 2: x"})['id']
