@@ -8,7 +8,8 @@ LẦN ĐẦU
    macOS 15 trở lên: mở app 1 lần (bị chặn), vào Cài đặt hệ thống → Quyền riêng tư & Bảo mật → kéo xuống → Vẫn mở.
 3. App hỏi link: dán link fen gửi (dạng https://….trycloudflare.com).
 4. Nhập mã 6 số fen đọc cho (máy shop: 💻 Máy khác → Thêm máy) và tên máy này.
-5. App mở cửa sổ Chrome (không có Chrome thì mở Safari). Lần sau bấm app là vào luôn.
+5. App mở cửa sổ riêng như app máy tính (dùng Chrome; không có thì Edge / Brave, không có nữa thì Safari).
+   Kéo app vào Dock, lần sau bấm là vào luôn.
 
 LINK ĐỔI
 Máy shop khởi động lại hoặc mất mạng lâu thì link đổi. App tự hỏi link mới: dán link bot gửi trong nhóm

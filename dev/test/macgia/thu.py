@@ -40,4 +40,14 @@ rc,nk,con=chay([ma, 'MacBook Thử Quân'], M2)
 check('bị bỏ: báo + hỏi mã mới rồi vào', 'đã bị fen bỏ' in nk and 'OPEN' in nk, nk)
 rc,nk,con=chay(['__HUY__'], {})
 check('link chết + bấm Huỷ: thoát êm, không mở', rc==0 and 'OPEN' not in nk, (rc, nk))
+# 13/11 fen: Mac mở thành tab Chrome (Chrome không ở /Applications) -> tìm Chrome theo tên app, không có thì Edge / Brave, hết thì trình duyệt mặc định
+shutil.rmtree(HOME+'/Applications/Google Chrome.app', ignore_errors=True)
+rc,nk,con=chay([], M2)
+check('Chrome không ở thư mục Ứng dụng: hỏi macOS theo tên, vẫn mở cửa sổ riêng', 'OPEN: -Ra Google Chrome' in nk and 'OPEN: -na Google Chrome --args --app=https://link-moi-thu' in nk, nk)
+open(MG+'/khong_chrome','w').write('1')
+try:
+    rc,nk,con=chay([], M2)
+finally:
+    os.remove(MG+'/khong_chrome')
+check('không có Chrome / Edge / Brave: mở bằng trình duyệt mặc định', 'OPEN: -Ra Brave Browser' in nk and 'OPEN: https://link-moi-thu' in nk and '--app' not in nk, nk)
 print('KẾT QUẢ: %d đạt, %d lỗi' % tuple(ok))

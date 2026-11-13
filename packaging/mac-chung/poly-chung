@@ -118,9 +118,18 @@ while :; do
 done
 luu
 MO="$URL/#vao=$TOK"
-CH="/Applications/Google Chrome.app"
-[ -d "$CH" ] || CH="$HOME/Applications/Google Chrome.app"
-if [ -d "$CH" ]; then
+# 13/11 fen: tren Mac app mo thanh 1 tab Chrome (khong tim thay Chrome o /Applications) -> tim Chrome o moi cho
+# (thu muc Ung dung, ~/Applications, roi hoi macOS theo ten app), khong co Chrome thi Edge / Brave; mo cua so rieng nhu app desktop.
+CH=""
+for p in "/Applications/Google Chrome.app" "$HOME/Applications/Google Chrome.app"; do
+  [ -d "$p" ] && { CH="$p"; break; }
+done
+if [ -z "$CH" ]; then
+  for n in "Google Chrome" "Microsoft Edge" "Brave Browser"; do
+    if open -Ra "$n" >/dev/null 2>&1; then CH="$n"; break; fi
+  done
+fi
+if [ -n "$CH" ]; then
   open -na "$CH" --args --app="$MO" --user-data-dir="$D/chrome" --no-first-run --no-default-browser-check
 else
   open "$MO"

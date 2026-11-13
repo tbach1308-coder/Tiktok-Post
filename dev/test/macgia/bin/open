@@ -1,2 +1,5 @@
 #!/bin/bash
 echo "OPEN: $*" >> "$MG/nhatky"
+# 13/11: "open -Ra <app>" hỏi macOS có app đó không; có file khong_chrome thì giả như máy không có Chrome / Edge / Brave
+if [ "$1" = "-Ra" ] && [ -f "$MG/khong_chrome" ]; then exit 1; fi
+exit 0
