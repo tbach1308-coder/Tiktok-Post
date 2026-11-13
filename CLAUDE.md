@@ -44,7 +44,7 @@ cd /home/claude/bug3 && python3 tgltest.py && python3 tglnhom.py && python3 tglm
 # mỗi script nên chạy trên app thử vừa khởi động lại: cd /home/claude/bug3 && bash reset.sh (tg_lenh_offset 0, chưa nối, tắt dùng chung)
 node chungui.js ; node khotheme.js                # Playwright (Chromium có sẵn)
 ```
-- `themeps.py` kho theme Photoshop (26) + `themepsui.js` giao diện (16); `tgltest.py` Remote chat riêng (49), `tglnhom.py` Remote trong nhóm (26), `tglmig.py` nhóm lên supergroup, `tglrieng.py` bài gửi riêng từng người (14), `chungtest.py` dùng chung
+- `themeps.py` kho theme Photoshop (26) + `themepsui.js` giao diện (33); `tgltest.py` Remote chat riêng (49), `tglnhom.py` Remote trong nhóm (26), `tglmig.py` nhóm lên supergroup, `tglrieng.py` bài gửi riêng từng người (14), `chungtest.py` dùng chung
   (máy khác, quyền, bài / theme riêng từng máy, 82), `chungui.js` / `khotheme.js` giao diện. Script ghi đường dẫn `/home/claude/bug3`;
   tạo chỗ khác thì `tao-may-thu.py <thư mục>` tự đổi. Repo nên clone ở `/home/claude/tiktok-post` (script app Mac / Windows trỏ vào đó).
 - App Mac / Windows "dùng chung": `packaging/mac-chung/build.py`, `packaging/win-chung/build.sh` (mingw) → `dist/`; thử:
