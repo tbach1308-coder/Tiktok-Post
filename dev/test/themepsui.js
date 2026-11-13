@@ -14,7 +14,7 @@ const check = (n, c, x) => { c ? ok++ : bad++; console.log((c ? '✓ ' : '✗ ')
     await p.waitForSelector('#thKcG .thps', { timeout: 8000 }).catch(() => {});
     const kc = await p.$$eval('#thKcG .thps b', x => x.map(e => e.textContent));
     check(ten + ': mục ☁️ Kho chung (tab Canva) hiện 6 theme Photoshop', kc.length === 6, kc);
-    check(ten + ': số theme kho chung ghi đúng', /\d+ theme \(6 Photoshop\)/.test(await p.$eval('#thKcN', e => e.textContent)), await p.$eval('#thKcN', e => e.textContent));
+    check(ten + ': số theme kho chung ghi đúng', /^· \d+$/.test(await p.$eval('#thKcN', e => e.textContent)) && (await p.$$eval('#thKcG h4', x => x.map(e => e.textContent))).includes('🖌 Photoshop · 6'), await p.$eval('#thKcN', e => e.textContent));
     check(ten + ': nút tab ghi số theme Photoshop', /Photoshop · 6/.test(await p.$eval('#thKieu [data-k=ps]', e => e.textContent)));
     const co = await p.evaluate(() => { const a = document.querySelector('#thKcG .thc:not(.thps) .tha'), b = document.querySelector('#thKcG .thps .tha'), c = document.querySelector('#thG .thc .tha');
       const r = e => e && e.getBoundingClientRect(); const x = r(b), y = r(a) || r(c); return x && y ? [Math.round(x.width), Math.round(y.width), Math.round(x.height / x.width * 100)] : null; });
