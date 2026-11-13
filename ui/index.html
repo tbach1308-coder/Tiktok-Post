@@ -481,7 +481,8 @@ select.in.msel option{background:var(--panel);color:var(--tx)}
 .okc{color:var(--gl)}
 /* dùng chung (fen 12/11 "máy khác vẫn sài được full chức năng"): chỉ ẩn nút mở cửa sổ / thư mục / Chrome trên chính máy shop */
 .chikhach{display:none}body.khach .chikhach{display:inline}body.khach .chishop{display:none}
-body.khach #bChung,body.khach #bOpen,body.khach #bDang,body.khach #bCoSan,body.khach .thdb,body.khach #thKcd{display:none!important}
+/* fen 13/11 14h49 "kho này máy con không cần hiện": ô 📦 Kho Polysto chỉ máy shop */
+body.khach #bChung,body.khach #bOpen,body.khach #bDang,body.khach #bCoSan,body.khach .thdb,body.khach #thKcd,body.khach .khor{display:none!important}
 .thkch{margin:22px 0 2px;font-size:16px}.thkch span{font-size:12.5px;color:var(--mut);font-weight:500}
 .thg>.pnote{grid-column:1/-1;margin:0}.thpage #thG>.pnote{font-size:12.5px;color:var(--mut)}
 #thKcG .thg{margin-top:8px}
@@ -1374,7 +1375,7 @@ async function vietBrief(){
   const bcu = (f.brief || '').trim(), may = (f.briefMay || '').trim();
   b.disabled = true; b.textContent = 'Đang gửi…';
   try {
-    const r = await api('/api/viet-brief', {kenh: f.kenh, chu_de: f.chude, ngay_dang: (f.ngay || '').trim(), ghi_chu: f.note || '', brief: f.brief || '', kho: (f.kho || '').trim(), theme_canva: f.dung === 'canva' ? (f.theme || '') : '',
+    const r = await api('/api/viet-brief', {kenh: f.kenh, chu_de: f.chude, ngay_dang: (f.ngay || '').trim(), ghi_chu: f.note || '', brief: f.brief || '', kho: KHACH ? '' : (f.kho || '').trim(), theme_canva: f.dung === 'canva' ? (f.theme || '') : '',
       chu_de_cu: f.briefCd || '', brief_cua: !bcu ? '' : (may || /Đã viết brief/.test(f.briefNote || '') ? 'claude' : 'fen'), fen_sua: !!(bcu && may && bcu !== may)});
     f.briefJob = r.id; f.briefT = Date.now(); f.briefNote = ''; f.briefCdGui = f.chude; saveForm(f); pollBrief(f);
   } catch(e) { setH(st, `<span class="err">${esc(e.message)}</span>`); b.disabled = false; b.textContent = '✍ Viết brief'; }
@@ -1461,7 +1462,7 @@ async function guiChat(f){
   f.brief = $('#fBrief').value; f.chude = ($('#fChuDe').value || '').trim();
   f.chat = f.chat || []; f.chat.push({ai: false, text: tin || '(ảnh)', n_anh: anh.length || undefined, t: Date.now()}); o.value = '';
   f._chatAnh = []; veChatAnh(f);
-  try { const r = await api('/api/chat-brief', {kenh: f.kenh, chu_de: f.chude, brief: f.brief || '', kho: (f.kho || '').trim(), theme_canva: f.dung === 'canva' ? (f.theme || '') : '', tin, anh, lich_su: f.chat.slice(-21, -1)});   // fen 9/11 "ghi nhớ trò chuyện để làm cho đúng": gửi 20 tin trước (trước 8)
+  try { const r = await api('/api/chat-brief', {kenh: f.kenh, chu_de: f.chude, brief: f.brief || '', kho: KHACH ? '' : (f.kho || '').trim(), theme_canva: f.dung === 'canva' ? (f.theme || '') : '', tin, anh, lich_su: f.chat.slice(-21, -1)});   // fen 9/11 "ghi nhớ trò chuyện để làm cho đúng": gửi 20 tin trước (trước 8)
     f.chatJob = r.id; f.chatT = Date.now(); saveForm(f); veChat(f); pollChat(f); }
   catch(e) { f.chat.push({ai: true, text: 'Chưa gửi được: ' + e.message, t: Date.now()}); saveForm(f); veChat(f); }
 }
