@@ -25,8 +25,10 @@ const check = (n, c, x) => { c ? ok++ : bad++; console.log((c ? '✓ ' : '✗ ')
     await p.click('#thKieu [data-k=ps]'); await p.waitForSelector('#thPsG .thps', { timeout: 8000 }); await p.waitForTimeout(1200);
     const co = await p.evaluate(() => { const e = document.querySelector('#thPsG .thps .tha'); if (!e) return null; const r = e.getBoundingClientRect(); return [Math.round(r.width), Math.round(r.height / r.width * 100)]; });
     check(ten + ': ảnh thẻ Photoshop cùng cỡ thẻ Canva (3:4)', co && yCv && Math.abs(co[0] - yCv) <= 2 && co[1] === 133, [co, yCv]);
-    const the = await p.$$eval('#thPsG .thps', x => x.map(e => ({ ten: e.querySelector('b').textContent, anh: e.querySelectorAll('.tha img').length, kc: !!e.querySelector('.kcb') })));
-    check(ten + ': tab Photoshop có 6 theme, thẻ giống Canva (1 ảnh bìa) + nhãn kho chung', the.length === 6 && the.every(t => t.anh === 1 && t.kc), the);
+    const the = await p.$$eval('#thPsG .thps', x => x.map(e => ({ ten: e.querySelector('b').textContent, anh: e.querySelectorAll('.tha img').length, thua: !!e.querySelector('.kcb') || /Photoshop/.test(e.querySelector('.thm').textContent) })));
+    // fen 13/11 11h39 "tối ưu loại bỏ phần thừa": thẻ Photoshop không còn nhãn "☁️ Kho chung" / chữ "Photoshop" (đang ở tab Photoshop)
+    check(ten + ': tab Photoshop có 6 theme, thẻ giống Canva (1 ảnh bìa), không chữ thừa', the.length === 6 && the.every(t => t.anh === 1 && !t.thua), the);
+    check(ten + ': tab Photoshop không còn đoạn giới thiệu dài', await p.$$eval('#thPsWrap > .pnote', x => x.length) === 0);
     const anhOk = await p.$$eval('#thPsG img', x => x.every(i => i.complete && i.naturalWidth > 0));
     check(ten + ': ảnh xem trước hiện được', anhOk);
     check(ten + ': phần Canva ẩn khi xem Photoshop', await p.$eval('#thCvWrap', e => e.hidden));

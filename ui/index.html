@@ -484,7 +484,7 @@ select.in.msel option{background:var(--panel);color:var(--tx)}
 body.khach #bChung,body.khach #bOpen,body.khach #bDang,body.khach #bCoSan,body.khach .thdb,body.khach #thKcd{display:none!important}
 .thkch{margin:22px 0 2px;font-size:16px}.thkch span{font-size:12.5px;color:var(--mut);font-weight:500}
 .thg>.pnote{grid-column:1/-1;margin:0}.thpage #thG>.pnote{font-size:12.5px;color:var(--mut)}
-.thkcs{margin:16px 0 0;font-size:14px;font-weight:700}.thkcs span{font-size:12.5px;color:var(--mut);font-weight:500}#thKcG .thg{margin-top:8px}
+#thKcG .thg{margin-top:8px}
 #thKcG:empty,#thG:empty,#thKcGhi:empty,#thErr:empty,#thBo:empty{display:none}.thpage .chikhach{display:none}body.khach .thpage .chikhach{display:block}
 .thc .kctg{justify-self:start;font:inherit;font-size:11.5px;border:1px solid var(--line2);border-radius:99px;background:none;color:var(--mut);padding:2px 9px;cursor:pointer}
 .thc .kctg:hover{color:var(--tx)}.thc .kctg.on{border-color:#c9a227;color:#f1d27a;background:#2e2610}
@@ -2226,9 +2226,9 @@ async function khoTheme(){
   const m = $('#main');
   m.innerHTML = `<div class="pad thpage">
     <div class="nhbar"><h1>Kho theme</h1>
-    <div class="kseg segd" id="thKieu"><button data-k="cv" class="${S.thKieu === 'ps' ? '' : 'on'}">🎨 Canva</button><button data-k="ps" class="${S.thKieu === 'ps' ? 'on' : ''}">🖌 Photoshop</button></div></div>
+    <div class="kseg segd" id="thKieu"><button data-k="cv" class="${S.thKieu === 'ps' ? '' : 'on'}">🎨 Canva</button><button data-k="ps" class="${S.thKieu === 'ps' ? 'on' : ''}" title="Theme Photoshop (phẳng / glass) dùng chung cho mọi máy: bấm ▶ Làm bài rồi viết brief, Claude dựng bằng Photoshop theo màu, font, nền của theme">🖌 Photoshop</button></div></div>
     ${choBai ? '<p class="banner thcho">Đang chọn theme cho bài đang viết: bấm <b>✓ Chọn theme này</b> ở theme muốn dùng, app quay lại bài.</p>' : ''}
-    <div id="thPsWrap"${S.thKieu === 'ps' ? '' : ' hidden'}><p class="pnote">Theme Photoshop (phẳng / glass) trong <b>kho chung</b>: máy nào dùng app cũng chọn được. Bấm <b>▶ Làm bài</b> rồi viết brief như thường, Claude dựng bằng Photoshop theo màu, font, nền của theme.</p>
+    <div id="thPsWrap"${S.thKieu === 'ps' ? '' : ' hidden'}>
     <div class="thg" id="thPsG">Đang tải…</div></div>
     <div id="thCvWrap"${S.thKieu === 'ps' ? ' hidden' : ''}>
     <!-- fen 13/11 11h31 "vẫn quá nhiều": bỏ đoạn giới thiệu dài, hướng dẫn nằm ở chữ hiện khi rê chuột -->
@@ -2257,13 +2257,12 @@ async function khoTheme(){
   // fen 12/11 21h18 theme Photoshop từng hiện cả trong mục ☁️ Kho chung tab Canva; 13/11 11h35 "hiển thị theme theo tag": chỉ còn ở tab Photoshop
   // fen 12/11 21h20 "hiển thị giống canva ở trên": thẻ y như thẻ theme Canva (1 ảnh bìa 3:4, tên, dòng nhỏ, nhãn kho chung, ▶ Làm bài)
   const thePs = t => `<div class="thc thps" data-id="${t.id}"><div class="tha" title="${esc(t.mo_ta || '')}">${t.anh && t.anh[0] ? `<img src="${esc(t.anh[0])}" alt="">` : '<span>Chưa có ảnh xem trước</span>'}</div>
-      <b title="${esc(t.ten)}">${esc(t.ten)}</b><small class="thm">${t.kenh ? esc(KENH[t.kenh].ten) : 'Cả 2 kênh'} · Photoshop · ${esc(t.kieu || 'phẳng')}</small>
-      <small class="kcb">☁️ Kho chung</small>
+      <b title="${esc(t.ten)}">${esc(t.ten)}</b><small class="thm">${t.kenh ? esc(KENH[t.kenh].ten) : 'Cả 2 kênh'}</small>
       <div class="thb"><button class="btn sm pri" data-dungps="${t.id}" title="${choBai ? 'Dùng theme này cho bài đang viết' : 'Mở bài mới với theme này'}, làm bằng Photoshop">${nutDung}</button></div></div>`;
   const vePs = ds2 => { S.themePsDs = ds2; if (!$('#thPsG')) return;
     setH($('#thPsG'), ds2.length ? ds2.map(thePs).join('') : '<p class="pnote">Kho chung chưa có theme Photoshop nào.</p>');
     const nb = $('#thKieu [data-k=ps]'); if (nb) nb.textContent = '🖌 Photoshop' + (ds2.length ? ' · ' + ds2.length : '');
-    if (cuoi) ve(cuoi); };
+  };
   api('/api/theme-ps').then(r => vePs(r.ds || [])).catch(e => { if ($('#thPsG')) $('#thPsG').textContent = e.message; });
   const dungPs = id => { const t = (S.themePsDs || []).find(x => x.id === id); if (!t) return;
     if (!choBai && !nhapRong(S.form)) {
@@ -2303,7 +2302,7 @@ async function khoTheme(){
         : sx.tt === 'loi' && nowS() - sx.t < 3600 ? `<small class="thst err">${sx.kieu === 'nhan-ban' ? 'Nhân bản' : 'Chỉnh'} chưa được: ${esc(sx.ghi || '')}</small>`
         : sx.tt === 'ok' && nowS() - sx.t < 3600 ? `<small class="thst ok">${sx.kieu === 'nhan-ban' ? 'Đã nhân bản' : 'Đã chỉnh'}${sx.ghi ? ': ' + esc(sx.ghi) : ''}</small>` : '';
       const chung = kc ? (t.chia_se ? '<small class="kcb">☁️ Từ kho chung của fen</small>' : '<small class="kcw" title="Fen chưa chia sẻ thiết kế này trên Canva, tài khoản Canva của máy này có thể không mở được">⚠ Kho chung · fen chưa chia sẻ</small>')
-        : KHACH ? (rieng ? '<small class="kcb">🔒 Riêng máy này</small>' : '<small class="kcb">☁️ Kho chung (máy shop)</small>')
+        : KHACH ? ''
         : (t.kc && S.kcDung && KC_DRIVE && !t.chia_se ? '<small class="kcw" title="Máy cài app khác tải kho chung có thể không mở được theme này. Thêm link: ⋯ → Thông tin → Link chia sẻ Canva">☁️ Chưa chia sẻ cho máy khác</small>' : '');
       // fen 13/11 10h25 "nằm lộn xộn quá": nút kho chung thành ngôi sao nhỏ cùng hàng ▶ Làm bài / ⋯ (thẻ không còn dòng chip cao thấp khác nhau)
       const sao = kc || KHACH ? '' : `<button class="kctg sao${t.kc ? ' on' : ''}" data-kc="${t.id}" title="${t.kc ? 'Đang trong kho chung: máy dùng chung và máy tải kho chung thấy, dùng được. Bấm để bỏ ra (chỉ máy shop thấy)' : 'Chỉ máy shop thấy. Bấm để đưa vào kho chung cho máy khác dùng'}">${t.kc ? '★' : '☆'}</button>`;
@@ -2345,7 +2344,7 @@ async function khoTheme(){
   const tai = async () => { if (!dangXem()) return clearInterval(S._thT); try { ve(await api('/api/theme-canva')); } catch(e) { if (dangXem()) $('#thErr').textContent = e.message; } };
   $('#thBo').onclick = async e => { const a = e.target.closest('[data-hien]'); if (!a) return; e.preventDefault();
     try { ve(await api('/api/theme-canva', {hien: a.dataset.hien})); toast('Đã hiện lại theme'); } catch(err) { $('#thErr').textContent = err.message; } };
-  $('#thKcG').onclick = e => { const b = e.target.closest('[data-dungps]'); if (b) return dungPs(b.dataset.dungps); $('#thG').onclick(e); };
+  $('#thKcG').onclick = e => $('#thG').onclick(e);
   $('#thG').onclick = async e => { const b = e.target.closest('button'); if (!b || b.closest('.thinfo')) return; $('#thErr').textContent = '';
     try {
       if (b.dataset.dung) { const t = ds.find(x => x.id === b.dataset.dung); if (!t) return;   // fen 10/11 15h06 "h muốn chọn mẫu để chạy thì làm sao"
