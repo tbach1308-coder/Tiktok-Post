@@ -480,9 +480,9 @@ body.khach #bChung,body.khach #bOpen,body.khach #bDang,body.khach #bCoSan,body.k
 #thKcG:empty,#thG:empty,#thKcGhi:empty,#thErr:empty,#thBo:empty{display:none}.thpage .chikhach{display:none}body.khach .thpage .chikhach{display:block}
 .thc .kctg{justify-self:start;font:inherit;font-size:11.5px;border:1px solid var(--line2);border-radius:99px;background:none;color:var(--mut);padding:2px 9px;cursor:pointer}
 .thc .kctg:hover{color:var(--tx)}.thc .kctg.on{border-color:#c9a227;color:#f1d27a;background:#2e2610}
-.sbmay{display:flex;flex-wrap:wrap;gap:5px;align-items:center;padding:8px 10px 2px;font-size:12px;color:var(--mut)}
-.sbmay button{font:inherit;font-size:12px;border:1px solid var(--line2);border-radius:99px;background:none;color:var(--mut);padding:2px 9px;cursor:pointer}
-.sbmay button.on{border-color:var(--g);color:var(--gl);background:var(--gsoft, rgba(46,160,90,.16))}
+.sbmay{display:flex;flex-wrap:nowrap;gap:6px;align-items:center;padding:8px 10px 2px;font-size:12px;color:var(--mut)}
+.sbmay select{font:inherit;font-size:12px;flex:1;min-width:0;max-width:100%;border:1px solid var(--line2);border-radius:8px;background:var(--bg2, transparent);color:var(--tx);padding:3px 6px;cursor:pointer;text-overflow:ellipsis}
+.sbmay select.on{border-color:var(--g);color:var(--gl)}.sbmay select option{background:#1b1b1b;color:#eee}
 .chip.khc{color:var(--tx)}.khtag{font-size:11px;color:var(--mut);margin-left:4px}
 body.vaoing .top .chip{display:none!important}
 .brand{flex-shrink:0}
@@ -1183,9 +1183,10 @@ function renderJobs(){
       + ds.filter(j => !loc || j.kenh === loc).map(item).join('');
   }
   if (!ds.length) h = `<div class="empty">${S.jobs.length ? {lam: 'Không có bài nào đang làm.', cho: 'Không có bài nào chờ đăng.', nhap: 'Chưa có bản nháp. Ở Bài mới gõ brief rồi bấm 💾 Lưu bản nháp.', dang: 'Chưa có bài nào đã đăng.'}[S.sbTab] : S.sbTab === 'nhap' ? 'Chưa có bản nháp. Ở Bài mới gõ brief rồi bấm 💾 Lưu bản nháp.' : 'Chưa có bài nào. Bấm “+ Bài mới”, dán brief rồi bấm Chạy.'}</div>`;
-  if (dsMay.length) h = `<div class="sbmay">Máy: <button data-may="" class="${S.sbMay ? '' : 'on'}">Tất cả</button><button data-may="chu" class="${S.sbMay === 'chu' ? 'on' : ''}">Máy shop</button>${dsMay.map(([id, ten]) => `<button data-may="${esc(id)}" class="${S.sbMay === id ? 'on' : ''}">👤 ${esc(ten)}</button>`).join('')}</div>` + h;
+  // fen 13/11 15h15 "menu này chưa hợp lý" (hàng nút Máy: Tất cả · Máy shop · 👤 …, xuống 2 hàng): thành 1 ô chọn gọn 1 dòng
+  if (dsMay.length) h = `<div class="sbmay"><span>Máy</span><select id="sbMaySel" class="${S.sbMay ? 'on' : ''}" title="Chỉ hiện bài của 1 máy"><option value="">Tất cả máy</option><option value="chu"${S.sbMay === 'chu' ? ' selected' : ''}>Máy shop</option>${dsMay.map(([id, ten]) => `<option value="${esc(id)}"${S.sbMay === id ? ' selected' : ''}>👤 ${esc(ten)}</option>`).join('')}</select></div>` + h;
   const doiH = setH($('#jobs'), h);
-  document.querySelectorAll('#jobs [data-may]').forEach(b => b.onclick = () => { S.sbMay = b.dataset.may; renderJobs(); });
+  const sbm = $('#sbMaySel'); if (sbm) sbm.onchange = () => { S.sbMay = sbm.value; renderJobs(); };
   document.querySelectorAll('#jobs [data-loc]').forEach(b => b.onclick = () => { S.sbLoc = S.sbLoc === b.dataset.loc ? '' : b.dataset.loc; store.set('poly-sbloc', S.sbLoc); renderJobs(); });
   if (doiH) document.querySelectorAll('.ji').forEach(b => b.onclick = e => {
     const x = e.target.closest('.jx');

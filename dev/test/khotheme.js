@@ -19,8 +19,8 @@ const k = (u, tok, d) => fetch('http://127.0.0.1:8791' + u, { method: d ? 'POST'
   out.chuSau = { chung: await p.$$eval('#thKcG .thc', x => x.length), ghi: await p.$eval('#thKcGhi', x => x.textContent) };
   await p.screenshot({ path: 'shots/kho-chu.png', fullPage: true });
   // danh sách bài: lọc máy
-  out.locMay = await p.$$eval('#jobs .sbmay button', x => x.map(e => e.textContent));
-  const nutMay = await p.$('#jobs .sbmay button[data-may^="m"]'); if (nutMay) { await nutMay.click(); await p.waitForTimeout(500); }
+  out.locMay = await p.$$eval('#sbMaySel option', x => x.map(e => e.textContent));     // 13/11: ô chọn máy (trước là hàng nút)
+  const mMay = await p.$$eval('#sbMaySel option', x => (x.find(e => /^m/.test(e.value)) || {}).value); if (mMay) { await p.selectOption('#sbMaySel', mMay); await p.waitForTimeout(500); }
   out.sauLoc = await p.$$eval('#jobs .ji .t', x => x.map(e => e.textContent));
   await (await p.$('aside, .side, #jobs')).screenshot({ path: 'shots/loc-may.png' }).catch(() => {});
   // máy khách
