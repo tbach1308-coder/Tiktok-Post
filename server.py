@@ -6324,7 +6324,7 @@ CHUNG = {"srv": None, "pid": 0, "pid_t": 0, "url": "", "loi": "", "dang": "", "m
 CHUNG_KHOA = threading.Lock()
 CHUNG_DIR = os.path.join(APP, "_cf")
 CHUNG_MA_HAN = 900
-CHUNG_CAM = {"GET": (r"/api/chung", r"/api/bai-co-san"),
+CHUNG_CAM = {"GET": (r"/api/chung", r"/api/chung/may", r"/api/bai-co-san"),
              "POST": (r"/api/tat", r"/api/login", r"/api/cai-claude", r"/api/chung", r"/api/tiktok-(soi|dang|nhac)",
                       r"/api/job/[\w-]+/(mo|tiktok)", r"/api/bai-co-san")}
 CHUNG_TM = {}       # mã máy -> (lúc, [thư mục bài của máy đó]) để kiểm /file nhanh
@@ -6452,6 +6452,25 @@ def chung_tt():
             "dang": CHUNG["dang"], "loi": CHUNG["loi"], "ma": ma, "ma_con": max(0, int(CHUNG_MA_HAN - (now() - CHUNG["ma_luc"]))) if ma else 0,
             "may": sorted(ds, key=lambda x: x.get("t") or 0), "co_cf": os.path.isfile(cf_exe()), "app_mac": os.path.isfile(APP_MAC_ZIP),
             "app_win": os.path.isfile(APP_WIN_EXE), "nguoi": chung_nguoi()}
+
+
+def chung_xem_may(mid):
+    """fen 13/11 15h03 "bấm vô chỗ máy Quân thấy Quân đang làm gì": máy shop xem 1 máy dùng chung: lần dùng gần nhất,
+    bản nháp đang viết (nhap-<máy>.json), bài đang làm / gần đây của máy đó. Chỉ cổng app gốc (máy khách bị chặn ở CHUNG_CAM)."""
+    v = (CFG.get("chung_may") or {}).get(str(mid))
+    if not isinstance(v, dict):
+        raise ValueError("Không thấy máy này (có thể đã bị bỏ khỏi dùng chung)")
+    nh = nhap_doc("nhap-%s.json" % mid)
+    nhap = []
+    for x in nh["ds"]:
+        bf, cd, ten = str(x.get("brief") or "").strip(), str(x.get("chude") or "").strip(), str(x.get("ten") or "").strip()
+        if not (bf or cd or ten):
+            continue
+        nhap.append({"id": x.get("id"), "kenh": x.get("kenh"), "chude": short(cd, 160), "ten": short(ten, 80), "brief": bf[:500],
+                     "t": x.get("t"), "dang_viet": bool(x.get("briefJob") or x.get("chatJob")), "cur": bool(x.get("id")) and x.get("id") == nh.get("cur")})
+    nhap.sort(key=lambda x: (not x["cur"], -(x.get("t") or 0)))
+    bai = [j for j in list_jobs() if (j.get("khach") or {}).get("id") == str(mid)]
+    return {"id": str(mid), "ten": v.get("ten") or "Máy khác", "vao": v.get("t"), "lan": CHUNG["lan"].get(str(mid)), "nhap": nhap[:5], "bai": bai[:12]}
 
 
 def chung_cai(data=None):
@@ -6844,6 +6863,8 @@ class H(BaseHTTPRequestHandler):
                 return self.send(200, {"ok": True})
             if u.path == "/api/chung":
                 return self.send(200, chung_tt())
+            if u.path == "/api/chung/may":
+                return self.send(200, chung_xem_may((q.get("id") or [""])[0]))
             if u.path == "/api/chung/toi":
                 return self.send(200, {"khach": False})
             if u.path in ("/tai-app-mac", "/tai-app-win"):

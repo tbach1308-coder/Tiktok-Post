@@ -501,7 +501,7 @@ body.vaoing .top .chip{display:none!important}
 .vao h2{margin:0 0 6px;font-size:19px}.vao .in{width:100%;margin-top:8px}.vao .vaoma{font-size:24px;letter-spacing:6px;text-align:center}
 .vao .acts{margin-top:14px}
 .chma{font-size:30px;letter-spacing:8px;font-weight:700;color:var(--g);margin:6px 0}
-.chmay{display:flex;align-items:center;gap:8px;padding:6px 0;border-top:1px solid var(--line2)}.chmay .chtg{width:auto;max-width:170px;padding:4px 6px;font-size:12px}.chmay>div{flex:1;min-width:0}.chmay small{display:block;color:var(--mut)}
+.chmay{display:flex;align-items:center;gap:8px;padding:6px 0;border-top:1px solid var(--line2)}.chten{all:unset;cursor:pointer;font-weight:600;color:var(--tx)}.chten:hover{color:var(--gl);text-decoration:underline}.mysec{margin-top:4px}.mysec>b{display:block;font-size:13px;margin-bottom:4px}.mysec .pnote{margin:0}.myrow{display:flex;gap:8px;align-items:center;width:100%;text-align:left;font:inherit;background:none;border:1px solid var(--line2);border-radius:9px;padding:6px 9px;color:var(--tx);cursor:pointer;margin-bottom:5px}.myrow:hover{border-color:var(--g)}.myrow>span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.myrow small{color:var(--mut);white-space:nowrap}.mynh{border:1px solid var(--line2);border-radius:9px;padding:7px 9px;margin-bottom:5px}.mynh pre{margin:4px 0 0;white-space:pre-wrap;font:inherit;font-size:12.5px;color:var(--mut);max-height:7.5em;overflow:hidden}.myon{color:var(--gl)}.chmay .chtg{width:auto;max-width:170px;padding:4px 6px;font-size:12px}.chmay>div{flex:1;min-width:0}.chmay small{display:block;color:var(--mut)}
 .chlink{display:flex;gap:6px;align-items:center;margin:6px 0}.chlink code{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;padding:6px 8px;border:1px solid var(--line2);border-radius:8px}
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;z-index:80}
 .modal.on{display:flex}
@@ -2176,7 +2176,7 @@ function chungDlg(){
       h += r.ma ? `<div class="rmma"><div>Mã cho máy mới (dùng 1 lần, ${Math.ceil(r.ma_con / 60)} phút):</div><div class="chma">${esc(r.ma)}</div>
           <p class="pnote">Trên máy kia: mở app Mac (hoặc mở link bằng Chrome / Safari) → dán link → nhập mã này + tên máy.</p></div>`
         : `<div class="acts" style="justify-content:flex-start"><button class="btn sm pri" id="chMa">＋ Thêm máy (lấy mã)</button></div>`;
-      h += (r.may || []).length ? `<div style="margin-top:8px"><b>Máy đang dùng chung</b>${r.may.map(x => `<div class="chmay"><div>${esc(x.ten)}<small>vào ${x.t ? (d => String(d.getDate()).padStart(2, '0') + '/' + String(d.getMonth() + 1).padStart(2, '0'))(new Date(x.t * 1000)) : ''}${x.lan ? ' · dùng gần nhất ' + hm(x.lan) : ''}</small></div>
+      h += (r.may || []).length ? `<div style="margin-top:8px"><b>Máy đang dùng chung</b>${r.may.map(x => `<div class="chmay"><div><button class="chten" data-xemmay="${esc(x.id)}" title="Xem máy này đang làm gì: bản nháp đang viết, bài đang làm, bài gần đây">👤 ${esc(x.ten)} ›</button><small>vào ${x.t ? (d => String(d.getDate()).padStart(2, '0') + '/' + String(d.getMonth() + 1).padStart(2, '0'))(new Date(x.t * 1000)) : ''}${x.lan ? ' · dùng gần nhất ' + hm(x.lan) : ''}</small></div>
           <select class="in chtg" data-tg="${esc(x.id)}" title="Bài máy này làm xong / bấm Gửi Telegram thì bot gửi riêng cho người này"><option value="">📩 Không gửi Telegram</option>${(r.nguoi || []).map(n => `<option value="${esc(n.id)}"${String(x.tg) === String(n.id) ? ' selected' : ''}>📩 ${esc(n.ten)}</option>`).join('')}</select>
           <button class="btn sm ghost" data-bo="${esc(x.id)}">Bỏ</button></div>`).join('')}
           <p class="pnote">📩 = bài máy đó làm thì bot gửi riêng cho ai (người đó bấm Start bot 1 lần mới hiện trong danh sách).</p></div>` : '';
@@ -2189,10 +2189,39 @@ function chungDlg(){
     on('chMa', () => gui({ma_moi: true})); on('chThu', () => gui({bat: true}));
     m.querySelectorAll('[data-tg]').forEach(b => b.onchange = () => gui({tg: {may: b.dataset.tg, nguoi: b.value}}));
     m.querySelectorAll('[data-bo]').forEach(b => b.onclick = () => { if (confirm('Bỏ máy này khỏi dùng chung? Máy đó phải nhập mã mới mới vào lại được.')) gui({bo: b.dataset.bo}); });
+    m.querySelectorAll('[data-xemmay]').forEach(b => b.onclick = () => { dong(); mayXem(b.dataset.xemmay); });
   };
   const gui = async d => { try { ve(await api('/api/chung', d)); if ('bat' in d && !d.bat) toast('Đã tắt dùng chung'); } catch(e) { $('#chErr').textContent = e.message; } };
   m.querySelectorAll('#chSeg [data-b]').forEach(b => b.onclick = () => gui({bat: b.dataset.b === '1'}));
   const tai = async () => { try { ve(await api('/api/chung')); } catch(e) {} if ($('#chBox')) chungDlg.t = setTimeout(tai, 3000); };
+  tai();
+}
+// fen 13/11 15h03 "bấm vô chỗ máy Quân thấy Quân đang làm gì luôn": hộp xem 1 máy dùng chung (tự làm mới 4 giây)
+function mayXem(id){
+  if ($('#myBox')) return;
+  const m = document.createElement('div'); m.className = 'modal on';
+  m.innerHTML = `<div class="mbox rmbox" id="myBox"><h3 id="myTen">👤 Máy khác</h3><div id="mySt" class="pnote">Đang tải…</div><p class="err" id="myErr"></p>
+    <div class="acts"><button class="btn sm ghost" id="myLoc" title="Danh sách bài bên trái chỉ hiện bài máy này làm">Lọc bài bên trái theo máy này</button><button class="btn sm ghost" id="myLai">‹ Máy khác</button><button class="btn" id="myDong">Đóng</button></div></div>`;
+  document.body.appendChild(m);
+  const dong = () => { clearTimeout(mayXem.t); m.remove(); };
+  $('#myDong').onclick = dong; m.onclick = e => { if (e.target === m) dong(); };
+  $('#myLai').onclick = () => { dong(); chungDlg(); };
+  $('#myLoc').onclick = () => { S.sbMay = id; dong(); renderJobs(); toast('Danh sách bài: chỉ bài của máy này (bấm "Tất cả" ở trên danh sách để bỏ lọc)'); };
+  const ngay = t => { const d = new Date(t * 1000); return String(d.getDate()).padStart(2, '0') + '/' + String(d.getMonth() + 1).padStart(2, '0'); };
+  const ve = r => {
+    if (!$('#myBox')) return;
+    const mo = r.lan && nowS() - r.lan < 120;
+    setH($('#myTen'), `👤 ${esc(r.ten)} <small class="${mo ? 'myon' : 'pnote'}" style="font-size:12.5px;font-weight:500">${mo ? '● đang mở app' : r.lan ? 'dùng gần nhất ' + hm(r.lan) + (ngay(r.lan) !== ngay(nowS()) ? ' ' + ngay(r.lan) : '') : 'chưa dùng từ lúc mở app máy shop'}</small>`);
+    const bai = r.bai || [], dang = bai.filter(j => j.status === 'dang-chay' || j.status === 'hen'), cu = bai.filter(j => !dang.includes(j)).slice(0, 8);
+    const dongBai = j => `<button class="myrow" data-bai="${esc(j.id)}"><span>${esc(j.tieu_de || 'Bài')}</span><small>${esc((KENH[j.kenh] || {}).ten || j.kenh || '')} · ${esc(jobLine(j))}</small></button>`;
+    const nh = (r.nhap || []).map(x => `<div class="mynh"><b>${esc(x.chude || x.ten || 'Bản nháp')}</b> <small class="pnote">${esc((KENH[x.kenh] || {}).ten || '')}${x.t ? ' · sửa lúc ' + hm(x.t / 1000) : ''}${x.cur ? ' · đang mở' : ''}${x.dang_viet ? ' · ✍️ Claude đang viết brief' : ''}</small>${x.brief ? `<pre>${esc(x.brief)}</pre>` : ''}</div>`).join('');
+    setH($('#mySt'), `<div class="mysec"><b>Đang làm</b>${dang.length ? dang.map(dongBai).join('') : '<p class="pnote">Không có bài nào đang dựng.</p>'}</div>
+      <div class="mysec"><b>Đang viết (bản nháp)</b>${nh || '<p class="pnote">Không có bản nháp nào.</p>'}</div>
+      <div class="mysec"><b>Bài gần đây</b>${cu.length ? cu.map(dongBai).join('') : '<p class="pnote">Máy này chưa làm bài nào.</p>'}</div>`);
+    m.querySelectorAll('[data-bai]').forEach(b => b.onclick = () => { dong(); openJob(b.dataset.bai); });
+    $('#myErr').textContent = '';
+  };
+  const tai = async () => { try { ve(await api('/api/chung/may?id=' + encodeURIComponent(id))); } catch(e) { if ($('#myErr')) $('#myErr').textContent = e.message; } if ($('#myBox')) mayXem.t = setTimeout(tai, 4000); };
   tai();
 }
 /* ---------- bắt đầu ---------- */
