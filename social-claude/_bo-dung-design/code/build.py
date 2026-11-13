@@ -37,7 +37,7 @@ sl = open(os.path.join(K, slides), encoding='utf-8').read()
 # không đóng file fen đang mở: chỉ đóng file do script tạo
 sl = sl.replace('for (var di = app.documents.length - 1; di >= 0; di--) app.documents[di].close(SaveOptions.DONOTSAVECHANGES);', 'var KEEP = app.documents.length;')
 sl = sl.replace('while (app.documents.length) app.activeDocument.close(SaveOptions.DONOTSAVECHANGES);', 'while (app.documents.length > KEEP) app.activeDocument.close(SaveOptions.DONOTSAVECHANGES);')
-theme = (open(theme_f, encoding='utf-8').read() + '\n') if theme_f else ''
+theme = ('var THEME_DIR = "%s";\n' % os.path.dirname(os.path.abspath(theme_f)).replace("\\", "/") + open(theme_f, encoding='utf-8').read() + '\n') if theme_f else ''   # THEME_DIR: anh rieng cua theme (fen 13/11)
 body = pre + '\n'.join(helpers) + '\n' + theme + sl
 def esc(s):
     out = []

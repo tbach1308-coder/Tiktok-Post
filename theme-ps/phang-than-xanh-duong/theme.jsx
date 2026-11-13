@@ -194,6 +194,93 @@ function themeNen() {
     if (k) { themeCham(W - 214, 64, 5, 4, 36, 5, THEME.nen2, "Chấm góc"); themeTron(-120, H + 40, 380, THEME.nen2, 100, "Trang trí - nửa tròn"); }
     else { themeCham(70, H - 186, 5, 4, 36, 5, THEME.nen2, "Chấm góc"); themeTron(W + 120, -40, 380, THEME.nen2, 100, "Trang trí - nửa tròn"); }
     rect(0, 0, 14, H, 0, THEME.nhan, "Trang trí - sọc nhấn");
+  } else if (tt == "tiem") themeTiemNen();
+}
+
+// ---------- theme "Tiem Poly ve tay" (fen 13/11 18h01 gui 5 anh tiem Poly Store ve tay + "tao theme pts") ----------
+// hat sap mau / giay: them nhieu (Add Noise) don sac cho lop (lop hinh -> anh thuong truoc). Loi thi giu mau dac.
+function themeHat(L, amt) {
+  try {
+    L.rasterize(RasterizeType.ENTIRELAYER);
+    app.activeDocument.activeLayer = L;
+    var d = new ActionDescriptor();
+    d.putEnumerated(charIDToTypeID("Dstr"), charIDToTypeID("Dstr"), charIDToTypeID("Gsn "));
+    d.putUnitDouble(charIDToTypeID("Nose"), charIDToTypeID("#Prc"), amt || THEME.hat || 6);
+    d.putBoolean(charIDToTypeID("Mnch"), true);
+    d.putInteger(charIDToTypeID("FlRs"), Math.floor(Math.random() * 999999));
+    executeAction(charIDToTypeID("AdNs"), d, DialogModes.NO);
+  } catch (e) { THEME_LOG += "Theme: hat giay loi (" + e.message + "), giu mau dac\n"; }
+  return L;
+}
+// vung mep duoi luon (nhu mai hien cua tiem trong anh): 1 lop anh thuong = hinh chu nhat y0..yb-r + hang nua tron o mep duoi
+function themeVungLuon(y0, yb, r, mau, name) {
+  var doc = app.activeDocument, L = doc.artLayers.add();
+  L.name = name;
+  doc.selection.select([[0, y0], [W, y0], [W, yb - r], [0, yb - r]], SelectionType.REPLACE, 0, true);
+  for (var x = 0; x - r < W; x += 2 * r) {
+    var pts = [];
+    for (var i = 0; i < 28; i++) { var g = i / 28 * 2 * Math.PI; pts.push([x + r + r * Math.cos(g), yb - r + r * Math.sin(g)]); }
+    doc.selection.select(pts, SelectionType.EXTEND, 0, true);
+  }
+  doc.selection.fill(col(mau)); doc.selection.deselect();
+  return L;
+}
+// mai hien xanh mep luon tren cung trang
+function themeMaiHien(h, r) {
+  var L = themeVungLuon(0, h + r, r, THEME.mai, "Mái hiên");
+  themeHat(L, (THEME.hat || 6) - 1);
+  return L;
+}
+// trang trong: tuong giay be hat sap mau + mai hien tren cung + bang xanh nhu bien hieu (vien nau), chu trang / kem nam tren bang
+function themeTiemNen() {
+  themeHat(app.activeDocument.activeLayer);                 // lop nen giay be vua ve trong themeNen
+  var B = rect(36, 62, W - 36, H - 36, 30, THEME.bang, "Bảng xanh");
+  themeHat(B);
+  THEME_FX0(B, { stroke: { hex: THEME.vien_nau || "4A3631", size: 3, op: 100, inside: true } });
+  themeMaiHien(30, 27);
+}
+// chu tron 2 lop vien (nhu chu "Macbook" trong anh): lop sau vien nau day, lop truoc vien kem
+function themeChuBong(str, font, size, mau, cx, y, maxW, name) {
+  var o = { align: Justification.CENTER, maxW: maxW, name: name + " - viền nâu" };
+  var S = text(str, font, size, mau, cx, y, o);
+  themeGiua(S, cx);
+  THEME_FX0(S, { stroke: { hex: THEME.vien_nau || "4A3631", size: Math.round(LAST * 0.2), op: 100 } });
+  var T = text(str, font, LAST, mau, cx, y, { align: Justification.CENTER, name: name });
+  THEME_FX0(T, { stroke: { hex: THEME.kem || "F3EBDC", size: Math.round(LAST * 0.1), op: 100 } });
+  var q = bb(S), q2 = bb(T);
+  T.translate((q[0] + q[2]) / 2 - (q2[0] + q2[2]) / 2, (q[1] + q[3]) / 2 - (q2[1] + q2[3]) / 2);
+  return [S, T];
+}
+// bia: anh tiem dung loai may o ~2/3 tren (mep duoi luon nhu mai hien), duoi la giay be: tieu de 2 dong chu tron + dong nho.
+// o = { loai: "ipad" | "iphone" | "laptop" | "macbook" | "chung", t1: "dòng 1", t2: "dòng 2", nho: "dòng nhỏ" }. Goi ngay sau newDoc.
+function biaTiem(o) {
+  o = o || {};
+  var ds = THEME.tiem || {}, k = ds[o.loai] ? o.loai : "chung", a = ds[k], dir = typeof THEME_DIR != "undefined" ? THEME_DIR : "";
+  var BOT = o.bot || 1080, r = 26, s = W / 941, cx = W / 2, TF = THEME.font_bia ? pick(THEME.font_bia.concat([F.T])) : F.T;
+  var P = rect(0, 0, W, H, 0, THEME.nen, "Giấy be");
+  themeHat(P);
+  if (a && dir) {
+    // khung anh: mep duoi luon nhu mai hien (1 lop), anh tiem cat theo khung (clipping)
+    var K = themeVungLuon(0, BOT, r, THEME.vien_nau || "4A3631", "Khung ảnh tiệm");
+    try {
+      var L = placeSO(dir + "/anh/" + a[0], "Ảnh tiệm - " + k), q = bb(L);
+      var pct = W / (q[2] - q[0]) * 100;
+      L.resize(pct, pct, AnchorPosition.TOPLEFT); q = bb(L);
+      L.translate(-q[0], -a[1] * (q[2] - q[0]) / 941 - q[1]);
+      L.grouped = true;
+      THEME_FX0(K, { stroke: { hex: THEME.vien_nau || "4A3631", size: 4, op: 100 } });
+    } catch (e) { THEME_LOG += "Theme: khong dat duoc anh tiem " + a[0] + " (" + e.message + ")\n"; }
+  } else THEME_LOG += "Theme: thieu anh tiem (THEME_DIR / tiem." + k + ")\n";
+  // tieu de: chu tron xanh la vien kem + nau, dong nho nau; ca cum can giua trong dai duoi anh
+  var ls = [], y = BOT + 30, mau = THEME.bia_mau || THEME.bang;
+  if (o.t1) { var A1 = themeChuBong(o.t1, TF, 88, mau, cx, y + 88, 960, "Tiêu đề - dòng 1"); ls = ls.concat(A1); y = bb(A1[0])[3] + 6; }
+  if (o.t2) { var A2 = themeChuBong(o.t2, TF, 88, mau, cx, y + 88, 960, "Tiêu đề - dòng 2"); ls = ls.concat(A2); y = bb(A2[0])[3] + 6; }
+  if (o.nho) { var N = text(o.nho, F.B, 38, THEME.vien_nau || "4A3631", cx, y + 52, { align: Justification.CENTER, maxW: 900, name: "Dòng nhỏ" }); ls.push(N); }
+  if (ls.length) {
+    var t = 1e9, b = -1e9;
+    for (var i = 0; i < ls.length; i++) { var qq = bb(ls[i]); t = Math.min(t, qq[1]); b = Math.max(b, qq[3]); }
+    var dy = (BOT + 12 + H - 30) / 2 - (t + b) / 2;
+    for (var j = 0; j < ls.length; j++) ls[j].translate(0, dy);
   }
 }
 var THEME_NEWDOC0 = newDoc;

@@ -1,0 +1,96 @@
+{
+  "id": "tiem-ve-tay",
+  "ten": "Tiệm Poly · Vẽ tay",
+  "kenh": "",
+  "mo_ta": "Theo 5 ảnh tiệm Poly Store vẽ tay fen gửi 13/11: bìa = ảnh tiệm đúng loại máy (iPad / iPhone / Laptop / MacBook / chung) ở 2/3 trên, tiêu đề chữ tròn xanh lá viền kem + nâu trên nền giấy be. Trang trong: tường giấy be hạt sáp màu, mái hiên xanh mép lượn, bảng xanh lá như biển hiệu viền nâu, chữ kem / trắng. Không bóng đổ.",
+  "nen": "D8BBAD",
+  "nen2": "D8BBAD",
+  "bang": "2F5B3B",
+  "mai": "5A8463",
+  "vien_nau": "4A3631",
+  "the": "3D6B48",
+  "nhan": "B9655B",
+  "nhan_dam": "9E5248",
+  "nhan_nhat": "A8D0E6",
+  "vang": "F2D27A",
+  "ghi_nen": "F3EBDC",
+  "ghi_chu": "24452D",
+  "do": "E2898A",
+  "kem": "F3EBDC",
+  "hat": 7,
+  "font_tieu_de": [
+    "UTM-Cookies",
+    "UTMCookies",
+    "UTM Cookies"
+  ],
+  "font_than": [
+    "UTMAvoBold",
+    "UTM-Avo-Bold",
+    "UTMNeoSansIntelBold"
+  ],
+  "font_bia": [
+    "UTM-Cookies",
+    "UTMCookies",
+    "UTM Cookies"
+  ],
+  "co_tieu_de": 1,
+  "giu_vien": false,
+  "trang_tri": "tiem",
+  "bia_mau": "2F5B3B",
+  "tiem": {
+    "chung": [
+      "chung.jpg",
+      520
+    ],
+    "ipad": [
+      "ipad.jpg",
+      350
+    ],
+    "iphone": [
+      "iphone.jpg",
+      350
+    ],
+    "laptop": [
+      "laptop.jpg",
+      355
+    ],
+    "macbook": [
+      "macbook.jpg",
+      355
+    ]
+  },
+  "xem": {
+    "bia_tiem": {
+      "loai": "ipad",
+      "t1": "iPad Gen 11",
+      "t2": "Có đáng mua?",
+      "nho": "Rẻ, nhẹ, đủ cho con học online"
+    },
+    "pill": "MẸO 1",
+    "tieu": "BẬT GIỜ NGỦ CHO CON",
+    "phu": "Tới giờ là iPad tự khoá app",
+    "ten": "iPad Gen 11",
+    "cau": "Chip A16 · 128GB",
+    "gia": "7.290.000đ",
+    "y": [
+      [
+        "check",
+        "Cài đặt > Thời gian sử dụng"
+      ],
+      [
+        "check",
+        "Chọn Giờ nghỉ, đặt 21:00"
+      ],
+      [
+        "x",
+        "Đừng quên đặt mật mã riêng"
+      ]
+    ],
+    "ghi": [
+      "Cần chọn iPad cho con?",
+      "Ghé POLY thử máy tận tay"
+    ],
+    "moc": "Xem mẹo 2",
+    "hoi": "Con bạn đang\rhọc lớp mấy?"
+  }
+}

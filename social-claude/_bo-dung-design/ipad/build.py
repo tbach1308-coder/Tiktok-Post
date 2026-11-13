@@ -35,7 +35,8 @@ theme = ""
 if a.theme:
     if not os.path.isfile(a.theme):
         sys.exit("LOI: khong thay file theme: " + a.theme)
-    theme = io.open(a.theme, encoding="utf-8").read() + "\nRUN += THEME_LOG;\n"
+    # THEME_DIR: thu muc theme (anh rieng cua theme, vd anh tiem ve tay: <theme>/anh/*.jpg) - fen 13/11
+    theme = 'var THEME_DIR = "%s";\n' % os.path.dirname(os.path.abspath(a.theme)).replace("\\", "/") + io.open(a.theme, encoding="utf-8").read() + "\nRUN += THEME_LOG;\n"
 jsx = '#target photoshop\nvar BAI = "%s";\nvar ONLY = %s;\n' % (bai, only) + lib + "\n" + theme + "\n" + part
 
 
