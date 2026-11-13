@@ -390,6 +390,8 @@ select.in.msel option{background:var(--panel);color:var(--tx)}
 .rmbox .err:empty{display:none}
 .rmbox .acts{display:flex;justify-content:flex-end}
 .rmma{border:1px solid var(--line2);border-radius:10px;padding:12px;background:var(--panel2);display:grid;gap:8px}
+.rmq{border:1px solid var(--line2);border-radius:10px;padding:10px 12px;background:var(--panel2);display:grid;gap:6px;margin-top:8px}
+.rmq label{display:flex;gap:8px;align-items:center;cursor:pointer}
 .rmcode{font-size:30px;font-weight:800;letter-spacing:6px;color:var(--gl);font-variant-numeric:tabular-nums}
 .rmma .btn{text-decoration:none;display:inline-flex;align-items:center}
 .rmhelp{margin:0;padding-left:18px;font-size:12.5px;color:var(--mut);display:grid;gap:3px}
@@ -948,7 +950,7 @@ function remote(){
     m.querySelectorAll('#rmSeg [data-b]').forEach(b => b.classList.toggle('on', (b.dataset.b === '1') === !!r.bat));
     const nhomH = () => r.ma_nhom ? `<div class="rmma"><div><b>Dùng trong nhóm</b> (fen + người làm cùng + bot). Bấm nút dưới, chọn nhóm Telegram, bấm Thêm (mã dùng trong 15 phút):</div><div class="rmcode">${esc(r.ma)}</div>
         <div class="row1"><a class="btn sm pri" href="https://t.me/${encodeURIComponent(r.bot)}?startgroup=${encodeURIComponent(r.ma)}" target="_blank" rel="noopener">Thêm bot vào nhóm</a><button class="btn sm" id="rmNhomHuy">Huỷ</button></div>
-        <p class="pnote">Xong thì cho bot làm <b>Quản trị viên</b> nhóm (bấm tên nhóm → Quản trị viên → Thêm) để bot đọc được tin. Trong nhóm ai cũng ra lệnh được; bật / tắt Remote, ghi quy tắc chỉ người nối. Tin thường bot bỏ qua, gọi bot bằng <b>bài: chủ đề</b> hoặc <b>/brief chủ đề</b>.</p></div>` : '';
+        <p class="pnote">Xong thì cho bot làm <b>Quản trị viên</b> nhóm (bấm tên nhóm → Quản trị viên → Thêm) để bot đọc được tin. Trong nhóm ai cũng ra lệnh được; bật / tắt Remote, ghi quy tắc chỉ người nối (và người được cho 🔑 quyền). Tin thường bot bỏ qua, gọi bot bằng <b>bài: chủ đề</b> hoặc <b>/brief chủ đề</b>.</p></div>` : '';
     let h;
     if (!r.co_bot) h = `<p class="stc">Chưa cài bot Telegram. <a href="#" id="rmCai">Cài Telegram</a> trước (bước 1, 2 là đủ), rồi bật Remote.</p>`;
     else if (!r.bat) h = `<p class="stc">Đang tắt.${r.noi ? ' Đã nối với Telegram của <b>' + esc(r.ten) + '</b>: lúc tắt bot không làm việc nào, chỉ nghe lệnh <b>/bat</b> để bật lại từ xa. Muốn bot không nghe gì: <a href="#" id="rmBo">Bỏ nối</a>.' : ' Bật lên để lấy mã nối.'}</p>`;
@@ -958,7 +960,11 @@ function remote(){
         <p class="pnote">Bấm "Mở bot" rồi bấm Start (Bắt đầu) là nối xong. Chỉ tài khoản Telegram nhắn đúng mã này mới ra lệnh được. Muốn thêm người: <a href="#" id="rmNhom">dùng trong nhóm</a>.</p></div>` : '<p class="stc">Đang tạo mã nối…</p>';
     else h = `<p class="okc">● Đang bật, nhận lệnh ${r.nhom ? 'trong nhóm <b>' + esc(r.ten) + '</b> (mọi thành viên)' : 'từ Telegram của <b>' + esc(r.ten) + '</b>'}${r.lan_cuoi ? ' · tin gần nhất ' + hm(r.lan_cuoi) : ''}${r.chay ? '' : ' (đang khởi động…)'} · <a href="#" id="rmBo">Bỏ nối</a></p>`
       + `<div class="row1"><button class="btn sm" id="rmNhom">👥 ${r.nhom ? 'Nối nhóm khác' : 'Dùng trong nhóm (thêm người)'}</button></div>`;
+    const ng = r.noi && r.nhom ? (r.nguoi || []).filter(x => !x.chu) : [];      // fen 13/11: cho người trong nhóm quyền như fen
+    if (ng.length) h += `<div class="rmq"><div><b>🔑 Quyền như fen</b> <span class="pnote">bật / tắt Remote, ghi quy tắc trong nhóm</span></div>`
+      + ng.map(x => `<label><input type="checkbox" data-q="${esc(x.id)}"${x.quyen ? ' checked' : ''}> ${esc(x.ten)}</label>`).join('') + `</div>`;
     setH($('#rmSt'), h);
+    $('#rmSt').querySelectorAll('[data-q]').forEach(c => c.onchange = () => gui({quyen: {id: c.dataset.q, bat: c.checked}}));
     $('#rmErr').textContent = r.loi || '';
     const cai = $('#rmCai'); if (cai) cai.onclick = e => { e.preventDefault(); dong(); tgDialog(); };
     const mm = $('#rmMa'); if (mm) mm.onclick = () => gui({ma_moi: true});

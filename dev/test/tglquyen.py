@@ -1,0 +1,37 @@
+# Cho người trong nhóm quyền như fen (fen 13/11 16h11 "cho phần điều khiển giống mình cho quân")
+import json, time, sys, urllib.request, urllib.error
+sys.argv=[sys.argv[0]]
+exec(open('/home/claude/bug3/tgltest.py').read().split("n=len(logs())\nr=req(APP")[0])
+G=-1003000000888
+def cfg(): return json.load(open('/home/claude/bug3/tgl/config.json'))
+def gm(text, uid, name):
+    return push({"message": {"message_id": int(time.time()*1000)%10**7, "date": int(time.time()), "chat": {"id": G, "type": "supergroup", "title": "POLY Dựng Bài"}, "from": {"id": uid, "first_name": name, "is_bot": False}, "text": text}})
+def pm(text, uid, name): return push({"message": {"message_id": int(time.time()*1000)%10**7, "date": int(time.time()), "chat": {"id": uid, "type": "private", "first_name": name}, "from": {"id": uid, "first_name": name, "is_bot": False}, "text": text}})
+def gcb(data, uid): return push({"callback_query": {"id": "cb%d" % time.time_ns(), "from": {"id": uid, "first_name": "Quân"}, "message": {"message_id": 5, "chat": {"id": G, "type": "supergroup"}}, "data": data}})
+def loi(d): return str(req(APP+'/api/tg-lenh', d).get('err') or '')
+open('/home/claude/bug3/tglfake.admin','w').write('administrator')
+req(APP+'/api/tg-lenh', {"bat": True}); ma=req(APP+'/api/tg-lenh', {"ma_nhom": True})['ma']
+n=len(logs()); gm('/start@poly_dung_bai_bot '+ma, 111, 'Hoài'); x=wait_for(n, lambda x: 'Đã nối' in txt(x)); check('nối nhóm', x is not None)
+n=len(logs()); pm('/start', 222, 'Quân'); wait_for(n, lambda x: 'Đã nối' in txt(x) and x['vals'].get('chat_id')=='222')
+r=req(APP+'/api/tg-lenh'); q=[x for x in r.get('nguoi',[]) if x['id']=='222']
+check('trạng thái có danh sách người, Quân chưa có quyền, Hoài là chủ', q and not q[0]['quyen'] and any(x['chu'] and x['id']=='111' for x in r['nguoi']), r.get('nguoi'))
+n=len(logs()); gm('/tat', 222, 'Quân'); x=wait_for(n, lambda x: 'Chỉ' in txt(x)); check('chưa có quyền: Quân /tat bị từ chối', x is not None and req(APP+'/api/tg-lenh')['bat'])
+check('cho quyền người chưa bấm Start: báo lỗi', 'chưa bấm Start' in loi({"quyen": {"id": "999", "bat": True}}))
+check('cho quyền chính người nối: báo lỗi', 'đủ quyền' in loi({"quyen": {"id": "111", "bat": True}}))
+n=len(logs()); r=req(APP+'/api/tg-lenh', {"quyen": {"id": "222", "bat": True}})
+check('cho Quân quyền: lưu + trạng thái', '222' in (cfg().get('tg_lenh_quyen') or []) and any(x['id']=='222' and x['quyen'] for x in r['nguoi']))
+x=wait_for(n, lambda x: '🔑' in txt(x)); check('báo trong nhóm Quân được quyền', x is not None and x['vals'].get('chat_id')==str(G), x and txt(x))
+n=len(logs()); gm('/tat', 222, 'Quân'); time.sleep(2.5); check('Quân /tat: tắt được', not req(APP+'/api/tg-lenh')['bat'])
+n=len(logs()); gm('/bat', 222, 'Quân'); time.sleep(2.5); check('Quân /bat: bật được', req(APP+'/api/tg-lenh')['bat'])
+n=len(logs()); gcb('bg:tat', 222); time.sleep(2.5); check('Quân bấm Tắt trên bảng: được', not req(APP+'/api/tg-lenh')['bat'])
+req(APP+'/api/tg-lenh', {"bat": True}); time.sleep(1)
+n=len(logs()); gm('quy tắc: slide cuối ghi số hotline', 222, 'Quân'); time.sleep(4)
+check('Quân ghi quy tắc: không bị từ chối', not any('chỉ' in txt(y).lower() and 'quy tắc' in txt(y).lower() for y in sent(n)), [txt(y)[:80] for y in sent(n)])
+n=len(logs()); gm('/tat', 444, 'Khoa'); x=wait_for(n, lambda x: 'Chỉ' in txt(x)); check('người khác vẫn bị từ chối, câu nhắc ghi đủ tên có quyền', x is not None and 'Quân' in txt(x) and 'Hoài' in txt(x), x and txt(x))
+n=len(logs()); r=req(APP+'/api/tg-lenh', {"quyen": {"id": "222", "bat": False}})
+check('bỏ quyền Quân', '222' not in (cfg().get('tg_lenh_quyen') or []) and not any(x['id']=='222' and x['quyen'] for x in r['nguoi']))
+n=len(logs()); gm('/tat', 222, 'Quân'); x=wait_for(n, lambda x: 'Chỉ' in txt(x)); check('bỏ quyền xong: Quân /tat bị từ chối lại', x is not None and req(APP+'/api/tg-lenh')['bat'])
+req(APP+'/api/tg-lenh', {"quyen": {"id": "222", "bat": True}})
+r=req(APP+'/api/tg-lenh', {"bo_noi": True}); check('bỏ nối: xoá luôn danh sách quyền', not cfg().get('tg_lenh_quyen'))
+import os; os.remove('/home/claude/bug3/tglfake.admin')
+print('KẾT QUẢ: %d đạt, %d lỗi' % tuple(ok))

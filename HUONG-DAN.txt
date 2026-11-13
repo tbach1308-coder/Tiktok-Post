@@ -213,6 +213,8 @@ LÀM 1 BÀI
   > bấm "Thêm bot vào nhóm", chọn nhóm, bấm Thêm → cho bot làm Quản trị viên nhóm (để bot đọc được tin thường).
   Trong nhóm ai cũng ra lệnh: "bài: <chủ đề>" hoặc /brief <chủ đề>, reply tin brief để sửa, ▶️ Chạy, /cho, /tinhhinh;
   chuyện thường bot không đụng. Bật / tắt Remote, ghi quy tắc: chỉ người nối (fen). Nối nhóm thì chat riêng thôi nhận lệnh.
+  Cho người khác quyền như fen (13/11): 📱 Remote > 🔑 Quyền như fen > tick tên người đó (người đó phải bấm Start bot trước).
+  Bỏ tick là hết quyền. Chỉ máy shop đổi được.
   BÀI GỬI RIÊNG (12/11): trong nhóm chỉ ra lệnh; bài ai bấm ▶️ Chạy thì bài xong / lỗi / 📷 xem slide / Gửi Telegram về chat
   riêng của người đó với bot. Mỗi người bấm vào @bot → Start (Bắt đầu) 1 lần mới nhận được (chưa Start thì bot nhắc trong nhóm).
   Máy dùng chung: 💻 Máy khác → ô 📩 cạnh từng máy chọn bài máy đó gửi Telegram cho ai. Bài làm trên máy shop: về nhóm nhận slide như cũ.
