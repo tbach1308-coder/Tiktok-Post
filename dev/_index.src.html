@@ -474,6 +474,7 @@ select.in.msel option{background:var(--panel);color:var(--tx)}
 .chikhach{display:none}body.khach .chikhach{display:inline}body.khach .chishop{display:none}
 body.khach #bChung,body.khach #bOpen,body.khach #bDang,body.khach #bCoSan,body.khach .thdb,body.khach #thKcd{display:none!important}
 .thkch{margin:22px 0 2px;font-size:16px}.thkch span{font-size:12.5px;color:var(--mut);font-weight:500}
+.thg>.pnote{grid-column:1/-1;margin:0}.thpage #thG>.pnote{font-size:12.5px;color:var(--mut)}
 .thkcs{margin:16px 0 0;font-size:14px;font-weight:700}.thkcs span{font-size:12.5px;color:var(--mut);font-weight:500}#thKcG .thg{margin-top:8px}
 #thKcG:empty{display:none}
 .thc .kctg{justify-self:start;font:inherit;font-size:11.5px;border:1px solid var(--line2);border-radius:99px;background:none;color:var(--mut);padding:2px 9px;cursor:pointer}
@@ -2304,7 +2305,7 @@ async function khoTheme(){
         <div class="thinfo" hidden></div></div>`; };
     setH($('#thG'), dsRieng.length ? dsRieng.map(t => the(t)).join('')
       : `<p class="pnote">${KHACH ? 'Máy này chưa có theme riêng. Dán link 1 thiết kế Canva ở trên, hoặc bấm ⧉ Nhân bản 1 theme kho chung bên dưới để có bản riêng.'
-        : dsChung.length ? 'Theme nào cũng đã ở ☁️ Kho chung bên dưới. Theme mới lấy từ Canva hiện ở đây, bấm ☆ để đưa vào kho chung.' : 'Kho trống. Trên Canva bỏ thiết kế vào thư mục POLY Theme rồi bấm Lấy từ Canva.'}</p>`);
+        : dsChung.length ? 'Theme mới lấy từ Canva hiện ở đây · bấm ☆ để đưa xuống Kho chung.' : 'Kho trống. Trên Canva bỏ thiết kế vào thư mục POLY Theme rồi bấm Lấy từ Canva.'}</p>`);
     const psChung = S.themePsDs || [], nChung = dsChung.length + psChung.length;
     setH($('#thKcN'), nChung ? '· ' + nChung + ' theme' + (psChung.length ? ' (' + psChung.length + ' Photoshop)' : '') : '');
     setH($('#thKcGhi'), nChung ? (KHACH ? 'Theme fen để chung: bấm ▶ Làm bài là dùng; muốn chỉnh thì ⧉ Nhân bản thành bản riêng của máy này.'

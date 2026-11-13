@@ -110,6 +110,7 @@ Không dùng lại:
 - [ ] Agent bắt lỗi app định kỳ theo checklist. Lần 18h04 bị dừng khi fen gửi tin chen ngang (Claude báo nhầm là đang chạy); chạy lại 19h20 trên bản chụp `snap-1920`.
 
 ## 7. Nhật ký
+- 13/11 11h28: fen gửi ảnh dòng ghi chú lưới trên bị dồn thành cột hẹp, "làm gọn chỗ này" → ghi chú trong lưới theme trải hết bề ngang (`.thg>.pnote{grid-column:1/-1}`), chữ ngắn 1 dòng nhỏ: "Theme mới lấy từ Canva hiện ở đây · bấm ☆ để đưa xuống Kho chung."
 - 13/11 11h21: fen gửi ảnh "hiển thị dư rồi nè" (7 theme Canva hiện 2 lần: lưới trên + Kho chung) → trên máy shop theme đã vào kho chung (★) chỉ hiện ở mục ☁️ Kho chung (thẻ vẫn đủ ✏️ Chỉnh / ⋯ / ★), lưới trên chỉ còn theme chưa vào kho chung (trống thì ghi "Theme nào cũng đã ở Kho chung…"). Máy khách không đổi.
 - 13/11 11h09: fen "kho nào nằm kho đó nha, không lẫn lộn, vẫn hiển thị thấy hết" (mục ☁️ Kho chung tab Canva trộn 7 Canva + 6 Photoshop) → fen chọn: Kho chung chia 2 nhóm "🎨 Canva · N" / "🖌 Photoshop · N", mỗi nhóm 1 lưới riêng, vẫn hiện đủ (`#thKcG` thành khung chứa 2 lưới `.thg`, tiêu đề `.thkcs`). Test themepsui: số kho chung không cố định 6.
 - 13/11 10h50: lấy kho theme từ Canva lần đầu chỉ ra 3/7 thiết kế (lượt haiku liệt kê thiếu) → app ẩn nhầm 4 theme "Carousel TikTok…"; lấy lại lần 2 đủ 7. fen chọn sửa: theme vắng trong danh sách chỉ ẩn khi 2 lượt lấy liền nhau đều không thấy (`vang` đếm lượt vắng, thấy lại thì xoá); lệnh lấy theme dặn lấy tất cả, không lọc theo tên. Fen chọn bật kho chung cả 7 theme Canva.
