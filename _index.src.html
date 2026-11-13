@@ -1088,7 +1088,8 @@ function unseen(j){ return j.status === 'xong' && j.ended && !S.seen[j.id]; }
 async function loadJobs(){
   try {
     const j = await api('/api/jobs'); S.fail = 0; $('#offline')?.remove();
-    if (j.ui) { if (!S.ui) S.ui = j.ui; else if (j.ui !== S.ui) { if (canReload()) { taiLaiUi(); return; } uiMoiBao(); } }
+    // fen 13/11 15h30 "cho máy con tự hiện thông báo bấm update khi có bản mới": máy con không tự tải lại, luôn hiện nút Cập nhật
+    if (j.ui) { if (!S.ui) S.ui = j.ui; else if (j.ui !== S.ui) { if (!KHACH && canReload()) { taiLaiUi(); return; } uiMoiBao(); } }
     rmChip(j.remote); chungChip(j.chung);
     if (j.han_muc && S.health && (!!S.health.han_muc?.het !== !!j.han_muc.het || (S.health.han_muc || {}).gio !== j.han_muc.gio)) { S.health.han_muc = j.han_muc; health(); }
     if (j.dung && S.health && S.health.dung && (j.dung.pt >= 80) !== !!S.health.dung.canh_bao) health();
@@ -1103,7 +1104,8 @@ function taiLaiUi(){ location.hash = S.view === 'theme' ? 'theme' : S.jobId ? 'b
 function uiMoiBao(){
   if ($('#uiMoi')) return;
   const d = document.createElement('div'); d.id = 'uiMoi'; d.className = 'uimoi';
-  d.innerHTML = '🔄 App vừa có bản mới. <button class="btn sm pri" id="uiMoiTai">Tải lại</button> <span class="stc">ảnh đang gắn chưa gửi sẽ mất, chữ nháp vẫn giữ</span>';
+  d.innerHTML = KHACH ? '🔄 Có bản mới của app. <button class="btn sm pri" id="uiMoiTai">Cập nhật</button> <span class="stc">bài đang dựng vẫn chạy, chữ nháp vẫn giữ; ảnh vừa gắn chưa gửi sẽ mất</span>'
+    : '🔄 App vừa có bản mới. <button class="btn sm pri" id="uiMoiTai">Tải lại</button> <span class="stc">ảnh đang gắn chưa gửi sẽ mất, chữ nháp vẫn giữ</span>';
   document.body.appendChild(d); $('#uiMoiTai').onclick = taiLaiUi;
 }
 function canReload(){
