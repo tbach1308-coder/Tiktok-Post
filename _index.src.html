@@ -1360,9 +1360,7 @@ function bindGoiY(){
 const MODEL_TEN = {'': 'Theo cài đặt', opus: 'Opus · kỹ, chậm', sonnet: 'Sonnet · nhanh', haiku: 'Haiku · nhanh nhất, việc nhẹ'};
 const MODEL_NGAN = {opus: 'Opus', sonnet: 'Sonnet', haiku: 'Haiku', 'mặc định': 'mặc định'};
 // fen 13/11 15h22 "máy con sẽ ưu tiên chọn model làm nhanh": máy dùng chung để mặc định = Sonnet (server đổi Opus thành Sonnet), vẫn chọn Opus được
-// 15h34 fen "ở máy con chạy bằng sonnet là dc": máy con chỉ Sonnet, ô Model khoá
-const chonModel = (id, ds, v, dauTen) => KHACH ? `<select class="in msel" id="${id}" disabled title="Máy dùng chung chạy Sonnet (nhanh)"><option value="">Sonnet · nhanh</option></select>`
-  : `<select class="in msel" id="${id}">${ds.map(m => `<option value="${m}" ${m === (v || '') ? 'selected' : ''}>${m ? MODEL_TEN[m] : (dauTen || MODEL_TEN[''])}</option>`).join('')}</select>`;
+const chonModel = (id, ds, v, dauTen) => `<select class="in msel" id="${id}">${ds.map(m => `<option value="${m}" ${m === (v || '') ? 'selected' : ''}>${m ? MODEL_TEN[m] : (KHACH ? 'Mặc định · Sonnet nhanh' : (dauTen || MODEL_TEN['']))}</option>`).join('')}</select>`;
 const KHO_LINK = 'https://app.polystorevn.com/kho-may';   // fen 9/11 "link kho laptop"
 const CHUDE_PH = {laptop: 'VD: máy trạm cho dân kiến trúc tầm 20–30 triệu · hoặc: tìm chủ đề hot mẹo laptop', ipad: 'VD: iPad cho sinh viên y, vẽ và ghi chú · hoặc: tìm chủ đề hot mẹo iPad'};
 async function vietBrief(){
