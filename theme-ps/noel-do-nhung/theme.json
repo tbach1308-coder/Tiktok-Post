@@ -1,0 +1,141 @@
+{
+ "id": "noel-do-nhung",
+ "ten": "Noel · Đỏ nhung",
+ "kieu": "phẳng",
+ "kenh": "",
+ "them": [
+  "_noel.jsx"
+ ],
+ "mo_ta": "Noel nền đỏ rượu vang vân nhung, lá thông xanh đậm ở góc, lấp lánh vàng; tiêu đề bìa dòng 1 vàng sọc trắng, dòng 2 trắng sọc hồng, bóng đỏ thẫm; châu xanh / vàng / trắng, kẹo gậy, dây đèn, tuyết đáy; phiếu ưu đãi viền thư máy bay. Bìa biaNoel (như theme Noel · Poly Christmas). Trang trong: thẻ đỏ thẫm trong, nhãn xanh lá, chữ nhấn vàng.",
+ "nen": "5A0A15",
+ "nen2": "5A0A15",
+ "nen_kieu": "phang",
+ "trang_tri": "khong",
+ "the": "2E0409",
+ "the_kieu": "toi",
+ "the_op": 62,
+ "nhan": "1F6B45",
+ "nhan_dam": "16502F",
+ "nhan_nhat": "F5C542",
+ "vang": "F5C542",
+ "ghi_nen": "F4EBDD",
+ "ghi_chu": "5A0A15",
+ "do": "E23B32",
+ "inkbg": "5A0A15",
+ "pill": [
+  "1F6B45",
+  "FFFFFF"
+ ],
+ "dau_tick": [
+  "1F6B45",
+  "FFFFFF"
+ ],
+ "co_tieu_de": 0.92,
+ "giu_vien": false,
+ "chu_tieu_de": "FFFFFF",
+ "noel_nen": [
+  "nen-do-1.jpg",
+  "nen-do-2.jpg"
+ ],
+ "noel_t1": [
+  "F5C542",
+  "soc-trang.png"
+ ],
+ "noel_t2": [
+  "FFFFFF",
+  "soc-hong.png"
+ ],
+ "noel_soc_tieu": "soc-hong.png",
+ "noel_bong": "2E0409",
+ "noel_nhan": "F5C542",
+ "noel_uu": "F5C542",
+ "noel_chau": [
+  [
+   "chau-trang.png",
+   "chau-xanh.png"
+  ],
+  [
+   "chau-vang.png",
+   "chau-xanh.png"
+  ]
+ ],
+ "noel_chau_bia": [
+  "chau-xanh.png",
+  "chau-vang.png",
+  "chau-trang.png"
+ ],
+ "noel_xanh": "1F5A3A",
+ "noel_xanh_dam": "5A0A15",
+ "noel_chan": "125/16/26 Bùi Đình Túy, P. Bình Thạnh  ·  Hotline 0902.96.0804",
+ "bia_co": 150,
+ "bia_co_phu": 64,
+ "bia_x": 60,
+ "xem": {
+  "bia_noel": {
+   "t1": "MERRY",
+   "t2": "CHRISTMAS",
+   "nho": "IPAD *GIẢM SÂU*\rĐÓN GIÁNG SINH",
+   "uu_dai": "ƯU ĐÃI HỌC SINH · SINH VIÊN",
+   "phieu": [
+    {
+     "chu": "Mua iPad giảm",
+     "gia": "200K",
+     "tem": "HSSV",
+     "mau": "xanh"
+    },
+    {
+     "chu": "Mua laptop giảm",
+     "gia": "300K",
+     "tem": "HSSV",
+     "mau": "do"
+    }
+   ],
+   "anh": "apple-ipad-air-13-m3.png"
+  },
+  "pill": "QUÀ NOEL",
+  "tieu": "IPAD GIÁ ẤM ÁP",
+  "phu": "Ưu đãi học sinh, sinh viên tới 26/12",
+  "ten": "iPad Air 13 M3",
+  "cau": "Chip M3 · 128GB",
+  "gia": "19.990.000đ",
+  "y": [
+   [
+    "check",
+    "Giảm 200K khi mua iPad (HSSV)"
+   ],
+   [
+    "check",
+    "Giảm 300K khi mua laptop (HSSV)"
+   ],
+   [
+    "check",
+    "Mang thẻ HSSV tới shop là được"
+   ]
+  ],
+  "ghi": [
+   "125/16/26 Bùi Đình Túy, P. Bình Thạnh",
+   "Hotline 0902.96.0804"
+  ],
+  "moc": "Xem máy đang giảm",
+  "hoi": "Noel này bạn\rmuốn quà gì?",
+  "nen": []
+ },
+ "font_tieu_de": [
+  "UTM-Alberta-Heavy",
+  "UTM-Cooper-Black",
+  "UTM-Erie-Black"
+ ],
+ "font_than": [
+  "UTMAvoBold",
+  "UTMNeoSansIntelBold"
+ ],
+ "font_thuong": [
+  "UTM-Avo",
+  "UTMAvo"
+ ],
+ "font_script": [
+  "SVN-SegoeScript",
+  "SegoeScript",
+  "UTM-Silk-Script"
+ ]
+}

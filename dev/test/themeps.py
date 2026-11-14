@@ -29,8 +29,8 @@ def prompt():
 s, b, _ = req(APP, '/api/theme-ps')
 ds = b.get('ds', []) if s == 200 else []
 ids = [t['id'] for t in ds]
-check('GET /api/theme-ps: 13 theme kho chung', s == 200 and ids == ['anh-that-chu-nghieng', 'anh-that-chu-thich', 'anh-that-chu-vang', 'anh-that-day-toi', 'anh-that-nen-sang', 'glass-tim-hong', 'glass-xanh-ngoc', 'noel-poly-christmas', 'phang-than-xanh-duong', 'phang-xanh-dem', 'tiem-ve-tay', 'toi-gian-den', 'toi-xanh-bang'] and all(t['kc'] for t in ds), (s, b))
-check('kiểu theme: ảnh thật / glass / phẳng', [t['kieu'] for t in ds] == ['ảnh thật', 'ảnh thật', 'ảnh thật', 'ảnh thật', 'ảnh thật', 'glass', 'glass', 'phẳng', 'phẳng', 'phẳng', 'phẳng', 'phẳng', 'phẳng'], [t.get('kieu') for t in ds])
+check('GET /api/theme-ps: 18 theme kho chung', s == 200 and ids == ['anh-that-chu-nghieng', 'anh-that-chu-thich', 'anh-that-chu-vang', 'anh-that-day-toi', 'anh-that-nen-sang', 'bang-xanh-giay-xe', 'glass-tim-hong', 'glass-xanh-ngoc', 'noel-anh-that', 'noel-dem-xanh', 'noel-do-nhung', 'noel-poly-christmas', 'noel-trang-tuyet', 'phang-than-xanh-duong', 'phang-xanh-dem', 'tiem-ve-tay', 'toi-gian-den', 'toi-xanh-bang'] and all(t['kc'] for t in ds), (s, b))
+check('kiểu theme: ảnh thật / glass / phẳng', [t['kieu'] for t in ds] == ['ảnh thật', 'ảnh thật', 'ảnh thật', 'ảnh thật', 'ảnh thật', 'phẳng', 'glass', 'glass', 'ảnh thật', 'phẳng', 'phẳng', 'phẳng', 'phẳng', 'phẳng', 'phẳng', 'phẳng', 'phẳng', 'phẳng'], [t.get('kieu') for t in ds])
 check('mỗi theme 3 ảnh xem trước + tên + màu', all(len(t['anh']) == 3 and t['ten'] and len(t['mau']) == 3 for t in ds), ds)
 t0 = next((t for t in ds if t['id'] == 'phang-xanh-dem'), ds[0] if ds else None)
 s, b, h = req(APP, t0['anh'][0].split('?')[0], raw=True) if t0 else (0, b'', {})
@@ -83,7 +83,7 @@ HOST = r['url'].split('//')[1]; ma = req(APP, '/api/chung', {"ma_moi": True})[1]
 TOK = req(K, '/api/chung/vao', {"ma": ma, "ten": "Máy thử theme"}, h={'Host': HOST})[1].get('token')
 T = {'Host': HOST, 'X-Poly-Khach': TOK}
 s, b, _ = req(K, '/api/theme-ps', h=T)
-check('máy dùng chung: thấy 13 theme Photoshop kho chung', s == 200 and len(b.get('ds', [])) == 13, (s, b))
+check('máy dùng chung: thấy 18 theme Photoshop kho chung', s == 200 and len(b.get('ds', [])) == 18, (s, b))
 s, b, _ = req(K, '/api/theme-ps/anh/phang-xanh-dem/2', h=T, raw=True)
 check('máy dùng chung: xem ảnh theme', s == 200 and b[:4] == b'\x89PNG', s)
 s, b, _ = req(K, '/api/run', {"kenh": "ipad", "brief": "Bìa: MÁY KHÁC\nSlide 2: x", "theme_ps": "phang-than-xanh-duong"}, h=T)
@@ -112,15 +112,38 @@ for i in ids:
     else:
         check('theme %s không có chú thích vẽ tay' % i, 'anhChuThich' not in js and 'tayMuiTen' not in js and 'FTAY' not in js)
 check('chỉ 1 theme có ve_tay: anh-that-chu-thich', [i for i in ids if json.load(open(os.path.join(TGL, 'theme-ps', i, 'theme.json'), encoding='utf-8')).get('ve_tay')] == ['anh-that-chu-thich'])
-# fen 14/11 17h59 banner POLY CHRISTMAS: theme Noel ghép _noel.jsx ("them"), ảnh trang trí riêng trong anh/, theme khác không có
+# fen 14/11 17h59 banner POLY CHRISTMAS + 21h "thêm theme christmas" (4 theme): theme Noel ghép _noel.jsx ("them"), mọi ảnh theme.json nhắc tới có trong anh/, theme khác không có
+NOEL = ['noel-anh-that', 'noel-dem-xanh', 'noel-do-nhung', 'noel-poly-christmas', 'noel-trang-tuyet']
+check('5 theme Noel ghép _noel.jsx', [i for i in ids if '_noel.jsx' in (json.load(open(os.path.join(TGL, 'theme-ps', i, 'theme.json'), encoding='utf-8')).get('them') or [])] == NOEL)
 for i in ids:
     js = open(os.path.join(TGL, 'theme-ps', i, 'theme.jsx'), encoding='utf-8').read()
-    if i == 'noel-poly-christmas':
+    tj = json.load(open(os.path.join(TGL, 'theme-ps', i, 'theme.json'), encoding='utf-8'))
+    if i in NOEL:
         anh = sorted(os.listdir(os.path.join(TGL, 'theme-ps', i, 'anh')))
-        check('theme Noel: có biaNoel, phiếu, chữ sọc kẹo, nền thông + đủ ảnh trang trí', all(k in js for k in ('function biaNoel(', 'function noelPhieu(', 'function noelSoc(', 'nen-1.jpg')) and
-              all(a in anh for a in ('nen-1.jpg', 'nen-2.jpg', 'chau-do.png', 'keo-gay.png', 'day-den.png', 'tuyet.png', 'phieu.png', 'tem-xanh.png', 'soc-trang.png', 'soc-xanh.png')), anh)
+        can = set(['chau-do.png', 'keo-gay.png', 'day-den.png', 'tuyet.png', 'phieu.png', 'tem-xanh.png', 'tem-do.png', 'dau-buu-dien.png', 'soc-trang.png', 'soc-xanh.png'])
+        can |= set(tj.get('noel_nen', ['nen-1.jpg', 'nen-2.jpg']))
+        for k in ('noel_t1', 'noel_t2'):
+            if tj.get(k): can.add(tj[k][1])
+        for k in ('noel_soc_tieu', 'noel_tuyet'):
+            if tj.get(k): can.add(tj[k])
+        for c in tj.get('noel_chau', []): can |= set(c)
+        can |= set(tj.get('noel_chau_bia', []))
+        thieu = sorted(can - set(anh))
+        check('theme Noel %s: có biaNoel, biaNoelAnh, phiếu, chữ sọc kẹo + đủ ảnh theme.json nhắc tới' % i, all(k in js for k in ('function biaNoel(', 'function biaNoelAnh(', 'function noelPhieu(', 'function noelSoc(', 'function noelTrangTri(')) and not thieu, thieu)
     else:
         check('theme %s không có phần Noel' % i, 'biaNoel' not in js and 'noelSoc' not in js)
+tj = json.load(open(os.path.join(TGL, 'theme-ps', 'noel-trang-tuyet', 'theme.json'), encoding='utf-8'))
+check('Noel Trắng tuyết: nền sáng đổi chữ trắng trên nền sang xanh thông, chip xem tiếp đặc', tj.get('noel_sang') is True and tj.get('noel_chu') == '16402B' and 'Chip xem tiếp - nền' in open(os.path.join(TGL, 'theme-ps', 'noel-trang-tuyet', 'theme.jsx'), encoding='utf-8').read())
+check('Noel Ảnh thật: nền kính (ảnh của bài), bìa ảnh thật phủ kín', tj and json.load(open(os.path.join(TGL, 'theme-ps', 'noel-anh-that', 'theme.json'), encoding='utf-8')).get('nen_kieu') == 'kinh' and 'bia_noel_anh' in json.load(open(os.path.join(TGL, 'theme-ps', 'noel-anh-that', 'theme.json'), encoding='utf-8'))['xem'])
+# fen 14/11 "theme này nữa nha" (thẻ sản phẩm bảng xanh giấy xé): chỉ theme bang-xanh-giay-xe có biaBang
+for i in ids:
+    js = open(os.path.join(TGL, 'theme-ps', i, 'theme.jsx'), encoding='utf-8').read()
+    if i == 'bang-xanh-giay-xe':
+        anh = sorted(os.listdir(os.path.join(TGL, 'theme-ps', i, 'anh')))
+        check('theme Bảng xanh: biaBang, giấy xé sau tiêu đề trang trong, font Cookies + đủ ảnh', all(k in js for k in ('function biaBang(', 'function bxTab(', '"Giấy xé"', '"UTM-Cookies"')) and
+              all(a in anh for a in ('nen-1.jpg', 'nen-2.jpg', 'giay-xe.png', 'giay-xe-2.png', 'co-trang.png', 'ruy-bang.png')), anh)
+    else:
+        check('theme %s không có phần Bảng xanh' % i, 'biaBang' not in js and 'bxKeo' not in js)
 luat = open(os.path.join(TGL, 'theme-ps', 'luat-theme.md'), encoding='utf-8').read()
 check('luật theme: mục chú thích vẽ tay ghi CHỈ theme Ảnh thật · Chú thích tay', '## Chú thích vẽ tay: CHỈ theme "Ảnh thật · Chú thích tay"' in luat and 'biaChuThich' in luat)
 pr_ct = None

@@ -1,0 +1,144 @@
+{
+ "id": "noel-trang-tuyet",
+ "ten": "Noel · Trắng tuyết",
+ "kieu": "phẳng",
+ "kenh": "",
+ "them": [
+  "_noel.jsx"
+ ],
+ "mo_ta": "Noel nền kem trắng sáng, lá thông xanh xám nhạt ở góc, bông tuyết + sao nhỏ; tiêu đề bìa dòng 1 đỏ, dòng 2 xanh thông, sọc trắng, bóng be; chữ trên nền màu xanh thông đậm; thẻ / khung ý xanh thông đặc chữ trắng, nhãn đỏ; châu đỏ / vàng / xanh, kẹo gậy, dây đèn, tuyết đáy viền xám xanh. Bìa biaNoel.",
+ "nen": "F7F3EC",
+ "nen2": "F7F3EC",
+ "nen_kieu": "phang",
+ "trang_tri": "khong",
+ "the": "1F5A3A",
+ "the_kieu": "toi",
+ "the_op": 100,
+ "nhan": "D63A32",
+ "nhan_dam": "A82820",
+ "nhan_nhat": "F5C542",
+ "vang": "F5C542",
+ "ghi_nen": "E7EFE8",
+ "ghi_chu": "16402B",
+ "do": "E23B32",
+ "inkbg": "1F5A3A",
+ "pill": [
+  "D63A32",
+  "FFFFFF"
+ ],
+ "dau_tick": [
+  "D63A32",
+  "FFFFFF"
+ ],
+ "co_tieu_de": 0.92,
+ "giu_vien": false,
+ "noel_sang": true,
+ "noel_chu": "16402B",
+ "noel_khung": "1F5A3A",
+ "noel_nen": [
+  "nen-sang-1.jpg",
+  "nen-sang-2.jpg"
+ ],
+ "noel_t1": [
+  "E23B32",
+  "soc-trang.png"
+ ],
+ "noel_t2": [
+  "1F5A3A",
+  "soc-trang.png"
+ ],
+ "noel_soc_tieu": "soc-trang.png",
+ "noel_bong": "D9CFBE",
+ "noel_nhan": "E23B32",
+ "noel_uu": "C62E27",
+ "noel_chau": [
+  [
+   "chau-do.png",
+   "chau-xanh.png"
+  ],
+  [
+   "chau-vang.png",
+   "chau-do.png"
+  ]
+ ],
+ "noel_chau_bia": [
+  "chau-do.png",
+  "chau-vang.png",
+  "chau-xanh.png"
+ ],
+ "noel_tuyet": "tuyet-sang.png",
+ "noel_xanh": "1F5A3A",
+ "noel_xanh_dam": "16402B",
+ "noel_chan": "125/16/26 Bùi Đình Túy, P. Bình Thạnh  ·  Hotline 0902.96.0804",
+ "bia_co": 150,
+ "bia_co_phu": 64,
+ "bia_x": 60,
+ "xem": {
+  "bia_noel": {
+   "t1": "POLY",
+   "t2": "CHRISTMAS",
+   "nho": "*QUÀ NOEL* CHO\rHỌC SINH · SINH VIÊN",
+   "uu_dai": "MANG THẺ HSSV TỚI SHOP",
+   "phieu": [
+    {
+     "chu": "Mua iPad giảm",
+     "gia": "200K",
+     "tem": "HSSV",
+     "mau": "xanh"
+    },
+    {
+     "chu": "Mua laptop giảm",
+     "gia": "300K",
+     "tem": "HSSV",
+     "mau": "do"
+    }
+   ],
+   "anh": "a16-apple-spring-2025-ipad.png"
+  },
+  "pill": "QUÀ NOEL",
+  "tieu": "LÊN ĐỜI MÁY XỊN",
+  "phu": "Ưu đãi học sinh, sinh viên tới 26/12",
+  "ten": "iPad Gen 11",
+  "cau": "Chip A16 · 128GB",
+  "gia": "9.490.000đ",
+  "y": [
+   [
+    "check",
+    "Giảm 200K khi mua iPad (HSSV)"
+   ],
+   [
+    "check",
+    "Giảm 300K khi mua laptop (HSSV)"
+   ],
+   [
+    "check",
+    "Mang thẻ HSSV tới shop là được"
+   ]
+  ],
+  "ghi": [
+   "125/16/26 Bùi Đình Túy, P. Bình Thạnh",
+   "Hotline 0902.96.0804"
+  ],
+  "moc": "Xem máy đang giảm",
+  "hoi": "Noel này bạn\rlên đời máy gì?",
+  "nen": []
+ },
+ "font_tieu_de": [
+  "UTM-Alberta-Heavy",
+  "UTM-Cooper-Black",
+  "UTM-Erie-Black"
+ ],
+ "font_than": [
+  "UTMAvoBold",
+  "UTMNeoSansIntelBold"
+ ],
+ "font_thuong": [
+  "UTM-Avo",
+  "UTMAvo"
+ ],
+ "font_script": [
+  "SVN-SegoeScript",
+  "SegoeScript",
+  "UTM-Silk-Script"
+ ]
+}

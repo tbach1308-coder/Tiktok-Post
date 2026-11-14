@@ -1,0 +1,1058 @@
+// theme.jsx tự tạo bằng theme-ps/tao.py - sửa theme.json / _dong-co.jsx rồi chạy lại, đừng sửa tay
+var THEME = {
+ "id": "noel-anh-that",
+ "ten": "Noel · Ảnh thật",
+ "kieu": "ảnh thật",
+ "kenh": "",
+ "them": [
+  "_noel.jsx"
+ ],
+ "mo_ta": "Noel trên ảnh thật: bìa biaNoelAnh = ảnh máy thật phủ kín, đáy tối dần, dây đèn vắt ngang trên, châu treo 2 góc, tuyết đáy, tiêu đề 2 dòng sọc kẹo (đỏ / trắng) + dòng đậm + dòng ưu đãi xếp từ dưới lên. Trang trong: gọi bgPhoto ảnh của bài thì ảnh làm mờ phủ tối, châu + tuyết vẽ đè lên trên ảnh; không có ảnh thì nền tối phẳng. Thẻ đen trong, nhãn đỏ.",
+ "nen": "121212",
+ "nen2": "121212",
+ "nen_kieu": "kinh",
+ "dom": [],
+ "anh_mau": 30,
+ "anh_mo": 28,
+ "anh_toi": 38,
+ "trang_tri": "khong",
+ "the": "000000",
+ "the_kieu": "toi",
+ "the_op": 45,
+ "nhan": "D63A32",
+ "nhan_dam": "A82820",
+ "nhan_nhat": "F5C542",
+ "vang": "F5C542",
+ "ghi_nen": "F4EBDD",
+ "ghi_chu": "16402B",
+ "do": "E23B32",
+ "inkbg": "121212",
+ "pill": [
+  "D63A32",
+  "FFFFFF"
+ ],
+ "dau_tick": [
+  "D63A32",
+  "FFFFFF"
+ ],
+ "co_tieu_de": 0.92,
+ "giu_vien": false,
+ "chu_tieu_de": "FFFFFF",
+ "noel_nen": [],
+ "noel_t1": [
+  "E23B32",
+  "soc-trang.png"
+ ],
+ "noel_t2": [
+  "FFFFFF",
+  "soc-xanh.png"
+ ],
+ "noel_soc_tieu": "soc-xanh.png",
+ "noel_bong": "0A0A0A",
+ "noel_chau": [
+  [
+   "chau-trang.png",
+   "chau-do.png"
+  ],
+  [
+   "chau-vang.png",
+   "chau-do.png"
+  ]
+ ],
+ "noel_chau_bia": [
+  "chau-do.png",
+  "chau-vang.png",
+  "chau-trang.png"
+ ],
+ "noel_xanh": "1F5A3A",
+ "noel_xanh_dam": "16402B",
+ "noel_chan": "125/16/26 Bùi Đình Túy, P. Bình Thạnh  ·  Hotline 0902.96.0804",
+ "bia_co": 140,
+ "bia_co_phu": 58,
+ "bia_x": 60,
+ "bia_day": [
+  860,
+  90
+ ],
+ "xem": {
+  "bia_noel_anh": {
+   "anh": "unsplash-ipad-pencil-ban-toi-gYVNvRygCUw.jpg",
+   "tam": [
+    0.62,
+    0.45
+   ],
+   "toi": 12,
+   "t1": "POLY",
+   "t2": "CHRISTMAS",
+   "nho": "NOEL *LÊN ĐỜI*\rMÁY XỊN",
+   "uu_dai": "ƯU ĐÃI HỌC SINH · SINH VIÊN"
+  },
+  "pill": "QUÀ NOEL",
+  "tieu": "LÊN ĐỜI MÁY XỊN",
+  "phu": "Ưu đãi học sinh, sinh viên tới 26/12",
+  "ten": "iPad Pro 11 M4",
+  "cau": "Chip M4 · 256GB",
+  "gia": "25.990.000đ",
+  "y": [
+   [
+    "check",
+    "Giảm 200K khi mua iPad (HSSV)"
+   ],
+   [
+    "check",
+    "Giảm 300K khi mua laptop (HSSV)"
+   ],
+   [
+    "check",
+    "Mang thẻ HSSV tới shop là được"
+   ]
+  ],
+  "ghi": [
+   "125/16/26 Bùi Đình Túy, P. Bình Thạnh",
+   "Hotline 0902.96.0804"
+  ],
+  "moc": "Xem máy đang giảm",
+  "hoi": "Noel này bạn\rlên đời máy gì?",
+  "nen": [
+   null,
+   [
+    "unsplash-goi-video-ipad-10tr.jpg",
+    2000,
+    700,
+    0,
+    1000
+   ],
+   [
+    "unsplash-doc-ipad-quan-10tr.jpg",
+    2000,
+    0,
+    300,
+    2000
+   ]
+  ]
+ },
+ "font_tieu_de": [
+  "UTM-Alberta-Heavy",
+  "UTM-Cooper-Black",
+  "UTM-Erie-Black"
+ ],
+ "font_than": [
+  "UTMAvoBold",
+  "UTMNeoSansIntelBold"
+ ],
+ "font_thuong": [
+  "UTM-Avo",
+  "UTMAvo"
+ ],
+ "font_script": [
+  "SVN-SegoeScript",
+  "SegoeScript",
+  "UTM-Silk-Script"
+ ]
+};
+// ===================================================================================
+// THEME PHOTOSHOP (kho chung app Poly Dung Bai, fen 12/11/2026 "thiet ke template kho chung bang photoshop", "dung 3d qua")
+// Ghep NGAY SAU thu vien dung (ipad/poly-lib.jsx hoac code/make-mac-vs-win + top5_body), TRUOC phan slide cua bai:
+//   iPad:   python ipad/build.py "<bai>" "<part>" "<out>" --theme "<thu muc app>/theme-ps/<id>/theme.jsx"
+//   Laptop: python code/build.py slides/<x>.jsx <thu muc bai> <ten> vN [1,2] --theme "<...>/theme.jsx"
+// Theme chi doi MAU, FONT, NEN, THE, HIEU UNG (phang: bo bong do, phat sang, nen anh mo). Bo cuc, anh may, chu van theo bai.
+// Bien THEME (mau, font, trang tri) duoc chen phia tren boi theme-ps/tao.py.
+// ===================================================================================
+var THEME_N = 0;
+var THEME_LOG = "";
+(function () {
+  if (typeof C != "undefined") {
+    C.GREEN = THEME.nhan; C.GREEN_D = THEME.nhan_dam; C.GREEN_L = THEME.nhan_nhat;
+    C.GREEN_SOFT = THEME.ghi_nen; C.GREEN_PALE = THEME.nhan_nhat; C.INK = THEME.ghi_chu;
+  }
+})();
+if (typeof NAVY != "undefined") NAVY = THEME.ghi_chu;        // chu trong o ghi chu + vien tieu de
+if (typeof MINT != "undefined") MINT = THEME.ghi_nen;        // nen o ghi chu
+if (typeof YEL != "undefined") YEL = THEME.vang;
+if (typeof YEL2 != "undefined") YEL2 = THEME.vang;
+if (typeof TAG != "undefined") TAG = THEME.vang;
+if (typeof INKBG != "undefined") INKBG = THEME.inkbg || THEME.nen;   // nen o cau moc / dia chi (Laptop): theme nen sang thi dung inkbg toi
+if (typeof RED != "undefined" && THEME.do) RED = THEME.do;
+if (typeof RANKC != "undefined") RANKC = THEME.nhan_dam;
+
+// ---------- font: thu lan luot danh sach cua theme, khong co thi giu font cu ----------
+(function () {
+  var t = pick(THEME.font_tieu_de.concat([F.T])), b = pick(THEME.font_than.concat([F.B]));
+  F.T = t; F.B = b;
+  if (THEME.font_thuong) F.R = pick(THEME.font_thuong.concat([F.R]));
+  if (typeof FS != "undefined") { FS.T = t; FS.I = THEME.font_nghieng ? pick(THEME.font_nghieng.concat([b])) : b; }
+  if (THEME.font_phu) F.P = pick(THEME.font_phu.concat([b]));     // dong phu de "Phụ đề" (vd chu nghieng co chan, theme anh that 14/11)
+  if (THEME.font_kicker) F.K = pick(THEME.font_kicker.concat([t]));   // dong nho tren tieu de bia (theme "Ảnh thật · Chữ nghiêng" 14/11)
+  THEME_LOG = "Theme " + THEME.ten + ": T=" + F.T + " B=" + F.B + "\n";
+})();
+
+// ---------- chu tieu de: font theme hep / rong hon font cu thi nhan co chu cho bang (co_tieu_de) ----------
+var THEME_TEXT0 = text;
+text = function (str, font, size, h, x, y, o) {
+  var nm = o && o.name;
+  if (font == F.T && THEME.chu_tieu_de && h == C.WHITE) h = THEME.chu_tieu_de;      // chu to (tieu de, gia, cau hoi) doi mau theme
+  if (nm == "Phụ đề" && F.P) {
+    font = F.P; size = Math.round(size * (THEME.co_phu || 1)); if (THEME.mau_phu) h = THEME.mau_phu;
+    var Lp = THEME_TEXT0(str, font, size, h, x, y, o);
+    if (THEME.vien_phu) THEME_FX0(Lp, { stroke: THEME.vien_phu });
+    return Lp;
+  }
+  if (font == F.T && THEME.co_tieu_de && THEME.co_tieu_de != 1) {
+    var k = THEME.co_tieu_de, o2 = {};
+    if (o) for (var p in o) o2[p] = o[p];
+    if (o2.lead) o2.lead = Math.round(o2.lead * k);
+    size = Math.round(size * k); o = o2;
+  }
+  return THEME_TEXT0(str, font, size, h, x, y, o);
+};
+
+// ---------- phang: bo bong do + phat sang; giu vien mong (<= 3px: vien the, chip), vien chu day chi khi theme cho (giu_vien) ----------
+var THEME_FX0 = fx;
+fx = function (L, o) {
+  if (!o || !o.stroke) return;
+  if (o.stroke.size > 3 && THEME.vien_chu) { THEME_FX0(L, { stroke: THEME.vien_chu }); return; }   // vien toi manh nhu anh mau (theme anh that)
+  if (o.stroke.size > 3 && !THEME.giu_vien) return;
+  THEME_FX0(L, { stroke: o.stroke });
+};
+fxGlow = function () {};
+
+// ---------- nen phang + trang tri hinh khoi o goc (moi slide doi goc cho do lap) ----------
+function themeTron(cx, cy, r, h, op, name) {
+  var L = oval(cx - r, cy - r, cx + r, cy + r, h, name || "Trang trí");
+  if (op && op < 100) L.opacity = op;
+  return L;
+}
+function themeCham(x0, y0, cot, hang, buoc, r, h, name) {
+  for (var i = 0; i < hang; i++) for (var j = 0; j < cot; j++)
+    oval(x0 + j * buoc - r, y0 + i * buoc - r, x0 + j * buoc + r, y0 + i * buoc + r, h, (name || "Chấm") + " " + (i * cot + j + 1));
+}
+// nen kinh (glass, fen 12/11 21h26 "cho them theme kieu glass"): cac dom mau loang mo phia sau, the kinh trong phia truoc
+function themeDom(opK) {
+  var ds = THEME.dom || [], chan = THEME_N % 2 == 0;
+  for (var i = 0; i < ds.length; i++) {
+    var c = ds[i][0], cx = chan ? W - ds[i][1] : ds[i][1], cy = ds[i][2], r = ds[i][3];
+    var L = oval(cx - r, cy - r, cx + r, cy + r, c, "Đốm màu " + (i + 1));
+    L.rasterize(RasterizeType.ENTIRELAYER);
+    app.activeDocument.activeLayer = L;
+    gblur(THEME.dom_mo || 160);
+    L.opacity = Math.round((ds[i][4] || 100) * (opK || 100) / 100);
+  }
+}
+function themeNen() {
+  THEME_N++;
+  rect(0, 0, W, H, 0, THEME.nen, "Nền - " + THEME.ten);
+  var k = THEME_N % 2, tt = THEME.trang_tri || "tron";
+  if (THEME.nen_kieu == "kinh") themeDom();
+  // quang sang mo tren nen (fen 12/11 21h51 anh mau "Lifelike Visuals"): [mau, cx, cy, rx, ry, mo, do dam]
+  var toa = THEME.toa || [];
+  for (var i = 0; i < toa.length; i++) {
+    var a = toa[i], Lt = oval(a[1] - a[3], a[2] - a[4], a[1] + a[3], a[2] + a[4], a[0], "Quầng sáng " + (i + 1));
+    Lt.rasterize(RasterizeType.ENTIRELAYER); app.activeDocument.activeLayer = Lt; gblur(a[5] || 180); Lt.opacity = a[6] || 100;
+  }
+  if (tt == "tron") {
+    if (k) { themeTron(W + 40, 120, 340, THEME.nen2, 100, "Trang trí - tròn lớn"); themeTron(-60, H - 90, 210, THEME.nen2, 100, "Trang trí - tròn nhỏ"); }
+    else { themeTron(-40, 150, 300, THEME.nen2, 100, "Trang trí - tròn lớn"); themeTron(W + 70, H - 140, 260, THEME.nen2, 100, "Trang trí - tròn nhỏ"); }
+    rect(96, 64, 160, 72, 4, THEME.nhan, "Trang trí - gạch nhấn");
+  } else if (tt == "cham") {
+    if (k) { themeCham(W - 214, 64, 5, 4, 36, 5, THEME.nen2, "Chấm góc"); themeTron(-120, H + 40, 380, THEME.nen2, 100, "Trang trí - nửa tròn"); }
+    else { themeCham(70, H - 186, 5, 4, 36, 5, THEME.nen2, "Chấm góc"); themeTron(W + 120, -40, 380, THEME.nen2, 100, "Trang trí - nửa tròn"); }
+    rect(0, 0, 14, H, 0, THEME.nhan, "Trang trí - sọc nhấn");
+  } else if (tt == "tiem") themeTiemNen();
+  else if (tt == "khung") themeKhungNen();
+}
+
+// ---------- theme "Tiem Poly ve tay" (fen 13/11 18h01 gui 5 anh tiem Poly Store ve tay + "tao theme pts") ----------
+// hat sap mau / giay: them nhieu (Add Noise) don sac cho lop (lop hinh -> anh thuong truoc). Loi thi giu mau dac.
+function themeHat(L, amt) {
+  try {
+    L.rasterize(RasterizeType.ENTIRELAYER);
+    app.activeDocument.activeLayer = L;
+    var d = new ActionDescriptor();
+    d.putEnumerated(charIDToTypeID("Dstr"), charIDToTypeID("Dstr"), charIDToTypeID("Gsn "));
+    d.putUnitDouble(charIDToTypeID("Nose"), charIDToTypeID("#Prc"), amt || THEME.hat || 6);
+    d.putBoolean(charIDToTypeID("Mnch"), true);
+    d.putInteger(charIDToTypeID("FlRs"), Math.floor(Math.random() * 999999));
+    executeAction(charIDToTypeID("AdNs"), d, DialogModes.NO);
+  } catch (e) { THEME_LOG += "Theme: hat giay loi (" + e.message + "), giu mau dac\n"; }
+  return L;
+}
+// vung mep duoi luon (nhu mai hien cua tiem trong anh): 1 lop anh thuong = hinh chu nhat y0..yb-r + hang nua tron o mep duoi
+function themeVungLuon(y0, yb, r, mau, name) {
+  var doc = app.activeDocument, L = doc.artLayers.add();
+  L.name = name;
+  doc.selection.select([[0, y0], [W, y0], [W, yb - r], [0, yb - r]], SelectionType.REPLACE, 0, true);
+  for (var x = 0; x - r < W; x += 2 * r) {
+    var pts = [];
+    for (var i = 0; i < 28; i++) { var g = i / 28 * 2 * Math.PI; pts.push([x + r + r * Math.cos(g), yb - r + r * Math.sin(g)]); }
+    doc.selection.select(pts, SelectionType.EXTEND, 0, true);
+  }
+  doc.selection.fill(col(mau)); doc.selection.deselect();
+  return L;
+}
+// mai hien xanh mep luon tren cung trang
+function themeMaiHien(h, r) {
+  var L = themeVungLuon(0, h + r, r, THEME.mai, "Mái hiên");
+  themeHat(L, (THEME.hat || 6) - 1);
+  return L;
+}
+// trang trong: tuong giay be hat sap mau + mai hien tren cung + bang xanh nhu bien hieu (vien nau), chu trang / kem nam tren bang
+function themeTiemNen() {
+  themeHat(app.activeDocument.activeLayer);                 // lop nen giay be vua ve trong themeNen
+  var B = rect(36, 62, W - 36, H - 36, 30, THEME.bang, "Bảng xanh");
+  themeHat(B);
+  THEME_FX0(B, { stroke: { hex: THEME.vien_nau || "4A3631", size: 3, op: 100, inside: true } });
+  themeMaiHien(30, 27);
+}
+// chu tron 2 lop vien (nhu chu "Macbook" trong anh): lop sau vien nau day, lop truoc vien kem
+function themeChuBong(str, font, size, mau, cx, y, maxW, name) {
+  var o = { align: Justification.CENTER, maxW: maxW, name: name + " - viền nâu" };
+  var S = text(str, font, size, mau, cx, y, o);
+  themeGiua(S, cx);
+  THEME_FX0(S, { stroke: { hex: THEME.vien_nau || "4A3631", size: Math.round(LAST * 0.2), op: 100 } });
+  var T = text(str, font, LAST, mau, cx, y, { align: Justification.CENTER, name: name });
+  THEME_FX0(T, { stroke: { hex: THEME.kem || "F3EBDC", size: Math.round(LAST * 0.1), op: 100 } });
+  var q = bb(S), q2 = bb(T);
+  T.translate((q[0] + q[2]) / 2 - (q2[0] + q2[2]) / 2, (q[1] + q[3]) / 2 - (q2[1] + q2[3]) / 2);
+  return [S, T];
+}
+// bia: anh tiem dung loai may o ~2/3 tren (mep duoi luon nhu mai hien), duoi la giay be: tieu de 2 dong chu tron + dong nho.
+// o = { loai: "ipad" | "iphone" | "laptop" | "macbook" | "chung", t1: "dòng 1", t2: "dòng 2", nho: "dòng nhỏ" }. Goi ngay sau newDoc.
+function biaTiem(o) {
+  o = o || {};
+  var ds = THEME.tiem || {}, k = ds[o.loai] ? o.loai : "chung", a = ds[k], dir = typeof THEME_DIR != "undefined" ? THEME_DIR : "";
+  var BOT = o.bot || 1080, r = 26, s = W / 941, cx = W / 2, TF = THEME.font_bia ? pick(THEME.font_bia.concat([F.T])) : F.T;
+  var P = rect(0, 0, W, H, 0, THEME.nen, "Giấy be");
+  themeHat(P);
+  // tieu de ve TRUOC anh tiem: lop nao ve sau anh cung bi khung anh cat mat (fen 13/11: bia trong chu)
+  // chu tron xanh la vien kem + nau, dong nho nau; ca cum can giua trong dai duoi anh
+  var ls = [], y = BOT + 30, mau = THEME.bia_mau || THEME.bang;
+  if (o.t1) { var A1 = themeChuBong(o.t1, TF, 88, mau, cx, y + 88, 960, "Tiêu đề - dòng 1"); ls = ls.concat(A1); y = bb(A1[0])[3] + 6; }
+  if (o.t2) { var A2 = themeChuBong(o.t2, TF, 88, mau, cx, y + 88, 960, "Tiêu đề - dòng 2"); ls = ls.concat(A2); y = bb(A2[0])[3] + 6; }
+  if (o.nho) { var N = text(o.nho, F.B, 38, THEME.vien_nau || "4A3631", cx, y + 52, { align: Justification.CENTER, maxW: 900, name: "Dòng nhỏ" }); ls.push(N); }
+  if (ls.length) {
+    var t = 1e9, b = -1e9;
+    for (var i = 0; i < ls.length; i++) { try { ls[i].grouped = false; } catch (e3) {} var qq = bb(ls[i]); t = Math.min(t, qq[1]); b = Math.max(b, qq[3]); }
+    var dy = (BOT + 12 + H - 30) / 2 - (t + b) / 2;
+    for (var j = 0; j < ls.length; j++) ls[j].translate(0, dy);
+  }
+  if (a && dir) {
+    // khung anh: mep duoi luon nhu mai hien (1 lop), anh tiem cat theo khung (clipping)
+    var K = themeVungLuon(0, BOT, r, THEME.vien_nau || "4A3631", "Khung ảnh tiệm");
+    try {
+      var L = placeSO(dir + "/anh/" + a[0], "Ảnh tiệm - " + k), q = bb(L);
+      var pct = W / (q[2] - q[0]) * 100;
+      L.resize(pct, pct, AnchorPosition.TOPLEFT); q = bb(L);
+      L.translate(-q[0], -a[1] * (q[2] - q[0]) / 941 - q[1]);
+      L.grouped = true;
+      // nhap anh vao khung thanh 1 lop: neu de nguyen nhom cat thi chu tieu de ve sau cung bi khung cat mat (fen 13/11: bia trong chu)
+      var M = K;
+      try { M = L.merge(); M.name = "Ảnh tiệm - " + k; } catch (e2) { THEME_LOG += "Theme: khong nhap duoc anh tiem vao khung (" + e2.message + ")\n"; }
+      THEME_FX0(M, { stroke: { hex: THEME.vien_nau || "4A3631", size: 4, op: 100 } });
+    } catch (e) { THEME_LOG += "Theme: khong dat duoc anh tiem " + a[0] + " (" + e.message + ")\n"; }
+  } else THEME_LOG += "Theme: thieu anh tiem (THEME_DIR / tiem." + k + ")\n";
+}
+// ---------- tien ich chung ----------
+// xep cac lop chu theo chieu doc, can trai tai x, khoang cach gaps[i] giua lop i va i+1; ca cum can giua trong [top, bot] (khong du cho thi canh tren)
+function themeXepDoc(ls, x, top, bot, gaps) {
+  if (!ls.length) return;
+  var y = top, q;
+  for (var i = 0; i < ls.length; i++) {
+    q = bb(ls[i]); ls[i].translate(x - q[0], y - q[1]); q = bb(ls[i]);
+    y = q[3] + (gaps && gaps[i] != null ? gaps[i] : 16);
+  }
+  var t = bb(ls[0])[1], b = bb(ls[ls.length - 1])[3], dy = Math.round((top + bot) / 2 - (t + b) / 2);
+  if (dy > 0) for (var j = 0; j < ls.length; j++) ls[j].translate(0, dy);
+}
+function themeAnhDau(may) { return may ? (may instanceof Array ? may[0] : may) : ""; }
+
+var THEME_NEWDOC0 = newDoc;
+newDoc = function (name) {
+  var d = THEME_NEWDOC0(name);
+  themeNen();
+  return d;
+};
+// nen anh mo cua thu vien: theme phang -> bo (nen phang da ve luc tao trang).
+// Theme kinh (fen 12/11 21h26 "blur background"): anh that cua bai lam mo manh + lop mau theme + dom mau mo, the kinh dat len tren.
+var THEME_BG0 = bgPhoto, THEME_BGR0 = background;
+function themeAnhMo(goc, args) {
+  if (THEME.nen_kieu != "kinh" || !args[0]) return;
+  try { goc(args); } catch (e) { THEME_LOG += "Theme: khong dat duoc anh nen " + args[0] + " (" + e.message + "), giu nen dom mau\n"; return; }
+  if (THEME.anh_mau !== 0) { var T = rect(0, 0, W, H, 0, THEME.nen, "Lớp màu theme"); T.opacity = THEME.anh_mau || 45; }
+  themeDom(THEME.dom_tren || 55);
+  if (THEME.trang_tri == "khung") themeKhungNen();     // anh nen nam trong khung sang (theme "Ảnh thật · Nền sáng")
+}
+bgPhoto = function (file, imgW, cropL, cropT, cropW, blur, op) {
+  themeAnhMo(function (a) { THEME_BG0(a[0], a[1], a[2], a[3], a[4], THEME.anh_mo || 30, THEME.anh_toi || 30); }, [file, imgW, cropL, cropT, cropW]);
+};
+background = function (file, imgW, cropL, cropT, cropW, blurR) {
+  themeAnhMo(function (a) { THEME_BGR0(a[0], a[1], a[2], a[3], a[4], THEME.anh_mo || 30); }, [file, imgW, cropL, cropT, cropW]);
+};
+// the: theme phang -> the dac; theme kinh -> the trang trong + vien mong (khong bong)
+glass = function (l, t, r, b, rad, name) {
+  if (THEME.the_kieu == "toi") { var Gt = rect(l, t, r, b, rad, THEME.the, name || "Thẻ"); Gt.fillOpacity = THEME.the_op || 50; return Gt; }   // khung toi trong, khong vien, khong bong
+  if (THEME.nen_kieu != "kinh") return rect(l, t, r, b, rad, THEME.the, name || "Thẻ");
+  var G = rect(l, t, r, b, rad, "FFFFFF", name || "Thẻ kính");
+  G.fillOpacity = THEME.kinh_op || 14;
+  THEME_FX0(G, { stroke: { hex: "FFFFFF", size: 2, op: THEME.kinh_vien || 45, inside: true } });
+  return G;
+};
+
+// ---------- nhan / dau tick mau rieng (theme anh that 14/11: nhan vang chu den). nhan = mau nen tron cua C.GREEN (dau tick, so buoc...) giu toi cho chu trang ----------
+if (THEME.pill) {
+  var THEME_PILLC0 = pillC;
+  pillC = function (str, cx, cy, size, txtH, fillH, padX, hgt, font, track, name) {
+    if (fillH == THEME.nhan) { fillH = THEME.pill[0]; txtH = THEME.pill[1]; }
+    return THEME_PILLC0(str, cx, cy, size, txtH, fillH, padX, hgt, font, track, name);
+  };
+  if (typeof pill != "undefined") {
+    var THEME_PILL0 = pill;
+    pill = function (str, x, cy, size, txtH, fillH, padX, hgt, font, track, name) {
+      if (fillH == THEME.nhan) { fillH = THEME.pill[0]; txtH = THEME.pill[1]; }
+      return THEME_PILL0(str, x, cy, size, txtH, fillH, padX, hgt, font, track, name);
+    };
+  }
+}
+if (THEME.dau_tick) {
+  if (typeof dotIcon != "undefined") {
+    var THEME_DOT0 = dotIcon;
+    dotIcon = function (kind, cx, cy, r) {
+      if (kind != "check") return THEME_DOT0(kind, cx, cy, r);
+      return [oval(cx - r, cy - r, cx + r, cy + r, THEME.dau_tick[0], "Biểu tượng - nền"), check(cx, cy + 1, r * 1.05, THEME.dau_tick[1])];
+    };
+  }
+  if (typeof checkDot != "undefined") {
+    checkDot = function (cx, cy, r) {
+      oval(cx - r, cy - r, cx + r, cy + r, THEME.dau_tick[0], "Dấu tích - nền");
+      check(cx, cy + 1, r * 1.05, THEME.dau_tick[1]);
+    };
+  }
+}
+
+// ---------- tien ich anh that (fen 14/11 13h30 "xoay quanh style nay lam 3 theme cho photoshop") ----------
+// diem cua hinh chu nhat bo goc (de chon vung): l, t, r, b, ban kinh goc
+function themeBoGoc(l, t, r, b, rad) {
+  var p = [], n = 10;
+  function cung(cx, cy, a0) { for (var i = 0; i <= n; i++) { var g = (a0 + 90 * i / n) * Math.PI / 180; p.push([cx + rad * Math.cos(g), cy + rad * Math.sin(g)]); } }
+  cung(r - rad, t + rad, -90); cung(r - rad, b - rad, 0); cung(l + rad, b - rad, 90); cung(l + rad, t + rad, 180);
+  return p;
+}
+// khung sang (nhu passe-partout): 1 lop mau mau phu kin trang, chua 1 o bo goc trong o giua de lo anh / bang phia duoi
+function themeKhungSang(l, t, r, b, rad, mau, name) {
+  var doc = app.activeDocument, L = doc.artLayers.add();
+  L.name = name || "Khung sáng";
+  doc.selection.selectAll();
+  doc.selection.select(themeBoGoc(l, t, r, b, rad), SelectionType.DIMINISH, 0, true);
+  doc.selection.fill(col(mau)); doc.selection.deselect();
+  return L;
+}
+// trang trong theme khung: nen toi (THEME.nen) trong khung sang le [trai, tren, phai, duoi]
+function themeKhungNen() {
+  var k = THEME.khung_sang || {}, le = k.le || [36, 62, 36, 36];
+  return themeKhungSang(le[0], le[1], W - le[2], H - le[3], k.r || 30, k.mau || "F5F2EB", "Khung sáng");
+}
+// lop toi mo dan o day trang (chu de tren anh that van doc ro): lop to mau chuyen sac, den op% o day -> trong suot o do cao cao px.
+// Loi thi ve 24 dai chong nhau (gan giong).
+function themeDayToi(cao, op) {
+  cao = cao || 760; op = op || 85;
+  try {
+    var c2t = charIDToTypeID, s2t = stringIDToTypeID, d = new ActionDescriptor(), r = new ActionReference();
+    r.putClass(s2t("contentLayer")); d.putReference(c2t("null"), r);
+    var lay = new ActionDescriptor(), g = new ActionDescriptor(), gr = new ActionDescriptor();
+    lay.putString(c2t("Nm  "), "Lớp tối đáy");
+    g.putUnitDouble(c2t("Angl"), c2t("#Ang"), 90);
+    g.putEnumerated(c2t("Type"), c2t("GrdT"), c2t("Lnr "));
+    gr.putString(c2t("Nm  "), "Day toi");
+    gr.putEnumerated(c2t("GrdF"), c2t("GrdF"), c2t("CstS"));
+    gr.putDouble(c2t("Intr"), 4096);
+    var cl = new ActionList();
+    function mau(loc) { var x = new ActionDescriptor(); x.putObject(c2t("Clr "), c2t("RGBC"), rgbDesc("000000")); x.putEnumerated(c2t("Type"), c2t("Clry"), c2t("UsrS")); x.putInteger(c2t("Lctn"), loc); x.putInteger(c2t("Mdpn"), 50); return x; }
+    cl.putObject(c2t("Clrt"), mau(0)); cl.putObject(c2t("Clrt"), mau(4096));
+    gr.putList(c2t("Clrs"), cl);
+    var tl = new ActionList(), k = Math.min(4096, Math.round(cao / H * 4096));
+    function ts(o2, loc) { var x = new ActionDescriptor(); x.putUnitDouble(c2t("Opct"), c2t("#Prc"), o2); x.putInteger(c2t("Lctn"), loc); x.putInteger(c2t("Mdpn"), 50); return x; }
+    tl.putObject(c2t("TrnS"), ts(op, 0)); tl.putObject(c2t("TrnS"), ts(Math.round(op * 0.55), Math.round(k * 0.45))); tl.putObject(c2t("TrnS"), ts(0, k));
+    if (k < 4096) tl.putObject(c2t("TrnS"), ts(0, 4096));
+    gr.putList(c2t("Trns"), tl);
+    g.putObject(c2t("Grad"), c2t("Grdn"), gr);
+    lay.putObject(c2t("Type"), s2t("gradientLayer"), g);
+    d.putObject(c2t("Usng"), s2t("contentLayer"), lay);
+    executeAction(c2t("Mk  "), d, DialogModes.NO);
+    var L = app.activeDocument.activeLayer; L.name = "Lớp tối đáy";
+    return L;
+  } catch (e) {
+    THEME_LOG += "Theme: lop toi day chuyen sac loi (" + e.message + "), ve dai\n";
+    var n = 24, hb = cao / n;
+    for (var i = 0; i < n; i++) { var B = rect(0, H - (i + 1) * hb, W, H - i * hb + 1, 0, "000000", "Lớp tối đáy " + (i + 1)); B.opacity = Math.max(1, Math.round(op * (1 - i / n) * 0.16)); }
+    return null;
+  }
+}
+
+// ---------- bia anh that (fen 14/11 gui anh mau TikTok: anh that cam may, chu vang rat to chu hep vien toi + dong nghieng trang; "style kieu co anh that r thumbnail") ----------
+// Anh that cua bai phu kin trang (khong lam mo, khong ve them may), chu thumbnail de len. Goi ngay sau newDoc.
+// o = { anh: "ten-anh.jpg" (tim o thu muc anh cua bai, roi "Anh tai ve") hoac duong dan day du,
+//       cat: [rongAnh, catTrai, catTren, catRong] (tuy chon, nhu bgPhoto; khong co thi tu cat phu kin, giu diem tam [x, y] 0..1 o giua),
+//       t1: "dòng tiêu đề 1", t2: "dòng 2" (tuy chon), nho: "dòng nghiêng", vi_tri: "giua" | "tren" | "duoi" (cho trong cua anh), toi: 0..60 }
+function themeTimAnh(f) {
+  if (!f) return null;
+  if (/^[A-Za-z]:[\\\/]|^[\\\/~]/.test(f)) { var g0 = new File(f); return g0.exists ? g0 : null; }
+  var ds = [];
+  if (typeof A == "string") ds.push(A);
+  if (typeof TN == "string") ds.push(TN);
+  if (typeof IMG == "string") ds.push(IMG);
+  for (var i = 0; i < ds.length; i++) { var g = new File(ds[i] + f); if (g.exists) return g; }
+  return null;
+}
+function themeAnhPhu(o) {
+  var f = themeTimAnh(o.anh);
+  if (!f) { THEME_LOG += "Theme: khong thay anh bia " + o.anh + " (giu nen theme)\n"; return null; }
+  var L = placeSO(f.fsName, "Ảnh thật - bìa"), q = bb(L);
+  if (o.cat && o.cat.length >= 4) fitSO(L, o.cat[0], o.cat[1], o.cat[2], o.cat[3], 0, 0, W);
+  else {
+    var w = q[2] - q[0], h = q[3] - q[1], s = Math.max(W / w, H / h) * 100;
+    L.resize(s, s, AnchorPosition.TOPLEFT); q = bb(L); w = q[2] - q[0]; h = q[3] - q[1];
+    var tm = o.tam || [0.5, 0.5];
+    var x = Math.min(0, Math.max(W - w, W / 2 - tm[0] * w)), y = Math.min(0, Math.max(H - h, H / 2 - tm[1] * h));
+    L.translate(x - q[0], y - q[1]);
+  }
+  try { L.rasterize(RasterizeType.ENTIRELAYER); } catch (e) {}
+  return L;
+}
+function themeDoiMuc(it, dx, dy) { for (var i = 0; i < it.ls.length; i++) it.ls[i].translate(dx, dy); }
+function biaAnhThat(o) {
+  o = o || {};
+  var Ph = themeAnhPhu(o), toi = o.toi != null ? o.toi : (THEME.bia_toi || 0), cx = W / 2;
+  if (Ph && toi > 0) { var O = rect(0, 0, W, H, 0, "000000", "Lớp tối ảnh bìa"); O.opacity = toi; }
+  if (Ph && THEME.bia_day) themeDayToi(THEME.bia_day[0], THEME.bia_day[1]);          // theme "Ảnh thật · Đáy tối"
+  var trai = THEME.bia_can == "trai", x0 = THEME.bia_x || 84, can = trai ? Justification.LEFT : Justification.CENTER;
+  var Br = THEME_TEXT0("POLY STORE", F.B, 22, "FFFFFF", trai ? x0 : cx, 96, { track: 200, align: can, name: "Thương hiệu" });
+  if (trai) { var qb = bb(Br); Br.translate(x0 - qb[0], 0); } else themeGiua(Br, cx);
+  var co = o.co || THEME.bia_co || 150, tr = THEME.bia_track || 0, it = [], dong = [o.t1, o.t2];
+  if (o.tren) {      // dong nho tren tieu de (vd "MẸO IPHONE"), chu hep vang gian chu
+    var K = THEME_TEXT0(o.tren, F.K || F.B, THEME.bia_co_tren || 34, THEME.bia_mau_tren || THEME.vang || "FFD400", cx, 0, { track: THEME.bia_track_tren != null ? THEME.bia_track_tren : 200, align: can, maxW: W - 140, name: "Dòng nhỏ trên tiêu đề" });
+    it.push({ ls: [K], m: K, gap: THEME.bia_cach_tren != null ? THEME.bia_cach_tren : 20 });
+  }
+  for (var i = 0; i < dong.length; i++) {
+    if (!dong[i]) continue;
+    var T = THEME_TEXT0(dong[i], F.T, co, i == 0 ? THEME.bia_mau : (THEME.bia_mau2 || THEME.bia_mau), cx, 0, { track: tr, align: can, maxW: W - 120, name: "Tiêu đề bìa - dòng " + (i + 1) });
+    if (THEME.bia_vien) THEME_FX0(T, { stroke: THEME.bia_vien });
+    it.push({ ls: [T], m: T, gap: THEME.bia_gian || 10 });
+  }
+  if (o.nho) {
+    var S = THEME_TEXT0(o.nho, F.P || F.B, THEME.bia_co_phu || 60, THEME.bia_mau_phu || "FFFFFF", cx, 0, { align: can, maxW: W - 140, name: "Dòng nghiêng bìa" });
+    if (THEME.bia_vien_phu) THEME_FX0(S, { stroke: THEME.bia_vien_phu });
+    it.push({ ls: [S], m: S, gap: 0 });
+    if (it.length > 1) it[it.length - 2].gap = THEME.bia_cach_phu != null ? THEME.bia_cach_phu : 24;
+  }
+  if (!it.length) return;
+  var tong = 0;
+  for (var j = 0; j < it.length; j++) { var b = bb(it[j].m); tong += b[3] - b[1] + (j < it.length - 1 ? it[j].gap : 0); }
+  var vt = o.vi_tri || THEME.bia_vi_tri || "giua", y = vt == "tren" ? 190 : (vt == "duoi" ? H - 150 - tong : Math.round((H - tong) / 2 + (THEME.bia_lech || 0)));
+  for (var k = 0; k < it.length; k++) {
+    var bk = bb(it[k].m);
+    themeDoiMuc(it[k], Math.round(trai ? x0 - bk[0] : cx - (bk[0] + bk[2]) / 2), Math.round(y - bk[1]));
+    y += bk[3] - bk[1] + it[k].gap;
+  }
+}
+
+// ---------- bia anh trong khung sang (theme "Ảnh thật · Nền sáng", fen 14/11 13h30) ----------
+// Nen kem, anh that cua bai nam trong o bo goc phia tren, duoi la tieu de chu hep den rat to can trai + vach vang to duoi 1 dong + dong nghieng xam.
+// o = { anh, tam: [x, y] 0..1, t1, t2, nho, vach: 1 | 2 (dong tieu de co vach vang, mac dinh dong cuoi) }. THEME.bia_khung = { t, b, le, rad, x }
+function biaAnhKhung(o) {
+  o = o || {};
+  var k = THEME.bia_khung || {}, le = k.le || 60, l = le, t = k.t || 150, r = W - le, b = k.b || 860, rad = k.rad || 28, x0 = k.x || 84;
+  var f = themeTimAnh(o.anh);
+  if (f) {
+    var L = placeSO(f.fsName, "Ảnh thật - bìa"), q = bb(L), w = q[2] - q[0], h = q[3] - q[1], s = Math.max((r - l) / w, (b - t) / h) * 100;
+    L.resize(s, s, AnchorPosition.TOPLEFT); q = bb(L); w = q[2] - q[0]; h = q[3] - q[1];
+    var tm = o.tam || [0.5, 0.5];
+    var x = Math.min(l, Math.max(r - w, (l + r) / 2 - tm[0] * w)), y0 = Math.min(t, Math.max(b - h, (t + b) / 2 - tm[1] * h));
+    L.translate(x - q[0], y0 - q[1]);
+    try { L.rasterize(RasterizeType.ENTIRELAYER); } catch (e) {}
+  } else THEME_LOG += "Theme: khong thay anh bia " + o.anh + "\n";
+  themeKhungSang(l, t, r, b, rad, THEME.bia_nen || "F5F2EB", "Nền sáng bìa");
+  var mc = THEME.bia_chu || "141414";
+  var Br = THEME_TEXT0("POLY STORE", F.B, 22, mc, x0, 96, { track: 200, name: "Thương hiệu" });
+  var qb = bb(Br); Br.translate(x0 - qb[0], 96 - qb[1]);
+  var co = o.co || THEME.bia_co || 150, tr = THEME.bia_track || 0, ls = [], dong = [o.t1, o.t2], vach = o.vach || (o.t2 ? 2 : 1), Tv = null;
+  for (var i = 0; i < dong.length; i++) {
+    if (!dong[i]) continue;
+    var T = THEME_TEXT0(dong[i], F.T, co, i == 0 ? (THEME.bia_mau || mc) : (THEME.bia_mau2 || THEME.bia_mau || mc), x0, 0, { track: tr, maxW: W - 2 * x0, name: "Tiêu đề bìa - dòng " + (i + 1) });
+    ls.push([T, THEME.bia_gian || 8]);
+    if (i + 1 == vach) Tv = T;
+  }
+  if (o.nho) { var S = THEME_TEXT0(o.nho, F.P || F.B, THEME.bia_co_phu || 54, THEME.bia_mau_phu || "3F3F46", x0, 0, { maxW: W - 2 * x0, name: "Dòng nghiêng bìa" }); if (ls.length) ls[ls.length - 1][1] = THEME.bia_cach_phu != null ? THEME.bia_cach_phu : 26; ls.push([S, 0]); }
+  if (!ls.length) return;
+  var tong = 0;
+  for (var j = 0; j < ls.length; j++) { var qj = bb(ls[j][0]); tong += qj[3] - qj[1] + (j < ls.length - 1 ? ls[j][1] : 0); }
+  var yy = Math.round(b + (H - b - tong) / 2 - 8);
+  for (var m = 0; m < ls.length; m++) { var qm = bb(ls[m][0]); ls[m][0].translate(x0 - qm[0], yy - qm[1]); yy += qm[3] - qm[1] + ls[m][1]; }
+  if (Tv) {      // vach vang to nua duoi dong tieu de (nhu but da quang), nam sau chu
+    var qv = bb(Tv), V = rect(qv[0] - 12, qv[1] + Math.round((qv[3] - qv[1]) * 0.5), qv[2] + 12, qv[3] + 8, 0, THEME.vach || THEME.vang || "FFD400", "Vạch vàng");
+    try { V.move(Tv, ElementPlacement.PLACEAFTER); } catch (e2) {}
+  }
+}
+
+// ---------- bia kieu quang cao san pham (fen 12/11 21h32 gui anh mau + "cover anh nay lam thumbnail") ----------
+// Dong nho (dong may) + TEN MAY RAT TO o tren, slogan 2 dong giua, 1-3 may xoe quat giua trang, 2 thong so 2 ben (so to + nhan vien trang), dong chu nho cuoi.
+// o = { dong: "iPad", ten: "GEN 11", sl1: "...", sl2: "...", may: ["file.png", ...] (anh nen trong trong thu muc anh cua bai),
+//       trai: ["A16", "Chip mạnh"], phai: ["128GB", "Bộ nhớ"], chan: "..." }. Goi ngay sau newDoc (+ bgPhoto neu theme glass).
+function themeDat(file, l, t, r, b, xoay, name) {
+  var L = placeSO(file, name), q = bb(L);
+  var s = Math.min((r - l) / (q[2] - q[0]), (b - t) / (q[3] - q[1])) * 100;
+  L.resize(s, s, AnchorPosition.MIDDLECENTER); q = bb(L);
+  L.translate((l + r) / 2 - (q[0] + q[2]) / 2, (t + b) / 2 - (q[1] + q[3]) / 2);
+  if (xoay) L.rotate(xoay, AnchorPosition.MIDDLECENTER);
+  return L;
+}
+function themeGiua(L, cx) { var q = bb(L); L.translate(cx - (q[0] + q[2]) / 2, 0); return bb(L); }
+function themeDuoi(L, y) { var q = bb(L); L.translate(0, y - q[1]); return bb(L); }
+function biaSanPham(o) {
+  var AA = typeof A != "undefined" ? A : (typeof TN != "undefined" ? TN : "");    // thu muc anh cua bai: iPad A, Laptop TN
+  var cx = W / 2, TF = THEME.font_bia ? pick(THEME.font_bia.concat([F.T])) : F.T, mau = THEME.bia_mau || THEME.vang;
+  text("POLY STORE", F.B, 22, C.WHITE, 96, 112, { track: 200, name: "Thương hiệu" });
+  var y = 150, q;
+  if (o.dong) { var D = text(o.dong, F.B, 50, C.WHITE, cx, 200, { align: Justification.CENTER, name: "Dòng máy" }); themeGiua(D, cx); q = themeDuoi(D, y); y = q[3] + 6; }
+  var T = text(o.ten, TF, 200, mau, cx, 420, { align: Justification.CENTER, maxW: 960, name: "Tên máy" });
+  themeGiua(T, cx); q = themeDuoi(T, y); y = q[3] + 44;
+  if (o.sl1) { var S1 = text(o.sl1, F.R || F.B, 46, C.WHITE, cx, 600, { align: Justification.CENTER, maxW: 900, name: "Slogan 1" }); themeGiua(S1, cx); q = themeDuoi(S1, y); y = q[3] + 14; }
+  if (o.sl2) { var S2 = text(o.sl2, F.B, 56, C.WHITE, cx, 680, { align: Justification.CENTER, maxW: 900, name: "Slogan 2" }); themeGiua(S2, cx); q = themeDuoi(S2, y); y = q[3]; }
+  // 2 thong so (so to + nhan vien trang) thanh 1 hang duoi slogan, 2 ben; may nam ngang rong nen khong dat de len may
+  function so(arr, x, cy, name) {
+    if (!arr) return;
+    var V = text(arr[0], TF, 60, C.WHITE, x, cy, { align: Justification.CENTER, maxW: 300, name: name + " - số" });
+    themeGiua(V, x); var qv = themeDuoi(V, cy);
+    var Lb = text(arr[1], F.B, 26, C.WHITE, x, qv[3] + 54, { align: Justification.CENTER, maxW: 260, name: name + " - nhãn" });
+    var ql = themeGiua(Lb, x), w = ql[2] - ql[0], h0 = 52, cyl = qv[3] + 18 + h0 / 2;
+    Lb.translate(0, cyl - (ql[1] + ql[3]) / 2);
+    var P = rect(x - w / 2 - 24, cyl - h0 / 2, x + w / 2 + 24, cyl + h0 / 2, h0 / 2, "FFFFFF", name + " - viền");
+    P.fillOpacity = THEME.nen_kieu == "kinh" ? 12 : 0;
+    THEME_FX0(P, { stroke: { hex: "FFFFFF", size: 2, op: 90, inside: true } });
+    P.move(Lb, ElementPlacement.PLACEAFTER);
+    return cyl + h0 / 2;
+  }
+  var y2 = y;
+  if (o.trai || o.phai) { y2 = Math.max(so(o.trai, 290, y + 50, "Thông số trái") || 0, so(o.phai, W - 290, y + 50, "Thông số phải") || 0); }
+  // may xoe quat: 2 may ben nghieng ra (dat truoc, nam duoi), may giua thang nam tren
+  var top = y2 + 50, bot = o.chan ? 1310 : 1350, ds = o.may || [], n = ds.length;
+  var bong = oval(cx - 340, bot - 30, cx + 340, bot + 30, "000000", "Bóng dưới máy");
+  bong.rasterize(RasterizeType.ENTIRELAYER); app.activeDocument.activeLayer = bong; gblur(28); bong.opacity = 45;
+  if (n >= 3) {
+    themeDat(AA + ds[1], 40, top + 70, cx + 40, bot - 30, -8, "Máy trái");
+    themeDat(AA + ds[2], cx - 40, top + 70, W - 40, bot - 30, 8, "Máy phải");
+  } else if (n == 2) {
+    themeDat(AA + ds[1], cx - 80, top + 50, W - 30, bot - 20, 8, "Máy phải");
+  }
+  if (n) themeDat(AA + ds[0], n >= 2 ? 150 : 60, top, n >= 2 ? W - 150 : W - 60, bot, 0, "Máy giữa");
+  if (o.chan) { var Cn = text(o.chan, F.B, 24, C.WHITE, cx, 1380, { align: Justification.CENTER, maxW: 880, name: "Dòng nhỏ cuối" }); Cn.opacity = 80; themeGiua(Cn, cx); }
+}
+
+// ---------- bia kieu tinh nang (fen 12/11 21h34 gui anh mau thu 2 + "cover thumnail") ----------
+// Nen toi cua theme, 2 dong tieu de giua (dong 1 mau nhan, dong 2 trang), 2 dong mo ta, SO / CHU RAT TO mo phia sau,
+// 1-2 may to nghieng tran mep duoi (may 1 ben trai, may 2 ben phai).
+// o = { t1: "Màn 120Hz mượt", t2: "iPad Pro M2", mo: "dòng 1\rdòng 2", so: "M2", may: ["a.png", "b.png"] }
+function biaTinhNang(o) {
+  var AA = typeof A != "undefined" ? A : (typeof TN != "undefined" ? TN : "");
+  var cx = W / 2, TF = THEME.font_bia ? pick(THEME.font_bia.concat([F.T])) : F.T, mau = THEME.bia_mau || THEME.vang, q, y = 170;
+  text("POLY STORE", F.B, 22, C.WHITE, 96, 112, { track: 200, name: "Thương hiệu" });
+  if (o.so) {
+    var So = text(o.so, TF, 760, THEME.so_mau || "FFFFFF", cx, 1300, { align: Justification.CENTER, name: "Số to mờ" });
+    So.opacity = THEME.so_mo || 7; themeGiua(So, cx); themeDuoi(So, 560);
+  }
+  // kieu "nho-to" (anh mau "Lifelike Visuals"): dong 1 nho trang, dong 2 rat to mau nhan (chuyen sac neu theme co bia_sac)
+  var nt = o.kieu == "nho-to";
+  var T1 = text(o.t1, TF, nt ? 54 : 92, nt ? C.WHITE : mau, cx, 300, { align: Justification.CENTER, maxW: 940, name: "Tiêu đề - dòng 1" });
+  themeGiua(T1, cx); q = themeDuoi(T1, y); y = q[3] + (nt ? 18 : 14);
+  var T2 = text(o.t2, TF, nt ? 128 : 92, nt ? mau : C.WHITE, cx, 420, { align: Justification.CENTER, maxW: 960, name: "Tiêu đề - dòng 2" });
+  themeGiua(T2, cx); q = themeDuoi(T2, y); y = q[3] + 34;
+  if (nt && THEME.bia_sac) themeChuyenSac(T2, THEME.bia_sac[0], THEME.bia_sac[1], 0);
+  if (o.mo) { var M = text(o.mo, F.B, 38, C.WHITE, cx, 560, { align: Justification.CENTER, maxW: 860, lead: 52, name: "Mô tả" }); M.opacity = 92; themeGiua(M, cx); q = themeDuoi(M, y); y = q[3]; }
+  var ds = o.may || [], top = Math.max(y + 70, 600);
+  if (ds.length >= 2) {
+    themeDat(AA + ds[0], -330, top + 40, 600, H + 260, -14, "Máy trái");
+    themeDat(AA + ds[1], 330, top + 140, W + 360, H + 330, 16, "Máy phải");
+  } else if (ds.length) {
+    themeDat(AA + ds[0], o.may_trai || -40, top + 20, W + (o.may_phai || 260), H + 220, o.xoay == null ? -10 : o.xoay, "Máy");
+  }
+}
+
+// chu chuyen sac 2 mau (gradient overlay cua layer, phang - khong noi khoi). Loi thi giu mau dac.
+function themeChuyenSac(L, c1, c2, goc) {
+  try {
+    app.activeDocument.activeLayer = L;
+    var c2t = charIDToTypeID, d = new ActionDescriptor(), r = new ActionReference();
+    r.putProperty(c2t("Prpr"), c2t("Lefx"));
+    r.putEnumerated(c2t("Lyr "), c2t("Ordn"), c2t("Trgt"));
+    d.putReference(c2t("null"), r);
+    var fe = new ActionDescriptor(); fe.putUnitDouble(c2t("Scl "), c2t("#Prc"), 100);
+    var g = new ActionDescriptor();
+    g.putBoolean(c2t("enab"), true);
+    g.putEnumerated(c2t("Md  "), c2t("BlnM"), c2t("Nrml"));
+    g.putUnitDouble(c2t("Opct"), c2t("#Prc"), 100);
+    var gr = new ActionDescriptor();
+    gr.putString(c2t("Nm  "), "Theme");
+    gr.putEnumerated(c2t("GrdF"), c2t("GrdF"), c2t("CstS"));
+    gr.putDouble(c2t("Intr"), 4096);
+    var cl = new ActionList();
+    function stop(hex, loc) { var x = new ActionDescriptor(); x.putObject(c2t("Clr "), c2t("RGBC"), rgbDesc(hex)); x.putEnumerated(c2t("Type"), c2t("Clry"), c2t("UsrS")); x.putInteger(c2t("Lctn"), loc); x.putInteger(c2t("Mdpn"), 50); return x; }
+    cl.putObject(c2t("Clrt"), stop(c1, 0)); cl.putObject(c2t("Clrt"), stop(c2, 4096));
+    gr.putList(c2t("Clrs"), cl);
+    var tl = new ActionList();
+    function ts(loc) { var x = new ActionDescriptor(); x.putUnitDouble(c2t("Opct"), c2t("#Prc"), 100); x.putInteger(c2t("Lctn"), loc); x.putInteger(c2t("Mdpn"), 50); return x; }
+    tl.putObject(c2t("TrnS"), ts(0)); tl.putObject(c2t("TrnS"), ts(4096));
+    gr.putList(c2t("Trns"), tl);
+    g.putObject(c2t("Grad"), c2t("Grdn"), gr);
+    g.putUnitDouble(c2t("Angl"), c2t("#Ang"), goc || 0);
+    g.putEnumerated(c2t("Type"), c2t("GrdT"), c2t("Lnr "));
+    g.putBoolean(c2t("Rvrs"), false); g.putBoolean(c2t("Algn"), true);
+    g.putUnitDouble(c2t("Scl "), c2t("#Prc"), 100);
+    fe.putObject(c2t("GrFl"), c2t("GrFl"), g);
+    d.putObject(c2t("T   "), c2t("Lefx"), fe);
+    executeAction(c2t("setd"), d, DialogModes.NO);
+  } catch (e) { THEME_LOG += "Theme: chu chuyen sac loi (" + e.message + "), giu mau dac\n"; }
+}
+
+// ---------- bia toi gian (fen 12/11 21h52 anh mau "iPhone 11" + "lam anh nay thanh theme luon") ----------
+// Nen den tron, TEN MAY chu manh can trai, 2 gach ngan kep 2-4 dong mo ta nho, anh can 1 goc may (cum camera) rat to tran goc duoi phai.
+// o = { ten: "iPad Pro M4", mo: ["dòng 1", "dòng 2", "dòng 3"], may: "file.png", hop: [trai, tren, rong] (khung dat anh, rong > W de phong to 1 goc) }
+function biaToiGian(o) {
+  var AA = typeof A != "undefined" ? A : (typeof TN != "undefined" ? TN : "");
+  var x = o.x || 210, y = 150, q, TF = THEME.font_bia ? pick(THEME.font_bia.concat([F.T])) : F.T;
+  text("POLY STORE", F.B, 22, C.WHITE, 96, 80, { track: 200, name: "Thương hiệu" });
+  if (o.may) {   // anh dat truoc (nam duoi chu)
+    var h = o.hop || [230, 560, 2600];
+    var L = placeSO(AA + o.may, "Ảnh cận máy"), b0 = bb(L), k = h[2] / (b0[2] - b0[0]) * 100;
+    L.resize(k, k, AnchorPosition.TOPLEFT); b0 = bb(L); L.translate(h[0] - b0[0], h[1] - b0[1]);
+  }
+  var T = text(o.ten, TF, 128, C.WHITE, x, 300, { maxW: 1080 - x - 60, name: "Tên máy" });
+  q = bb(T); T.translate(x - q[0], y - q[1]); q = bb(T); y = q[3] + 52;
+  var mo = o.mo || [];
+  if (mo.length) {
+    rect(x, y, x + 70, y + 3, 0, "FFFFFF", "Gạch trên"); y += 44;
+    for (var i = 0; i < mo.length; i++) {
+      var M = text(mo[i], F.R || F.B, 32, C.WHITE, x, y + 30, { maxW: 700, name: "Mô tả " + (i + 1) });
+      var qm = bb(M); M.translate(x - qm[0], 0); y += 52;
+    }
+    y += 18; rect(x, y, x + 70, y + 3, 0, "FFFFFF", "Gạch dưới");
+  }
+}
+
+
+// _noel.jsx: theme "Noel · Poly Christmas" (fen 14/11 17h59 gui banner POLY CHRISTMAS "theme style nay", chon "Theme Photoshop Noel moi").
+// tao.py noi file nay vao theme co "them": ["_noel.jsx"]. Anh trang tri ve san bang theme-ps/<id>/tao_anh.py (PIL) trong theme-ps/<id>/anh:
+// nen thong (2 ban xen ke), chau do / xanh / trang, keo gay, day den, tuyet day, phieu uu dai vien thu may bay, tem rang cua, dau buu dien,
+// soc cheo de lot chu (soc-trang tren chu do, soc-xanh tren chu trang). Banner la mau rieng cua shop nen theme nay duoc trang tri nhieu
+// hon luat "khong sen" chung, nhung van phang: khong bong mo, khong phat sang; chi 1 bong cung xanh dam lech 5px duoi tieu de nhu banner.
+var NOEL_DIR = (typeof THEME_DIR != "undefined" ? THEME_DIR : "") + "/anh/";
+var FSC = pick((THEME.font_script || []).concat([F.B]));      // chu viet tay tren phieu ("Mua iPad giảm", "— Poly Store")
+var NOEL_DO = THEME.do || "E23B32", NOEL_XANH = THEME.noel_xanh || "1F5A3A", NOEL_BONG = THEME.noel_bong || "0A1E14";
+// 14/11 21h: fen "thêm theme christmas" -> 4 theme Noel khac mau (Do nhung, Trang tuyet, Anh that, Dem xanh) dung chung file nay, khac nhau o khoa theme:
+// noel_nen [anh nen le, chan] ([] = theme anh that: nen la anh cua bai), noel_t1 / noel_t2 [mau, anh soc] 2 dong tieu de bia, noel_soc_tieu soc tieu de trang trong,
+// noel_chu mau chu chinh tren nen (bia + theme nen sang), noel_nhan mau chu *nhan* dong dam, noel_uu mau dong uu dai, noel_chau [[chau trang le], [chau trang chan]],
+// noel_chau_bia [3 chau canh dong dam bia], noel_tuyet anh tuyet day, noel_keo (keo gay), noel_day mau day treo, noel_sang (nen sang: chu tieu de / phu de / thuong hieu / khung y doi mau)
+var NOEL_NEN = THEME.noel_nen || ["nen-1.jpg", "nen-2.jpg"], NOEL_T1 = THEME.noel_t1 || [NOEL_DO, "soc-trang.png"], NOEL_T2 = THEME.noel_t2 || ["FFFFFF", "soc-xanh.png"];
+var NOEL_SOC_TIEU = THEME.noel_soc_tieu || "soc-xanh.png", NOEL_CHU = THEME.noel_chu || "FFFFFF", NOEL_NHAN = THEME.noel_nhan || NOEL_DO, NOEL_UU = THEME.noel_uu || THEME.vang || "F5C542";
+var NOEL_CHAU = THEME.noel_chau || [["chau-trang.png", "chau-do.png"], ["chau-xanh.png", "chau-do.png"]], NOEL_CHAU_BIA = THEME.noel_chau_bia || ["chau-do.png", "chau-trang.png", "chau-xanh.png"];
+var NOEL_TUYET = THEME.noel_tuyet || "tuyet.png", NOEL_KEO = THEME.noel_keo !== false, NOEL_DAY = THEME.noel_day || "C9A24A";
+function noelAnh(ten, name) {
+  var f = new File(NOEL_DIR + ten);
+  if (!f.exists) { RUN += "   noel: thieu anh " + ten + "\n"; return null; }
+  return placeSO(f.fsName, name || ten);
+}
+// dat 1 anh trang tri: rong w, tam (cx, cy), xoay goc (do, duong = theo chieu kim dong ho)
+function noelDat(ten, cx, cy, w, goc, name) {
+  var L = noelAnh(ten, name);
+  if (!L) return null;
+  var q = bb(L), s = w / (q[2] - q[0]) * 100;
+  L.resize(s, s, AnchorPosition.MIDDLECENTER);
+  if (goc) L.rotate(goc, AnchorPosition.MIDDLECENTER);
+  q = bb(L); L.translate(cx - (q[0] + q[2]) / 2, cy - (q[1] + q[3]) / 2);
+  return L;
+}
+// chau treo: day mong tu mep tren xuong nap chau
+function noelChau(ten, cx, cy, w, name, khongTreo) {
+  var L = noelDat(ten, cx, cy, w, 0, name);
+  if (L && !khongTreo && THEME.noel_day_treo !== false) {
+    var q = bb(L), D = rect(Math.round(cx) - 1, 0, Math.round(cx) + 1, q[1] + 4, 0, NOEL_DAY, (name || "Châu") + " - dây treo");
+    D.move(L, ElementPlacement.PLACEAFTER);
+  }
+  return L;
+}
+// chu co de cho vua rong
+function noelVua(T, maxW) {
+  var q = bb(T), w = q[2] - q[0];
+  if (w > maxW) { try { T.textItem.size = new UnitValue(Math.floor(T.textItem.size.as("px") * maxW / w), "px"); } catch (e) { T.resize(maxW / w * 100, maxW / w * 100, AnchorPosition.TOPLEFT); } }
+  return T;
+}
+// chu soc keo (nhu "POLY" do soc hong, "CHRISTMAS" trang soc xanh nhat trong banner): soc cheo cat theo chu + bong cung xanh dam lech nhe
+function noelSoc(T, soc, lech) {
+  var doc = app.activeDocument;
+  try {
+    if (lech !== 0) {
+      var D = T.duplicate();
+      D.textItem.color = col(NOEL_BONG);
+      D.move(T, ElementPlacement.PLACEAFTER);
+      D.translate(lech || 5, lech || 5);
+      D.name = T.name + " - bóng";
+    }
+    doc.activeLayer = T;
+    var q = bb(T), S = noelAnh(soc, T.name + " - sọc");
+    if (!S) return T;
+    var qs = bb(S), k = Math.max((q[2] - q[0] + 60) / (qs[2] - qs[0]), (q[3] - q[1] + 40) / (qs[3] - qs[1]), 0.35) * 100;
+    S.resize(k, k, AnchorPosition.MIDDLECENTER); qs = bb(S);
+    S.translate((q[0] + q[2]) / 2 - (qs[0] + qs[2]) / 2, (q[1] + q[3]) / 2 - (qs[1] + qs[3]) / 2);
+    S.grouped = true;
+  } catch (e) { RUN += "   noel: soc chu loi (" + e.message + ")\n"; }
+  return T;
+}
+// 3 vach do toa ra canh tieu de (nhu banner)
+function noelVach(x, cy, huong, name) {
+  var ps = [], h = huong || 1;
+  for (var i = -1; i <= 1; i++) {
+    var g = i * 26 * Math.PI / 180, x1 = x, y1 = cy + i * 16, x2 = x + h * Math.cos(g) * 38, y2 = y1 + Math.sin(g) * 38;
+    var dx = x2 - x1, dy = y2 - y1, d = Math.sqrt(dx * dx + dy * dy), nx = -dy / d * 3.5, ny = dx / d * 3.5;
+    ps.push([[x1 + nx, y1 + ny], [x2 + nx, y2 + ny], [x2 - nx, y2 - ny], [x1 - nx, y1 - ny]]);
+  }
+  var doc = app.activeDocument, L = doc.artLayers.add(); L.name = name || "Vạch đỏ";
+  for (var j = 0; j < ps.length; j++) doc.selection.select(ps[j], j ? SelectionType.EXTEND : SelectionType.REPLACE, 0, true);
+  doc.selection.fill(col(NOEL_DO)); doc.selection.deselect();
+  return L;
+}
+// gom cac lop vao 1 nhom
+function noelNhom(ls, ten) {
+  var G = app.activeDocument.layerSets.add(); G.name = ten;
+  for (var i = 0; i < ls.length; i++) if (ls[i]) { try { ls[i].move(G, ElementPlacement.INSIDE); } catch (e) { try { ls[i].move(G, ElementPlacement.PLACEATEND); } catch (e2) {} } }
+  return G;
+}
+
+// ---------- nen moi trang: anh nen (2 ban xen ke) + chau goc phai tren + keo gay goc trai duoi + tuyet day ----------
+// theme anh that (noel_nen []): nen phang cua theme, bgPhoto ve anh cua bai roi ve lai chau + tuyet len tren anh
+function noelTrangTri(lai) {
+  var doc = app.activeDocument;
+  if (lai) {
+    try { doc.layerSets.getByName("Trang trí Noel").remove(); } catch (e) {}
+    try { doc.artLayers.getByName("Tuyết đáy").remove(); } catch (e2) {}
+  }
+  var ls = [], c = NOEL_CHAU[THEME_N % 2 ? 0 : 1] || NOEL_CHAU[0];
+  if (THEME_N % 2) {
+    if (c[0]) ls.push(noelChau(c[0], W - 212, 112, 78, "Châu 1"));
+    if (c[1]) ls.push(noelChau(c[1], W - 112, 168, 116, "Châu 2"));
+  } else {
+    if (c[0]) ls.push(noelChau(c[0], W - 200, 136, 92, "Châu 1"));
+    if (c[1]) ls.push(noelChau(c[1], W - 96, 104, 84, "Châu 2"));
+  }
+  if (NOEL_KEO) ls.push(noelDat("keo-gay.png", 64, H - 230, 74, -14, "Kẹo gậy"));
+  noelNhom(ls, "Trang trí Noel");
+  noelDat(NOEL_TUYET, W / 2, H - 95, W + 8, 0, "Tuyết đáy");
+}
+var NOEL_NEN0 = themeNen;
+themeNen = function () {
+  NOEL_NEN0();
+  if (NOEL_NEN.length) {
+    var L = noelAnh(NOEL_NEN[THEME_N % 2 ? 0 : 1] || NOEL_NEN[0], "Nền Noel");
+    if (L) { var q = bb(L); L.resize(W / (q[2] - q[0]) * 100, H / (q[3] - q[1]) * 100, AnchorPosition.TOPLEFT); q = bb(L); L.translate(-q[0], -q[1]); }
+  }
+  noelTrangTri(false);
+};
+if (THEME.nen_kieu == "kinh") {
+  var NOEL_BG0 = bgPhoto;
+  bgPhoto = function () {
+    var r = NOEL_BG0.apply(this, arguments);
+    if (arguments[0]) noelTrangTri(true);          // co anh: chau + tuyet ve lai len tren anh mo
+    return r;
+  };
+}
+// nen sang (Trang tuyet): chu trang nam tren nen trang doi sang mau chu theme; khung y (lib: trang trong 10%) thanh the dac mau theme
+if (THEME.noel_sang) {
+  var NOEL_TEXT0 = text;
+  text = function (str, font, size, h, x, y, o) {
+    var nm = o && o.name;
+    if (h == C.WHITE && (nm == "Thương hiệu" || nm == "Tiêu đề" || nm == "Phụ đề")) h = NOEL_CHU;
+    return NOEL_TEXT0(str, font, size, h, x, y, o);
+  };
+  var NOEL_RECT0 = rect, NOEL_KHUNG = null;
+  rect = function (l, t, r, b, rad, hex, name) {
+    var khung = name == "Khung ý" && hex == C.WHITE, chip = hex == C.BLACK && /Chip xem tiếp - nền$/.test(name || "");
+    var L = NOEL_RECT0(l, t, r, b, rad, khung || chip ? (THEME.noel_khung || THEME.the) : hex, name);
+    if (khung) NOEL_KHUNG = L;
+    return L;
+  };
+  // chip "Xem tiep" (lib: den trong 50% -> xam duc tren nen sang): dac mau theme
+  if (typeof hook == "function") {
+    var NOEL_HOOK0 = hook;
+    hook = function (label) {
+      var r = NOEL_HOOK0(label);
+      try { app.activeDocument.artLayers.getByName("Chip xem tiếp - nền").fillOpacity = 100; } catch (e) {}
+      return r;
+    };
+  }
+  var NOEL_LI0 = liGroup;
+  liGroup = function (items, top, name) {
+    NOEL_KHUNG = null;
+    var r = NOEL_LI0(items, top, name);
+    if (NOEL_KHUNG) { try { NOEL_KHUNG.fillOpacity = 100; } catch (e) {} }
+    return r;
+  };
+}
+
+// ---------- trang noi dung: tieu de trang soc xanh nhat + bong cung (nhu chu CHRISTMAS) ----------
+var NOEL_HEADC0 = headC;
+headC = function (n, bg, pillTxt, t, sub, op, blur) {
+  var d = NOEL_HEADC0(n, bg, pillTxt, t, sub, op, blur);
+  try { noelSoc(d.artLayers.getByName("Tiêu đề"), NOEL_SOC_TIEU, 4); } catch (e) { RUN += "   noel: tieu de soc loi (" + e.message + ")\n"; }
+  return d;
+};
+
+// ---------- phieu uu dai (nhu thiep trong banner): giay kem vien thu may bay, chu viet tay, gia do, tem, dau buu dien, "— Poly Store" ----------
+// p = { chu: "Mua iPad giảm", gia: "200K", tem: "HSSV", mau: "xanh" | "do" }
+function noelPhieu(p, l, t, w) {
+  var k = w / 466, h = Math.round(w * 280 / 480), ls = [];
+  var P = noelAnh("phieu.png", "Phiếu - " + (p.chu || p.gia || ""));
+  if (!P) return ls;
+  var q = bb(P), s = w / (q[2] - q[0]) * 100;
+  P.resize(s, s, AnchorPosition.TOPLEFT); q = bb(P); P.translate(l - q[0], t - q[1]); ls.push(P);
+  if (p.chu) ls.push(THEME_TEXT0(p.chu, FSC, Math.round(30 * k), NOEL_XANH, Math.round(l + 36 * k), Math.round(t + 66 * k), { name: "Phiếu - chữ" }));
+  if (p.gia) { var G = THEME_TEXT0(p.gia, F.T, Math.round(84 * k), NOEL_DO, Math.round(l + 32 * k), Math.round(t + 160 * k), { name: "Phiếu - giá" }); noelVua(G, w * 0.6); ls.push(G); }
+  // tem goc phai tren
+  var tw = Math.round(90 * k), tx = l + w - Math.round(34 * k) - tw, ty = t + Math.round(30 * k);
+  var Tm = noelAnh(p.mau == "do" ? "tem-do.png" : "tem-xanh.png", "Phiếu - tem");
+  if (Tm) {
+    var qt = bb(Tm), st = tw / (qt[2] - qt[0]) * 100; Tm.resize(st, st, AnchorPosition.TOPLEFT); qt = bb(Tm); Tm.translate(tx - qt[0], ty - qt[1]); qt = bb(Tm); ls.push(Tm);
+    var cx = (qt[0] + qt[2]) / 2, cy = (qt[1] + qt[3]) / 2;
+    var U = THEME_TEXT0("ƯU ĐÃI", F.B, Math.round(13 * k), "FFFFFF", cx, cy - 14 * k, { align: Justification.CENTER, name: "Phiếu - tem chữ" }); ls.push(U);
+    var V = THEME_TEXT0(p.tem || "HSSV", F.B, Math.round(25 * k), "FFFFFF", cx, cy + 16 * k, { align: Justification.CENTER, name: "Phiếu - tem" }); noelVua(V, tw - 22 * k); ls.push(V);
+    var qv = bb(V); V.translate(cx - (qv[0] + qv[2]) / 2, 0);
+  }
+  // dau buu dien "NOEL <nam>" goc phai duoi
+  var dx = l + w - Math.round(96 * k), dy = t + h - Math.round(82 * k), Dg = noelDat("dau-buu-dien.png", dx, dy, Math.round(92 * k), 0, "Phiếu - dấu");
+  if (Dg) {
+    ls.push(Dg);
+    ls.push(THEME_TEXT0("NOEL", F.B, Math.round(14 * k), "7E857F", dx, dy - 2 * k, { align: Justification.CENTER, name: "Phiếu - dấu chữ" }));
+    ls.push(THEME_TEXT0(String(p.nam || THEME.noel_nam || new Date().getFullYear()), F.B, Math.round(14 * k), "7E857F", dx, dy + 16 * k, { align: Justification.CENTER, name: "Phiếu - dấu năm" }));
+  }
+  ls.push(rect(Math.round(l + 36 * k), Math.round(t + h - 78 * k), Math.round(l + w * 0.6), Math.round(t + h - 76 * k), 0, "CDBFA8", "Phiếu - kẻ"));
+  ls.push(THEME_TEXT0("— Poly Store", FSC, Math.round(24 * k), NOEL_XANH, Math.round(l + 36 * k), Math.round(t + h - 40 * k), { name: "Phiếu - ký" }));
+  noelNhom(ls, "Phiếu " + (p.gia || ""));
+  return ls;
+}
+
+// ---------- bia (nhu banner POLY CHRISTMAS): tieu de 2 dong soc keo, dong dam co chu do, dong uu dai vang, phieu, anh may, chau, den, keo ----------
+// o = { t1: "POLY" (do soc hong), t2: "CHRISTMAS" (trang soc xanh), nho: "NOEL *LÊN ĐỜI*\rMÁY XỊN" (*...* = chu do), uu_dai: "ƯU ĐÃI HỌC SINH · SINH VIÊN",
+//       phieu: [{chu, gia, tem, mau}] (0-2 phieu), anh: "ảnh máy nền trong.png", chan: "dòng địa chỉ / hotline trên tuyết" (mặc định THEME.noel_chan) }
+function biaNoel(o) {
+  o = o || {};
+  var doc = app.activeDocument, x0 = THEME.bia_x || 60, co = o.co || THEME.bia_co || 150, q, y = 60;
+  try { doc.layerSets.getByName("Trang trí Noel").remove(); } catch (e) {}
+  // tieu de
+  var T1 = THEME_TEXT0(o.t1 || "POLY", F.T, co, NOEL_T1[0], x0, co, { name: "Tiêu đề - dòng 1" });
+  noelVua(T1, W - 2 * x0 - 120); q = bb(T1); T1.translate(x0 - q[0], y - q[1]); q = bb(T1);
+  noelSoc(T1, NOEL_T1[1]);
+  noelVach(q[2] + 30, (q[1] + q[3]) / 2, 1, "Vạch đỏ cạnh tiêu đề");
+  y = q[3] + Math.round(co * 0.1);
+  if (o.t2 !== "") {
+    var T2 = THEME_TEXT0(o.t2 || "CHRISTMAS", F.T, co, NOEL_T2[0], x0, co, { name: "Tiêu đề - dòng 2" });
+    noelVua(T2, W - 2 * x0 - 10); q = bb(T2); T2.translate(x0 - q[0], y - q[1]); q = bb(T2);
+    noelSoc(T2, NOEL_T2[1]);
+    y = q[3];
+  }
+  y += 40;
+  // dong dam: *...* do
+  var cn = THEME.bia_co_phu || 64, lead = Math.round(cn * 1.16), dong = String(o.nho || "").split("\r"), yN = y;
+  for (var i = 0; i < dong.length && o.nho; i++) {
+    var x = x0, phan = dong[i].split("*"), base = y + cn;
+    for (var j = 0; j < phan.length; j++) {
+      if (!phan[j]) continue;
+      var Tn = THEME_TEXT0(phan[j], THEME.font_bia_phu ? pick(THEME.font_bia_phu.concat([F.B])) : F.B, cn, j % 2 ? NOEL_NHAN : NOEL_CHU, x, base, { name: "Dòng đậm " + (i + 1) });
+      var qn = bb(Tn); if (j == 0 && i == 0) Tn.translate(x0 - qn[0], 0);
+      x = bb(Tn)[2] + (/\s$/.test(phan[j]) || /^\s/.test(phan[j + 1] || "") ? Math.round(cn * 0.26) : 0);
+    }
+    y += lead;
+  }
+  if (o.nho) y += 18;
+  // dong uu dai vang + gach
+  if (o.uu_dai) {
+    var Uu = THEME_TEXT0(o.uu_dai, F.B, 28, NOEL_UU, x0, y + 28, { track: 60, name: "Dòng ưu đãi" });
+    q = bb(Uu); Uu.translate(x0 - q[0], 0); q = bb(Uu);
+    rect(q[2] + 20, Math.round((q[1] + q[3]) / 2) - 1, Math.min(W - x0, q[2] + 220), Math.round((q[1] + q[3]) / 2) + 2, 0, NOEL_UU, "Gạch ưu đãi");
+    y = q[3] + 26;
+  }
+  // chau canh dong dam (ben phai)
+  noelChau(NOEL_CHAU_BIA[0], W - 132, yN + 28, 112, "Châu 1", true);       // bia: chau nam, khong day treo (day cat ngang tieu de)
+  noelChau(NOEL_CHAU_BIA[1], W - 236, yN - 4, 74, "Châu 2", true);
+  noelChau(NOEL_CHAU_BIA[2], W - 52, yN + 88, 84, "Châu 3", true);
+  // phieu
+  var ps = o.phieu || [];
+  if (ps.length) {
+    var n = Math.min(2, ps.length), gap = 24, pw = n == 1 ? 520 : Math.floor((W - 2 * x0 + 10 - gap) / 2), ph = Math.round(pw * 280 / 480);
+    for (var k = 0; k < n; k++) noelPhieu(ps[k], x0 - 5 + k * (pw + gap), y, pw);
+    y += ph + 22;
+  }
+  // day den + keo gay tren tuyet, anh may dat len tren
+  noelDat("day-den.png", 300, H - 168, 620, -3, "Dây đèn");
+  if (NOEL_KEO) noelDat("keo-gay.png", W - 74, H - 250, 86, 14, "Kẹo gậy");
+  if (o.anh) {
+    var f = themeTimAnh(o.anh);
+    if (f) { var A1 = placeSO(f.fsName, "Ảnh máy"); fitBox(A1, 150, y + 6, W - 150, H - 112); }
+    else RUN += "   noel: khong thay anh may " + o.anh + "\n";
+  }
+  var chan = o.chan != null ? o.chan : THEME.noel_chan;
+  if (chan) {
+    var C = THEME_TEXT0(chan, F.B, 24, THEME.noel_xanh_dam || "16402B", W / 2, H - 30, { align: Justification.CENTER, maxW: W - 80, name: "Địa chỉ / hotline" });
+    q = bb(C); C.translate(W / 2 - (q[0] + q[2]) / 2, 0);
+  }
+  RUN += "   bia noel: phieu " + ps.length + ", anh " + (o.anh || "-") + "\n";
+}
+
+// ---------- bia theme anh that (Noel · Ảnh thật): anh that phu kin + day toi duoi, day den vat ngang tren, chau treo 2 goc, tuyet day,
+// cum chu o duoi (tieu de 2 dong soc keo, dong dam *nhan*, dong uu dai) xep tu duoi len tren tuyet ----------
+// o = { anh, tam: [x, y], toi: 0..60, t1, t2, nho, uu_dai, chan }
+function biaNoelAnh(o) {
+  o = o || {};
+  var doc = app.activeDocument, x0 = THEME.bia_x || 60, co = o.co || THEME.bia_co || 140, q;
+  try { doc.layerSets.getByName("Trang trí Noel").remove(); } catch (e) {}
+  try { doc.artLayers.getByName("Tuyết đáy").remove(); } catch (e2) {}
+  if (o.anh) themeAnhPhu({ anh: o.anh, tam: o.tam, toi: o.toi != null ? o.toi : 18 });
+  themeDayToi(THEME.bia_day ? THEME.bia_day[0] : 820, THEME.bia_day ? THEME.bia_day[1] : 88);
+  // trang tri: day den tren cung (2 doan), chau treo goc trai + phai, tuyet day
+  noelDat("day-den.png", 300, 46, 640, 2, "Dây đèn trái");
+  noelDat("day-den.png", W - 300, 40, 640, -3, "Dây đèn phải");
+  var cb = NOEL_CHAU_BIA;
+  noelChau(cb[0], W - 118, 236, 104, "Châu 1");
+  noelChau(cb[1], W - 228, 176, 70, "Châu 2");
+  noelChau(cb[2], 96, 206, 80, "Châu 3");
+  noelDat(NOEL_TUYET, W / 2, H - 95, W + 8, 0, "Tuyết đáy");
+  if (NOEL_KEO) noelDat("keo-gay.png", W - 70, H - 236, 80, 14, "Kẹo gậy");
+  // chu tu duoi len
+  var y = H - 158;
+  if (o.uu_dai) {
+    var Uu = THEME_TEXT0(o.uu_dai, F.B, 28, NOEL_UU, x0, y, { track: 60, name: "Dòng ưu đãi" });
+    q = bb(Uu); Uu.translate(x0 - q[0], 0); q = bb(Uu);
+    rect(q[2] + 20, Math.round((q[1] + q[3]) / 2) - 1, Math.min(W - x0, q[2] + 200), Math.round((q[1] + q[3]) / 2) + 2, 0, NOEL_UU, "Gạch ưu đãi");
+    y = q[1] - 34;
+  }
+  var cn = THEME.bia_co_phu || 60, lead = Math.round(cn * 1.16), dong = o.nho ? String(o.nho).split("\r") : [];
+  for (var i = dong.length - 1; i >= 0; i--) {
+    var x = x0, phan = dong[i].split("*"), first = true;
+    for (var j = 0; j < phan.length; j++) {
+      if (!phan[j]) continue;
+      var Tn = THEME_TEXT0(phan[j], F.B, cn, j % 2 ? NOEL_NHAN : NOEL_CHU, x, y, { name: "Dòng đậm " + (i + 1) });
+      if (first) { var qn = bb(Tn); Tn.translate(x0 - qn[0], 0); first = false; }
+      x = bb(Tn)[2] + (/\s$/.test(phan[j]) || /^\s/.test(phan[j + 1] || "") ? Math.round(cn * 0.26) : 0);
+    }
+    y -= lead;
+  }
+  y -= o.nho ? Math.round(cn * 0.15) : 0;
+  if (o.t2 !== "") {
+    var T2 = THEME_TEXT0(o.t2 || "CHRISTMAS", F.T, co, NOEL_T2[0], x0, y, { name: "Tiêu đề - dòng 2" });
+    noelVua(T2, W - 2 * x0 - 10); q = bb(T2); T2.translate(x0 - q[0], y - q[3]); q = bb(T2);
+    noelSoc(T2, NOEL_T2[1]);
+    y = q[1] - Math.round(co * 0.1);
+  }
+  var T1 = THEME_TEXT0(o.t1 || "POLY", F.T, co, NOEL_T1[0], x0, y, { name: "Tiêu đề - dòng 1" });
+  noelVua(T1, W - 2 * x0 - 120); q = bb(T1); T1.translate(x0 - q[0], y - q[3]); q = bb(T1);
+  noelSoc(T1, NOEL_T1[1]);
+  noelVach(q[2] + 30, (q[1] + q[3]) / 2, 1, "Vạch cạnh tiêu đề");
+  var B = THEME_TEXT0("POLY STORE", F.B, 22, "FFFFFF", 96, 112, { track: 200, name: "Thương hiệu" });
+  var chan = o.chan != null ? o.chan : THEME.noel_chan;
+  if (chan) { var C2 = THEME_TEXT0(chan, F.B, 24, THEME.noel_xanh_dam || "16402B", W / 2, H - 30, { align: Justification.CENTER, maxW: W - 80, name: "Địa chỉ / hotline" }); q = bb(C2); C2.translate(W / 2 - (q[0] + q[2]) / 2, 0); }
+  RUN += "   bia noel anh that: " + (o.anh || "-") + "\n";
+}

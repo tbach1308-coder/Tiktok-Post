@@ -109,6 +109,22 @@ Phần riêng `_noel.jsx` (tao.py ghép theo `"them": ["_noel.jsx"]`), ảnh tra
 - Trang trong: nền thông + châu treo góc phải trên + kẹo gậy góc trái dưới + tuyết đáy tự có; tiêu đề `headC` tự ra chữ trắng sọc xanh nhạt có bóng cứng.
   Đừng đặt chữ / thẻ ở góc phải trên (x > 880, y < 300: châu) và dưới y 1330 (tuyết).
 
+## 4 theme Noel thêm (fen 14/11 21h "thêm theme christmas", chọn Photoshop + cả 4 kiểu)
+Cùng phần riêng `_noel.jsx` như "Noel · Poly Christmas" (biaNoel, phiếu, sọc kẹo, châu, tuyết), khác nhau ở khóa `noel_*` trong theme.json; ảnh nền / châu / sọc mới vẽ bằng `theme-ps/noel-tao-anh.py`.
+- `noel-do-nhung` "Noel · Đỏ nhung": nền đỏ rượu vân nhung, thông xanh đậm; bìa `biaNoel` (dòng 1 vàng, dòng 2 trắng sọc hồng); chữ nhấn / ưu đãi vàng; thẻ đỏ thẫm, nhãn xanh lá.
+- `noel-trang-tuyet` "Noel · Trắng tuyết" (`noel_sang`): nền kem sáng, thông xám xanh nhạt ở góc; chữ tiêu đề / phụ đề / "POLY STORE" tự đổi xanh thông đậm, khung ý + thẻ + chip "Xem tiếp" xanh thông đặc chữ trắng. Bìa `biaNoel` (dòng 1 đỏ, dòng 2 xanh thông). Không đặt chữ trắng trực tiếp lên nền (chỉ trong thẻ / nhãn).
+- `noel-dem-xanh` "Noel · Đêm xanh": nền navy, rặng thông xa mờ ở đáy, sao vàng; bìa `biaNoel` (dòng 1 vàng, dòng 2 trắng sọc xanh nhạt); không kẹo gậy; nhãn / dấu tích vàng chữ navy.
+- `noel-anh-that` "Noel · Ảnh thật" (`nen_kieu: "kinh"`): bìa `newDoc` → `biaNoelAnh({ anh, tam, toi, t1, t2, nho, uu_dai, chan })`: `anh` ảnh thật phủ kín (ảnh chụp máy / bàn, KHÔNG phải png tách nền), `tam` [x, y] 0–1 điểm giữ trong khung, `toi` lớp tối 0–100; đáy tự tối dần, dây đèn vắt ngang trên, châu treo 2 góc, tuyết đáy; chữ xếp từ dưới lên (t1 / t2 sọc kẹo, `nho` có `*đỏ*`, `uu_dai` vàng). Trang trong gọi `bgPhoto(ảnh của bài, …)` như theme ảnh thật: ảnh mờ phủ tối, châu + tuyết tự vẽ lại lên trên ảnh.
+- Cả 4: đừng đặt chữ / thẻ ở góc phải trên (x > 880, y < 300: châu) và dưới y 1330 (tuyết). Giá, ưu đãi, phiếu đúng brief (không bịa).
+
+## Theme "Bảng xanh · Giấy xé" (`bang-xanh-giay-xe`, fen 14/11 gửi thẻ sản phẩm "iPad Pro M1 - 11inch / iPad Air5 - 10.9inch / Pencil 2 Full box: 1400K" + "theme này nữa nha")
+Phần riêng `_bang-xanh.jsx` (`"them": ["_bang-xanh.jsx"]`), ảnh trong `bang-xanh-giay-xe/anh` (vẽ bằng `theme-ps/bang-xanh-tao-anh.py`): nền bảng xanh kẻ ô + khung trắng mảnh, dải giấy xé, nhãn vệt cọ, băng rôn.
+- Bìa: `newDoc` → `biaBang({ tab, ten, anh, nhan, km, ruy })`: `tab` chữ trên tab xanh đậm gài mép giấy (mặc định "POLY STORE"); `ten` tên máy chữ xanh trên dải giấy xé (vd "iPad Pro M1 - 11inch", dài tự thu nhỏ);
+  `anh` ảnh máy NỀN TRONG đặt giữa; `nhan` dòng trên nhãn cọ trắng chữ đen (vd "128GB · 13.990K"); `km` dòng khuyến mãi trắng, `*chữ*` = vàng (vd "MUA IPAD - *SĂN APPLE PENCIL GIÁ CỰC SỐC*");
+  `ruy` chữ trên băng rôn trắng đáy (vd "Pencil 2 Full box: 1400K"). Bỏ ô nào thì không vẽ ô đó, ảnh máy tự giãn. Giá / khuyến mãi đúng brief.
+- Trang trong: `headC` tự đặt dải giấy xé sau tiêu đề (chữ tiêu đề xanh), nhãn thành tab xanh đậm gài mép trên giấy, phụ đề trắng ngay dưới giấy. Thẻ xanh thẫm trong, dấu tích vàng.
+- Khung trắng sát mép (cách mép 30px) có sẵn trong nền: chữ, thẻ trong lề 96–984 như thường.
+
 ## Khi viết slide
 - Theme phẳng: không đặt ảnh phủ kín trang (ảnh nền mờ, `bg-thumb.png`, `lopBia` có nền): nền phẳng của theme là nền. Theme glass và theme ảnh thật: xem mục trên (dùng `bgPhoto`, không dùng `bg-thumb` / `lopBia` có nền; bìa theme ảnh thật là `biaAnhThat`). Bìa: `newDoc` → "POLY STORE" → tiêu đề → ảnh máy tách nền (`devIn` / `placeAt`), không khung, không bóng.
 - Màu: chỉ dùng biến (`C.WHITE` chữ thường, `YEL2` iPad / `YEL` Laptop cho chữ nhấn, `C.GREEN_L` tên máy / số nổi bật, `C.GREEN` nhãn, `MINT` + `NAVY` ô ghi chú). Không ghi mã màu cứng trong slide.

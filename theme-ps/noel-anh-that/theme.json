@@ -1,0 +1,151 @@
+{
+ "id": "noel-anh-that",
+ "ten": "Noel · Ảnh thật",
+ "kieu": "ảnh thật",
+ "kenh": "",
+ "them": [
+  "_noel.jsx"
+ ],
+ "mo_ta": "Noel trên ảnh thật: bìa biaNoelAnh = ảnh máy thật phủ kín, đáy tối dần, dây đèn vắt ngang trên, châu treo 2 góc, tuyết đáy, tiêu đề 2 dòng sọc kẹo (đỏ / trắng) + dòng đậm + dòng ưu đãi xếp từ dưới lên. Trang trong: gọi bgPhoto ảnh của bài thì ảnh làm mờ phủ tối, châu + tuyết vẽ đè lên trên ảnh; không có ảnh thì nền tối phẳng. Thẻ đen trong, nhãn đỏ.",
+ "nen": "121212",
+ "nen2": "121212",
+ "nen_kieu": "kinh",
+ "dom": [],
+ "anh_mau": 30,
+ "anh_mo": 28,
+ "anh_toi": 38,
+ "trang_tri": "khong",
+ "the": "000000",
+ "the_kieu": "toi",
+ "the_op": 45,
+ "nhan": "D63A32",
+ "nhan_dam": "A82820",
+ "nhan_nhat": "F5C542",
+ "vang": "F5C542",
+ "ghi_nen": "F4EBDD",
+ "ghi_chu": "16402B",
+ "do": "E23B32",
+ "inkbg": "121212",
+ "pill": [
+  "D63A32",
+  "FFFFFF"
+ ],
+ "dau_tick": [
+  "D63A32",
+  "FFFFFF"
+ ],
+ "co_tieu_de": 0.92,
+ "giu_vien": false,
+ "chu_tieu_de": "FFFFFF",
+ "noel_nen": [],
+ "noel_t1": [
+  "E23B32",
+  "soc-trang.png"
+ ],
+ "noel_t2": [
+  "FFFFFF",
+  "soc-xanh.png"
+ ],
+ "noel_soc_tieu": "soc-xanh.png",
+ "noel_bong": "0A0A0A",
+ "noel_chau": [
+  [
+   "chau-trang.png",
+   "chau-do.png"
+  ],
+  [
+   "chau-vang.png",
+   "chau-do.png"
+  ]
+ ],
+ "noel_chau_bia": [
+  "chau-do.png",
+  "chau-vang.png",
+  "chau-trang.png"
+ ],
+ "noel_xanh": "1F5A3A",
+ "noel_xanh_dam": "16402B",
+ "noel_chan": "125/16/26 Bùi Đình Túy, P. Bình Thạnh  ·  Hotline 0902.96.0804",
+ "bia_co": 140,
+ "bia_co_phu": 58,
+ "bia_x": 60,
+ "bia_day": [
+  860,
+  90
+ ],
+ "xem": {
+  "bia_noel_anh": {
+   "anh": "unsplash-ipad-pencil-ban-toi-gYVNvRygCUw.jpg",
+   "tam": [
+    0.62,
+    0.45
+   ],
+   "toi": 12,
+   "t1": "POLY",
+   "t2": "CHRISTMAS",
+   "nho": "NOEL *LÊN ĐỜI*\rMÁY XỊN",
+   "uu_dai": "ƯU ĐÃI HỌC SINH · SINH VIÊN"
+  },
+  "pill": "QUÀ NOEL",
+  "tieu": "LÊN ĐỜI MÁY XỊN",
+  "phu": "Ưu đãi học sinh, sinh viên tới 26/12",
+  "ten": "iPad Pro 11 M4",
+  "cau": "Chip M4 · 256GB",
+  "gia": "25.990.000đ",
+  "y": [
+   [
+    "check",
+    "Giảm 200K khi mua iPad (HSSV)"
+   ],
+   [
+    "check",
+    "Giảm 300K khi mua laptop (HSSV)"
+   ],
+   [
+    "check",
+    "Mang thẻ HSSV tới shop là được"
+   ]
+  ],
+  "ghi": [
+   "125/16/26 Bùi Đình Túy, P. Bình Thạnh",
+   "Hotline 0902.96.0804"
+  ],
+  "moc": "Xem máy đang giảm",
+  "hoi": "Noel này bạn\rlên đời máy gì?",
+  "nen": [
+   null,
+   [
+    "unsplash-goi-video-ipad-10tr.jpg",
+    2000,
+    700,
+    0,
+    1000
+   ],
+   [
+    "unsplash-doc-ipad-quan-10tr.jpg",
+    2000,
+    0,
+    300,
+    2000
+   ]
+  ]
+ },
+ "font_tieu_de": [
+  "UTM-Alberta-Heavy",
+  "UTM-Cooper-Black",
+  "UTM-Erie-Black"
+ ],
+ "font_than": [
+  "UTMAvoBold",
+  "UTMNeoSansIntelBold"
+ ],
+ "font_thuong": [
+  "UTM-Avo",
+  "UTMAvo"
+ ],
+ "font_script": [
+  "SVN-SegoeScript",
+  "SegoeScript",
+  "UTM-Silk-Script"
+ ]
+}

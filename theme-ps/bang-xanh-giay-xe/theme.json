@@ -1,0 +1,94 @@
+{
+ "id": "bang-xanh-giay-xe",
+ "ten": "Bảng xanh · Giấy xé",
+ "kieu": "phẳng",
+ "kenh": "",
+ "them": [
+  "_bang-xanh.jsx"
+ ],
+ "mo_ta": "Nền bảng xanh lá kẻ ô sáng, khung trắng mảnh sát mép (2 bản lệch ô xen kẽ). Bìa biaBang như thẻ sản phẩm: dải giấy xé trắng ngang trên ghi tên máy chữ xanh tròn đậm (UTM Cookies) + tab nhỏ xanh đậm 'POLY STORE' gài mép giấy, ảnh máy giữa, nhãn vệt cọ trắng ghi dung lượng · giá chữ đen, dòng khuyến mãi trắng + đoạn vàng, băng rôn trắng 2 đuôi chữ V ghi giá phụ kiện chữ có chân đậm. Trang trong: tiêu đề xanh nằm trên dải giấy xé, nhãn thành tab xanh đậm gài mép trên giấy, phụ đề trắng dưới giấy; thẻ xanh thẫm trong, dấu tích vàng. Phẳng: không bóng, không phát sáng.",
+ "nen": "1E5A3B",
+ "nen2": "1E5A3B",
+ "nen_kieu": "phang",
+ "trang_tri": "khong",
+ "the": "0B2E1C",
+ "the_kieu": "toi",
+ "the_op": 60,
+ "nhan": "15432A",
+ "nhan_dam": "0E3320",
+ "nhan_nhat": "F2D13B",
+ "vang": "F2D13B",
+ "ghi_nen": "F3F1EB",
+ "ghi_chu": "1F5A3A",
+ "do": "E23B32",
+ "inkbg": "15432A",
+ "pill": [
+  "15432A",
+  "FFFFFF"
+ ],
+ "dau_tick": [
+  "F2D13B",
+  "15432A"
+ ],
+ "co_tieu_de": 0.92,
+ "giu_vien": false,
+ "font_tieu_de": [
+  "UTM-Cookies",
+  "UTM-Alberta-Heavy"
+ ],
+ "font_than": [
+  "UTMAvoBold",
+  "UTM-AvoBold"
+ ],
+ "font_thuong": [
+  "UTM-Avo"
+ ],
+ "font_ruy_bang": [
+  "UTM-CenturBold",
+  "UTM-Bitsumishi-Pro",
+  "TimesNewRomanPS-BoldMT"
+ ],
+ "bx_chu": "1F5A3A",
+ "bx_tab": "15432A",
+ "bx_nen": [
+  "nen-1.jpg",
+  "nen-2.jpg"
+ ],
+ "xem": {
+  "bia_bang": {
+   "tab": "POLY STORE",
+   "ten": "iPad Pro M1 - 11inch",
+   "anh": "apple-ipad-pro-11-m1.png",
+   "nhan": "128GB · 13.990K",
+   "km": "MUA IPAD - *SĂN APPLE PENCIL GIÁ CỰC SỐC*",
+   "ruy": "Pencil 2 Full box: 1400K"
+  },
+  "pill": "HÀNG LƯỚT",
+  "tieu": "IPAD PRO M1 11 INCH",
+  "phu": "Máy đẹp 99%, pin trên 90%",
+  "ten": "iPad Pro M1",
+  "cau": "Chip M1 · 128GB",
+  "gia": "13.990.000đ",
+  "y": [
+   [
+    "check",
+    "Màn 120Hz, 4 loa, Face ID"
+   ],
+   [
+    "check",
+    "Mua kèm Pencil 2 chỉ 1.400K"
+   ],
+   [
+    "check",
+    "Bảo hành 6 tháng tại shop"
+   ]
+  ],
+  "ghi": [
+   "125/16/26 Bùi Đình Túy, P. Bình Thạnh",
+   "Hotline 0902.96.0804"
+  ],
+  "moc": "Xem iPad Air 5",
+  "hoi": "Bạn chọn\rPro M1 hay Air 5?",
+  "nen": []
+ }
+}
