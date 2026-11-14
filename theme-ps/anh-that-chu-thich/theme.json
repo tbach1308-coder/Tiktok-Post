@@ -1,0 +1,139 @@
+{
+ "id": "anh-that-chu-thich",
+ "ten": "Ảnh thật · Chú thích tay",
+ "kieu": "ảnh thật",
+ "kenh": "",
+ "ve_tay": true,
+ "mo_ta": "Theo ảnh mẫu fen gửi 14/11 (iPad Pro M5 + phím + Pencil + sạc): ảnh thật món đồ, chữ viết tay trắng, mũi tên cong vẽ tay chỉ từng món, giá 2 gạch chân, viền quanh món như cắt dán. Bìa biaChuThich (tiêu đề viết tay + ảnh có chú thích); trang có ảnh món đồ dùng anhChuThich (mục Chú thích vẽ tay trong luật theme); trang chữ: nền than phẳng, tiêu đề viết tay, thân chữ không chân. Trắng trên than, không bóng, không trang trí.",
+ "nen": "1F1F1F",
+ "nen2": "1F1F1F",
+ "the": "FFFFFF",
+ "the_kieu": "toi",
+ "the_op": 7,
+ "nhan": "2B2B2B",
+ "nhan_dam": "1F1F1F",
+ "nhan_nhat": "FFFFFF",
+ "vang": "FFFFFF",
+ "ghi_nen": "F5F5F4",
+ "ghi_chu": "1F1F1F",
+ "do": "F87171",
+ "inkbg": "1F1F1F",
+ "font_tieu_de": [
+  "InkFree",
+  "SegoePrint",
+  "UTM-Duepuntozero"
+ ],
+ "font_than": [
+  "UTMAvoBold",
+  "UTMNeoSansIntelBold"
+ ],
+ "font_thuong": [
+  "UTM-Avo",
+  "UTMAvo"
+ ],
+ "co_tieu_de": 0.9,
+ "giu_vien": false,
+ "trang_tri": "khong",
+ "pill": [
+  "FFFFFF",
+  "1F1F1F"
+ ],
+ "dau_tick": [
+  "FFFFFF",
+  "1F1F1F"
+ ],
+ "chu_tieu_de": "FFFFFF",
+ "font_tay": [
+  "InkFree",
+  "SegoePrint",
+  "UTM-Duepuntozero"
+ ],
+ "tay_mau": "FFFFFF",
+ "tay_co": 46,
+ "tay_vien": true,
+ "bia_co": 84,
+ "bia_x": 64,
+ "xem": {
+  "bia_ct": {
+   "t1": "iPad Air 5",
+   "t2": "chọn màu nào?",
+   "anh": "Ads Air 5.jpg",
+   "thu": 0.8,
+   "cy": 880,
+   "vien": true,
+   "mau": "FFFFFF",
+   "ds": [
+    {
+     "chu": "Tím · 64GB",
+     "gia": "9tr490",
+     "o": [
+      1030,
+      96
+     ],
+     "can": "phai",
+     "toi": [
+      905,
+      480
+     ],
+     "xoay": -3
+    },
+    {
+     "chu": "Xanh dương",
+     "gia": "12tr990",
+     "o": [
+      64,
+      318
+     ],
+     "toi": [
+      262,
+      640
+     ],
+     "co": 42,
+     "xoay": -4
+    },
+    {
+     "chu": "Xám",
+     "gia": "9tr290",
+     "o": [
+      1060,
+      1316
+     ],
+     "can": "phai",
+     "toi": [
+      985,
+      1218
+     ],
+     "co": 40,
+     "xoay": -3
+    }
+   ]
+  },
+  "pill": "SO SÁNH",
+  "tieu": "64GB hay 256GB?",
+  "phu": "Học, xem phim: 64GB là đủ",
+  "ten": "iPad Air 5",
+  "cau": "Chip M1 · 64GB",
+  "gia": "9.490.000đ",
+  "y": [
+   [
+    "check",
+    "Học online, ghi chú, xem phim: 64GB"
+   ],
+   [
+    "check",
+    "Quay 4K, lưu file nặng: 256GB"
+   ],
+   [
+    "x",
+    "Đừng chọn 64GB nếu chơi game nặng"
+   ]
+  ],
+  "ghi": [
+   "Còn phân vân bản nào?",
+   "Ghé POLY cầm thử cả 2"
+  ],
+  "moc": "Xem bảng màu",
+  "hoi": "Bạn chọn\rmàu nào?",
+  "nen": []
+ }
+}

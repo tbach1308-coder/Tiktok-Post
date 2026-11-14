@@ -74,8 +74,13 @@ Trang trong cả 3 như "Ảnh thật · Chữ vàng" (ảnh thật làm mờ + 
 - Động cơ (dùng được cho theme khác): `themeDayToi(cao, op)` lớp tô chuyển sắc đen → trong (lỗi thì vẽ 24 dải), `themeKhungSang(l, t, r, b, rad, màu)` khung màu có ô bo góc,
   `biaAnhThat` nhận `tren` (font `F.K` = `font_kicker`), `THEME.bia_can` / `bia_x` / `bia_day`.
 
-## Chú thích vẽ tay `anhChuThich(o)` / `chuThich(ds, o)` (fen 14/11 13h48 gửi ảnh mẫu iPad Pro M5 + phím + Pencil + sạc có chữ viết tay, mũi tên, giá gạch chân)
-Theme Photoshop nào cũng gọi được. Dùng cho slide ảnh thật có món đồ cần chỉ: "trong hộp có gì", combo máy + phụ kiện, các màu / bản dung lượng kèm giá, chi tiết trên máy (cổng, camera, nút).
+## Chú thích vẽ tay: CHỈ theme "Ảnh thật · Chú thích tay" (`ve_tay: true`) (fen 14/11 13h48 gửi ảnh mẫu iPad Pro M5 + phím + Pencil + sạc; 15h24 "làm theme riêng đi không áp dụng tất cả")
+Các hàm `biaChuThich`, `anhChuThich`, `chuThich` nằm trong `_ve-tay.jsx`, chỉ ghép vào theme.jsx của theme có `"ve_tay": true`. Theme khác KHÔNG có, không gọi, không bắt chước bằng tay
+(brief dùng theme khác mà ghi "chú thích vẽ tay" thì làm bình thường theo theme đó và ghi vào HOI_FEN / báo cuối: chọn theme "Ảnh thật · Chú thích tay" để có kiểu này).
+- Bìa theme này: `newDoc` → `biaChuThich({ t1, t2?, nho?, vi_tri?, + khoá của anhChuThich })`: "POLY STORE" nhỏ + tiêu đề viết tay (t2 có 1 gạch chân vẽ tay) + dòng nhỏ chữ không chân,
+  cụm tiêu đề sát trên (`vi_tri: "duoi"` sát dưới), cao khoảng 64 → 380; đặt ảnh (`cy`) và chú thích tránh vùng đó. Ảnh bìa nên có 2–3 món tách nhau trên nền trơn.
+- Trang chữ (mẹo, so sánh, câu hỏi cuối) dựng như thường: nền than phẳng, tiêu đề tự ra chữ viết tay trắng.
+Dùng chú thích cho slide ảnh thật có món đồ cần chỉ: "trong hộp có gì", combo máy + phụ kiện, các màu / bản dung lượng kèm giá, chi tiết trên máy (cổng, camera, nút).
 Chữ viết tay (font `FTAY`: Ink Free, có dấu tiếng Việt; theme đổi bằng `font_tay`), mũi tên cong vẽ tay, giá có 2 gạch chân, tuỳ chọn viền quanh món đồ như cắt dán sticker.
 - Cả trang: `newDoc` → `anhChuThich({ anh, tam?, thu?, cy?, toi?, vien?, mau, co?, ds: [...] })`.
   `anh` tìm như bìa ảnh thật (thư mục ảnh của bài rồi "Anh tai ve"). `thu: 1` ảnh phủ kín trang (`tam` giữ điểm ở giữa); `thu` 0.7–0.85 thu nhỏ ảnh cho rộng chỗ ghi chữ,

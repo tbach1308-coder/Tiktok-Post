@@ -29,8 +29,8 @@ def prompt():
 s, b, _ = req(APP, '/api/theme-ps')
 ds = b.get('ds', []) if s == 200 else []
 ids = [t['id'] for t in ds]
-check('GET /api/theme-ps: 11 theme kho chung', s == 200 and ids == ['anh-that-chu-nghieng', 'anh-that-chu-vang', 'anh-that-day-toi', 'anh-that-nen-sang', 'glass-tim-hong', 'glass-xanh-ngoc', 'phang-than-xanh-duong', 'phang-xanh-dem', 'tiem-ve-tay', 'toi-gian-den', 'toi-xanh-bang'] and all(t['kc'] for t in ds), (s, b))
-check('kiểu theme: ảnh thật / glass / phẳng', [t['kieu'] for t in ds] == ['ảnh thật', 'ảnh thật', 'ảnh thật', 'ảnh thật', 'glass', 'glass', 'phẳng', 'phẳng', 'phẳng', 'phẳng', 'phẳng'], [t.get('kieu') for t in ds])
+check('GET /api/theme-ps: 12 theme kho chung', s == 200 and ids == ['anh-that-chu-nghieng', 'anh-that-chu-thich', 'anh-that-chu-vang', 'anh-that-day-toi', 'anh-that-nen-sang', 'glass-tim-hong', 'glass-xanh-ngoc', 'phang-than-xanh-duong', 'phang-xanh-dem', 'tiem-ve-tay', 'toi-gian-den', 'toi-xanh-bang'] and all(t['kc'] for t in ds), (s, b))
+check('kiểu theme: ảnh thật / glass / phẳng', [t['kieu'] for t in ds] == ['ảnh thật', 'ảnh thật', 'ảnh thật', 'ảnh thật', 'ảnh thật', 'glass', 'glass', 'phẳng', 'phẳng', 'phẳng', 'phẳng', 'phẳng'], [t.get('kieu') for t in ds])
 check('mỗi theme 3 ảnh xem trước + tên + màu', all(len(t['anh']) == 3 and t['ten'] and len(t['mau']) == 3 for t in ds), ds)
 t0 = next((t for t in ds if t['id'] == 'phang-xanh-dem'), ds[0] if ds else None)
 s, b, h = req(APP, t0['anh'][0].split('?')[0], raw=True) if t0 else (0, b'', {})
@@ -83,7 +83,7 @@ HOST = r['url'].split('//')[1]; ma = req(APP, '/api/chung', {"ma_moi": True})[1]
 TOK = req(K, '/api/chung/vao', {"ma": ma, "ten": "Máy thử theme"}, h={'Host': HOST})[1].get('token')
 T = {'Host': HOST, 'X-Poly-Khach': TOK}
 s, b, _ = req(K, '/api/theme-ps', h=T)
-check('máy dùng chung: thấy 11 theme Photoshop kho chung', s == 200 and len(b.get('ds', [])) == 11, (s, b))
+check('máy dùng chung: thấy 12 theme Photoshop kho chung', s == 200 and len(b.get('ds', [])) == 12, (s, b))
 s, b, _ = req(K, '/api/theme-ps/anh/phang-xanh-dem/2', h=T, raw=True)
 check('máy dùng chung: xem ảnh theme', s == 200 and b[:4] == b'\x89PNG', s)
 s, b, _ = req(K, '/api/run', {"kenh": "ipad", "brief": "Bìa: MÁY KHÁC\nSlide 2: x", "theme_ps": "phang-than-xanh-duong"}, h=T)
@@ -102,10 +102,20 @@ check('chạy theme glass: lệnh ghi kiểu glass + --theme glass', '(kho chung
 js = open(os.path.join(TGL, 'theme-ps', 'glass-tim-hong', 'theme.jsx'), encoding='utf-8').read()
 check('theme glass có nền ảnh mờ + thẻ kính + 3 kiểu bìa', '"nen_kieu": "kinh"' in js and 'function themeAnhMo' in js and 'function biaSanPham' in js and 'function biaTinhNang' in js and 'function biaToiGian' in js and 'function themeChuyenSac' in js)
 check('theme ảnh thật có lớp tối đáy, khung sáng, bìa ảnh trong khung', 'function themeDayToi' in js and 'function themeKhungSang' in js and 'function biaAnhKhung' in js and 'F.K = pick' in js)
+# fen 14/11 15h24 "cái này làm theme riêng đi không áp dụng tất cả": chú thích vẽ tay chỉ ở theme có "ve_tay": true
 for i in ids:
     js = open(os.path.join(TGL, 'theme-ps', i, 'theme.jsx'), encoding='utf-8').read()
-    check('theme %s có chú thích vẽ tay (anhChuThich, chuThich, mũi tên, gạch chân, viền món, font tay Ink Free)' % i,
-          all(k in js for k in ('function anhChuThich(', 'function chuThich(', 'function tayMuiTen(', 'function tayGach(', 'function tayVienMon(', '["InkFree"')))
+    tj = json.load(open(os.path.join(TGL, 'theme-ps', i, 'theme.json'), encoding='utf-8'))
+    co = all(k in js for k in ('function biaChuThich(', 'function anhChuThich(', 'function chuThich(', 'function tayMuiTen(', 'function tayGach(', 'function tayVienMon(', '["InkFree"'))
+    if tj.get('ve_tay'):
+        check('theme %s (ve_tay) có chú thích vẽ tay: bìa, ảnh có chú thích, mũi tên, gạch chân, viền món, font Ink Free' % i, co)
+    else:
+        check('theme %s không có chú thích vẽ tay' % i, 'anhChuThich' not in js and 'tayMuiTen' not in js and 'FTAY' not in js)
+check('chỉ 1 theme có ve_tay: anh-that-chu-thich', [i for i in ids if json.load(open(os.path.join(TGL, 'theme-ps', i, 'theme.json'), encoding='utf-8')).get('ve_tay')] == ['anh-that-chu-thich'])
 luat = open(os.path.join(TGL, 'theme-ps', 'luat-theme.md'), encoding='utf-8').read()
-check('luật theme có mục chú thích vẽ tay', '## Chú thích vẽ tay' in luat and 'anhChuThich' in luat)
+check('luật theme: mục chú thích vẽ tay ghi CHỈ theme Ảnh thật · Chú thích tay', '## Chú thích vẽ tay: CHỈ theme "Ảnh thật · Chú thích tay"' in luat and 'biaChuThich' in luat)
+pr_ct = None
+s, b, _ = req(APP, '/api/run', {"kenh": "ipad", "brief": "Bìa: CHÚ THÍCH\nSlide 2: x", "theme_ps": "anh-that-chu-thich"})
+cho_xong(b.get('id')); pr_ct = prompt()
+check('chạy theme chú thích tay: lệnh có --theme + mô tả biaChuThich / anhChuThich', 'anh-that-chu-thich/theme.jsx' in pr_ct and 'biaChuThich' in pr_ct and 'anhChuThich' in pr_ct, pr_ct[:900])
 print('KẾT QUẢ: %d đạt, %d lỗi' % tuple(ok))

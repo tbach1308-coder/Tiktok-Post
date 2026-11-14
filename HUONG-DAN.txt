@@ -100,10 +100,11 @@ KHO THEME CANVA (10/11)
   Thêm 14/11 chiều (cùng kiểu ảnh mẫu): "Ảnh thật · Đáy tối" (chữ to căn trái góc dưới, đáy ảnh tối dần, từ khoá vàng),
   "Ảnh thật · Nền sáng" (nền kem, ảnh trong ô bo góc phía trên, tiêu đề đen có vạch vàng như bút dạ quang),
   "Ảnh thật · Chữ nghiêng" (kiểu bìa tạp chí: dòng nhỏ vàng + tiêu đề chữ nghiêng có chân trắng rất to).
-  Chú thích vẽ tay (14/11, theo ảnh mẫu iPad Pro M5 + phím + Pencil + sạc fen gửi): mọi theme Photoshop đều dựng được trang ảnh thật
-  có chữ viết tay, mũi tên cong vẽ tay chỉ vào từng món, giá có 2 gạch chân, viền quanh món đồ như cắt dán. Hợp với: trong hộp có gì,
-  combo máy + phụ kiện, các màu / bản kèm giá. Brief ghi ví dụ "Slide 3: chú thích vẽ tay ảnh <tên ảnh>: iPad Pro M5 11" 256GB 24tr500,
-  Pencil USB-C 1tr500, sạc đi kèm". Ảnh tối thì chữ trắng, ảnh sáng thì chữ đen. Ảnh chụp trên nền trơn (phông xám / đen / trắng) đẹp nhất.
+  Theme "Ảnh thật · Chú thích tay" (14/11, theo ảnh mẫu iPad Pro M5 + phím + Pencil + sạc fen gửi; chỉ theme này có, theme khác không):
+  ảnh thật món đồ có chữ viết tay, mũi tên cong vẽ tay chỉ vào từng món, giá có 2 gạch chân, viền quanh món đồ như cắt dán.
+  Bìa: tiêu đề viết tay + ảnh có chú thích; trang chữ nền than, tiêu đề viết tay. Hợp với: trong hộp có gì, combo máy + phụ kiện,
+  các màu / bản kèm giá. Brief ghi ví dụ "Slide 3: chú thích ảnh <tên ảnh>: iPad Pro M5 11" 256GB 24tr500, Pencil USB-C 1tr500,
+  sạc đi kèm". Ảnh tối thì chữ trắng, ảnh sáng thì chữ đen. Ảnh chụp trên nền trơn (phông xám / đen / trắng) đẹp nhất.
 - Bài mới, hàng "🎨 Theme": chỉ hiện đúng theme đang chọn (chưa chọn: "Không theme" / "Mẫu kênh"). Bấm "＋ Chọn theme" / "Đổi theme"
   → Kho theme mở ra, bấm "✓ Chọn theme này" là quay lại đúng bài đang viết (brief giữ nguyên). Bấm ✕ trên theme là bỏ.
   Sửa slide bài đó cũng giữ theme. Không chọn theme thì Photoshop / Canva dựng như cũ.
