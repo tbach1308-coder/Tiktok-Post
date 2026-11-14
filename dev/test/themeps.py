@@ -102,4 +102,10 @@ check('chạy theme glass: lệnh ghi kiểu glass + --theme glass', '(kho chung
 js = open(os.path.join(TGL, 'theme-ps', 'glass-tim-hong', 'theme.jsx'), encoding='utf-8').read()
 check('theme glass có nền ảnh mờ + thẻ kính + 3 kiểu bìa', '"nen_kieu": "kinh"' in js and 'function themeAnhMo' in js and 'function biaSanPham' in js and 'function biaTinhNang' in js and 'function biaToiGian' in js and 'function themeChuyenSac' in js)
 check('theme ảnh thật có lớp tối đáy, khung sáng, bìa ảnh trong khung', 'function themeDayToi' in js and 'function themeKhungSang' in js and 'function biaAnhKhung' in js and 'F.K = pick' in js)
+for i in ids:
+    js = open(os.path.join(TGL, 'theme-ps', i, 'theme.jsx'), encoding='utf-8').read()
+    check('theme %s có chú thích vẽ tay (anhChuThich, chuThich, mũi tên, gạch chân, viền món, font tay Ink Free)' % i,
+          all(k in js for k in ('function anhChuThich(', 'function chuThich(', 'function tayMuiTen(', 'function tayGach(', 'function tayVienMon(', '["InkFree"')))
+luat = open(os.path.join(TGL, 'theme-ps', 'luat-theme.md'), encoding='utf-8').read()
+check('luật theme có mục chú thích vẽ tay', '## Chú thích vẽ tay' in luat and 'anhChuThich' in luat)
 print('KẾT QUẢ: %d đạt, %d lỗi' % tuple(ok))

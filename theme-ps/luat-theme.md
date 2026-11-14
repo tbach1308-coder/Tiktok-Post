@@ -74,6 +74,24 @@ Trang trong cả 3 như "Ảnh thật · Chữ vàng" (ảnh thật làm mờ + 
 - Động cơ (dùng được cho theme khác): `themeDayToi(cao, op)` lớp tô chuyển sắc đen → trong (lỗi thì vẽ 24 dải), `themeKhungSang(l, t, r, b, rad, màu)` khung màu có ô bo góc,
   `biaAnhThat` nhận `tren` (font `F.K` = `font_kicker`), `THEME.bia_can` / `bia_x` / `bia_day`.
 
+## Chú thích vẽ tay `anhChuThich(o)` / `chuThich(ds, o)` (fen 14/11 13h48 gửi ảnh mẫu iPad Pro M5 + phím + Pencil + sạc có chữ viết tay, mũi tên, giá gạch chân)
+Theme Photoshop nào cũng gọi được. Dùng cho slide ảnh thật có món đồ cần chỉ: "trong hộp có gì", combo máy + phụ kiện, các màu / bản dung lượng kèm giá, chi tiết trên máy (cổng, camera, nút).
+Chữ viết tay (font `FTAY`: Ink Free, có dấu tiếng Việt; theme đổi bằng `font_tay`), mũi tên cong vẽ tay, giá có 2 gạch chân, tuỳ chọn viền quanh món đồ như cắt dán sticker.
+- Cả trang: `newDoc` → `anhChuThich({ anh, tam?, thu?, cy?, toi?, vien?, mau, co?, ds: [...] })`.
+  `anh` tìm như bìa ảnh thật (thư mục ảnh của bài rồi "Anh tai ve"). `thu: 1` ảnh phủ kín trang (`tam` giữ điểm ở giữa); `thu` 0.7–0.85 thu nhỏ ảnh cho rộng chỗ ghi chữ,
+  nền trang tự lấy màu góc ảnh, mép ảnh mờ dần (chỉ dùng khi ảnh nền trơn: nền đen, nền trắng, phông studio). `cy` tâm ảnh theo chiều dọc khi thu nhỏ.
+  `vien: true` = viền quanh món đồ (Photoshop tự chọn chủ thể): chỉ bật khi món đồ nằm trên nền trơn, ảnh rối thì để tắt. `toi` 0–40 làm tối ảnh nếu chữ trắng khó đọc.
+  `mau`: ảnh tối → "FFFFFF", ảnh sáng → "1C1C1C" (chữ, mũi tên, gạch chân, viền cùng 1 màu).
+- Mỗi mục `ds`: `{ chu: "iPad Pro M5 11\"\r256GB", gia: "24tr500", o: [x, y], toi: [x, y], can?, xoay?, tu?, huong?, co? }`
+  - Toạ độ `o` (góc trên trái cụm chữ; `can: "phai"` góc trên phải, `"giua"` giữa trên) và `toi` (đầu mũi tên): số ≤ 1 là tỉ lệ trên **ảnh gốc** (x / rộng ảnh, y / cao ảnh),
+    số > 1 là px trên trang 1080×1440. Cách làm: mở ảnh gốc (Read) xem món đồ nằm đâu, ước tỉ lệ; đặt `o` vào chỗ trống của ảnh, `toi` ngay mép món đồ (không giữa món đồ).
+  - `gia` tự thêm "giá: " phía trước (đổi bằng `gia_chu`, `""` = bỏ). Giá viết kiểu "24tr500", "2tr", "1tr500". Không có giá thì bỏ `gia`.
+  - `xoay` mặc định nghiêng −2…−4° như viết tay; `tu` (`"duoi"` | `"tren"` | `"trai"` | `"phai"`) cạnh mũi tên đi ra, mặc định tự chọn; `huong: "doc"` nếu muốn mũi tên cắm ngang.
+- Trên trang đã có ảnh (bìa ảnh thật, `bgPhoto`...): `chuThich(ds, { mau, co })`, toạ độ px trên trang.
+- Luật: tối đa 4 chú thích / trang, mỗi cái ≤ 3 dòng, ≤ 18 ký tự / dòng. Chữ nằm trên chỗ trống của ảnh, không đè lên món đồ, không đè lên nhau; mũi tên không cắt qua chữ khác.
+  Cỡ chữ mặc định 46 (`co`), tối thiểu 38. Không thêm khung, bóng, emoji quanh chữ. Giá phải đúng giá bài (không bịa); bài không nói giá thì bỏ `gia`.
+- Agent duyệt chấm thêm: chữ viết tay đọc rõ (tương phản với ảnh), mũi tên chỉ đúng món, không đè, dấu tiếng Việt đủ.
+
 ## Khi viết slide
 - Theme phẳng: không đặt ảnh phủ kín trang (ảnh nền mờ, `bg-thumb.png`, `lopBia` có nền): nền phẳng của theme là nền. Theme glass và theme ảnh thật: xem mục trên (dùng `bgPhoto`, không dùng `bg-thumb` / `lopBia` có nền; bìa theme ảnh thật là `biaAnhThat`). Bìa: `newDoc` → "POLY STORE" → tiêu đề → ảnh máy tách nền (`devIn` / `placeAt`), không khung, không bóng.
 - Màu: chỉ dùng biến (`C.WHITE` chữ thường, `YEL2` iPad / `YEL` Laptop cho chữ nhấn, `C.GREEN_L` tên máy / số nổi bật, `C.GREEN` nhãn, `MINT` + `NAVY` ô ghi chú). Không ghi mã màu cứng trong slide.
