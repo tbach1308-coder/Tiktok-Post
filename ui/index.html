@@ -467,7 +467,7 @@ select.in.msel option{background:var(--panel);color:var(--tx)}
 /* dùng chung (fen 12/11 "máy khác vẫn sài được full chức năng"): chỉ ẩn nút mở cửa sổ / thư mục / Chrome trên chính máy shop */
 .chikhach{display:none}body.khach .chikhach{display:inline}
 /* fen 13/11 14h49 "kho này máy con không cần hiện": ô 📦 Kho Polysto chỉ máy shop */
-body.khach #bChung,body.khach #bOpen,body.khach #bDang,body.khach #bCoSan,body.khach .thdb,body.khach #thKcd,body.khach .khor{display:none!important}
+body.khach #bChung,body.khach #bOpen,body.khach #bCoSan,body.khach .thdb,body.khach #thKcd,body.khach .khor{display:none!important}
 .thkch{margin:22px 0 2px;font-size:16px}.thkch span{font-size:12.5px;color:var(--mut);font-weight:500}
 .thg>.pnote{grid-column:1/-1;margin:0}.thpage #thG>.pnote{font-size:12.5px;color:var(--mut)}
 #thKcG .thg{margin-top:8px}.thbat{color:var(--o, #f0a020);font-size:12.5px;font-weight:600;border:1px dashed currentColor;border-radius:99px;padding:3px 10px}
@@ -1895,7 +1895,7 @@ function renderPost(){
   const h = `<div class="card mt post"><div class="ph"><b>Đăng bài</b><span class="pn" id="capN"></span></div>
     <textarea class="in cap" id="capT" placeholder="Claude chưa viết caption. Gõ caption ở đây (dòng 1 tối đa 90 ký tự, dòng 2 comment ghim).">
 ${esc(d.caption || '')}</textarea>
-    <div class="pacts">${KHACH && sl.length ? `<a class="btn sm pri" id="bZip" href="/api/job/${encodeURIComponent(j.id)}/zip" title="Tải ${sl.length} slide + caption, câu ghim (file .zip) về máy này để đăng">⬇ Tải slide + caption</a>` : ''}<button class="btn sm pri" id="bDang"${busy ? ' disabled' : ''}>${nut}</button><button class="btn sm ghost" id="bGuiTg"${busy ? ' disabled' : ''} title="Gửi album slide + caption + câu ghim vào Telegram để đăng bằng app TikTok trên điện thoại">Gửi Telegram</button><button class="btn sm ghost" id="bCopy">Chép caption</button><button class="btn sm ghost" id="bVietCap" title="Claude đọc slide, viết caption + câu ghim theo luật hashtag kênh (khoảng 1–2 phút)">${(d.caption || '').trim() ? 'Viết lại caption' : '✍ Viết caption'}</button>${d.canva ? `<a class="btn sm ghost" id="bCanvaMo" href="${esc(d.canva.edit_url)}" target="_blank" rel="noopener" title="Mở thiết kế của bài trên Canva để chỉnh tiếp (web hoặc app Canva)">🎨 Mở Canva</a><button class="btn sm ghost" id="bCanvaLay"${busy ? ' disabled' : ''} title="Sửa trên Canva xong: Claude xuất lại các trang về thay slide trong app (slide cũ chuyển vào _to_delete), khoảng 1–3 phút">⬇ Lấy lại từ Canva</button>` : ''}${j.dung_bang === 'canva' && d.canva ? '' : `<button class="btn sm ghost" id="bCanva"${busy ? ' disabled' : ''} title="Claude đưa ${sl.length} slide lên Canva của fen thành 1 thiết kế (mỗi slide 1 trang), chạy trên mạng khoảng 3–5 phút">${d.canva ? '🎨 Đưa lại lên Canva' : '🎨 Đưa lên Canva'}</button>`}${!j.da_dang ? `<button class="btn sm ghost" id="bHenDang" title="Chọn giờ đăng: giờ này hiện sẵn trên nút ⏰ Hẹn giờ ở khung Poly trên trang TikTok">⏰ ${j.hen_dang ? 'Đổi giờ đăng' : 'Hẹn giờ đăng'}</button>` : ''}<button class="btn sm ghost" id="bDaDang" title="Fen tự đăng ngoài tiện ích (vd đăng bằng app TikTok trên điện thoại) xong thì bấm">${j.da_dang ? 'Bỏ đánh dấu đã đăng' : '✓ Đánh dấu đã đăng'}</button></div>
+    <div class="pacts">${KHACH && sl.length ? `<a class="btn sm pri" id="bZip" href="/api/job/${encodeURIComponent(j.id)}/zip" title="Tải ${sl.length} slide + caption, câu ghim (file .zip) về máy này để đăng">⬇ Tải slide + caption</a>` : ''}<button class="btn sm pri" id="bDang"${busy ? ' disabled' : ''}>${nut}</button><button class="btn sm ghost" id="bGuiTg"${busy ? ' disabled' : ''} title="Gửi album slide + caption + câu ghim vào Telegram để đăng bằng app TikTok trên điện thoại">Gửi Telegram</button><button class="btn sm ghost" id="bCopy">Chép caption</button><button class="btn sm ghost" id="bVietCap" title="Claude đọc slide, viết caption + câu ghim theo luật hashtag kênh (khoảng 1–2 phút)">${(d.caption || '').trim() ? 'Viết lại caption' : '✍ Viết caption'}</button>${d.canva ? `<a class="btn sm ghost" id="bCanvaMo" href="${esc(d.canva.edit_url)}" target="_blank" rel="noopener" title="Mở thiết kế của bài trên Canva để chỉnh tiếp (web hoặc app Canva)">🎨 Mở Canva</a><button class="btn sm ghost" id="bCanvaLay"${busy ? ' disabled' : ''} title="Sửa trên Canva xong: Claude xuất lại các trang về thay slide trong app (slide cũ chuyển vào _to_delete), khoảng 1–3 phút">⬇ Lấy lại từ Canva</button>` : ''}${j.dung_bang === 'canva' && d.canva ? '' : `<button class="btn sm ghost" id="bCanva"${busy ? ' disabled' : ''} title="Claude đưa ${sl.length} slide lên Canva của fen thành 1 thiết kế (mỗi slide 1 trang), chạy trên mạng khoảng 3–5 phút">${d.canva ? '🎨 Đưa lại lên Canva' : '🎨 Đưa lên Canva'}</button>`}${!j.da_dang ? `<button class="btn sm ghost" id="bHenDang" title="Chọn giờ đăng: giờ này hiện sẵn trên nút ⏰ Hẹn giờ ở khung Poly trên trang TikTok">⏰ ${j.hen_dang ? 'Đổi giờ đăng' : 'Hẹn giờ đăng'}</button>` : ''}<button class="btn sm ghost" id="bDaDang" title="Fen tự đăng ngoài tiện ích (vd đăng bằng app TikTok trên điện thoại) xong thì bấm">${j.da_dang ? 'Bỏ đánh dấu đã đăng' : '✓ Đánh dấu đã đăng'}</button>${KHACH ? '<button class="btn sm ghost" id="bTienIch" title="Cài / cập nhật tiện ích Poly TikTok trên máy này (cho nút Đăng TikTok web)">🧩 Tiện ích TikTok</button>' : ''}</div>
     ${(() => { const b = d.brand || {bat: false, nguon: 'mac-dinh'};
       return `<div class="brrow" title="Tiết lộ nội dung → Thương hiệu của bạn (Disclose post content → Your brand). Mặc định tắt như cài đặt gốc TikTok (fen chốt 30/10); bài nào cần thì bấm Bật."><span>Your brand</span><div class="kseg"><button data-br="0" class="${b.bat ? '' : 'on'}">Không bật</button><button data-br="1" class="${b.bat ? 'on' : ''}">Bật</button></div><span>${b.nguon === 'fen' ? 'fen chọn' : 'mặc định'}</span></div>`; })()}
     <p class="pnote">${(henD ? `<br><span class="hen">⏰ Giờ hẹn ${esc(henTxt(henD))}: mở TikTok, khung Poly có nút ⏰ Hẹn giờ điền sẵn giờ này, fen bấm nút rồi tự bấm Schedule (máy tắt TikTok vẫn đăng đúng giờ). <a href="#" id="henHuy">Huỷ hẹn</a></span>` : '') + (j.da_dang ? `<br><span class="okc">${j.da_dang.lich ? (j.da_dang.lich > nowS() ? 'Đã hẹn trên TikTok, TikTok sẽ đăng lúc ' : 'TikTok đã đăng lúc ') + esc(henTxt(j.da_dang.lich)) : 'Đã đăng TikTok lúc ' + hm(j.da_dang.t)}${j.da_dang.brand === false && (!d.brand || d.brand.bat) ? ' · <span class="stc">chưa bật Thương hiệu của bạn</span>' : ''}</span>` : j.dang_loi ? `<br><span class="stc">Chưa đăng được: ${esc(j.dang_loi.loi)}</span>` : '') + (j.nhac && j.nhac.ten ? `<br>Nhạc đã chọn: <b>${esc(j.nhac.ten)}</b>${j.nhac.tacgia ? ' · ' + esc(j.nhac.tacgia) : ''}` : '')}${daGui}${d.canva ? `<br><span class="okc">🎨 ${j.dung_bang === 'canva' ? 'Dựng trên Canva' : 'Đã có trên Canva'}${d.canva.so_trang ? ' · ' + esc(String(d.canva.so_trang)) + ' trang' : ''}</span>, sửa trên Canva xong bấm ⬇ Lấy lại từ Canva để app đăng bằng ảnh mới.${d.canva.lay_lai && j.dung_bang !== 'canva' ? ' Slide đang là ảnh lấy từ Canva: ô Sửa slide vẫn dựng lại bằng Photoshop (mất phần sửa trên Canva ở slide đó), muốn giữ thì sửa tiếp trên Canva rồi Lấy lại.' : ''}` : ''}${j.canva_loi ? `<br><span class="stc">${esc(j.canva_loi)}</span>` : ''}</p></div>`.replace(/<p class="pnote">(?:<br>)?/, '<p class="pnote">').replace('<p class="pnote"></p>', '');
@@ -1905,6 +1905,7 @@ ${esc(d.caption || '')}</textarea>
   $('#capT').onblur = saveCap;
   $('#bCopy').onclick = () => { const t = $('#capT').value.split('\n')[0].trim(); navigator.clipboard.writeText(t).then(() => toast('Đã chép caption'), () => toast('Không chép được', true)); };
   $('#bDang').onclick = e => dang(e.currentTarget, true);
+  const bTi = $('#bTienIch'); if (bTi) bTi.onclick = () => tienIchDialog(document.documentElement.dataset.polyTiktok || '', true);
   const bTg = $('#bGuiTg'); if (bTg) bTg.onclick = e => dang(e.currentTarget, false);
   w.querySelectorAll('[data-br]').forEach(b => b.onclick = async ev => { ev.preventDefault();
     const v = b.dataset.br === '1';
@@ -1987,6 +1988,7 @@ async function dang(b, ipad){   // ipad = true: Đăng TikTok (web, cả 2 kênh
   if (S.dangGui[id]) return;
   const gui = (S.data.da_gui || []).filter(x => x.kieu === (ipad ? 'tiktok' : 'telegram')).pop();
   if (gui && !confirm(ipad ? `Đã mở TikTok cho bài này lúc ${hm(gui.t)}. Mở lại?` : `Đã gửi Telegram ${gui.thieu ? gui.n + '/' + gui.tong + ' slide ' : ''}lúc ${hm(gui.t)}. Gửi lại cả bài?`)) return;
+  if (KHACH && ipad) return dangKhach(b, j);
   S.dangGui[id] = true;                                     // khoá TRƯỚC khi lưu caption: bấm đúp không ra 2 lần gửi
   b.disabled = true; b.textContent = ipad ? 'Đang mở…' : 'Đang gửi…';
   try {
@@ -2006,6 +2008,53 @@ async function dang(b, ipad){   // ipad = true: Đăng TikTok (web, cả 2 kênh
     delete S.dangGui[id];
     if (S.jobId === id) await reload();
   }
+}
+// Đăng TikTok (web) trên máy dùng chung (fen 14/11 18h07 "cho máy phú có chức năng này và file extion"): TikTok mở ngay trên máy này,
+// tiện ích Poly TikTok (0.11+, cài trong cửa sổ Chrome của app) lấy bài qua đường nối bằng vé app vừa cấp. Không tự bấm Post.
+const TI_BAN = [0, 11, 0];
+const tiCu = v => { const a = String(v || '0').split('.').map(x => parseInt(x, 10) || 0); for (let i = 0; i < 3; i++) if ((a[i] || 0) !== TI_BAN[i]) return (a[i] || 0) < TI_BAN[i]; return false; };
+async function dangKhach(b, j){
+  const id = j.id, ban = document.documentElement.dataset.polyTiktok || '';
+  if (!ban || tiCu(ban)) return tienIchDialog(ban);
+  const w = window.open('about:blank', '_blank');          // mở cửa sổ ngay lúc bấm: chờ app trả lời rồi mới mở thì Chrome chặn cửa sổ bật lên
+  S.dangGui[id] = true; b.disabled = true; b.textContent = 'Đang mở…';
+  try {
+    if (!await saveCap()) { if (w) w.close(); return; }
+    if (!normCap($('#capT')?.value).split('\n')[0].trim()) {
+      if (w) w.close();
+      await api('/api/job/' + id + '/viet-caption', {});
+      toast('Bài chưa có caption: Claude đang viết caption + hashtag (1–2 phút), xong bấm lại Đăng TikTok (web)');
+      return;
+    }
+    const r = await api('/api/job/' + id + '/tiktok-ve', {});
+    await new Promise(ok => {                                // đưa vé cho tiện ích trên trang này, chờ tiện ích nhớ xong (tối đa 1,5 giây)
+      const nghe = e => { if (e.source === window && e.data && e.data.polyTiktokOk === id) { removeEventListener('message', nghe); ok(); } };
+      addEventListener('message', nghe); setTimeout(() => { removeEventListener('message', nghe); ok(); }, 1500);
+      window.postMessage({polyTiktok: {id, ve: r.ve}}, location.origin);
+    });
+    if (w && !w.closed) w.location.href = r.url; else window.open(r.url, '_blank');
+    toast('Đã mở TikTok trên máy này: tiện ích điền bài, kiểm rồi tự bấm ' + (j.hen_dang && !j.da_dang ? '⏰ Hẹn giờ (' + henTxt(j.hen_dang) + ') ở khung Poly, rồi Schedule' : 'Post'));
+  } catch(e) { if (w) w.close(); toast(e.message, true); }
+  finally { delete S.dangGui[id]; if (S.jobId === id) await reload(); }
+}
+function tienIchDialog(ban, tuMo){
+  const m = document.createElement('div'); m.className = 'modal on'; m.innerHTML = `<div class="mbox">
+    <h3>🧩 Tiện ích Poly TikTok trên máy này</h3>
+    <p>${ban && !tiCu(ban) ? 'Máy này đã có bản ' + esc(ban) + ' (mới nhất).' : ban ? 'Máy này đang có bản cũ ' + esc(ban) + ': cài lại bản mới theo các bước dưới.' : 'Máy này chưa có tiện ích (cài 1 lần).'}
+      Tiện ích gắn sẵn slide + caption + nhạc vào TikTok Studio; người đăng tự kiểm rồi tự bấm Post (tiện ích không bao giờ tự bấm).</p>
+    <ol>
+      <li><a class="btn sm pri" href="/tai-tien-ich" download>⬇ Tải tiện ích</a> rồi mở file .zip vừa tải: ra thư mục <b>poly-tiktok</b>. Để thư mục ở chỗ cố định (vd Tài liệu), đừng xoá.</li>
+      <li>Bấm <button class="btn sm" id="tiMo">Mở cửa sổ TikTok</button>. Trên thanh địa chỉ cửa sổ vừa mở gõ <code>chrome://extensions</code> rồi Enter.</li>
+      <li>Bật <b>Chế độ dành cho nhà phát triển</b> (góc phải trên) → <b>Tải tiện ích đã giải nén</b> → chọn thư mục <b>poly-tiktok</b>. Đã có bản cũ thì gỡ bản cũ trước.</li>
+      <li>Cũng trong cửa sổ đó: đăng nhập TikTok tài khoản sẽ đăng bài (1 lần).</li>
+      <li>Quay lại app, tải lại trang (⌘R trên Mac, F5 trên Windows), mở bài, bấm <b>Đăng TikTok (web)</b>.</li>
+    </ol>
+    <p class="pnote">Tiện ích phải cài trong cửa sổ Chrome của app dùng chung (khác Chrome thường của máy). App mở bằng Safari thì không cài được: dùng ⬇ Tải slide + caption hoặc Gửi Telegram.</p>
+    <div class="acts"><button class="btn" id="tiDong">Đóng</button></div></div>`;
+  document.body.appendChild(m);
+  m.querySelector('#tiDong').onclick = () => m.remove();
+  m.querySelector('#tiMo').onclick = () => window.open('https://www.tiktok.com/tiktokstudio/upload?from=webapp&tab=photo', '_blank');
+  if (!tuMo) toast(ban ? 'Tiện ích Poly TikTok trên máy này là bản cũ: cập nhật rồi bấm lại' : 'Máy này chưa cài tiện ích Poly TikTok: cài 1 lần theo hướng dẫn', true);
 }
 async function tgDialog(lyDo){
   const st = await api('/api/telegram').catch(() => ({}));

@@ -228,7 +228,11 @@ LÀM 1 BÀI
   Cập nhật máy con (13/11): có bản app mới thì trong hộp Dùng chung bấm "🔄 Cập nhật máy con" → máy con đang mở app tự tải
   bản mới, không phải bấm gì (máy đang gõ dở / có ảnh chưa gửi thì tự tải khi rảnh, chữ nháp vẫn giữ). Cạnh tên mỗi máy ghi
   "✓ bản mới" hoặc "⏳ bản cũ". Máy chưa mở app thì lần mở sau tự là bản mới.
-  Trên máy khác: Đăng TikTok web và Mở thư mục mở trên máy này nên dùng "⬇ Tải slide + caption" hoặc Gửi Telegram.
+  Trên máy khác: Mở thư mục mở trên máy này nên dùng "⬇ Tải slide + caption". Đăng TikTok (web) (14/11): mở TikTok ngay trên
+  máy khác, trong cửa sổ Chrome của app dùng chung (không đụng Chrome thường / hồ sơ của máy đó). Cài 1 lần: mở bài → bấm Đăng TikTok
+  (web) hoặc 🧩 Tiện ích TikTok → ⬇ Tải tiện ích → giải nén ra thư mục poly-tiktok → bấm "Mở cửa sổ TikTok" → gõ chrome://extensions
+  → bật Chế độ dành cho nhà phát triển → Tải tiện ích đã giải nén → chọn poly-tiktok → đăng nhập TikTok trong cửa sổ đó → ⌘R / F5 app.
+  Mỗi lần bấm app cấp cho tiện ích máy đó 1 vé 12 giờ chỉ đọc đúng bài đó (máy shop khởi động lại thì bấm lại Đăng TikTok).
   Chỉ thêm máy của người mình tin; không dùng nữa thì bấm Bỏ. Có máy mới vào, bot Remote báo trong Telegram.
   RIÊNG TỪNG MÁY (12/11): máy khác chỉ thấy bài, nháp, lịch sử brief của chính máy đó; máy shop (admin) thấy và quản lý hết
   (danh sách bài có hàng "Máy: Tất cả / Máy shop / 👤 tên máy" để lọc). Theme: mỗi máy có theme riêng tự thêm / nhân bản,
@@ -300,6 +304,9 @@ CÀI TIỆN ÍCH POLY TIKTOK (1 lần, cho nút Đăng TikTok)
    trang này?", fen bấm Gắn.
 - Cập nhật tiện ích (Claude báo có bản mới): chrome://extensions, bấm nút tải lại ↻ ở Poly TikTok,
   rồi tải lại (F5) trang TikTok đang mở.
+  Bản 0.11.0 (14/11): thêm đăng từ máy dùng chung (máy Phú). Máy shop bấm ↻ cho đồng bộ (bản cũ vẫn đăng bình thường trên máy shop).
+- Kênh Laptop chưa chọn hồ sơ Chrome (14/11): app tự dùng hồ sơ Chrome tên có chữ "Laptop" (đúng 1 hồ sơ như vậy) và nhớ lại,
+  không hiện bảng Kiểm máy nữa. Muốn đổi: Kiểm máy > Đăng TikTok > Hồ sơ Chrome Laptop.
 - CỘT TRÁI CHIA TAB (29/10 tối): Đang làm (đang chạy, cần xem, hẹn dựng, mới tạo) · Chờ đăng (dựng xong, chưa đăng;
   bài có giờ hẹn đăng lên đầu, ghi "⏰ Giờ hẹn …") · Bản nháp (brief chưa chạy) · Đã đăng (cả bài đã Schedule, ghi
   "TikTok sẽ đăng …"). Mỗi bài có ảnh bìa nhỏ + dòng trạng thái. Mở bài nào cột trái tự sang đúng tab của bài đó.

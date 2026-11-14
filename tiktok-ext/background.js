@@ -1,7 +1,18 @@
 // Poly TikTok: lấy slide + caption của bài từ app Poly Dựng Bài (chạy trên chính máy này, cổng 8777).
 // Trang TikTok không gọi thẳng 127.0.0.1 được, nên nhờ service worker (có quyền host) lấy hộ.
 // Mã bài giữ THEO TỪNG TAB (storage.session, key "tab<id>"): tab khác hay trang mở tay không bị gắn nhầm bài.
+// 0.11 (fen 14/11 "cho máy phú có chức năng này"): bài của máy dùng chung lấy qua đường nối của máy shop, kèm vé app cấp lúc bấm
+// Đăng TikTok (app.js nhớ trong storage.local "ve": {mã bài: {base, ve, t}}); không có vé thì như cũ (app trên chính máy này).
 const APP = 'http://127.0.0.1:8777';
+async function noi(id) {
+  const v = id ? ((await chrome.storage.local.get('ve')).ve || {})[id] : null;
+  if (v && Date.now() - v.t < 12 * 3600e3) return { base: v.base, hd: { 'X-Poly-Ve': v.ve } };
+  return { base: APP, hd: {} };
+}
+async function gui(id, duong, data) {
+  const n = await noi(id);
+  return fetch(n.base + duong, { method: 'POST', headers: Object.assign({ 'Content-Type': 'application/json' }, n.hd), body: JSON.stringify(data) });
+}
 const HAN = 10 * 60 * 1000;          // việc của tab quá 10 phút thì bỏ
 let q = Promise.resolve();           // xử lý tuần tự: 2 khung cùng xin nhận việc thì chỉ 1 khung được
 const tuanTu = f => (q = q.then(f, f));
@@ -17,7 +28,7 @@ chrome.tabs.onUpdated.addListener(async (t, info) => {
   const k = 'dang' + t, o = (await chrome.storage.session.get(k))[k];
   if (!o || Date.now() - o.t > 3 * 60000) return;
   await chrome.storage.session.remove(k);
-  fetch(APP + '/api/tiktok-dang', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: o.id, ok: true, qua: 'chuyen-trang', lich: o.lich || 0, brand: o.brand }) }).catch(() => {});
+  gui(o.id, '/api/tiktok-dang', { id: o.id, ok: true, qua: 'chuyen-trang', lich: o.lich || 0, brand: o.brand }).catch(() => {});
 });
 
 chrome.runtime.onMessage.addListener((msg, sender, send) => {
@@ -27,12 +38,12 @@ chrome.runtime.onMessage.addListener((msg, sender, send) => {
     return true;
   }
   if (msg.poly === 'nhac') {   // ghi bài nhạc vừa chọn vào sổ của app (lần sau không chọn lại)
-    fetch(APP + '/api/tiktok-nhac', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(msg.data) })
+    gui(msg.data && msg.data.id, '/api/tiktok-nhac', msg.data)
       .then(r => send({ ok: r.ok }), () => send({ ok: false }));
     return true;
   }
   if (msg.poly === 'dang') {   // TikTok báo đăng / hẹn xong mà không chuyển trang -> app ghi vào bài
-    fetch(APP + '/api/tiktok-dang', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(msg.data) })
+    gui(msg.data && msg.data.id, '/api/tiktok-dang', msg.data)
       .then(r => send({ ok: r.ok }), () => send({ ok: false }));
     if (sender.tab) chrome.storage.session.remove('dang' + sender.tab.id);
     return true;
@@ -42,7 +53,7 @@ chrome.runtime.onMessage.addListener((msg, sender, send) => {
     return true;
   }
   if (msg.poly === 'soi') {   // cấu trúc trang (tên nút, tab, ô nhập) gửi về app để Claude soi giao diện thật
-    fetch(APP + '/api/tiktok-soi', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(msg.data) })
+    (sender.tab ? lay1(sender.tab.id) : Promise.resolve(null)).then(j => gui(j && j.id, '/api/tiktok-soi', msg.data))
       .then(r => send({ ok: r.ok }), () => send({ ok: false }));
     return true;
   }
@@ -91,14 +102,15 @@ chrome.runtime.onMessage.addListener((msg, sender, send) => {
 
 async function lay(id) {
   let r;
-  try { r = await fetch(APP + '/api/tiktok/' + encodeURIComponent(id)); }
-  catch (e) { throw new Error('Không nối được app Poly Dựng Bài. Mở app (icon ngoài Desktop) rồi bấm Điền lại.'); }
+  const n = await noi(id);
+  try { r = await fetch(n.base + '/api/tiktok/' + encodeURIComponent(id), { headers: n.hd }); }
+  catch (e) { throw new Error(n.base === APP ? 'Không nối được app Poly Dựng Bài. Mở app (icon ngoài Desktop) rồi bấm Điền lại.' : 'Không nối được app máy shop qua mạng. Kiểm mạng, trong app bấm lại Đăng TikTok (web).'); }
   const d = await r.json().catch(() => ({}));
   if (!r.ok) throw new Error(d.err || ('App báo lỗi ' + r.status));
   d.anh = [];
   for (const f of d.files || []) {
     let rr;
-    try { rr = await fetch(f.url); } catch (e) { throw new Error('Không nối được app Poly Dựng Bài khi lấy ' + f.name + '. Bấm Điền lại.'); }
+    try { rr = await fetch(f.url, { headers: f.url.startsWith(n.base + '/') ? n.hd : {} }); } catch (e) { throw new Error('Không nối được app Poly Dựng Bài khi lấy ' + f.name + '. Bấm Điền lại.'); }
     if (!rr.ok) throw new Error('Thiếu slide ' + f.name + ' (vừa bị xoá hoặc đổi tên?). Mở lại bài trong app rồi bấm Điền lại.');
     d.anh.push({ name: f.name, b64: toB64(await rr.arrayBuffer()) });
   }

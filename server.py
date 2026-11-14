@@ -5641,6 +5641,9 @@ def _chay_lich_1():
             if not tach_caption(read_caption(jj))[0]:
                 log("sau caption %s: van chua co caption" % jj["id"])
                 continue
+            if act == "tiktok" and jj.get("khach"):      # bài máy khác: TikTok mở trên máy đó (fen bấm lại), không mở trên máy shop
+                log("sau caption %s: bai may khac, cho bam Dang TikTok tren may do" % jj["id"])
+                continue
             try:
                 (mo_tiktok if act == "tiktok" else gui_telegram)(jj["id"])
                 log("sau caption %s: da %s" % (jj["id"], act))
@@ -5750,7 +5753,20 @@ def ho_so_kenh(kenh):
     """Hồ sơ Chrome đăng TikTok của kênh: iPad dùng chrome_profile (như cũ), Laptop dùng chrome_profile_kenh.laptop.
     None = chưa chọn (Laptop phải chọn, không mở nhầm hồ sơ @poly.store); "" = Chrome tự chọn."""
     if kenh == "laptop":
-        return (CFG.get("chrome_profile_kenh") or {}).get("laptop") or None
+        hs = (CFG.get("chrome_profile_kenh") or {}).get("laptop")
+        if hs and hs in [x["dir"] for x in chrome_ho_so()]:
+            return hs
+        # fen 14/11 18h15 "không bật qua chrome đăng liền": chưa chọn (hoặc hồ sơ đã chọn không còn) mà máy có đúng 1 hồ sơ Chrome
+        # tên có chữ "laptop" -> dùng luôn hồ sơ đó và nhớ lại, không bắt fen mở Kiểm máy chọn
+        ds = [x["dir"] for x in chrome_ho_so() if "laptop" in (x.get("ten") or "").lower()]
+        if len(ds) == 1:
+            try:
+                save_cfg_keys({"chrome_profile_kenh": dict(CFG.get("chrome_profile_kenh") or {}, laptop=ds[0])})
+                log("ho so Chrome Laptop tu chon: %s" % ds[0])
+            except Exception:
+                pass
+            return ds[0]
+        return hs or None
     return CFG.get("chrome_profile") or ""
 
 
@@ -5986,13 +6002,13 @@ def tiktok_dang(data):
     return {"ok": True}
 
 
-def tiktok_data(jid):
-    """Extension Poly TikTok lấy slide + caption của bài để điền vào TikTok Studio."""
+def tiktok_data(jid, base=None):
+    """Extension Poly TikTok lấy slide + caption của bài để điền vào TikTok Studio. base: máy khác lấy ảnh qua đường nối."""
     job = load_job(jid)
     if not job:
         raise ValueError("Không thấy bài")
     k = CFG["kenh"].get(job["kenh"], {})
-    base = "http://127.0.0.1:%d" % CFG["port"]
+    base = base or "http://127.0.0.1:%d" % CFG["port"]
     return {
         "id": jid, "kenh": job["kenh"], "handle": k.get("handle", ""), "ten": ten_hien(job)[0],
         "caption": tach_caption(read_caption(job))[0],
@@ -7256,6 +7272,63 @@ def don_file_thua():
                 log("don file thua %s loi: %s" % (f, e))
 
 
+# ---------- Đăng TikTok (web) trên máy khác (fen 14/11 18h07 "cho máy phú có chức năng này và file extion": máy Phú = Mac dùng chung)
+# Máy khác bấm Đăng TikTok -> app cấp 1 vé (12 giờ, chỉ cho 1 bài của máy đó) -> trang app báo vé cho tiện ích Poly TikTok (bản 0.11+,
+# cài trong cửa sổ Chrome của app dùng chung) -> trang app mở TikTok Studio ngay trên máy đó (?poly=<mã bài>, không kèm vé hay link app).
+# Tiện ích gọi về đường nối Cloudflare kèm header X-Poly-Ve: chỉ đọc bài đó (slide + caption), báo nhạc / đã đăng của bài đó, soi trang.
+CHUNG_VE = {}
+CHUNG_VE_HAN = 12 * 3600
+TIEN_ICH_DIR = os.path.join(APP, "tiktok-ext")
+
+
+def tiktok_ve(jid, may):
+    """Vé cho tiện ích trên máy khác đọc bài jid của máy may (bấm đúp trong 5 giây dùng lại vé vừa cấp)."""
+    import secrets
+    job = load_job(jid)
+    if not job or (job.get("khach") or {}).get("id") != (may or {}).get("id"):
+        raise ValueError("Không thấy bài (bài của máy khác)")
+    if not list_slides(job.get("thu_muc_bai")):
+        raise ValueError("Bài chưa có slide")
+    if not tach_caption(read_caption(job))[0]:
+        raise ValueError("Bài chưa có caption: bấm ✍ Viết caption (hoặc gõ caption) rồi bấm lại")
+    goc = CFG.get("tiktok_upload") or TIKTOK_LINK
+    with LOCK:
+        for k in [k for k, v in CHUNG_VE.items() if now() - v["t"] > CHUNG_VE_HAN]:
+            CHUNG_VE.pop(k, None)
+        ve = next((k for k, v in CHUNG_VE.items() if v["jid"] == jid and v["may"] == may["id"] and now() - v["t"] < 5), None)
+        if not ve:
+            ve = secrets.token_urlsafe(24)
+            CHUNG_VE[ve] = {"jid": jid, "may": may["id"], "t": now()}
+            _ghi_da_gui(jid, {"t": now(), "kieu": "tiktok", "may": may.get("ten") or ""})
+    return {"ok": True, "url": goc + ("&" if "?" in goc else "?") + "poly=" + jid, "ve": ve, "ban": tien_ich_ban()}
+
+
+def tiktok_ve_tim(ve):
+    v = CHUNG_VE.get(ve or "")
+    if not v or now() - v["t"] > CHUNG_VE_HAN:
+        return None
+    m = (CFG.get("chung_may") or {}).get(v["may"])
+    if not isinstance(m, dict):          # máy đã bị fen bỏ khỏi dùng chung
+        return None
+    return dict(v, ten=m.get("ten") or "Máy khác")
+
+
+def tien_ich_ban():
+    return (read_json(os.path.join(TIEN_ICH_DIR, "manifest.json"), {}) or {}).get("version") or ""
+
+
+def tien_ich_zip():
+    """File tiện ích Poly TikTok (giải nén ra thư mục poly-tiktok, Chrome > Tiện ích > Tải tiện ích đã giải nén)."""
+    import zipfile
+    ra = io.BytesIO()
+    with zipfile.ZipFile(ra, "w", zipfile.ZIP_DEFLATED) as z:
+        for fn in sorted(os.listdir(TIEN_ICH_DIR)):
+            fp = os.path.join(TIEN_ICH_DIR, fn)
+            if os.path.isfile(fp) and fn.endswith((".json", ".js")):
+                z.write(fp, "poly-tiktok/" + fn)
+    return ra.getvalue(), "Poly-TikTok-tien-ich-%s.zip" % tien_ich_ban()
+
+
 def chung_zip(jid):
     """Khách tải về: slide-NN.png + caption.txt (dòng 1 caption, dòng 2 câu ghim)."""
     import io
@@ -7368,6 +7441,9 @@ class H(BaseHTTPRequestHandler):
                 return self.send(200, b, kieu, {"Content-Disposition": 'attachment; filename="%s"' % ten})
             if u.path == "/tai":
                 return self.send(200, chung_trang_tai(), "text/html; charset=utf-8")
+            if u.path == "/tai-tien-ich":
+                b, ten = tien_ich_zip()
+                return self.send(200, b, "application/zip", {"Content-Disposition": 'attachment; filename="%s"' % ten})
             if u.path == "/api/health":
                 ci = claude_info(force=q.get("force") == ["1"])
                 return self.send(200, {
@@ -7655,9 +7731,26 @@ class HK(H):
             extra = dict(extra or {}, **{"Content-Encoding": "gzip", "Vary": "Accept-Encoding"})
         return H.send(self, code, body, ctype, extra)
 
+    ve = None
+
     def local_only(self):
+        self.ve = self.khach = None          # 1 kết nối (keep-alive qua cloudflared) có thể chở yêu cầu của nhiều máy: xoá dấu của yêu cầu trước
         host = self.headers.get("Host") or ""
         origin = self.headers.get("Origin")
+        p0 = urlparse(self.path).path
+        if self.headers.get("X-Poly-Ve") is not None or (origin or "").startswith("chrome-extension://"):
+            # tiện ích Poly TikTok trên máy khác (fen 14/11): chỉ có vé mới vào, chỉ đọc / báo đúng bài của vé
+            v = tiktok_ve_tim(self.headers.get("X-Poly-Ve") or "")
+            if not v:
+                self.send(401, {"err": "Vé đăng TikTok hết hạn hoặc máy chủ vừa khởi động lại: trong app bấm lại Đăng TikTok (web)"})
+                return False
+            ok = (self.command == "GET" and (p0 == "/api/tiktok/" + v["jid"] or (p0 == "/file" and chung_file_cua(v["may"], (parse_qs(urlparse(self.path).query).get("p") or [""])[0])))) \
+                or (self.command == "POST" and p0 in ("/api/tiktok-dang", "/api/tiktok-nhac", "/api/tiktok-soi"))
+            if not ok:
+                self.send(403, {"err": "Vé này chỉ dùng cho bài đang đăng"})
+                return False
+            self.khach, self.ve = {"id": v["may"], "ten": v["ten"]}, v
+            return True
         if origin and origin.rstrip("/") not in ("https://" + host, "http://" + host) and not (CHUNG["url"] and origin.rstrip("/") == CHUNG["url"]):
             self.send(403, {"err": "origin lạ"})
             return False
@@ -7698,6 +7791,12 @@ class HK(H):
         try:
             if u.path == "/api/chung/toi":
                 return self.send(200, {"khach": True, "ten": self.khach["ten"], "id": self.khach["id"]})
+            m = re.fullmatch(r"/api/tiktok/([\w-]+)", u.path)
+            if m:      # ảnh slide lấy qua đường nối của máy này (máy khác không gọi được 127.0.0.1 của máy shop)
+                return self.send(200, tiktok_data(m.group(1), (CHUNG["url"] or "https://" + (self.headers.get("Host") or "")).rstrip("/")))
+            if u.path == "/tai-tien-ich":
+                b, ten = tien_ich_zip()
+                return self.send(200, b, "application/zip", {"Content-Disposition": 'attachment; filename="%s"' % ten})
             if u.path == "/api/nhap":
                 return self.send(200, nhap_doc("nhap-%s.json" % self.khach["id"]))
             m = re.fullmatch(r"/api/job/([\w-]+)/zip", u.path)
@@ -7716,6 +7815,16 @@ class HK(H):
             return
         u = urlparse(self.path)
         try:
+            if self.ve:          # tiện ích trên máy khác: báo nhạc / đã đăng chỉ cho bài của vé
+                data = self.body()
+                if u.path == "/api/tiktok-soi":
+                    return self.send(200, tiktok_soi(data))
+                if str(data.get("id") or "") != self.ve["jid"]:
+                    return self.send(403, {"err": "Vé này chỉ dùng cho bài đang đăng"})
+                return self.send(200, (tiktok_dang if u.path == "/api/tiktok-dang" else tiktok_nhac)(data))
+            m = re.fullmatch(r"/api/job/([\w-]+)/tiktok-ve", u.path)
+            if m:
+                return self.send(200, tiktok_ve(m.group(1), self.khach))
             if u.path == "/api/chung/vao":       # chưa có mã thiết bị: chỉ nhận thân nhỏ
                 if int(self.headers.get("Content-Length") or 0) > 4096:
                     return self.send(413, {"err": "Gửi quá lớn"})
