@@ -62,6 +62,18 @@ Mỗi theme ở `theme-ps/<id>/` (thư mục app): `theme.json` (bảng màu, fo
   Tiêu đề (`F.T`) vàng viền tối mảnh; dòng "Phụ đề" tự đổi sang chữ nghiêng có chân trắng. Nhãn vàng chữ đen, dấu tích vàng.
   Ô ghi chú nền vàng chữ đen. Chữ thường `C.WHITE`, chữ nhấn `YEL2` / `YEL`, tên máy / số `C.GREEN_L` (vàng).
 
+## 3 theme ảnh thật thêm (fen 14/11 13h30 gửi lại ảnh mẫu "iPhone lag?" + "xoay quanh style này làm 3 theme cho photoshop")
+Trang trong cả 3 như "Ảnh thật · Chữ vàng" (ảnh thật làm mờ + tối, khung đen trong, nhãn vàng chữ đen, dấu tích vàng), tiêu đề trắng. Bìa:
+- **"Ảnh thật · Đáy tối"** (`anh-that-day-toi`): `biaAnhThat({anh, tam?, t1, t2?, nho})` — ảnh phủ kín, lớp tối mờ dần ở đáy (`bia_day: [cao, độ đậm]`),
+  chữ căn trái góc dưới (`bia_can: "trai"`, `bia_vi_tri: "duoi"`): t1 trắng, t2 vàng (để từ khoá: "iPad" / "chậm hẳn?"), `nho` nghiêng trắng. Chọn ảnh có chỗ trống / nền tối ở 1/3 dưới.
+- **"Ảnh thật · Nền sáng"** (`anh-that-nen-sang`): bìa **gọi `biaAnhKhung(o)`** (không phải biaAnhThat): nền kem, ảnh thật trong ô bo góc phía trên (y 150–860),
+  `biaAnhKhung({anh, tam?, t1, t2?, nho, vach?: 1 | 2})`: tiêu đề chữ hẹp đen căn trái dưới ảnh, vạch vàng tô nửa dưới dòng `vach` (mặc định dòng cuối), `nho` nghiêng xám.
+  Ảnh nên ngang (vùng ảnh 960×710). Trang trong: ảnh mờ nằm trong khung kem (`trang_tri: "khung"`), nội dung giữ trong lề 36 / 62 px như thường.
+- **"Ảnh thật · Chữ nghiêng"** (`anh-that-chu-nghieng`): `biaAnhThat({anh, tam?, tren: "MẸO IPAD", t1, nho})` — kiểu bìa tạp chí: ảnh tối lại 38%,
+  `tren` = dòng nhỏ chữ hẹp vàng giãn chữ trên tiêu đề (≤ 14 ký tự), t1 chữ nghiêng có chân trắng rất to (≤ 16 ký tự), `nho` chữ thường trắng. Tiêu đề trang trong cũng chữ nghiêng có chân.
+- Động cơ (dùng được cho theme khác): `themeDayToi(cao, op)` lớp tô chuyển sắc đen → trong (lỗi thì vẽ 24 dải), `themeKhungSang(l, t, r, b, rad, màu)` khung màu có ô bo góc,
+  `biaAnhThat` nhận `tren` (font `F.K` = `font_kicker`), `THEME.bia_can` / `bia_x` / `bia_day`.
+
 ## Khi viết slide
 - Theme phẳng: không đặt ảnh phủ kín trang (ảnh nền mờ, `bg-thumb.png`, `lopBia` có nền): nền phẳng của theme là nền. Theme glass và theme ảnh thật: xem mục trên (dùng `bgPhoto`, không dùng `bg-thumb` / `lopBia` có nền; bìa theme ảnh thật là `biaAnhThat`). Bìa: `newDoc` → "POLY STORE" → tiêu đề → ảnh máy tách nền (`devIn` / `placeAt`), không khung, không bóng.
 - Màu: chỉ dùng biến (`C.WHITE` chữ thường, `YEL2` iPad / `YEL` Laptop cho chữ nhấn, `C.GREEN_L` tên máy / số nổi bật, `C.GREEN` nhãn, `MINT` + `NAVY` ô ghi chú). Không ghi mã màu cứng trong slide.

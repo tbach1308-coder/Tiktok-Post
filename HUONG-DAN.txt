@@ -97,6 +97,9 @@ KHO THEME CANVA (10/11)
   Thêm 14/11 (theo ảnh mẫu TikTok fen gửi): "Ảnh thật · Chữ vàng": bìa là ảnh chụp thật của bài phủ kín trang, tiêu đề vàng
   rất to chữ hẹp viền tối mảnh + dòng nghiêng trắng đặt giữa; trang trong là ảnh thật làm mờ, tối lại. Brief nên ghi ảnh thật
   muốn dùng (tay cầm máy, máy trên bàn…); không có thì Claude tự tìm ảnh hợp chủ đề.
+  Thêm 14/11 chiều (cùng kiểu ảnh mẫu): "Ảnh thật · Đáy tối" (chữ to căn trái góc dưới, đáy ảnh tối dần, từ khoá vàng),
+  "Ảnh thật · Nền sáng" (nền kem, ảnh trong ô bo góc phía trên, tiêu đề đen có vạch vàng như bút dạ quang),
+  "Ảnh thật · Chữ nghiêng" (kiểu bìa tạp chí: dòng nhỏ vàng + tiêu đề chữ nghiêng có chân trắng rất to).
 - Bài mới, hàng "🎨 Theme": chỉ hiện đúng theme đang chọn (chưa chọn: "Không theme" / "Mẫu kênh"). Bấm "＋ Chọn theme" / "Đổi theme"
   → Kho theme mở ra, bấm "✓ Chọn theme này" là quay lại đúng bài đang viết (brief giữ nguyên). Bấm ✕ trên theme là bỏ.
   Sửa slide bài đó cũng giữ theme. Không chọn theme thì Photoshop / Canva dựng như cũ.

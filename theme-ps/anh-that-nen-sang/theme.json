@@ -1,0 +1,149 @@
+{
+ "id": "anh-that-nen-sang",
+ "ten": "Ảnh thật · Nền sáng",
+ "kieu": "ảnh thật",
+ "kenh": "",
+ "nen_kieu": "kinh",
+ "mo_ta": "Biến thể sáng của ảnh mẫu fen gửi 14/11: bìa nền kem, ảnh thật trong ô bo góc phía trên, dưới là tiêu đề chữ hẹp đen rất to căn trái, vạch vàng tô nửa dưới 1 dòng như bút dạ quang, dòng nghiêng xám có chân. Trang trong: ảnh thật làm mờ tối nằm trong khung kem; tiêu đề trắng, nhãn vàng chữ đen. Không bóng, không trang trí.",
+ "nen": "121212",
+ "nen2": "121212",
+ "the": "000000",
+ "the_kieu": "toi",
+ "dom": [],
+ "nhan": "1F1F1F",
+ "nhan_dam": "141414",
+ "nhan_nhat": "FFD400",
+ "vang": "FFD400",
+ "ghi_chu": "141414",
+ "do": "F43F5E",
+ "inkbg": "141414",
+ "font_than": [
+  "UTMAvoBold",
+  "UTMNeoSansIntelBold"
+ ],
+ "giu_vien": false,
+ "trang_tri": "khung",
+ "anh_mau": 0,
+ "pill": [
+  "FFD400",
+  "141414"
+ ],
+ "dau_tick": [
+  "FFD400",
+  "141414"
+ ],
+ "ghi_nen": "FFD400",
+ "font_tieu_de": [
+  "UTM-Impact",
+  "Impact",
+  "Bahnschrift-BoldCondensed"
+ ],
+ "khung_sang": {
+  "mau": "F5F2EB",
+  "le": [
+   36,
+   62,
+   36,
+   36
+  ],
+  "r": 30
+ },
+ "font_phu": [
+  "UTMTimesItalic",
+  "TimesNewRomanPS-ItalicMT",
+  "Georgia-Italic"
+ ],
+ "font_nghieng": [
+  "UTMTimesItalic",
+  "TimesNewRomanPS-ItalicMT",
+  "Georgia-Italic"
+ ],
+ "co_tieu_de": 1,
+ "co_phu": 1.25,
+ "vien_phu": {
+  "hex": "141414",
+  "size": 1,
+  "op": 70
+ },
+ "vien_chu": {
+  "hex": "141414",
+  "size": 2
+ },
+ "the_op": 44,
+ "anh_mo": 20,
+ "anh_toi": 52,
+ "chu_tieu_de": "FFFFFF",
+ "bia_khung": {
+  "t": 150,
+  "b": 860,
+  "le": 60,
+  "rad": 28,
+  "x": 84
+ },
+ "bia_nen": "F5F2EB",
+ "bia_chu": "141414",
+ "bia_mau": "141414",
+ "bia_mau2": "141414",
+ "vach": "FFD400",
+ "bia_co": 160,
+ "bia_track": 20,
+ "bia_co_phu": 52,
+ "bia_mau_phu": "52525B",
+ "bia_gian": 0,
+ "bia_cach_phu": 24,
+ "xem": {
+  "pill": "ĐIỀU 1",
+  "tieu": "MÀN NHỎ VẪN VẼ ĐƯỢC",
+  "phu": "Mini 7 nhẹ, cầm vẽ cả buổi không mỏi",
+  "ten": "iPad mini 7",
+  "cau": "Chip A17 Pro · 128GB",
+  "gia": "12.290.000đ",
+  "y": [
+   [
+    "check",
+    "Hỗ trợ Pencil Pro"
+   ],
+   [
+    "check",
+    "Màn 8.3 inch, nét đều tay"
+   ],
+   [
+    "x",
+    "Không hợp vẽ bản lớn"
+   ]
+  ],
+  "ghi": [
+   "Phân vân mini hay Air?",
+   "Ghé POLY cầm thử cả 2"
+  ],
+  "moc": "Xem điều 2",
+  "hoi": "Bạn vẽ trên iPad\rhay giấy?",
+  "nen": [
+   null,
+   [
+    "unsplash-doc-ipad-quan-10tr.jpg",
+    2000,
+    0,
+    300,
+    2000
+   ],
+   [
+    "unsplash-cam-ipad-sang-10tr.jpg",
+    2000,
+    500,
+    0,
+    1000
+   ]
+  ],
+  "bia_khung": {
+   "anh": "unsplash-ve-ipad-coc-10tr.jpg",
+   "tam": [
+    0.42,
+    0.5
+   ],
+   "t1": "iPad vẽ",
+   "t2": "có đáng mua?",
+   "nho": "3 điều cần biết trước khi xuống tiền."
+  }
+ }
+}

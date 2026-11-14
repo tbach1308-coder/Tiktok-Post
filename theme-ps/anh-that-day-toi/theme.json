@@ -1,0 +1,137 @@
+{
+ "id": "anh-that-day-toi",
+ "ten": "Ảnh thật · Đáy tối",
+ "kieu": "ảnh thật",
+ "kenh": "",
+ "nen_kieu": "kinh",
+ "mo_ta": "Biến thể của ảnh mẫu fen gửi 14/11: bìa là ảnh thật phủ kín trang, lớp tối mờ dần ở đáy, tiêu đề chữ hẹp rất to căn trái ở góc dưới (dòng 1 trắng, dòng 2 vàng làm từ khoá), dòng nghiêng trắng có chân. Trang trong: ảnh thật làm mờ, tối lại; tiêu đề trắng, nhãn vàng chữ đen. 1 nền + 1 màu nhấn vàng, không bóng, không trang trí.",
+ "nen": "121212",
+ "nen2": "121212",
+ "the": "000000",
+ "the_kieu": "toi",
+ "dom": [],
+ "nhan": "1F1F1F",
+ "nhan_dam": "141414",
+ "nhan_nhat": "FFD400",
+ "vang": "FFD400",
+ "ghi_chu": "141414",
+ "do": "F43F5E",
+ "inkbg": "141414",
+ "font_than": [
+  "UTMAvoBold",
+  "UTMNeoSansIntelBold"
+ ],
+ "giu_vien": false,
+ "trang_tri": "khong",
+ "anh_mau": 0,
+ "pill": [
+  "FFD400",
+  "141414"
+ ],
+ "dau_tick": [
+  "FFD400",
+  "141414"
+ ],
+ "ghi_nen": "FFD400",
+ "font_tieu_de": [
+  "UTM-Impact",
+  "Impact",
+  "Bahnschrift-BoldCondensed"
+ ],
+ "font_phu": [
+  "UTMTimesItalic",
+  "TimesNewRomanPS-ItalicMT",
+  "Georgia-Italic"
+ ],
+ "font_nghieng": [
+  "UTMTimesItalic",
+  "TimesNewRomanPS-ItalicMT",
+  "Georgia-Italic"
+ ],
+ "co_tieu_de": 1,
+ "co_phu": 1.25,
+ "vien_phu": {
+  "hex": "141414",
+  "size": 1,
+  "op": 70
+ },
+ "vien_chu": {
+  "hex": "141414",
+  "size": 2
+ },
+ "the_op": 44,
+ "anh_mo": 18,
+ "anh_toi": 55,
+ "chu_tieu_de": "FFFFFF",
+ "bia_co": 168,
+ "bia_track": 30,
+ "bia_mau": "FFFFFF",
+ "bia_mau2": "FFD400",
+ "bia_co_phu": 60,
+ "bia_mau_phu": "FFFFFF",
+ "bia_vi_tri": "duoi",
+ "bia_can": "trai",
+ "bia_x": 84,
+ "bia_toi": 0,
+ "bia_day": [
+  900,
+  88
+ ],
+ "bia_gian": 2,
+ "bia_cach_phu": 20,
+ "xem": {
+  "pill": "MẸO 2",
+  "tieu": "XOÁ DỮ LIỆU WEB",
+  "phu": "Safari nhẹ hẳn, lướt mượt lại",
+  "ten": "iPad Air M2",
+  "cau": "Chip M2 · 128GB",
+  "gia": "13.490.000đ",
+  "y": [
+   [
+    "check",
+    "Cài đặt > Safari"
+   ],
+   [
+    "check",
+    "Xoá lịch sử và dữ liệu trang web"
+   ],
+   [
+    "x",
+    "Đừng xoá khi đang đăng nhập dở"
+   ]
+  ],
+  "ghi": [
+   "Xoá rồi vẫn chậm?",
+   "Mang qua POLY kiểm tra miễn phí"
+  ],
+  "moc": "Xem mẹo 3",
+  "hoi": "Máy bạn chậm\rtừ lúc nào?",
+  "nen": [
+   null,
+   [
+    "thai-nguyen-rhXQ0EdPpAU-unsplash.jpg",
+    6228,
+    1500,
+    0,
+    3120
+   ],
+   [
+    "unsplash-goi-video-ipad-10tr.jpg",
+    2000,
+    700,
+    0,
+    1000
+   ]
+  ],
+  "bia_anh": {
+   "anh": "Hand Holding Gray iPad at Counter.png",
+   "tam": [
+    0.5,
+    0.42
+   ],
+   "t1": "iPad",
+   "t2": "chậm hẳn?",
+   "nho": "Làm 3 bước này trước khi mang đi sửa."
+  }
+ }
+}

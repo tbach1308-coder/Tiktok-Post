@@ -1,0 +1,125 @@
+{
+ "id": "anh-that-chu-nghieng",
+ "ten": "Ảnh thật · Chữ nghiêng",
+ "kieu": "ảnh thật",
+ "kenh": "",
+ "nen_kieu": "kinh",
+ "mo_ta": "Biến thể kiểu bìa tạp chí của ảnh mẫu fen gửi 14/11: ảnh thật phủ kín trang tối lại, dòng nhỏ chữ hẹp vàng giãn chữ phía trên, tiêu đề chữ nghiêng có chân trắng rất to, dòng dưới chữ thường trắng; căn giữa. Trang trong: ảnh thật làm mờ, tối lại; tiêu đề chữ nghiêng có chân trắng, nhãn vàng chữ đen. Không viền chữ dày, không bóng.",
+ "nen": "121212",
+ "nen2": "121212",
+ "the": "000000",
+ "the_kieu": "toi",
+ "dom": [],
+ "nhan": "1F1F1F",
+ "nhan_dam": "141414",
+ "nhan_nhat": "FFD400",
+ "vang": "FFD400",
+ "ghi_chu": "141414",
+ "do": "F43F5E",
+ "inkbg": "141414",
+ "font_than": [
+  "UTMAvoBold",
+  "UTMNeoSansIntelBold"
+ ],
+ "giu_vien": false,
+ "trang_tri": "khong",
+ "anh_mau": 0,
+ "pill": [
+  "FFD400",
+  "141414"
+ ],
+ "dau_tick": [
+  "FFD400",
+  "141414"
+ ],
+ "ghi_nen": "FFD400",
+ "font_tieu_de": [
+  "UTMTimesItalic",
+  "TimesNewRomanPS-ItalicMT",
+  "Georgia-Italic"
+ ],
+ "font_kicker": [
+  "UTM-Impact",
+  "Impact",
+  "Bahnschrift-BoldCondensed"
+ ],
+ "font_nghieng": [
+  "UTMTimesItalic",
+  "TimesNewRomanPS-ItalicMT",
+  "Georgia-Italic"
+ ],
+ "co_tieu_de": 0.92,
+ "the_op": 44,
+ "anh_mo": 22,
+ "anh_toi": 58,
+ "chu_tieu_de": "FFFFFF",
+ "bia_co": 150,
+ "bia_track": 0,
+ "bia_mau": "FFFFFF",
+ "bia_mau2": "FFFFFF",
+ "bia_co_tren": 36,
+ "bia_mau_tren": "FFD400",
+ "bia_track_tren": 260,
+ "bia_cach_tren": 16,
+ "bia_co_phu": 40,
+ "bia_mau_phu": "FFFFFF",
+ "bia_cach_phu": 30,
+ "bia_vi_tri": "giua",
+ "bia_toi": 38,
+ "bia_gian": 0,
+ "xem": {
+  "pill": "CÀI ĐẶT 1",
+  "tieu": "Tắt làm mới nền",
+  "phu": "App không tự chạy ngầm, pin bền hơn",
+  "ten": "iPad Pro M4",
+  "cau": "Chip M4 · 256GB",
+  "gia": "25.990.000đ",
+  "y": [
+   [
+    "check",
+    "Cài đặt > Cài đặt chung"
+   ],
+   [
+    "check",
+    "Làm mới ứng dụng trong nền: Tắt"
+   ],
+   [
+    "x",
+    "Giữ lại cho app Tin nhắn"
+   ]
+  ],
+  "ghi": [
+   "Pin vẫn tụt nhanh?",
+   "POLY kiểm tra pin miễn phí"
+  ],
+  "moc": "Xem cài đặt 2",
+  "hoi": "Pin iPad bạn\rcòn bao nhiêu %?",
+  "nen": [
+   null,
+   [
+    "unsplash-ca-phe-latte-10tr.jpg",
+    2000,
+    0,
+    300,
+    2000
+   ],
+   [
+    "unsplash-ipad-pencil-ban-toi-gYVNvRygCUw.jpg",
+    2000,
+    400,
+    0,
+    1068
+   ]
+  ],
+  "bia_anh": {
+   "anh": "unsplash-ipad-pencil-ban-toi-gYVNvRygCUw.jpg",
+   "tam": [
+    0.5,
+    0.5
+   ],
+   "tren": "MẸO IPAD",
+   "t1": "Pin tụt nhanh?",
+   "nho": "5 cài đặt nên tắt ngay hôm nay"
+  }
+ }
+}
