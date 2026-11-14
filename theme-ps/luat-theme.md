@@ -3,6 +3,15 @@
 Fen 12/11/2026: "thiết kế template kho chung bằng photoshop", "thiết kế đừng 3d quá", "cho thêm theme kiểu glass". Theme = bộ phong cách: màu, font, nền, thẻ — **phẳng** (nền màu đặc) hoặc **glass** (ảnh nền mờ + thẻ kính), đều không bóng đổ.
 Mỗi theme ở `theme-ps/<id>/` (thư mục app): `theme.json` (bảng màu, font), `theme.jsx` (tự tạo bằng `theme-ps/tao.py`), `xem/slide-01..03.png` (ảnh xem trước).
 
+## Đẹp mà không sến (fen 14/11 12h15 "có cách nào làm theme đẹp mà ko bị sến không") — áp dụng mọi theme mới, cả Canva lẫn Photoshop
+- 1 màu nền + 1 màu nhấn, còn lại đen / trắng / xám. Màu nhấn chỉ 1–2 chỗ mỗi trang (vạch tô dưới chữ, con số, nút, nhãn VS).
+- Tối đa 2 font: 1 tiêu đề chữ hẹp đậm, 1 nội dung dễ đọc. Không viền chữ dày, không bóng chữ, không trộn nghiêng lung tung.
+- Ảnh thật (máy thật, tay cầm, bàn sửa trong tiệm) làm chính; không icon / clip-art cho có.
+- Mỗi trang tối đa 1 chi tiết trang trí. Không sao nổ, chấm tròn rải rác, vòng tròn mờ góc, bóng lệch màu sau thẻ / nút, viền dày, emoji 👉.
+- Nhiều khoảng trống, lề đều, thẳng hàng; chữ to nhưng ít chữ.
+- Theme mùa chỉ gợi nhẹ: màu mùa + 1 chi tiết nhỏ cố định 1 góc (Tết: 1 cụm mai nhỏ góc trên phải; Black Friday: đen + vàng, không hoạ tiết).
+- Mẫu đã duyệt: Canva "Theme Black Friday · Đen vàng (POLY)" DAHa28Dee4w, "Theme Tết · Đỏ vàng (POLY)" DAHa3IEPgQ8 (bản tối giản 14/11), "Theme Ảnh thật · Nền sáng (POLY)" DAHa3BQfW98.
+
 ## Ghép theme khi build (mọi lần build, cả lần dựng lại vài slide)
 - iPad: `python "E:/Social Claude/_bo-dung-design/ipad/build.py" "<bài>" "<part>" "<out>" [--only 3,4] --theme "<thư mục app>/theme-ps/<id>/theme.jsx"`
 - Laptop: `python "E:/Social Claude/_bo-dung-design/code/build.py" slides/<x>.jsx <thư mục bài> <tên> vN [1,2] --theme "<…>/theme.jsx"`
