@@ -206,3 +206,28 @@ function biaChuThich(o) {
   RUN += "   bia chu thich: tieu de " + (64) + "-" + Math.round(y + dy) + "\n";
   return ls;
 }
+
+// ---------- nen + gach chan tieu de trang trong (fen 14/11 17h54 "phan theme nay nen tron qua xau") ----------
+// Nen "phong chup": quang sang mo (THEME.toa, ve trong themeNen goc) nhu phong xam trong anh mau + hat giay nhe (THEME.hat_nen = do hat, hat_op = do dam).
+var TAY_NEN0 = themeNen;
+themeNen = function () {
+  TAY_NEN0();
+  if (THEME.hat_nen) {
+    var G = rect(0, 0, W, H, 0, "808080", "Hạt nền");
+    themeHat(G, THEME.hat_nen);
+    G.blendMode = BlendMode.OVERLAY; G.opacity = THEME.hat_op || 40;
+  }
+};
+// tieu de trang noi dung (headC) co 1 gach chan ve tay o giua, nhu gach gia o bia. Sat phu de qua thi bo.
+var TAY_HEADC0 = headC;
+headC = function (n, bg, pillTxt, t, sub, op, blur) {
+  var d = TAY_HEADC0(n, bg, pillTxt, t, sub, op, blur);
+  if (THEME.tay_gach_tieu === false) return d;
+  try {
+    var T = d.artLayers.getByName("Tiêu đề"), q = bb(T), y = q[3] + 12, S = null;
+    try { S = d.artLayers.getByName("Phụ đề"); } catch (e) {}
+    if (S) { var qs = bb(S), gap = qs[1] - q[3]; if (gap < 44) S.translate(0, Math.min(30, 44 - gap)); }   // day phu de xuong cho gach chan (than bai bat dau tu 450)
+    var w = q[2] - q[0]; tayGach(q[0] + w * 0.1, q[2] - w * 0.1, y, 5, THEME.tay_mau || "FFFFFF", "Tiêu đề - gạch chân", true);
+  } catch (e2) { RUN += "   gach chan tieu de: " + e2.message + "\n"; }
+  return d;
+};

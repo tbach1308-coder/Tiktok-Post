@@ -4,12 +4,12 @@
  "kieu": "ảnh thật",
  "kenh": "",
  "ve_tay": true,
- "mo_ta": "Theo ảnh mẫu fen gửi 14/11 (iPad Pro M5 + phím + Pencil + sạc): ảnh thật món đồ, chữ viết tay trắng, mũi tên cong vẽ tay chỉ từng món, giá 2 gạch chân, viền quanh món như cắt dán. Bìa biaChuThich (tiêu đề viết tay + ảnh có chú thích); trang có ảnh món đồ dùng anhChuThich (mục Chú thích vẽ tay trong luật theme); trang chữ: nền than phẳng, tiêu đề viết tay, thân chữ không chân. Trắng trên than, không bóng, không trang trí.",
- "nen": "1F1F1F",
- "nen2": "1F1F1F",
- "the": "FFFFFF",
+ "mo_ta": "Theo ảnh mẫu fen gửi 14/11 (iPad Pro M5 + phím + Pencil + sạc): ảnh thật món đồ, chữ viết tay trắng, mũi tên cong vẽ tay chỉ từng món, giá 2 gạch chân, viền quanh món như cắt dán. Bìa biaChuThich (tiêu đề viết tay + ảnh có chú thích); trang có ảnh món đồ dùng anhChuThich (mục Chú thích vẽ tay trong luật theme). Trang chữ: gọi bgPhoto ảnh của bài thì ảnh đó làm mờ phủ tối, không gọi thì phông xám có quầng sáng + hạt giấy (không bao giờ nền trơn); tiêu đề viết tay có gạch chân vẽ tay; thẻ tối trong. Không bóng, không trang trí thêm.",
+ "nen": "131313",
+ "nen2": "131313",
+ "the": "000000",
  "the_kieu": "toi",
- "the_op": 7,
+ "the_op": 40,
  "nhan": "2B2B2B",
  "nhan_dam": "1F1F1F",
  "nhan_nhat": "FFFFFF",
@@ -134,6 +134,34 @@
   ],
   "moc": "Xem bảng màu",
   "hoi": "Bạn chọn\rmàu nào?",
-  "nen": []
- }
+  "nen": [
+   null,
+   [
+    "unsplash-ipad-pencil-ban-toi-gYVNvRygCUw.jpg",
+    2000,
+    500,
+    0,
+    1070
+   ],
+   null
+  ]
+ },
+ "nen_kieu": "kinh",
+ "dom": [],
+ "toa": [
+  [
+   "6B6B6B",
+   760,
+   190,
+   760,
+   600,
+   340,
+   85
+  ]
+ ],
+ "hat_nen": 9,
+ "hat_op": 45,
+ "anh_mau": 52,
+ "anh_mo": 34,
+ "anh_toi": 30
 }

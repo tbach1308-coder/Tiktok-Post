@@ -5,12 +5,12 @@ var THEME = {
  "kieu": "ảnh thật",
  "kenh": "",
  "ve_tay": true,
- "mo_ta": "Theo ảnh mẫu fen gửi 14/11 (iPad Pro M5 + phím + Pencil + sạc): ảnh thật món đồ, chữ viết tay trắng, mũi tên cong vẽ tay chỉ từng món, giá 2 gạch chân, viền quanh món như cắt dán. Bìa biaChuThich (tiêu đề viết tay + ảnh có chú thích); trang có ảnh món đồ dùng anhChuThich (mục Chú thích vẽ tay trong luật theme); trang chữ: nền than phẳng, tiêu đề viết tay, thân chữ không chân. Trắng trên than, không bóng, không trang trí.",
- "nen": "1F1F1F",
- "nen2": "1F1F1F",
- "the": "FFFFFF",
+ "mo_ta": "Theo ảnh mẫu fen gửi 14/11 (iPad Pro M5 + phím + Pencil + sạc): ảnh thật món đồ, chữ viết tay trắng, mũi tên cong vẽ tay chỉ từng món, giá 2 gạch chân, viền quanh món như cắt dán. Bìa biaChuThich (tiêu đề viết tay + ảnh có chú thích); trang có ảnh món đồ dùng anhChuThich (mục Chú thích vẽ tay trong luật theme). Trang chữ: gọi bgPhoto ảnh của bài thì ảnh đó làm mờ phủ tối, không gọi thì phông xám có quầng sáng + hạt giấy (không bao giờ nền trơn); tiêu đề viết tay có gạch chân vẽ tay; thẻ tối trong. Không bóng, không trang trí thêm.",
+ "nen": "131313",
+ "nen2": "131313",
+ "the": "000000",
  "the_kieu": "toi",
- "the_op": 7,
+ "the_op": 40,
  "nhan": "2B2B2B",
  "nhan_dam": "1F1F1F",
  "nhan_nhat": "FFFFFF",
@@ -135,8 +135,36 @@ var THEME = {
   ],
   "moc": "Xem bảng màu",
   "hoi": "Bạn chọn\rmàu nào?",
-  "nen": []
- }
+  "nen": [
+   null,
+   [
+    "unsplash-ipad-pencil-ban-toi-gYVNvRygCUw.jpg",
+    2000,
+    500,
+    0,
+    1070
+   ],
+   null
+  ]
+ },
+ "nen_kieu": "kinh",
+ "dom": [],
+ "toa": [
+  [
+   "6B6B6B",
+   760,
+   190,
+   760,
+   600,
+   340,
+   85
+  ]
+ ],
+ "hat_nen": 9,
+ "hat_op": 45,
+ "anh_mau": 52,
+ "anh_mo": 34,
+ "anh_toi": 30
 };
 // ===================================================================================
 // THEME PHOTOSHOP (kho chung app Poly Dung Bai, fen 12/11/2026 "thiet ke template kho chung bang photoshop", "dung 3d qua")
@@ -932,3 +960,28 @@ function biaChuThich(o) {
   RUN += "   bia chu thich: tieu de " + (64) + "-" + Math.round(y + dy) + "\n";
   return ls;
 }
+
+// ---------- nen + gach chan tieu de trang trong (fen 14/11 17h54 "phan theme nay nen tron qua xau") ----------
+// Nen "phong chup": quang sang mo (THEME.toa, ve trong themeNen goc) nhu phong xam trong anh mau + hat giay nhe (THEME.hat_nen = do hat, hat_op = do dam).
+var TAY_NEN0 = themeNen;
+themeNen = function () {
+  TAY_NEN0();
+  if (THEME.hat_nen) {
+    var G = rect(0, 0, W, H, 0, "808080", "Hạt nền");
+    themeHat(G, THEME.hat_nen);
+    G.blendMode = BlendMode.OVERLAY; G.opacity = THEME.hat_op || 40;
+  }
+};
+// tieu de trang noi dung (headC) co 1 gach chan ve tay o giua, nhu gach gia o bia. Sat phu de qua thi bo.
+var TAY_HEADC0 = headC;
+headC = function (n, bg, pillTxt, t, sub, op, blur) {
+  var d = TAY_HEADC0(n, bg, pillTxt, t, sub, op, blur);
+  if (THEME.tay_gach_tieu === false) return d;
+  try {
+    var T = d.artLayers.getByName("Tiêu đề"), q = bb(T), y = q[3] + 12, S = null;
+    try { S = d.artLayers.getByName("Phụ đề"); } catch (e) {}
+    if (S) { var qs = bb(S), gap = qs[1] - q[3]; if (gap < 44) S.translate(0, Math.min(30, 44 - gap)); }   // day phu de xuong cho gach chan (than bai bat dau tu 450)
+    var w = q[2] - q[0]; tayGach(q[0] + w * 0.1, q[2] - w * 0.1, y, 5, THEME.tay_mau || "FFFFFF", "Tiêu đề - gạch chân", true);
+  } catch (e2) { RUN += "   gach chan tieu de: " + e2.message + "\n"; }
+  return d;
+};
