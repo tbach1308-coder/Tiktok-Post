@@ -204,16 +204,17 @@ body:not(.kcdrive) .thkcd{display:none!important}   /* fen 12/11 21h47 "dấu c�
 .thpick .thmot{font-size:12px;color:var(--dim)}
 .thpick button b.thx{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;margin:0 -4px 0 2px;border-radius:50%;background:#3a2c5c;color:#e3d8ff;font-size:11px;font-weight:700}
 .thpick button b.thx:hover{background:var(--r);color:#fff}
-.sbtabs{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:10px 10px 6px;border-bottom:1px solid var(--line)}
-.sbtabs button{border:0;background:none;color:var(--mut);font:inherit;font-size:12px;font-weight:600;padding:7px 2px;border-radius:8px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;line-height:1.15}
-.sbtabs button b{font-size:14px;color:var(--tx)}
+/* fen 14/11 21h32 "thanh menu này không cần bự quá đâu": 4 tab 1 dòng, số đứng sau chữ (hẹp quá thì số xuống dòng) */
+.sbtabs{display:flex;gap:1px;padding:6px 6px 5px;border-bottom:1px solid var(--line)}
+.sbtabs button{flex:1 1 auto;min-height:26px;border:0;background:none;color:var(--mut);font:inherit;font-size:10.5px;font-weight:600;line-height:1.25;white-space:nowrap;padding:4px 2px;border-radius:7px;cursor:pointer;display:flex;flex-wrap:wrap;justify-content:center;align-content:center;gap:0 3px}
+.sbtabs button b{order:2;font-size:10.5px;color:var(--tx)}
 .sbtabs button:hover{background:var(--hover)}
 .sbtabs button.on{background:var(--gsoft, rgba(46,160,90,.16));color:var(--gl)}
 .sbtabs button.on b{color:var(--gl)}
-.ji.co-bia{display:grid;grid-template-columns:36px 1fr;gap:10px;align-items:start}
-.ji .bia{width:36px;height:48px;border-radius:5px;object-fit:cover;background:var(--panel2);border:1px solid var(--line)}
+.ji.co-bia{display:grid;grid-template-columns:30px 1fr;gap:9px;align-items:start}
+.ji .bia{width:30px;height:40px;border-radius:4px;object-fit:cover;background:var(--panel2);border:1px solid var(--line)}
 .ji .bia.trong{display:block}
-.ji .mt2{font-size:11.5px;color:var(--mut);margin-top:3px}
+.ji .mt2{font-size:11px;color:var(--mut);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ji .mt2.hen{color:var(--y)} .ji .mt2.ok{color:var(--gl)}
 .nhbar{display:flex;align-items:center;gap:10px 14px;flex-wrap:wrap;margin:0 0 20px}
 .nhbar h1{margin:0 6px 0 0}
@@ -264,16 +265,19 @@ body:not(.kcdrive) .thkcd{display:none!important}   /* fen 12/11 21h47 "dấu c�
 .jobs{overflow:auto;padding:4px 14px 16px;flex:1}
 .grp{font-size:11px;letter-spacing:.12em;color:var(--dim);text-transform:uppercase;margin:14px 2px 6px;font-weight:700;display:flex;align-items:center;gap:6px}
 .grp .n{background:var(--ysoft);color:var(--o);border-radius:99px;padding:0 7px;letter-spacing:0}
-.ji{display:block;width:100%;text-align:left;border:1px solid transparent;background:transparent;border-radius:11px;padding:9px 8px;margin:2px 0;position:relative}
+/* fen 14/11 21h27 "mấy chỗ này cho nhỏ gọn lại đi": ảnh nhỏ, 1 dòng thông tin không xuống hàng, nhãn kênh / 🖌 không nền, tên máy khách cắt gọn */
+.ji{display:block;width:100%;text-align:left;border:1px solid transparent;background:transparent;border-radius:11px;padding:6px 8px;margin:1px 0;position:relative}
 .ji:hover{background:#1f1f1f}
 .ji.on{background:var(--panel2);border-color:var(--line2);box-shadow:inset 3px 0 0 var(--g)}
-.ji .t{font-weight:600;font-size:13px;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;padding-right:40px}
-.ji .m{display:flex;align-items:center;gap:7px;color:var(--mut);font-size:11.5px;margin-top:4px;flex-wrap:wrap;row-gap:2px}
-.ji .jl{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
-.ji .nd{margin-left:auto;white-space:nowrap;color:var(--dim);font-size:11px}
-.ji .new{position:absolute;top:10px;right:8px;font-size:10px;font-weight:800;color:#fff;background:var(--g);border-radius:6px;padding:1px 6px}
-.ji .jx{position:absolute;top:6px;right:6px;display:none;width:26px;height:26px;border-radius:7px;align-items:center;justify-content:center;font-size:13px;color:var(--mut);background:var(--panel2);border:1px solid var(--line2);cursor:pointer}
-.ji .jk{position:absolute;top:6px;right:38px;display:none;height:26px;padding:0 8px;border-radius:7px;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--gl);background:var(--panel2);border:1px solid var(--line2);cursor:pointer;white-space:nowrap}
+.ji .t{font-weight:600;font-size:12.5px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;padding-right:44px}
+.ji .m{display:flex;align-items:center;gap:6px;color:var(--mut);font-size:11px;margin-top:3px;overflow:hidden}
+.ji .m .kn,.ji .m .tgd{flex:0 0 auto;padding:0;background:none}
+.ji .m .khtag{flex:0 1 auto;margin-left:0;max-width:86px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ji .jl{flex:1 1 auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.ji .nd{flex:0 0 auto;margin-left:auto;white-space:nowrap;color:var(--dim);font-size:11px}
+.ji .new{position:absolute;top:7px;right:6px;font-size:9.5px;font-weight:800;color:#fff;background:var(--g);border-radius:6px;padding:1px 5px}
+.ji .jx{position:absolute;top:5px;right:5px;display:none;width:24px;height:24px;border-radius:7px;align-items:center;justify-content:center;font-size:13px;color:var(--mut);background:var(--panel2);border:1px solid var(--line2);cursor:pointer}
+.ji .jk{position:absolute;top:5px;right:34px;display:none;height:24px;padding:0 7px;border-radius:7px;align-items:center;justify-content:center;font-size:11.5px;font-weight:700;color:var(--gl);background:var(--panel2);border:1px solid var(--line2);cursor:pointer;white-space:nowrap}
 .ji:hover .jk,.ji.on .jk{display:flex}
 .ji:has(.jk):hover .t,.ji.on:has(.jk) .t{padding-right:128px}
 .ji .jk:hover{color:#fff;background:var(--g);border-color:var(--g)}
@@ -354,8 +358,8 @@ select.in.msel option{background:var(--panel);color:var(--tx)}
 .brrow .kseg button{padding:4px 12px;font-size:12.5px}
 .brrow a{color:var(--mut)}
 /* đếm bài từng kênh ở đầu tab Chờ đăng / Đã đăng (30/10) */
-.sbdem{display:flex;gap:6px;flex-wrap:wrap;padding:2px 10px 8px;font-size:12px;color:var(--mut)}
-.sbdem button{border:1px solid var(--line2);border-radius:99px;padding:2px 9px;background:var(--panel2);color:var(--mut);font:inherit;font-size:12px;cursor:pointer}
+.sbdem{display:flex;gap:6px;flex-wrap:wrap;padding:2px 10px 6px;font-size:12px;color:var(--mut)}
+.sbdem button{border:1px solid var(--line2);border-radius:99px;padding:1px 8px;background:var(--panel2);color:var(--mut);font:inherit;font-size:11.5px;cursor:pointer}
 .sbdem button:hover{border-color:var(--g);color:var(--tx)}
 .sbdem button.on{border-color:var(--g);background:var(--gnote);color:var(--tx)}
 .sbdem b{color:var(--tx)}
@@ -477,7 +481,7 @@ select.in.msel option{background:var(--panel);color:var(--tx)}
 body.khach #bChung,body.khach #bOpen,body.khach #bCoSan,body.khach .thdb,body.khach #thKcd,body.khach .khor{display:none!important}
 .thkch{margin:22px 0 2px;font-size:16px}.thkch span{font-size:12.5px;color:var(--mut);font-weight:500}
 .thg>.pnote{grid-column:1/-1;margin:0}.thpage #thG>.pnote{font-size:12.5px;color:var(--mut)}
-#thKcG .thg{margin-top:8px}.thbat{color:var(--o, #f0a020);font-size:12.5px;font-weight:600;border:1px dashed currentColor;border-radius:99px;padding:3px 10px}
+#thKcG .thg{margin-top:8px}.thmuah{margin:18px 0 0;font-size:13px;font-weight:700;display:flex;align-items:baseline;gap:8px}.thmuah small{font-weight:500;color:var(--mut);font-size:11.5px}.thmuah .n{margin-left:auto;font-size:11px;color:var(--dim);font-weight:600}.thmuah+.thg{margin-top:8px}.thbat{color:var(--o, #f0a020);font-size:12.5px;font-weight:600;border:1px dashed currentColor;border-radius:99px;padding:3px 10px}
 #thKcG:empty,#thG:empty,#thKcGhi:empty,#thErr:empty,#thBo:empty{display:none}.thpage .chikhach{display:none}body.khach .thpage .chikhach{display:block}
 .thc .kctg{justify-self:start;font:inherit;font-size:11.5px;border:1px solid var(--line2);border-radius:99px;background:none;color:var(--mut);padding:2px 9px;cursor:pointer}
 .thc .kctg:hover{color:var(--tx)}.thc .kctg.on{border-color:#c9a227;color:#f1d27a;background:#2e2610}
@@ -500,6 +504,12 @@ body.vaoing .top .chip{display:none!important}
 .mbox{background:var(--panel);border:1px solid var(--line2);border-radius:14px;padding:20px 22px;width:min(560px,92vw)}
 .mbox h3{margin:0 0 10px}
 .mbox ol{padding-left:18px;margin:0;display:grid;gap:10px;font-size:13.5px;line-height:1.5}
+/* hộp cài tiện ích: bước có hình (fen 14/11 21h28) */
+.mbox ol.tibuoc{list-style:none;padding:0;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.tibuoc li{display:grid;gap:8px;align-content:start;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px}
+.tibuoc p{margin:3px 0 0;font-size:12.5px;line-height:1.5;color:var(--mut)}
+.tibuoc b{font-size:13px}
+.tihinh{width:100%;height:auto;display:block;font-family:inherit}
 .mbox code{background:var(--input);border:1px solid var(--line);border-radius:5px;padding:0 5px;font-size:12px}
 .mbox .row1{display:flex;gap:8px;margin-top:6px}
 .mbox .acts{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;margin-top:12px}
@@ -1093,8 +1103,9 @@ function renderBanner(){
 
 /* ---------- danh sách bài ---------- */
 // tag "làm bằng" trên bài (fen 6/11 "bài viết làm xong có tag là làm bằng canva hoặc photoshop")
-const tagDung = (j, dai) => j.dung_bang === 'canva' ? `<span class="tgd cv" title="Làm bằng Canva${j.theme_canva ? ' · theme ' + esc(j.theme_canva.ten || '') : ''}">🎨 Canva${dai && j.theme_canva ? ' · ' + esc(tenGon(j.theme_canva)) : ''}</span>`
-  : `<span class="tgd ps" title="Làm bằng Photoshop${j.theme_ps ? ' · theme ' + esc(j.theme_ps.ten || '') : ''}">🖌 ${dai ? 'Photoshop' : 'PS'}${dai && j.theme_ps ? ' · ' + esc(j.theme_ps.ten || '') : ''}</span>`;
+// gon: chỉ biểu tượng (thẻ bài cột trái, fen 14/11 21h27 "nhỏ gọn lại"), rê chuột xem làm bằng gì + theme
+const tagDung = (j, dai, gon) => j.dung_bang === 'canva' ? `<span class="tgd cv" title="Làm bằng Canva${j.theme_canva ? ' · theme ' + esc(j.theme_canva.ten || '') : ''}">🎨${gon ? '' : ' Canva'}${dai && j.theme_canva ? ' · ' + esc(tenGon(j.theme_canva)) : ''}</span>`
+  : `<span class="tgd ps" title="Làm bằng Photoshop${j.theme_ps ? ' · theme ' + esc(j.theme_ps.ten || '') : ''}">🖌${gon ? '' : ' ' + (dai ? 'Photoshop' : 'PS')}${dai && j.theme_ps ? ' · ' + esc(j.theme_ps.ten || '') : ''}</span>`;
 function unseen(j){ return j.status === 'xong' && j.ended && !S.seen[j.id]; }
 async function loadJobs(){
   try {
@@ -1183,8 +1194,8 @@ function renderJobs(){
   const item = j => { const g = nhomBai(j), p = dongPhu(j, g);
     return `<button class="ji co-bia ${S.jobId === j.id ? 'on' : ''}" data-id="${j.id}">${j.status !== 'dang-chay' ? `<span class="jx" role="button" data-xj="${j.id}" title="Xoá bài khỏi danh sách (slide trong thư mục bài vẫn giữ)">🗑</span>` : ''}${g === 'cho' ? `<span class="jk" role="button" data-dj="${j.id}" title="Đã đăng bài này (đăng tay, đăng bằng điện thoại): chuyển sang tab Đã đăng">✓ Đã đăng</span>` : g === 'dang' && j.da_dang && j.da_dang.tay ? `<span class="jk" role="button" data-bj="${j.id}" title="Bỏ đánh dấu, đưa bài về Chờ đăng">↩ Chưa đăng</span>` : ''}${j.bia ? `<img class="bia" src="${esc(j.bia)}" loading="lazy" alt="">` : '<span class="bia trong"></span>'}
       <div><div class="t">${esc(j.tieu_de || 'Bài')}</div>${unseen(j) ? '<span class="new">mới</span>' : ''}
-      <div class="m"><span class="kn ${j.kenh}">${esc((KENH[j.kenh]||{}).ten || j.kenh)}</span>${tagDung(j)}${j.khach ? `<span class="khtag" title="Bài máy dùng chung tạo">👤 ${esc(j.khach.ten || '')}</span>` : ''}<span class="dot ${j.status === 'dang-chay' ? 'run' : j.status === 'xong' ? 'ok' : j.status === 'loi' ? 'err' : j.status === 'hen' ? 'hen' : 'warn'}"></span><span class="jl">${esc(jobLine(j))}</span>${j.ngay_dang ? `<span class="nd">đăng ${esc(j.ngay_dang)}</span>` : ''}</div>
-      ${p ? `<div class="mt2 ${p[0]}">${esc(p[1])}</div>` : ''}</div>
+      <div class="m"><span class="kn ${j.kenh}">${esc((KENH[j.kenh]||{}).ten || j.kenh)}</span>${tagDung(j, false, true)}${j.khach ? `<span class="khtag" title="Bài máy dùng chung tạo: ${esc(j.khach.ten || '')}">👤 ${esc(j.khach.ten || '')}</span>` : ''}<span class="dot ${j.status === 'dang-chay' ? 'run' : j.status === 'xong' ? 'ok' : j.status === 'loi' ? 'err' : j.status === 'hen' ? 'hen' : 'warn'}"></span><span class="jl" title="${esc(jobLine(j))}">${esc(jobLine(j).replace(/ trước$/, ''))}</span>${j.ngay_dang ? `<span class="nd">đăng ${esc(j.ngay_dang)}</span>` : ''}</div>
+      ${p ? `<div class="mt2 ${p[0]}" title="${esc(p[1])}">${esc(p[1])}</div>` : ''}</div>
     </button>`; };
   const ds = nhom[S.sbTab];
   let h = '';
@@ -2057,25 +2068,67 @@ async function dangKhach(b, j){
   } catch(e) { if (w) w.close(); toast(e.message, true); }
   finally { delete S.dangGui[id]; if (S.jobId === id) await reload(); }
 }
+// fen 14/11 21h28 "cho quy trình và hình hướng dẫn cài bằng hình ảnh": mỗi bước 1 hình vẽ (SVG phẳng giống Chrome tiếng Việt)
+// 21h29 "tiện ích có update đồng bộ dc không": từ 0.12 tiện ích tự nạp bản mới trong thư mục; app Mac dùng chung (?ti=1) tự tải bản mới mỗi lần mở
+const TI_HINH = (() => {
+  const W = (h, noi) => `<svg viewBox="0 0 260 ${h}" class="tihinh" role="img" aria-hidden="true">${noi}</svg>`;
+  const khung = (h, tieu) => `<rect x="1" y="1" width="258" height="${h - 2}" rx="9" fill="#202124" stroke="#3c4043"/><rect x="1" y="1" width="258" height="24" rx="9" fill="#2d2e31"/><rect x="1" y="16" width="258" height="9" fill="#2d2e31"/>
+    <circle cx="13" cy="13" r="3.5" fill="#ff5f57"/><circle cx="24" cy="13" r="3.5" fill="#febc2e"/><circle cx="35" cy="13" r="3.5" fill="#28c840"/>${tieu ? `<text x="130" y="17" fill="#9aa0a6" font-size="9" text-anchor="middle">${tieu}</text>` : ''}`;
+  const vong = (x, y, w, h) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="7" fill="none" stroke="#f5c542" stroke-width="2.2"/>`;
+  const thuMuc = (x, y, c) => `<path d="M${x} ${y + 3}a2 2 0 0 1 2-2h6l2 3h10a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H${x + 2}a2 2 0 0 1-2-2z" fill="${c || '#8ab4f8'}"/>`;
+  return {
+    zip: W(120, khung(120, 'Tải về') + `<rect x="34" y="44" width="40" height="52" rx="5" fill="#e8eaed"/><rect x="50" y="44" width="8" height="30" fill="#9aa0a6"/><text x="54" y="90" font-size="9" fill="#202124" text-anchor="middle" font-weight="700">ZIP</text>
+      <path d="M92 70h40m-8-7 8 7-8 7" stroke="#9aa0a6" stroke-width="2.5" fill="none" stroke-linecap="round"/>${thuMuc(150, 52)}<text x="198" y="65" fill="#e8eaed" font-size="11" font-weight="700">poly-tiktok</text>${vong(144, 46, 108, 30)}
+      <text x="130" y="110" fill="#9aa0a6" font-size="9" text-anchor="middle">Mở file .zip → ra thư mục, để chỗ cố định</text>`),
+    home: W(120, khung(120, 'Finder') + `<rect x="1" y="25" width="70" height="94" fill="#26272a"/><text x="10" y="44" fill="#9aa0a6" font-size="8.5">Mục ưa thích</text><text x="10" y="60" fill="#e8eaed" font-size="10">⌂ Nhà</text><text x="10" y="76" fill="#9aa0a6" font-size="10">Tài liệu</text><text x="10" y="92" fill="#9aa0a6" font-size="10">Tải về</text>
+      <rect x="80" y="52" width="170" height="22" rx="4" fill="#394457"/>${thuMuc(88, 55)}<text x="118" y="67" fill="#e8eaed" font-size="11" font-weight="700">PolyTikTok</text>${vong(78, 49, 174, 28)}
+      ${thuMuc(88, 82, '#5f6368')}<text x="118" y="94" fill="#9aa0a6" font-size="10">Library</text><text x="165" y="112" fill="#9aa0a6" font-size="8.5" text-anchor="middle">app tự tải bản mới vào đây mỗi lần mở</text>`),
+    dc: W(96, khung(96) + `<rect x="46" y="5" width="206" height="16" rx="8" fill="#202124"/><text x="56" y="16.5" fill="#e8eaed" font-size="10">chrome://extensions</text><rect x="152" y="7" width="1.5" height="12" fill="#8ab4f8"/>${vong(44, 3, 210, 20)}
+      <rect x="92" y="48" width="76" height="26" rx="6" fill="#3c4043"/><text x="130" y="65" fill="#e8eaed" font-size="11" text-anchor="middle" font-weight="700">Enter ⏎</text>`),
+    dev: W(96, khung(96, 'Tiện ích') + `<text x="14" y="50" fill="#e8eaed" font-size="13" font-weight="700">Tiện ích</text><text x="132" y="50" fill="#e8eaed" font-size="8.5">Chế độ dành cho</text><text x="132" y="61" fill="#e8eaed" font-size="8.5">nhà phát triển</text>
+      <rect x="208" y="43" width="30" height="16" rx="8" fill="#8ab4f8"/><circle cx="230" cy="51" r="6" fill="#202124"/>${vong(126, 34, 122, 34)}<text x="187" y="86" fill="#9aa0a6" font-size="8.5" text-anchor="middle">góc phải trên → bật lên (màu xanh)</text>`),
+    nap: (ten) => W(120, khung(120, 'Tiện ích') + `<rect x="10" y="34" width="116" height="20" rx="5" fill="#394457"/><text x="68" y="47.5" fill="#8ab4f8" font-size="8.6" text-anchor="middle" font-weight="700">Tải tiện ích đã giải nén</text>${vong(7, 31, 122, 26)}
+      <rect x="134" y="34" width="56" height="20" rx="5" fill="#2d2e31"/><text x="162" y="47.5" fill="#9aa0a6" font-size="8.5" text-anchor="middle">Đóng gói</text><rect x="196" y="34" width="54" height="20" rx="5" fill="#2d2e31"/><text x="223" y="47.5" fill="#9aa0a6" font-size="8.5" text-anchor="middle">Cập nhật</text>
+      <rect x="30" y="66" width="200" height="46" rx="6" fill="#2d2e31" stroke="#3c4043"/>${thuMuc(40, 74)}<text x="70" y="86" fill="#e8eaed" font-size="10.5" font-weight="700">${ten}</text><rect x="180" y="90" width="42" height="16" rx="5" fill="#8ab4f8"/><text x="201" y="101.5" fill="#202124" font-size="9" text-anchor="middle" font-weight="700">Chọn</text>`),
+    tt: W(96, khung(96, 'tiktok.com') + `<text x="130" y="50" fill="#e8eaed" font-size="12" text-anchor="middle" font-weight="700">Đăng nhập TikTok</text><rect x="60" y="58" width="140" height="15" rx="4" fill="#2d2e31"/><text x="68" y="68.5" fill="#9aa0a6" font-size="8.5">tài khoản sẽ đăng bài</text>
+      <rect x="90" y="77" width="80" height="14" rx="4" fill="#fe2c55"/><text x="130" y="87" fill="#fff" font-size="8.5" text-anchor="middle" font-weight="700">Đăng nhập</text>`),
+    xong: (ban, tu) => W(96, khung(96, 'Tiện ích') + `<rect x="20" y="34" width="220" height="54" rx="8" fill="#2d2e31" stroke="#3c4043"/><rect x="32" y="44" width="22" height="22" rx="5" fill="#1f8a4c"/><text x="43" y="59.5" fill="#fff" font-size="11" text-anchor="middle" font-weight="800">P</text>
+      <text x="62" y="54" fill="#e8eaed" font-size="11" font-weight="700">Poly TikTok</text><text x="62" y="67" fill="#9aa0a6" font-size="9">${ban}</text><rect x="202" y="70" width="26" height="13" rx="6.5" fill="#8ab4f8"/><circle cx="221" cy="76.5" r="5" fill="#202124"/>
+      <text x="62" y="81" fill="#81c995" font-size="8.5">${tu ? '✓ tự cập nhật mỗi lần mở app' : '✓ đã bật'}</text>`),
+  };
+})();
 function tienIchDialog(ban, tuMo){
-  const m = document.createElement('div'); m.className = 'modal on'; m.innerHTML = `<div class="mbox">
-    <h3>🧩 Tiện ích Poly TikTok trên máy này</h3>
-    <p>${ban && !tiCu(ban) ? 'Máy này đã có bản ' + esc(ban) + ' (mới nhất).' : ban ? 'Máy này đang có bản cũ ' + esc(ban) + ': cài lại bản mới theo các bước dưới.' : 'Máy này chưa có tiện ích (cài 1 lần).'}
+  const moiNhat = (S.khach && S.khach.ti_ban) || '', cu = ban && tiCu(ban), coMoi = ban && moiNhat && ban !== moiNhat;
+  const tuTai = laMac() && !!store.get('poly-ti-tu', 0), ten = tuTai ? 'PolyTikTok' : 'poly-tiktok';
+  const buoc = [
+    tuTai ? ['Thư mục tiện ích có sẵn', 'App Poly Dựng Bài (dùng chung) tự tải tiện ích vào thư mục <b>PolyTikTok</b> trong thư mục <b>Nhà</b> mỗi lần mở app.', TI_HINH.home]
+      : ['Tải tiện ích, giải nén', '<a class="btn sm pri" href="/tai-tien-ich" download>⬇ Tải tiện ích</a> rồi mở file .zip: ra thư mục <b>poly-tiktok</b>. Để ở chỗ cố định (vd Tài liệu), đừng xoá.', TI_HINH.zip],
+    ['Mở trang Tiện ích', 'Bấm <button class="btn sm" id="tiMo">Mở cửa sổ TikTok</button> (cửa sổ Chrome của app). Trên thanh địa chỉ gõ <code>chrome://extensions</code> rồi Enter.', TI_HINH.dc],
+    ['Bật Chế độ nhà phát triển', 'Công tắc ở góc phải trên trang Tiện ích, bật lên màu xanh.', TI_HINH.dev],
+    ['Tải tiện ích đã giải nén', `Bấm nút đầu tiên → chọn thư mục <b>${ten}</b>${tuTai ? ' (⌘⇧H mở thư mục Nhà)' : ''} → Chọn. Có bản cũ thì gỡ bản cũ trước.`, TI_HINH.nap(ten)],
+    ['Đăng nhập TikTok (1 lần)', 'Cũng trong cửa sổ đó, đăng nhập đúng tài khoản sẽ đăng bài.', TI_HINH.tt],
+    ['Xong', tuTai ? 'Quay lại app, tải lại trang (⌘R). Từ giờ <b>không cần cài lại</b>: mỗi lần mở app, tiện ích tự lên bản mới.'
+      : 'Quay lại app, tải lại trang (F5 / ⌘R), mở bài, bấm <b>Đăng TikTok (web)</b>. Có bản mới: tải lại file, giải nén <b>đè vào đúng thư mục cũ</b>, mở lại app là tiện ích tự lên bản mới.', TI_HINH.xong(moiNhat || ban || '0.12', tuTai)],
+  ];
+  const m = document.createElement('div'); m.className = 'modal on'; m.innerHTML = `<div class="mbox wide">
+    <h3>🧩 Cài tiện ích Poly TikTok (1 lần)</h3>
+    <p>${!ban ? 'Máy này chưa có tiện ích.' : cu ? 'Máy này đang có bản cũ ' + esc(ban) + ': cài lại theo các bước dưới.' : coMoi ? 'Máy này có bản ' + esc(ban) + ', đã có bản mới ' + esc(moiNhat) + (document.documentElement.dataset.polyTiktokTu ? ': ' + (tuTai ? 'tắt hẳn app rồi mở lại là tự lên.' : 'giải nén bản mới đè vào thư mục cũ, mở lại app là tự lên.') : ': cài lại theo các bước dưới (từ bản 0.12 tự cập nhật).') : 'Máy này đã có bản ' + esc(ban) + ' (mới nhất).'}
       Tiện ích gắn sẵn slide + caption + nhạc vào TikTok Studio; người đăng tự kiểm rồi tự bấm Post (tiện ích không bao giờ tự bấm).</p>
-    <ol>
-      <li><a class="btn sm pri" href="/tai-tien-ich" download>⬇ Tải tiện ích</a> rồi mở file .zip vừa tải: ra thư mục <b>poly-tiktok</b>. Để thư mục ở chỗ cố định (vd Tài liệu), đừng xoá.</li>
-      <li>Bấm <button class="btn sm" id="tiMo">Mở cửa sổ TikTok</button>. Trên thanh địa chỉ cửa sổ vừa mở gõ <code>chrome://extensions</code> rồi Enter.</li>
-      <li>Bật <b>Chế độ dành cho nhà phát triển</b> (góc phải trên) → <b>Tải tiện ích đã giải nén</b> → chọn thư mục <b>poly-tiktok</b>. Đã có bản cũ thì gỡ bản cũ trước.</li>
-      <li>Cũng trong cửa sổ đó: đăng nhập TikTok tài khoản sẽ đăng bài (1 lần).</li>
-      <li>Quay lại app, tải lại trang (⌘R trên Mac, F5 trên Windows), mở bài, bấm <b>Đăng TikTok (web)</b>.</li>
-    </ol>
-    <p class="pnote">Tiện ích phải cài trong cửa sổ Chrome của app dùng chung (khác Chrome thường của máy). App mở bằng Safari thì không cài được: dùng ⬇ Tải slide + caption hoặc Gửi Telegram.</p>
+    <ol class="tibuoc">${buoc.map(([t, d, h], i) => `<li><div class="tih">${h}</div><div><b>${i + 1}. ${t}</b><p>${d}</p></div></li>`).join('')}</ol>
+    <p class="pnote">Tiện ích phải cài trong cửa sổ Chrome của app dùng chung (khác Chrome thường của máy). App mở bằng Safari thì không cài được: dùng ⬇ Tải slide + caption hoặc Gửi Telegram.${laMac() && !tuTai ? ' Máy Mac: <a href="/tai">tải app Mac mới</a> thì tiện ích tự cập nhật mỗi lần mở app.' : ''}</p>
     <div class="acts"><button class="btn" id="tiDong">Đóng</button></div></div>`;
   document.body.appendChild(m);
   m.querySelector('#tiDong').onclick = () => m.remove();
   m.querySelector('#tiMo').onclick = () => window.open('https://www.tiktok.com/tiktokstudio/upload?from=webapp&tab=photo', '_blank');
   if (!tuMo) toast(ban ? 'Tiện ích Poly TikTok trên máy này là bản cũ: cập nhật rồi bấm lại' : 'Máy này chưa cài tiện ích Poly TikTok: cài 1 lần theo hướng dẫn', true);
 }
+// tiện ích 0.12+ vừa thấy bản mới trong thư mục và tự nạp lại: tải lại trang để nhận phần nối trang app mới (đang gõ dở thì chỉ báo)
+addEventListener('message', e => {
+  if (e.source !== window || !e.data || !e.data.polyTiktokNap) return;
+  const go = document.activeElement && /^(TEXTAREA|INPUT)$/.test(document.activeElement.tagName) && document.activeElement.value;
+  toast('Tiện ích Poly TikTok vừa lên bản ' + e.data.polyTiktokNap + (go ? ': tải lại trang (F5 / ⌘R) khi gõ xong' : ', đang tải lại trang…'));
+  if (!go) setTimeout(() => location.reload(), 1500);
+});
 async function tgDialog(lyDo){
   const st = await api('/api/telegram').catch(() => ({}));
   const m = document.createElement('div'); m.className = 'modal on'; m.innerHTML = `<div class="mbox">
@@ -2208,6 +2261,7 @@ function inline(s){
 async function khoiDong(){
   if (KHACH) {
     const vao = (location.hash.match(/vao=([\w-]+)/) || [])[1];
+    if (/[#&]ti=1\b/.test(location.hash)) store.set('poly-ti-tu', 1);   // app Mac dùng chung (14/11) tự tải tiện ích mỗi lần mở
     if (vao) { history.replaceState(null, '', location.pathname); try { await api('/api/chung/vao', {token: vao}); } catch(e) {} }
     try { S.khach = await api('/api/chung/toi'); }
     catch(e) { if (e.status === 401) { manVao(); return false; } setH($('#hc'), '<span class="dot err"></span><span>Không vào được app máy shop</span>'); return false; }
@@ -2348,7 +2402,8 @@ async function khoTheme(){
     <div class="kseg segd" id="thKieu"><button data-k="cv" class="${S.thKieu === 'ps' ? '' : 'on'}">🎨 Canva</button><button data-k="ps" class="${S.thKieu === 'ps' ? 'on' : ''}" title="Theme Photoshop (phẳng / glass) dùng chung cho mọi máy: bấm ▶ Làm bài rồi viết brief, Claude dựng bằng Photoshop theo màu, font, nền của theme">🖌 Photoshop</button></div></div>
     ${choBai ? '<p class="banner thcho">Đang chọn theme cho bài đang viết: bấm <b>✓ Chọn theme này</b> ở theme muốn dùng, app quay lại bài.</p>' : ''}
     <div id="thPsWrap"${S.thKieu === 'ps' ? '' : ' hidden'}>
-    <div class="thg" id="thPsG">Đang tải…</div></div>
+    <p class="pnote thmuag" id="thPsMua" hidden></p>
+    <div id="thPsG">Đang tải…</div></div>
     <div id="thCvWrap"${S.thKieu === 'ps' ? ' hidden' : ''}>
     <!-- fen 13/11 11h31 "vẫn quá nhiều": bỏ đoạn giới thiệu dài, hướng dẫn nằm ở chữ hiện khi rê chuột -->
     <p class="pnote chikhach">Thêm theme riêng: dán link Canva bên dưới hoặc ⧉ Nhân bản 1 theme kho chung.</p>
@@ -2363,7 +2418,7 @@ async function khoTheme(){
     <p class="err" id="thErr"></p>
     <div class="thed" id="thEd" hidden></div>
     <p class="pnote thmuag" id="thMua" hidden></p>
-    <div class="thg" id="thG">Đang tải…</div>
+    <div id="thG">Đang tải…</div>
     <p class="pnote thbo" id="thBo"></p>
     <h3 class="thkch" title="Máy dùng chung thấy và dùng được đúng các theme này">☁️ Kho chung <span id="thKcN"></span></h3>
     <p class="pnote" id="thKcGhi"></p>
@@ -2374,13 +2429,30 @@ async function khoTheme(){
   $('#thKieu').onclick = e => { const b = e.target.closest('[data-k]'); if (!b) return; S.thKieu = b.dataset.k;
     document.querySelectorAll('#thKieu button').forEach(x => x.classList.toggle('on', x === b));
     $('#thPsWrap').hidden = S.thKieu !== 'ps'; $('#thCvWrap').hidden = S.thKieu === 'ps'; };
+  // fen 14/11 21h35 "kho theme phân theo mùa": lưới chia mục mùa đang tới trước, rồi Quanh năm, theme hết mùa (khi bấm Hiện) cuối; không theme nào có mùa thì 1 lưới như cũ
+  const MUA_IC = {christmas: '🎄', tet: '🧧', 'black-friday': '🛍', valentine: '💝', halloween: '🎃'};
+  const theoMua = (xs, the1) => {
+    if (!xs.some(t => t.mua)) return `<div class="thg">${xs.map(the1).join('')}</div>`;
+    const nhom = new Map(), thu = k => k.startsWith('dang:') ? 0 : k === 'nam' ? 1 : 2;
+    xs.forEach(t => { const k = t.mua ? (t.ngoai_mua ? 'het:' : 'dang:') + t.mua : 'nam'; nhom.has(k) ? nhom.get(k).push(t) : nhom.set(k, [t]); });
+    return [...nhom.entries()].sort((a, b) => thu(a[0]) - thu(b[0])).map(([k, ts]) => { const t = ts[0];
+      const tieu = k === 'nam' ? '🗓 Quanh năm' : `${MUA_IC[t.mua] || '🗓'} Mùa ${esc(t.mua_ten)} <small>${t.ngoai_mua ? 'hết mùa, hiện lại ' + esc(t.mua_tu) : esc(t.mua_tu) + ' – ' + esc(t.mua_den)}</small>`;
+      return `<h4 class="thmuah">${tieu}<span class="n">${ts.length}</span></h4><div class="thg">${ts.map(the1).join('')}</div>`; }).join('');
+  };
+  const nhanMua = t => !t.mua ? '' : t.ngoai_mua ? `<small class="thmua het" title="Theme mùa ${esc(t.mua_ten)}: ngoài mùa thì ẩn ở chỗ chọn, app không tự chọn">🍂 Hết mùa · hiện lại ${esc(t.mua_tu)}</small>`
+    : `<small class="thmua" title="Theme mùa ${esc(t.mua_ten)}: qua ${esc(t.mua_den)} tự ẩn, năm sau tự hiện lại">🗓 Mùa ${esc(t.mua_ten)} · tới ${esc(t.mua_den)}</small>`;
+  const dongMua = (el, het, bat) => { el.hidden = !het.length;
+    setH(el, het.length ? `🍂 ${het.length} theme đang hết mùa ${S.thHetMua ? 'đang hiện (mờ)' : 'đang ẩn'}: ${het.map(t => esc(tenGon(t))).join(', ')}<a href="#" id="${el.id}Bat">${S.thHetMua ? 'Ẩn đi' : 'Hiện'}</a>` : '');
+    const a = el.querySelector('a'); if (a) a.onclick = ev => { ev.preventDefault(); S.thHetMua = !S.thHetMua; bat(); }; };
   // fen 12/11 21h18 theme Photoshop từng hiện cả trong mục ☁️ Kho chung tab Canva; 13/11 11h35 "hiển thị theme theo tag": chỉ còn ở tab Photoshop
   // fen 12/11 21h20 "hiển thị giống canva ở trên": thẻ y như thẻ theme Canva (1 ảnh bìa 3:4, tên, dòng nhỏ, nhãn kho chung, ▶ Làm bài)
-  const thePs = t => `<div class="thc thps" data-id="${t.id}"><div class="tha" title="${esc(t.mo_ta || '')}">${t.anh && t.anh[0] ? `<img src="${esc(t.anh[0])}" alt="">` : '<span>Chưa có ảnh xem trước</span>'}</div>
-      <b title="${esc(t.ten)}">${esc(t.ten)}</b><small class="thm">${t.kenh ? esc(KENH[t.kenh].ten) : 'Cả 2 kênh'}</small>
+  const thePs = t => `<div class="thc thps${t.ngoai_mua ? ' hetmua' : ''}" data-id="${t.id}"><div class="tha" title="${esc(t.mo_ta || '')}">${t.anh && t.anh[0] ? `<img src="${esc(t.anh[0])}" alt="">` : '<span>Chưa có ảnh xem trước</span>'}</div>
+      <b title="${esc(t.ten)}">${esc(t.ten)}</b><small class="thm">${t.kenh ? esc(KENH[t.kenh].ten) : 'Cả 2 kênh'}</small>${nhanMua(t)}
       <div class="thb"><button class="btn sm pri" data-dungps="${t.id}" title="${choBai ? 'Dùng theme này cho bài đang viết' : 'Mở bài mới với theme này'}, làm bằng Photoshop">${nutDung}</button></div></div>`;
   const vePs = ds2 => { S.themePsDs = ds2; if (!$('#thPsG')) return;
-    setH($('#thPsG'), ds2.length ? ds2.map(thePs).join('') : '<p class="pnote">Kho chung chưa có theme Photoshop nào.</p>');
+    dongMua($('#thPsMua'), ds2.filter(t => t.ngoai_mua), () => { vePs(ds2); if (cuoi) ve(cuoi); });
+    const hien = ds2.filter(t => S.thHetMua || !t.ngoai_mua);
+    setH($('#thPsG'), hien.length ? theoMua(hien, thePs) : '<p class="pnote">Kho chung chưa có theme Photoshop nào.</p>');
     const nb = $('#thKieu [data-k=ps]'); if (nb) nb.textContent = '🖌 Photoshop' + (ds2.length ? ' · ' + ds2.length : '');
   };
   api('/api/theme-ps').then(r => vePs(r.ds || [])).catch(e => { if ($('#thPsG')) $('#thPsG').textContent = e.message; });
@@ -2418,9 +2490,7 @@ async function khoTheme(){
     if (r.mua_ds) S.muaDs = r.mua_ds;
     const hetMua = ds.filter(t => t.ngoai_mua), hienMua = !!S.thHetMua, conMua = t => hienMua || !t.ngoai_mua;
     const dsRieng = ds.filter(t => cuaMay(t) && !(t.kc && !KHACH) && conMua(t)), dsChung = ds.filter(t => t.kc && conMua(t));
-    const mm = $('#thMua'); mm.hidden = !hetMua.length;
-    setH(mm, hetMua.length ? `🍂 ${hetMua.length} theme đang hết mùa ${hienMua ? 'đang hiện (mờ)' : 'đang ẩn'}: ${hetMua.map(t => esc(tenGon(t))).join(', ')}<a href="#" id="thMuaBat">${hienMua ? 'Ẩn đi' : 'Hiện'}</a>` : '');
-    const mb = $('#thMuaBat'); if (mb) mb.onclick = ev => { ev.preventDefault(); S.thHetMua = !S.thHetMua; ve(cuoi); };
+    dongMua($('#thMua'), hetMua, () => { ve(cuoi); if (S.themePsDs) vePs(S.themePsDs); });
     const the = (t, trongKc) => { const x = t.xem || {}, sx = t.sua || {}, ban = sx.tt === 'dang', kc = t.nguon === 'kho-chung';
       const rieng = cuaMay(t) && !trongKc;     // rieng = thẻ có Chỉnh / ⋯ (theme máy này sửa / bỏ được)
       const anh = t.anh ? `<img src="${esc(t.anh)}" alt="">` : `<span>${x.tt === 'dang' ? 'Đang lấy ảnh xem trước…' : x.tt === 'loi' ? 'Chưa lấy được ảnh: ' + esc(x.ghi || '') : 'Chưa có ảnh xem trước'}</span>`;
@@ -2432,15 +2502,14 @@ async function khoTheme(){
         : (t.kc && S.kcDung && KC_DRIVE && !t.chia_se ? '<small class="kcw" title="Máy cài app khác tải kho chung có thể không mở được theme này. Thêm link: ⋯ → Thông tin → Link chia sẻ Canva">☁️ Chưa chia sẻ cho máy khác</small>' : '');
       // fen 13/11 10h25 "nằm lộn xộn quá": nút kho chung thành ngôi sao nhỏ cùng hàng ▶ Làm bài / ⋯ (thẻ không còn dòng chip cao thấp khác nhau)
       const sao = kc || KHACH ? '' : `<button class="kctg sao${t.kc ? ' on' : ''}" data-kc="${t.id}" title="${t.kc ? 'Đang trong kho chung: máy dùng chung và máy tải kho chung thấy, dùng được. Bấm để bỏ ra (chỉ máy shop thấy)' : 'Chỉ máy shop thấy. Bấm để đưa vào kho chung cho máy khác dùng'}">${t.kc ? '★' : '☆'}</button>`;
-      const mua = !t.mua ? '' : t.ngoai_mua ? `<small class="thmua het" title="Theme mùa ${esc(t.mua_ten)}: ngoài mùa thì ẩn ở chỗ chọn, app không tự chọn. Đổi ở ⋯ → Thông tin">🍂 Hết mùa · hiện lại ${esc(t.mua_tu)}</small>`
-        : `<small class="thmua" title="Theme mùa ${esc(t.mua_ten)}: qua ${esc(t.mua_den)} tự ẩn, năm sau tự hiện lại. Đổi ở ⋯ → Thông tin">🗓 Mùa ${esc(t.mua_ten)} · tới ${esc(t.mua_den)}</small>`;
+      const mua = nhanMua(t);
       const meta = `${t.kenh ? KENH[t.kenh].ten : 'Cả 2 kênh'}${(t.dang || []).length ? ' · ' + t.dang.map(tenDang).join(', ') : ''}${t.so_trang ? ' · ' + t.so_trang + ' trang' : ''}${t.goc ? ' · bản nhân' : ''}`;
       return `<div class="thc${t.ngoai_mua ? ' hetmua' : ''}" data-id="${t.id}"><div class="tha">${anh}</div><b title="${esc(t.ten)}">${esc(tenGon(t))}</b>
         <small class="thm" title="${esc(meta)}">${esc(meta)}</small>${mua}${chung}${tt}
         <div class="thb"><button class="btn sm pri" data-dung="${t.id}" title="${choBai ? 'Dùng theme này cho bài đang viết' : 'Mở bài mới với theme này'}, làm bằng Canva">${nutDung}</button>${sao}<button class="btn sm ghost" data-more="${t.id}" title="Thêm: ${rieng ? 'chỉnh, ' : ''}nhân bản, mở Canva…">⋯</button></div>
         <div class="thmore"${moMore === t.id ? '' : ' hidden'}>${rieng ? `<button class="btn sm ghost" data-chinh="${t.id}"${ban ? ' disabled' : ''} title="Sửa chữ, màu ngay trong app, Claude lưu lên Canva (bản cũ được cất lại)">✏️ Chỉnh</button>` : ''}<button class="btn sm ghost" data-nb="${t.id}"${ban ? ' disabled' : ''} title="Tạo theme mới từ theme này, chỉnh luôn nếu muốn">⧉ Nhân bản</button><a class="btn sm ghost" href="${esc(t.link)}" target="_blank" rel="noopener">Mở Canva</a>${rieng ? `<button class="btn sm ghost" data-info="${t.id}" title="Đổi tên, kênh, dạng bài, link chia sẻ (không đụng thiết kế)">Thông tin</button><button class="btn sm ghost" data-xem="${t.id}"${x.tt === 'dang' ? ' disabled' : ''}>${t.anh ? 'Làm mới ảnh' : 'Lấy ảnh'}</button><button class="btn sm ghost" data-xoa="${t.id}">Bỏ khỏi kho</button>` : ''}</div>
         <div class="thinfo" hidden></div></div>`; };
-    setH($('#thG'), dsRieng.length ? dsRieng.map(t => the(t)).join('')
+    setH($('#thG'), dsRieng.length ? theoMua(dsRieng, t => the(t))
       : `<p class="pnote">${KHACH ? 'Máy này chưa có theme riêng. Dán link 1 thiết kế Canva ở trên, hoặc bấm ⧉ Nhân bản 1 theme kho chung bên dưới để có bản riêng.'
         : 'Kho trống. Trên Canva bỏ thiết kế vào thư mục POLY Theme rồi bấm Lấy từ Canva.'}</p>`);
     if (!dsRieng.length && !KHACH && dsChung.length) setH($('#thG'), '');
@@ -2452,7 +2521,7 @@ async function khoTheme(){
         : KC_DRIVE ? 'Máy dùng chung và máy cài app khác (tải kho chung trên Drive) thấy đúng các theme này.' : '')
       : (KHACH ? 'Fen chưa để theme Canva nào vào kho chung.' : 'Chưa có theme Canva nào trong kho chung. Bấm ☆ ở thẻ theme phía trên để máy khác dùng được.'));
     // (11h09 kho chung chia nhóm Canva / Photoshop → 11h35 theo tab: theme Photoshop chỉ ở tab Photoshop)
-    setH($('#thKcG'), nChung ? `<div class="thg">${dsChung.map(t => the(t, KHACH)).join('')}</div>` : '');
+    setH($('#thKcG'), nChung ? theoMua(dsChung, t => the(t, KHACH)) : '');
   };
   // Thông tin ngay trên ô theme (fen 10/11 15h13 "rà lại làm cho logic")
   const moThongTin = (t, the) => { const f = the.querySelector('.thinfo'); if (!f) return; moInfo = t.id; moMore = ''; the.querySelector('.thmore').hidden = true; f.hidden = false; const c = new Set(t.dang || []);

@@ -25,7 +25,8 @@ let ok = 0, loi = 0; const check = (n, c, x) => { if (c) { ok++; console.log('�
   const hop = await p.evaluate(() => { const m = [...document.querySelectorAll('.modal.on')].pop(); return m ? { chu: m.textContent, tai: !!m.querySelector('a[href="/tai-tien-ich"]') } : null; });
   check('chưa cài tiện ích: hiện hộp hướng dẫn cài + nút tải file', hop && hop.tai && /chưa có tiện ích/.test(hop.chu) && /chrome:\/\/extensions/.test(hop.chu), hop);
   const [dl] = await Promise.all([p.waitForEvent('download'), p.click('.modal.on a[href="/tai-tien-ich"]')]);
-  check('tải file tiện ích', /^Poly-TikTok-tien-ich-0\.11\.1\.zip$/.test(dl.suggestedFilename()), dl.suggestedFilename());
+  check('tải file tiện ích', /^Poly-TikTok-tien-ich-0\.12\.0\.zip$/.test(dl.suggestedFilename()), dl.suggestedFilename());
+  check('hộp cài có 6 bước, bước nào cũng có hình', await p.evaluate(() => { const li = document.querySelectorAll('.modal.on .tibuoc li'); return li.length === 6 && [...li].every(x => x.querySelector('svg.tihinh')); }));
   await p.screenshot({ path: 'shots/tiktok-khach-cai.png' });
   await p.click('#tiDong');
   check('chưa cài: không mở TikTok, không cấp vé', !((await j('/api/job/' + done.id)).da_gui || []).some(x => x.kieu === 'tiktok'));
@@ -54,7 +55,12 @@ let ok = 0, loi = 0; const check = (n, c, x) => { if (c) { ok++; console.log('�
   await p.click('#bDang'); await p.waitForTimeout(2500);
   check('bấm lại: hỏi rồi mở lần 2', (await p.evaluate(() => window.__mo.length)) === 2);
   await p.click('#bTienIch'); await p.waitForTimeout(300);
-  check('nút 🧩 Tiện ích TikTok: bản mới nhất', await p.evaluate(() => /bản 0\.11\.0 \(mới nhất\)/.test(([...document.querySelectorAll('.modal.on')].pop() || {}).textContent || '')));
+  // 14/11 21h29: máy có 0.11.0, máy shop có 0.12.0 -> báo có bản mới; tiện ích 0.12 (tự nạp) + app Mac tự tải -> "tắt hẳn app rồi mở lại"
+  check('nút 🧩 Tiện ích TikTok: báo có bản mới 0.12.0', await p.evaluate(() => /bản 0\.11\.0, đã có bản mới 0\.12\.0/.test(([...document.querySelectorAll('.modal.on')].pop() || {}).textContent || '')));
+  await p.click('#tiDong');
+  await p.evaluate(() => { document.documentElement.dataset.polyTiktok = '0.12.0'; });
+  await p.click('#bTienIch'); await p.waitForTimeout(300);
+  check('nút 🧩 Tiện ích TikTok: bản mới nhất', await p.evaluate(() => /bản 0\.12\.0 \(mới nhất\)/.test(([...document.querySelectorAll('.modal.on')].pop() || {}).textContent || '')));
   await p.screenshot({ path: 'shots/tiktok-khach-moi.png' });
   // máy shop: nút như cũ (không đi đường vé)
   const c4 = await b.newContext({ viewport: { width: 1440, height: 900 } }); const p4 = await c4.newPage(); p4.on('pageerror', e => errs.push('chu: ' + e.message));

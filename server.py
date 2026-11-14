@@ -3049,7 +3049,7 @@ THEME_DANG = [["so-sanh", "So sánh 2 máy"], ["top", "Top / danh sách máy"], 
 # key: (tên, chữ trong tên theme, (tháng, ngày) từ, (tháng, ngày) đến); Tết theo âm lịch: 35 ngày trước mùng 1 tới mùng 10.
 MUA = {
     "black-friday": ("Black Friday", r"black\s*friday|cyber\s*monday", (11, 10), (12, 2)),
-    "christmas": ("Christmas", r"christmas|x-?mas|noel|gi[aá]ng\s*sinh", (11, 20), (12, 26)),
+    "christmas": ("Christmas", r"christmas|x-?mas|noel|gi[aá]ng\s*sinh", (11, 1), (12, 26)),     # fen 14/11 21h35 chọn "Noel từ 1/11" (trước 20/11)
     "tet": ("Tết", r"\bt[eế]t\b|lunar\s*new\s*year", None, None),
     "valentine": ("Valentine", r"valentine", (2, 1), (2, 15)),
     "halloween": ("Halloween", r"halloween", (10, 15), (11, 1)),
@@ -4142,7 +4142,8 @@ def theme_ps_ds():
         ds.append({"id": ten, "ten": str(t.get("ten") or ten)[:80], "kenh": t.get("kenh") if t.get("kenh") in CFG["kenh"] else "",
                    "mo_ta": str(t.get("mo_ta") or "")[:300], "anh": anh, "kc": True,
                    "kieu": str(t.get("kieu") or "")[:20] or ("glass" if t.get("nen_kieu") == "kinh" else "phẳng"),     # fen 21h26 "cho thêm theme kiểu glass"; 14/11 "ảnh thật"
-                   "mau": ["#" + str(t[k]) for k in ("nen", "nhan", "vang") if re.fullmatch(r"[0-9A-Fa-f]{6}", str(t.get(k) or ""))]})
+                   "mau": ["#" + str(t[k]) for k in ("nen", "nhan", "vang") if re.fullmatch(r"[0-9A-Fa-f]{6}", str(t.get(k) or ""))],
+                   **_mua_ra(dict(t, ten=t.get("ten") or ten))})      # fen 14/11 21h35 "kho theme phân theo mùa": theme Photoshop cũng có mùa (Noel…)
     return ds
 
 
@@ -7790,7 +7791,7 @@ class HK(H):
         q = parse_qs(u.query)
         try:
             if u.path == "/api/chung/toi":
-                return self.send(200, {"khach": True, "ten": self.khach["ten"], "id": self.khach["id"]})
+                return self.send(200, {"khach": True, "ten": self.khach["ten"], "id": self.khach["id"], "ti_ban": tien_ich_ban()})
             m = re.fullmatch(r"/api/tiktok/([\w-]+)", u.path)
             if m:      # ảnh slide lấy qua đường nối của máy này (máy khác không gọi được 127.0.0.1 của máy shop)
                 return self.send(200, tiktok_data(m.group(1), (CHUNG["url"] or "https://" + (self.headers.get("Host") or "")).rstrip("/")))

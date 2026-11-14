@@ -13,6 +13,12 @@ async function gui(id, duong, data) {
   const n = await noi(id);
   return fetch(n.base + duong, { method: 'POST', headers: Object.assign({ 'Content-Type': 'application/json' }, n.hd), body: JSON.stringify(data) });
 }
+// 0.12 (fen 14/11 21h29 "tiện ích có update đồng bộ dc không"): tiện ích cài dạng giải nén đọc file thẳng từ thư mục đã chọn.
+// Thư mục được chép bản mới (app Mac dùng chung tự tải mỗi lần mở, máy shop có bản mới khi cập nhật app) thì lần mở trang app kế tiếp
+// app.js hỏi ở đây: bản trong thư mục khác bản đang chạy -> báo trang app rồi tự nạp lại (trang app tải lại để nhận app.js mới).
+async function banTrongThuMuc() {
+  try { return (await (await fetch(chrome.runtime.getURL('manifest.json'), { cache: 'no-store' })).json()).version || ''; } catch (e) { return ''; }
+}
 const HAN = 10 * 60 * 1000;          // việc của tab quá 10 phút thì bỏ
 let q = Promise.resolve();           // xử lý tuần tự: 2 khung cùng xin nhận việc thì chỉ 1 khung được
 const tuanTu = f => (q = q.then(f, f));
@@ -33,6 +39,14 @@ chrome.tabs.onUpdated.addListener(async (t, info) => {
 
 chrome.runtime.onMessage.addListener((msg, sender, send) => {
   if (!msg || !msg.poly) return;
+  if (msg.poly === 'kiem-ban') {
+    banTrongThuMuc().then(b => {
+      const moi = !!b && b !== chrome.runtime.getManifest().version;
+      send({ ban: chrome.runtime.getManifest().version, moi: moi ? b : '' });
+      if (moi) setTimeout(() => chrome.runtime.reload(), 300);
+    });
+    return true;
+  }
   if (msg.poly === 'lay') {
     lay(msg.id).then(send, e => send({ err: String((e && e.message) || e) }));
     return true;

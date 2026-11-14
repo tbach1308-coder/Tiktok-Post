@@ -1,5 +1,8 @@
 #!/bin/bash
 # osascript giả: hỏi (3 tham số) -> lấy câu trả lời đầu hàng chờ; báo (2 tham số) -> ghi lại
+if [ "$1" = "-l" ] && [ "$2" = "JavaScript" ]; then   # JXA: chạy bằng node (jxa-gia.js), tham số sau "-"
+  shift 3; exec node "$(dirname "$0")/jxa-gia.js" "$@"
+fi
 cat >/dev/null
 shift
 if [ "$#" -ge 3 ]; then

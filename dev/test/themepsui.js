@@ -28,7 +28,7 @@ const check = (n, c, x) => { c ? ok++ : bad++; console.log((c ? '✓ ' : '✗ ')
     const the = await p.$$eval('#thPsG .thps', x => x.map(e => ({ ten: e.querySelector('b').textContent, anh: e.querySelectorAll('.tha img').length, thua: !!e.querySelector('.kcb') || /Photoshop/.test(e.querySelector('.thm').textContent) })));
     // fen 13/11 11h39 "tối ưu loại bỏ phần thừa": thẻ Photoshop không còn nhãn "☁️ Kho chung" / chữ "Photoshop" (đang ở tab Photoshop)
     check(ten + ': tab Photoshop có 18 theme, thẻ giống Canva (1 ảnh bìa), không chữ thừa', the.length === 18 && the.every(t => t.anh === 1 && !t.thua), the);
-    check(ten + ': tab Photoshop không còn đoạn giới thiệu dài', await p.$$eval('#thPsWrap > .pnote', x => x.length) === 0);
+    check(ten + ': tab Photoshop không còn đoạn giới thiệu dài', await p.$$eval('#thPsWrap > .pnote:not(.thmuag)', x => x.length) === 0);   // .thmuag: dòng 🍂 theme hết mùa (14/11), chỉ hiện khi có
     const anhOk = await p.$$eval('#thPsG img', x => x.every(i => i.complete && i.naturalWidth > 0));
     check(ten + ': ảnh xem trước hiện được', anhOk);
     check(ten + ': phần Canva ẩn khi xem Photoshop', await p.$eval('#thCvWrap', e => e.hidden));

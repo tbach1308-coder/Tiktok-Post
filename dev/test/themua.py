@@ -28,13 +28,13 @@ for ten, k in [("Theme Black Friday · Đen vàng (POLY)", "black-friday"), ("Th
 
 # ---------- khoảng ngày ----------
 check('Black Friday 2026: 10/11 – 02/12', srv.mua_khoang('black-friday', D(2026, 11, 14)) == (D(2026, 11, 10), D(2026, 12, 2)))
-check('Christmas 2026: 20/11 – 26/12', srv.mua_khoang('christmas', D(2026, 11, 14)) == (D(2026, 11, 20), D(2026, 12, 26)))
-check('qua Christmas: mùa năm sau', srv.mua_khoang('christmas', D(2026, 12, 27)) == (D(2027, 11, 20), D(2027, 12, 26)))
+check('Christmas 2026: 01/11 – 26/12 (fen 14/11 chọn Noel từ 1/11)', srv.mua_khoang('christmas', D(2026, 11, 14)) == (D(2026, 11, 1), D(2026, 12, 26)))
+check('qua Christmas: mùa năm sau', srv.mua_khoang('christmas', D(2026, 12, 27)) == (D(2027, 11, 1), D(2027, 12, 26)))
 check('Tết 2027 (mùng 1 = 06/02): 02/01 – 15/02', srv.mua_khoang('tet', D(2026, 11, 14)) == (D(2027, 1, 2), D(2027, 2, 15)), srv.mua_khoang('tet', D(2026, 11, 14)))
 check('Tết 2028 (mùng 1 = 26/01): bắt đầu 22/12/2027', srv.mua_khoang('tet', D(2027, 3, 1)) == (D(2027, 12, 22), D(2028, 2, 4)), srv.mua_khoang('tet', D(2027, 3, 1)))
 check('Tết quá bảng âm lịch: không biết -> coi như cả năm', srv.mua_khoang('tet', D(2034, 6, 1)) is None and not srv.theme_ngoai_mua({"ten": "Tết"}, D(2034, 6, 1)))
 xm = {"ten": "Theme Christmas · Đỏ tuyết"}
-for d, ngoai in [(D(2026, 11, 14), True), (D(2026, 11, 20), False), (D(2026, 12, 26), False), (D(2026, 12, 27), True)]:
+for d, ngoai in [(D(2026, 10, 31), True), (D(2026, 11, 1), False), (D(2026, 11, 14), False), (D(2026, 12, 26), False), (D(2026, 12, 27), True)]:
     check('Christmas ngày %s: %s' % (d.strftime('%d/%m'), 'hết mùa' if ngoai else 'đang mùa'), srv.theme_ngoai_mua(xm, d) == ngoai)
 check('Tết 14/11: hết mùa', srv.theme_ngoai_mua({"ten": "Theme Tết"}, D(2026, 11, 14)))
 check('Tết mùng 9 (14/02/2027): đang mùa', not srv.theme_ngoai_mua({"ten": "Theme Tết"}, D(2027, 2, 14)))

@@ -117,7 +117,56 @@ while :; do
   esac
 done
 luu
-MO="$URL/#vao=$TOK"
+
+# 14/11 21h29 fen "mình cài tiện ích trên máy phú rồi mà tiện ích có update đồng bộ dc không": mỗi lần mở app, tải tiện ích
+# Poly TikTok bản mới nhất của máy shop rồi chép đè vào (1) mọi thư mục mà Chrome của app đang nạp tiện ích "Poly TikTok" dạng
+# giải nén (đọc "Secure Preferences" / "Preferences" của hồ sơ Chrome bằng JavaScript for Automation có sẵn của macOS), và
+# (2) ~/PolyTikTok (thư mục cố định để cài lần đầu). Tiện ích 0.12+ thấy file mới thì tự nạp lại khi mở trang app.
+TI="$HOME/PolyTikTok"
+tim_ti() {
+  "$OSA" -l JavaScript - "$D/chrome" <<'JXA' 2>/dev/null
+function doc(p) {
+  var s = $.NSString.stringWithContentsOfFileEncodingError(p, $.NSUTF8StringEncoding, $());
+  return s && !s.isNil() ? s.js : '';
+}
+function run(argv) {
+  var goc = argv[0], kq = [], ds = $.NSFileManager.defaultManager.contentsOfDirectoryAtPathError(goc, $());
+  if (!ds || ds.isNil()) return '';
+  ds = ds.js;
+  for (var i = 0; i < ds.length; i++) {
+    var hs = ObjC.unwrap(ds[i]), tep = ['Secure Preferences', 'Preferences'];
+    for (var k = 0; k < tep.length; k++) {
+      var j = null;
+      try { j = JSON.parse(doc(goc + '/' + hs + '/' + tep[k]) || 'null'); } catch (e) {}
+      var st = j && j.extensions && j.extensions.settings;
+      if (!st) continue;
+      for (var id in st) {
+        var p = st[id] && st[id].path;
+        if (!p || p.charAt(0) !== '/' || kq.indexOf(p) >= 0) continue;
+        try { if (JSON.parse(doc(p + '/manifest.json') || '{}').name === 'Poly TikTok') kq.push(p); } catch (e2) {}
+      }
+    }
+  }
+  return kq.join('\n');
+}
+JXA
+}
+dongbo_ti() {
+  local z="$D/tien-ich.zip" x="$D/tien-ich-moi" dich
+  "$CURL" -s -f -m 30 -H "X-Poly-Khach: $TOK" -o "$z" "$URL/tai-tien-ich" || return 0
+  rm -rf "${x:?}"
+  mkdir -p "$x" && /usr/bin/unzip -q -o "$z" -d "$x" >/dev/null 2>&1
+  if [ -f "$x/poly-tiktok/manifest.json" ]; then
+    { printf '%s\n' "$TI"; tim_ti; } | while IFS= read -r dich; do
+      [ -n "$dich" ] || continue
+      mkdir -p "$dich" && cp -f "$x/poly-tiktok/"* "$dich/" 2>/dev/null
+    done
+  fi
+  rm -rf "${x:?}" "$z"
+}
+dongbo_ti
+
+MO="$URL/#vao=$TOK&ti=1"     # ti=1: app này tự tải tiện ích (trang app hướng dẫn cài từ ~/PolyTikTok)
 # 13/11 fen: tren Mac app mo thanh 1 tab Chrome (khong tim thay Chrome o /Applications) -> tim Chrome o moi cho
 # (thu muc Ung dung, ~/Applications, roi hoi macOS theo ten app), khong co Chrome thi Edge / Brave; mo cua so rieng nhu app desktop.
 CH=""
