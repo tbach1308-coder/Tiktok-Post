@@ -25,7 +25,7 @@ let ok = 0, loi = 0; const check = (n, c, x) => { if (c) { ok++; console.log('�
   const hop = await p.evaluate(() => { const m = [...document.querySelectorAll('.modal.on')].pop(); return m ? { chu: m.textContent, tai: !!m.querySelector('a[href="/tai-tien-ich"]') } : null; });
   check('chưa cài tiện ích: hiện hộp hướng dẫn cài + nút tải file', hop && hop.tai && /chưa có tiện ích/.test(hop.chu) && /chrome:\/\/extensions/.test(hop.chu), hop);
   const [dl] = await Promise.all([p.waitForEvent('download'), p.click('.modal.on a[href="/tai-tien-ich"]')]);
-  check('tải file tiện ích', /^Poly-TikTok-tien-ich-0\.11\.0\.zip$/.test(dl.suggestedFilename()), dl.suggestedFilename());
+  check('tải file tiện ích', /^Poly-TikTok-tien-ich-0\.11\.1\.zip$/.test(dl.suggestedFilename()), dl.suggestedFilename());
   await p.screenshot({ path: 'shots/tiktok-khach-cai.png' });
   await p.click('#tiDong');
   check('chưa cài: không mở TikTok, không cấp vé', !((await j('/api/job/' + done.id)).da_gui || []).some(x => x.kieu === 'tiktok'));

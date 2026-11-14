@@ -104,7 +104,7 @@ async function lay(id) {
   let r;
   const n = await noi(id);
   try { r = await fetch(n.base + '/api/tiktok/' + encodeURIComponent(id), { headers: n.hd }); }
-  catch (e) { throw new Error(n.base === APP ? 'Không nối được app Poly Dựng Bài. Mở app (icon ngoài Desktop) rồi bấm Điền lại.' : 'Không nối được app máy shop qua mạng. Kiểm mạng, trong app bấm lại Đăng TikTok (web).'); }
+  catch (e) { throw new Error(n.base === APP ? 'Không nối được app Poly Dựng Bài. Máy shop: mở app (icon ngoài Desktop) rồi bấm Điền lại. Máy dùng chung (Mac, máy khác): mở bài trong app rồi bấm Đăng TikTok (web), đừng mở TikTok bằng tay.' : 'Không nối được app máy shop qua mạng. Kiểm mạng, trong app bấm lại Đăng TikTok (web).'); }
   const d = await r.json().catch(() => ({}));
   if (!r.ok) throw new Error(d.err || ('App báo lỗi ' + r.status));
   d.anh = [];

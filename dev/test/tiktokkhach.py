@@ -43,7 +43,7 @@ if not cap.strip():
 # --- cấp vé
 s,b,_=req(K,'/api/job/%s/tiktok-ve'%jp,{},h=P)
 check('máy Phú bấm Đăng TikTok: có vé + link TikTok chỉ mang ?poly=<mã bài>', s==200 and len(b.get('ve',''))>=30 and b.get('url','').endswith('poly='+jp) and 'tiktokstudio/upload' in b.get('url','') and HOST not in b.get('url',''), (s,b))
-VE=b.get('ve'); check('vé báo bản tiện ích mới', b.get('ban')=='0.11.0', b.get('ban'))
+VE=b.get('ve'); check('vé báo bản tiện ích mới', b.get('ban')=='0.11.1', b.get('ban'))
 s,b2,_=req(K,'/api/job/%s/tiktok-ve'%jp,{},h=P); check('bấm đúp trong 5 giây: dùng lại vé', s==200 and b2.get('ve')==VE, b2)
 s,b,_=req(K,'/api/job/%s/tiktok-ve'%jq,{},h=P); check('máy Phú xin vé bài máy Quân: không được', s in (403,404), (s,b))
 oj=next((x['id'] for x in req(APP,'/api/jobs')[1]['jobs'] if not x.get('khach') and x.get('status')=='xong'), None)
@@ -91,9 +91,9 @@ s,b,_=req(K,'/api/tiktok/'+jq,h={'Host':HOST,'Origin':EXT,'X-Poly-Ve':VQ}); chec
 s,b,hd=req(K,'/tai-tien-ich',h=P,raw=True)
 try: zz=zipfile.ZipFile(io.BytesIO(b)); names=sorted(zz.namelist())
 except Exception as e: names=[str(e)]
-check('máy khác tải file tiện ích (zip thư mục poly-tiktok)', s==200 and names==['poly-tiktok/app.js','poly-tiktok/background.js','poly-tiktok/manifest.json','poly-tiktok/tiktok.js'] and '0.11.0' in hd.get('Content-Disposition',''), (s,names,hd.get('Content-Disposition')))
+check('máy khác tải file tiện ích (zip thư mục poly-tiktok)', s==200 and names==['poly-tiktok/app.js','poly-tiktok/background.js','poly-tiktok/manifest.json','poly-tiktok/tiktok.js'] and '0.11.1' in hd.get('Content-Disposition',''), (s,names,hd.get('Content-Disposition')))
 if names and names[0].startswith('poly-tiktok/'):
-    mf=json.loads(zz.read('poly-tiktok/manifest.json')); check('manifest trong zip: 0.11.0, có quyền đường nối + app.js', mf['version']=='0.11.0' and 'https://*.trycloudflare.com/*' in mf['host_permissions'] and any('app.js' in c['js'] for c in mf['content_scripts']), mf)
+    mf=json.loads(zz.read('poly-tiktok/manifest.json')); check('manifest trong zip: 0.11.0, có quyền đường nối + app.js', mf['version']=='0.11.1' and 'https://*.trycloudflare.com/*' in mf['host_permissions'] and any('app.js' in c['js'] for c in mf['content_scripts']), mf)
 s,b,_=req(K,'/tai-tien-ich',h={'Host':HOST},raw=True); check('chưa vào dùng chung: không tải được', s==401, s)
 s,b,_=req(APP,'/tai-tien-ich',raw=True); check('máy shop cũng tải được file tiện ích', s==200 and b[:2]==b'PK', s)
 # --- máy shop như cũ
