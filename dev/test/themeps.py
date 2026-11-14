@@ -29,8 +29,8 @@ def prompt():
 s, b, _ = req(APP, '/api/theme-ps')
 ds = b.get('ds', []) if s == 200 else []
 ids = [t['id'] for t in ds]
-check('GET /api/theme-ps: 12 theme kho chung', s == 200 and ids == ['anh-that-chu-nghieng', 'anh-that-chu-thich', 'anh-that-chu-vang', 'anh-that-day-toi', 'anh-that-nen-sang', 'glass-tim-hong', 'glass-xanh-ngoc', 'phang-than-xanh-duong', 'phang-xanh-dem', 'tiem-ve-tay', 'toi-gian-den', 'toi-xanh-bang'] and all(t['kc'] for t in ds), (s, b))
-check('kiểu theme: ảnh thật / glass / phẳng', [t['kieu'] for t in ds] == ['ảnh thật', 'ảnh thật', 'ảnh thật', 'ảnh thật', 'ảnh thật', 'glass', 'glass', 'phẳng', 'phẳng', 'phẳng', 'phẳng', 'phẳng'], [t.get('kieu') for t in ds])
+check('GET /api/theme-ps: 13 theme kho chung', s == 200 and ids == ['anh-that-chu-nghieng', 'anh-that-chu-thich', 'anh-that-chu-vang', 'anh-that-day-toi', 'anh-that-nen-sang', 'glass-tim-hong', 'glass-xanh-ngoc', 'noel-poly-christmas', 'phang-than-xanh-duong', 'phang-xanh-dem', 'tiem-ve-tay', 'toi-gian-den', 'toi-xanh-bang'] and all(t['kc'] for t in ds), (s, b))
+check('kiểu theme: ảnh thật / glass / phẳng', [t['kieu'] for t in ds] == ['ảnh thật', 'ảnh thật', 'ảnh thật', 'ảnh thật', 'ảnh thật', 'glass', 'glass', 'phẳng', 'phẳng', 'phẳng', 'phẳng', 'phẳng', 'phẳng'], [t.get('kieu') for t in ds])
 check('mỗi theme 3 ảnh xem trước + tên + màu', all(len(t['anh']) == 3 and t['ten'] and len(t['mau']) == 3 for t in ds), ds)
 t0 = next((t for t in ds if t['id'] == 'phang-xanh-dem'), ds[0] if ds else None)
 s, b, h = req(APP, t0['anh'][0].split('?')[0], raw=True) if t0 else (0, b'', {})
@@ -83,7 +83,7 @@ HOST = r['url'].split('//')[1]; ma = req(APP, '/api/chung', {"ma_moi": True})[1]
 TOK = req(K, '/api/chung/vao', {"ma": ma, "ten": "Máy thử theme"}, h={'Host': HOST})[1].get('token')
 T = {'Host': HOST, 'X-Poly-Khach': TOK}
 s, b, _ = req(K, '/api/theme-ps', h=T)
-check('máy dùng chung: thấy 12 theme Photoshop kho chung', s == 200 and len(b.get('ds', [])) == 12, (s, b))
+check('máy dùng chung: thấy 13 theme Photoshop kho chung', s == 200 and len(b.get('ds', [])) == 13, (s, b))
 s, b, _ = req(K, '/api/theme-ps/anh/phang-xanh-dem/2', h=T, raw=True)
 check('máy dùng chung: xem ảnh theme', s == 200 and b[:4] == b'\x89PNG', s)
 s, b, _ = req(K, '/api/run', {"kenh": "ipad", "brief": "Bìa: MÁY KHÁC\nSlide 2: x", "theme_ps": "phang-than-xanh-duong"}, h=T)
@@ -112,6 +112,15 @@ for i in ids:
     else:
         check('theme %s không có chú thích vẽ tay' % i, 'anhChuThich' not in js and 'tayMuiTen' not in js and 'FTAY' not in js)
 check('chỉ 1 theme có ve_tay: anh-that-chu-thich', [i for i in ids if json.load(open(os.path.join(TGL, 'theme-ps', i, 'theme.json'), encoding='utf-8')).get('ve_tay')] == ['anh-that-chu-thich'])
+# fen 14/11 17h59 banner POLY CHRISTMAS: theme Noel ghép _noel.jsx ("them"), ảnh trang trí riêng trong anh/, theme khác không có
+for i in ids:
+    js = open(os.path.join(TGL, 'theme-ps', i, 'theme.jsx'), encoding='utf-8').read()
+    if i == 'noel-poly-christmas':
+        anh = sorted(os.listdir(os.path.join(TGL, 'theme-ps', i, 'anh')))
+        check('theme Noel: có biaNoel, phiếu, chữ sọc kẹo, nền thông + đủ ảnh trang trí', all(k in js for k in ('function biaNoel(', 'function noelPhieu(', 'function noelSoc(', 'nen-1.jpg')) and
+              all(a in anh for a in ('nen-1.jpg', 'nen-2.jpg', 'chau-do.png', 'keo-gay.png', 'day-den.png', 'tuyet.png', 'phieu.png', 'tem-xanh.png', 'soc-trang.png', 'soc-xanh.png')), anh)
+    else:
+        check('theme %s không có phần Noel' % i, 'biaNoel' not in js and 'noelSoc' not in js)
 luat = open(os.path.join(TGL, 'theme-ps', 'luat-theme.md'), encoding='utf-8').read()
 check('luật theme: mục chú thích vẽ tay ghi CHỈ theme Ảnh thật · Chú thích tay', '## Chú thích vẽ tay: CHỈ theme "Ảnh thật · Chú thích tay"' in luat and 'biaChuThich' in luat)
 pr_ct = None

@@ -105,6 +105,10 @@ KHO THEME CANVA (10/11)
   Bìa: tiêu đề viết tay + ảnh có chú thích; trang chữ nền than, tiêu đề viết tay. Hợp với: trong hộp có gì, combo máy + phụ kiện,
   các màu / bản kèm giá. Brief ghi ví dụ "Slide 3: chú thích ảnh <tên ảnh>: iPad Pro M5 11" 256GB 24tr500, Pencil USB-C 1tr500,
   sạc đi kèm". Ảnh tối thì chữ trắng, ảnh sáng thì chữ đen. Ảnh chụp trên nền trơn (phông xám / đen / trắng) đẹp nhất.
+  Trang trong (14/11 18h10): có ảnh của bài thì ảnh đó làm mờ, không có thì phông xám có quầng sáng + hạt giấy; tiêu đề có gạch chân vẽ tay.
+  Theme "Noel · Poly Christmas" (14/11, theo banner POLY CHRISTMAS fen gửi): nền lá thông xanh, tuyết đáy, châu Noel, kẹo gậy, dây đèn;
+  bìa tiêu đề 2 dòng sọc kẹo (đỏ / trắng), dòng "NOEL LÊN ĐỜI MÁY XỊN" có chữ đỏ, dòng ưu đãi vàng, 1–2 phiếu ưu đãi viền thư máy bay
+  có tem + dấu bưu điện (vd Mua iPad giảm 200K), ảnh máy tách nền đứng trên tuyết, địa chỉ + hotline shop ở đáy. Brief ghi ưu đãi, giá giảm.
 - Bài mới, hàng "🎨 Theme": chỉ hiện đúng theme đang chọn (chưa chọn: "Không theme" / "Mẫu kênh"). Bấm "＋ Chọn theme" / "Đổi theme"
   → Kho theme mở ra, bấm "✓ Chọn theme này" là quay lại đúng bài đang viết (brief giữ nguyên). Bấm ✕ trên theme là bỏ.
   Sửa slide bài đó cũng giữ theme. Không chọn theme thì Photoshop / Canva dựng như cũ.

@@ -97,6 +97,18 @@ Chữ viết tay (font `FTAY`: Ink Free, có dấu tiếng Việt; theme đổi 
   Cỡ chữ mặc định 46 (`co`), tối thiểu 38. Không thêm khung, bóng, emoji quanh chữ. Giá phải đúng giá bài (không bịa); bài không nói giá thì bỏ `gia`.
 - Agent duyệt chấm thêm: chữ viết tay đọc rõ (tương phản với ảnh), mũi tên chỉ đúng món, không đè, dấu tiếng Việt đủ.
 
+## Theme "Noel · Poly Christmas" (`noel-poly-christmas`, fen 14/11 17h59 gửi banner POLY CHRISTMAS "theme style này")
+Phần riêng `_noel.jsx` (tao.py ghép theo `"them": ["_noel.jsx"]`), ảnh trang trí trong `noel-poly-christmas/anh` (vẽ bằng `tao_anh.py`). Theme khác không có các hàm dưới.
+- Banner là mẫu của chính shop nên theme này trang trí nhiều hơn luật "đẹp mà không sến" chung (châu, kẹo gậy, dây đèn, tuyết, sọc kẹo), nhưng vẫn phẳng: không bóng mờ, không phát sáng.
+- Bìa: `newDoc` → `biaNoel({ t1, t2, nho, uu_dai, phieu, anh, chan })`:
+  `t1` dòng 1 đỏ sọc hồng (mặc định "POLY"), `t2` dòng 2 trắng sọc xanh nhạt (mặc định "CHRISTMAS"; `""` = bỏ), chữ quá dài tự thu nhỏ cho vừa;
+  `nho` dòng đậm trắng, `*chữ*` = đỏ, `\r` xuống dòng (vd "NOEL *LÊN ĐỜI*\rMÁY XỊN"); `uu_dai` dòng vàng có gạch;
+  `phieu` 0–2 phiếu `{ chu: "Mua iPad giảm", gia: "200K", tem: "HSSV", mau: "xanh" | "do" }` (giấy kem viền thư máy bay, tem, dấu bưu điện "NOEL <năm>", "— Poly Store");
+  `anh` ảnh máy NỀN TRONG (png tách nền) đặt dưới phiếu, đứng trên tuyết; `chan` dòng địa chỉ / hotline trên tuyết (mặc định `noel_chan` của theme).
+  Giá, ưu đãi phải đúng brief (không bịa); brief không có phiếu thì bỏ `phieu`.
+- Trang trong: nền thông + châu treo góc phải trên + kẹo gậy góc trái dưới + tuyết đáy tự có; tiêu đề `headC` tự ra chữ trắng sọc xanh nhạt có bóng cứng.
+  Đừng đặt chữ / thẻ ở góc phải trên (x > 880, y < 300: châu) và dưới y 1330 (tuyết).
+
 ## Khi viết slide
 - Theme phẳng: không đặt ảnh phủ kín trang (ảnh nền mờ, `bg-thumb.png`, `lopBia` có nền): nền phẳng của theme là nền. Theme glass và theme ảnh thật: xem mục trên (dùng `bgPhoto`, không dùng `bg-thumb` / `lopBia` có nền; bìa theme ảnh thật là `biaAnhThat`). Bìa: `newDoc` → "POLY STORE" → tiêu đề → ảnh máy tách nền (`devIn` / `placeAt`), không khung, không bóng.
 - Màu: chỉ dùng biến (`C.WHITE` chữ thường, `YEL2` iPad / `YEL` Laptop cho chữ nhấn, `C.GREEN_L` tên máy / số nổi bật, `C.GREEN` nhãn, `MINT` + `NAVY` ô ghi chú). Không ghi mã màu cứng trong slide.

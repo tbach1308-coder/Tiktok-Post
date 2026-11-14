@@ -1,4 +1,4 @@
-# Tạo theme.jsx cho từng theme Photoshop trong theme-ps/ (fen 12/11): THEME = <theme.json> + động cơ _dong-co.jsx (+ _ve-tay.jsx nếu "ve_tay": true).
+# Tạo theme.jsx cho từng theme Photoshop trong theme-ps/ (fen 12/11): THEME = <theme.json> + động cơ _dong-co.jsx (+ _ve-tay.jsx nếu "ve_tay": true, + các file trong "them").
 #   python theme-ps/tao.py            (chạy lại mỗi khi sửa theme.json hoặc _dong-co.jsx)
 import io
 import json
@@ -16,5 +16,7 @@ for ten in sorted(os.listdir(D)):
     js += "var THEME = " + json.dumps(t, ensure_ascii=False, indent=1) + ";\n" + dong_co
     if t.get("ve_tay"):
         js += "\n" + ve_tay
+    for f in t.get("them") or []:          # phần riêng của theme (vd "_noel.jsx" theme Noel, fen 14/11 17h59)
+        js += "\n" + io.open(os.path.join(D, f), encoding="utf-8").read()
     io.open(os.path.join(D, ten, "theme.jsx"), "w", encoding="utf-8", newline="\n").write(js)
     print("ok", ten)

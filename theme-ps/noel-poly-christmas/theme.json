@@ -1,0 +1,111 @@
+{
+ "id": "noel-poly-christmas",
+ "ten": "Noel · Poly Christmas",
+ "kieu": "phẳng",
+ "kenh": "",
+ "them": [
+  "_noel.jsx"
+ ],
+ "mo_ta": "Theo banner POLY CHRISTMAS fen gửi 14/11: nền lá thông xanh đậm có lấp lánh, tuyết trắng ở đáy, tiêu đề chữ chân to sọc kẹo (dòng 1 đỏ sọc hồng, dòng 2 trắng sọc xanh nhạt, bóng xanh đậm lệch nhẹ), dòng đậm trắng có chữ đỏ, dòng ưu đãi vàng, phiếu ưu đãi giấy kem viền thư máy bay có tem + dấu bưu điện, châu Noel, kẹo gậy, dây đèn. Bìa: biaNoel({t1, t2, nho: \"NOEL *LÊN ĐỜI*\\rMÁY XỊN\" (*…* = chữ đỏ), uu_dai, phieu: [{chu, gia, tem, mau: xanh|do}], anh: ảnh máy nền trong}). Trang trong: nền thông, tiêu đề trắng sọc xanh, thẻ xanh đậm trong, nhãn đỏ, ghi chú giấy kem.",
+ "nen": "0F2A1C",
+ "nen2": "0F2A1C",
+ "nen_kieu": "phang",
+ "trang_tri": "khong",
+ "the": "06160E",
+ "the_kieu": "toi",
+ "the_op": 62,
+ "nhan": "D63A32",
+ "nhan_dam": "A82820",
+ "nhan_nhat": "F5C542",
+ "vang": "F5C542",
+ "ghi_nen": "F4EBDD",
+ "ghi_chu": "16402B",
+ "do": "E23B32",
+ "inkbg": "0F2A1C",
+ "pill": [
+  "D63A32",
+  "FFFFFF"
+ ],
+ "dau_tick": [
+  "D63A32",
+  "FFFFFF"
+ ],
+ "font_tieu_de": [
+  "UTM-Alberta-Heavy",
+  "UTM-Cooper-Black",
+  "UTM-Erie-Black"
+ ],
+ "font_than": [
+  "UTMAvoBold",
+  "UTMNeoSansIntelBold"
+ ],
+ "font_thuong": [
+  "UTM-Avo",
+  "UTMAvo"
+ ],
+ "font_script": [
+  "SVN-SegoeScript",
+  "SegoeScript",
+  "UTM-Silk-Script"
+ ],
+ "co_tieu_de": 0.92,
+ "giu_vien": false,
+ "chu_tieu_de": "FFFFFF",
+ "noel_xanh": "1F5A3A",
+ "noel_xanh_dam": "16402B",
+ "noel_bong": "0A1E14",
+ "noel_chan": "125/16/26 Bùi Đình Túy, P. Bình Thạnh  ·  Hotline 0902.96.0804",
+ "bia_co": 150,
+ "bia_co_phu": 64,
+ "bia_x": 60,
+ "xem": {
+  "bia_noel": {
+   "t1": "POLY",
+   "t2": "CHRISTMAS",
+   "nho": "NOEL *LÊN ĐỜI*\rMÁY XỊN",
+   "uu_dai": "ƯU ĐÃI HỌC SINH · SINH VIÊN",
+   "phieu": [
+    {
+     "chu": "Mua iPad giảm",
+     "gia": "200K",
+     "tem": "HSSV",
+     "mau": "xanh"
+    },
+    {
+     "chu": "Mua laptop giảm",
+     "gia": "300K",
+     "tem": "HSSV",
+     "mau": "do"
+    }
+   ],
+   "anh": "apple-ipad-pro-11-m4.png"
+  },
+  "pill": "QUÀ NOEL",
+  "tieu": "LÊN ĐỜI MÁY XỊN",
+  "phu": "Ưu đãi học sinh, sinh viên tới 26/12",
+  "ten": "iPad Gen 11",
+  "cau": "Chip A16 · 128GB",
+  "gia": "9.490.000đ",
+  "y": [
+   [
+    "check",
+    "Giảm 200K khi mua iPad (HSSV)"
+   ],
+   [
+    "check",
+    "Giảm 300K khi mua laptop (HSSV)"
+   ],
+   [
+    "check",
+    "Mang thẻ HSSV tới shop là được"
+   ]
+  ],
+  "ghi": [
+   "125/16/26 Bùi Đình Túy, P. Bình Thạnh",
+   "Hotline 0902.96.0804"
+  ],
+  "moc": "Xem máy đang giảm",
+  "hoi": "Noel này bạn\rlên đời máy gì?",
+  "nen": []
+ }
+}
