@@ -83,9 +83,9 @@ KHO THEME CANVA (10/11)
   ("Glass · Tím hồng", "Glass · Xanh ngọc": nền ảnh thật làm mờ + thẻ kính trong). Bìa có 2 kiểu như ảnh mẫu fen gửi: kiểu quảng cáo
   (tên máy rất to, slogan, máy xòe quạt, 2 thông số) và kiểu tính năng (2 dòng tiêu đề, số to mờ phía sau, máy nghiêng tràn mép).
   Bấm "▶ Làm bài" ở theme → viết brief → Chạy: Claude dựng bằng Photoshop theo màu, font, nền của theme; brief bao nhiêu slide làm bấy nhiêu.
-  Thêm 13/11 tối (xu hướng 2026, tìm từ nhiều nguồn): "Bento · Cloud Dancer" (lưới ô bo tròn kiểu trang sản phẩm Apple trên màu
-  Pantone 2026 trắng mây + màu phấn; bìa có ô ảnh máy + 2 ô thông số, hợp bài so sánh / thông số) và "Ghi chú iPhone · Tối" (kiểu
-  ảnh chụp app Ghi chú chế độ tối: dòng kẻ, chữ vàng, danh sách tick; hợp bài mẹo, danh sách nên / không nên).
+  Thêm 14/11 (theo ảnh mẫu TikTok fen gửi): "Ảnh thật · Chữ vàng": bìa là ảnh chụp thật của bài phủ kín trang, tiêu đề vàng
+  rất to chữ hẹp viền tối mảnh + dòng nghiêng trắng đặt giữa; trang trong là ảnh thật làm mờ, tối lại. Brief nên ghi ảnh thật
+  muốn dùng (tay cầm máy, máy trên bàn…); không có thì Claude tự tìm ảnh hợp chủ đề.
 - Bài mới, hàng "🎨 Theme": chỉ hiện đúng theme đang chọn (chưa chọn: "Không theme" / "Mẫu kênh"). Bấm "＋ Chọn theme" / "Đổi theme"
   → Kho theme mở ra, bấm "✓ Chọn theme này" là quay lại đúng bài đang viết (brief giữ nguyên). Bấm ✕ trên theme là bỏ.
   Sửa slide bài đó cũng giữ theme. Không chọn theme thì Photoshop / Canva dựng như cũ.

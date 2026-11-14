@@ -17,7 +17,7 @@ const check = (n, c, x) => { c ? ok++ : bad++; console.log((c ? '✓ ' : '✗ ')
     check(ten + ': tab Canva (cả mục ☁️ Kho chung) không có theme Photoshop', kc.length === 0, kc);
     const nKc = await p.$eval('#thKcN', e => e.textContent), soKc = await p.$$eval('#thKcG .thc', x => x.length);
     check(ten + ': số theme kho chung = số thẻ Canva trong kho chung', nKc === (soKc ? '· ' + soKc : ''), [nKc, soKc]);
-    check(ten + ': nút tab ghi số theme Photoshop', /Photoshop · 9/.test(await p.$eval('#thKieu [data-k=ps]', e => e.textContent)));
+    check(ten + ': nút tab ghi số theme Photoshop', /Photoshop · 8/.test(await p.$eval('#thKieu [data-k=ps]', e => e.textContent)));
     const soCv = await p.$$eval('#thCvWrap .thc', x => new Set(x.map(e => e.dataset.id)).size);
     check(ten + ': nút tab Canva ghi số theme Canva', (await p.$eval('#thKieu [data-k=cv]', e => e.textContent)) === '🎨 Canva · ' + soCv, [await p.$eval('#thKieu [data-k=cv]', e => e.textContent), soCv]);
     const yCv = await p.evaluate(() => { const e = document.querySelector('#thCvWrap .thc .tha'); return e ? Math.round(e.getBoundingClientRect().width) : 0; });
@@ -27,7 +27,7 @@ const check = (n, c, x) => { c ? ok++ : bad++; console.log((c ? '✓ ' : '✗ ')
     check(ten + ': ảnh thẻ Photoshop cùng cỡ thẻ Canva (3:4)', co && yCv && Math.abs(co[0] - yCv) <= 2 && co[1] === 133, [co, yCv]);
     const the = await p.$$eval('#thPsG .thps', x => x.map(e => ({ ten: e.querySelector('b').textContent, anh: e.querySelectorAll('.tha img').length, thua: !!e.querySelector('.kcb') || /Photoshop/.test(e.querySelector('.thm').textContent) })));
     // fen 13/11 11h39 "tối ưu loại bỏ phần thừa": thẻ Photoshop không còn nhãn "☁️ Kho chung" / chữ "Photoshop" (đang ở tab Photoshop)
-    check(ten + ': tab Photoshop có 9 theme, thẻ giống Canva (1 ảnh bìa), không chữ thừa', the.length === 9 && the.every(t => t.anh === 1 && !t.thua), the);
+    check(ten + ': tab Photoshop có 8 theme, thẻ giống Canva (1 ảnh bìa), không chữ thừa', the.length === 8 && the.every(t => t.anh === 1 && !t.thua), the);
     check(ten + ': tab Photoshop không còn đoạn giới thiệu dài', await p.$$eval('#thPsWrap > .pnote', x => x.length) === 0);
     const anhOk = await p.$$eval('#thPsG img', x => x.every(i => i.complete && i.naturalWidth > 0));
     check(ten + ': ảnh xem trước hiện được', anhOk);

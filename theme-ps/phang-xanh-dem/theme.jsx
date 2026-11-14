@@ -128,12 +128,21 @@ if (typeof RANKC != "undefined") RANKC = THEME.nhan_dam;
   F.T = t; F.B = b;
   if (THEME.font_thuong) F.R = pick(THEME.font_thuong.concat([F.R]));
   if (typeof FS != "undefined") { FS.T = t; FS.I = THEME.font_nghieng ? pick(THEME.font_nghieng.concat([b])) : b; }
+  if (THEME.font_phu) F.P = pick(THEME.font_phu.concat([b]));     // dong phu de "Phụ đề" (vd chu nghieng co chan, theme anh that 14/11)
   THEME_LOG = "Theme " + THEME.ten + ": T=" + F.T + " B=" + F.B + "\n";
 })();
 
 // ---------- chu tieu de: font theme hep / rong hon font cu thi nhan co chu cho bang (co_tieu_de) ----------
 var THEME_TEXT0 = text;
 text = function (str, font, size, h, x, y, o) {
+  var nm = o && o.name;
+  if (font == F.T && THEME.chu_tieu_de && h == C.WHITE) h = THEME.chu_tieu_de;      // chu to (tieu de, gia, cau hoi) doi mau theme
+  if (nm == "Phụ đề" && F.P) {
+    font = F.P; size = Math.round(size * (THEME.co_phu || 1)); if (THEME.mau_phu) h = THEME.mau_phu;
+    var Lp = THEME_TEXT0(str, font, size, h, x, y, o);
+    if (THEME.vien_phu) THEME_FX0(Lp, { stroke: THEME.vien_phu });
+    return Lp;
+  }
   if (font == F.T && THEME.co_tieu_de && THEME.co_tieu_de != 1) {
     var k = THEME.co_tieu_de, o2 = {};
     if (o) for (var p in o) o2[p] = o[p];
@@ -147,6 +156,7 @@ text = function (str, font, size, h, x, y, o) {
 var THEME_FX0 = fx;
 fx = function (L, o) {
   if (!o || !o.stroke) return;
+  if (o.stroke.size > 3 && THEME.vien_chu) { THEME_FX0(L, { stroke: THEME.vien_chu }); return; }   // vien toi manh nhu anh mau (theme anh that)
   if (o.stroke.size > 3 && !THEME.giu_vien) return;
   THEME_FX0(L, { stroke: o.stroke });
 };
@@ -194,8 +204,6 @@ function themeNen() {
     else { themeCham(70, H - 186, 5, 4, 36, 5, THEME.nen2, "Chấm góc"); themeTron(W + 120, -40, 380, THEME.nen2, 100, "Trang trí - nửa tròn"); }
     rect(0, 0, 14, H, 0, THEME.nhan, "Trang trí - sọc nhấn");
   } else if (tt == "tiem") themeTiemNen();
-  else if (tt == "bento") themeBentoNen();
-  else if (tt == "ghichu") themeGhiChuNen();
 }
 
 // ---------- theme "Tiem Poly ve tay" (fen 13/11 18h01 gui 5 anh tiem Poly Store ve tay + "tao theme pts") ----------
@@ -288,7 +296,7 @@ function biaTiem(o) {
     } catch (e) { THEME_LOG += "Theme: khong dat duoc anh tiem " + a[0] + " (" + e.message + ")\n"; }
   } else THEME_LOG += "Theme: thieu anh tiem (THEME_DIR / tiem." + k + ")\n";
 }
-// ---------- 2 theme xu huong 2026 (fen 13/11 20h20 "tim nhieu nguon lam them 2 theme dang xu huong, kho pts") ----------
+// ---------- tien ich chung ----------
 // xep cac lop chu theo chieu doc, can trai tai x, khoang cach gaps[i] giua lop i va i+1; ca cum can giua trong [top, bot] (khong du cho thi canh tren)
 function themeXepDoc(ls, x, top, bot, gaps) {
   if (!ls.length) return;
@@ -302,122 +310,6 @@ function themeXepDoc(ls, x, top, bot, gaps) {
 }
 function themeAnhDau(may) { return may ? (may instanceof Array ? may[0] : may) : ""; }
 
-// ===== Theme "Bento · Cloud Dancer": luoi bento (o bo tron nhieu co nhu keynote / trang san pham Apple, bo cuc xu huong 2026)
-// tren mau Pantone 2026 Cloud Dancer (trang may) + bo phan Powdered Pastels. Trang trong: vien trang may, 1 o lon mau than chua noi dung
-// (chu trang nhu moi theme toi), cum 3 o phan nho goc tren phai; bo iPad (cau moc 1266) con cho thi them hang 3 o phan duoi day.
-function themeBentoNen() {
-  var k = THEME_N % 2, p = THEME.phan || ["F3E5A6", "CDE0F3", "F5D6C6", "EAD6DE"];
-  var hang = typeof HOOK_Y == "undefined";                  // bo Laptop co HOOK_Y = 1320 (cau moc thap): khong co hang o duoi
-  rect(40, 40, W - 40, hang ? H - 124 : H - 40, 44, THEME.bang, "Ô lớn - nội dung");
-  for (var i = 0; i < 3; i++) { var x = W - 76 - (2 - i) * 40 - 28; rect(x, 64, x + 28, 92, 9, p[(i + k) % p.length], "Ô phấn nhỏ " + (i + 1)); }
-  if (hang) {
-    var c = k ? [40, 392, 408, 672, 688, W - 40] : [40, 352, 368, 712, 728, W - 40];
-    for (var j = 0; j < 3; j++) rect(c[j * 2], H - 108, c[j * 2 + 1], H - 40, 26, p[(j + k + 1) % p.length], "Ô phấn " + (j + 1));
-  }
-}
-// bia bento (theme Bento luon dung): luoi o tren nen trang may. Goi ngay sau newDoc.
-// o = { t1: "dòng 1", t2: "dòng 2", nho: "dòng nhỏ", may: "anh-may.png" (nen trong, thu muc anh cua bai),
-//       so1: ["M1", "Chip Apple"], so2: ["18h", "Pin xem video"], chan: "dòng cuối: nơi bán, bảo hành" }
-function biaBento(o) {
-  o = o || {};
-  var AA = typeof A != "undefined" ? A : (typeof TN != "undefined" ? TN : "");
-  var p = THEME.phan || ["F3E5A6", "CDE0F3", "F5D6C6", "EAD6DE"], muc = THEME.muc || "1C1C1E", m = 40, g = 16;
-  var TF = THEME.font_bia ? pick(THEME.font_bia.concat([F.T])) : F.T;
-  rect(0, 0, W, H, 0, THEME.nen, "Nền Cloud Dancer");
-  // o tieu de (mau than)
-  var a = [m, m, W - m, 560], x = a[0] + 48, mw = a[2] - a[0] - 96, ls = [];
-  rect(a[0], a[1], a[2], a[3], 44, THEME.bang, "Ô tiêu đề");
-  text("POLY STORE", F.B, 22, p[1], x, a[1] + 72, { track: 200, name: "Thương hiệu" });
-  for (var i = 0; i < 3; i++) rect(a[2] - 156 + i * 40, a[1] + 48, a[2] - 128 + i * 40, a[1] + 76, 9, p[i], "Ô phấn nhỏ " + (i + 1));
-  if (o.t1) ls.push(text(o.t1, TF, 112, "FFFFFF", x, 400, { maxW: mw, name: "Tiêu đề - dòng 1" }));
-  if (o.t2) ls.push(text(o.t2, TF, 112, THEME.vang, x, 520, { maxW: mw, name: "Tiêu đề - dòng 2" }));
-  if (o.nho) ls.push(text(o.nho, F.B, 38, "A1A1A6", x, 600, { maxW: mw, name: "Dòng nhỏ" }));
-  themeXepDoc(ls, x, a[1] + 120, a[3] - 44, [8, 26]);
-  // o anh may (xanh phan) + 1-2 o thong so (vang / hong dao)
-  var y0 = a[3] + g, y1 = 1216, coSo = o.so1 || o.so2, xm = coSo ? 664 : W - m, may = themeAnhDau(o.may);
-  rect(m, y0, xm, y1, 44, p[1], "Ô ảnh máy");
-  if (may) { try { themeDat(AA + may, m + 44, y0 + 44, xm - 44, y1 - 44, 0, "Ảnh máy"); } catch (e) { THEME_LOG += "Theme: khong dat duoc anh may " + may + " (" + e.message + ")\n"; } }
-  function oSo(arr, l, t, r, b, mau, name) {
-    rect(l, t, r, b, 40, mau, name);
-    var V = text(arr[0], TF, 104, muc, l + 36, b - 90, { maxW: r - l - 72, name: name + " - số" });
-    var Lb = text(arr[1] || "", F.B, 32, "48484A", l + 36, b - 40, { maxW: r - l - 72, name: name + " - nhãn" });
-    themeXepDoc([V, Lb], l + 36, t + 30, b - 30, [16]);
-  }
-  if (o.so1 && o.so2) {
-    var mid = Math.round((y0 + y1) / 2);
-    oSo(o.so1, xm + g, y0, W - m, mid - g / 2, p[0], "Ô thông số 1");
-    oSo(o.so2, xm + g, mid + g / 2, W - m, y1, p[2], "Ô thông số 2");
-  } else if (coSo) oSo(o.so1 || o.so2, xm + g, y0, W - m, y1, p[0], "Ô thông số");
-  // o cuoi (than): dong noi ban + nut tron mui ten
-  var c0 = y1 + g, c1 = H - m, cy = Math.round((c0 + c1) / 2), cx = W - m - 84;
-  rect(m, c0, W - m, c1, 40, THEME.bang, "Ô cuối");
-  if (o.chan) { var Cn = text(o.chan, F.B, 34, "FFFFFF", m + 48, cy + 12, { maxW: W - 2 * m - 230, name: "Dòng cuối" }); var qc = bb(Cn); Cn.translate(0, cy - (qc[1] + qc[3]) / 2); }
-  oval(cx - 46, cy - 46, cx + 46, cy + 46, p[0], "Nút xem tiếp");
-  arrowH(cx - 22, cx + 24, cy, 8, 18, 26, muc, "Mũi tên");
-}
-
-// ===== Theme "Ghi chú iPhone · Tối": kieu anh chup ung dung Ghi chu (Notes App: Canva 2026 "Notes App Chic" tim kiem +90%,
-// dinh dang quang cao "Notes App" - chu nhu ghi chu rieng, that, khong bong bay). Che do toi iPhone: nen den, dong ke giay toi,
-// thanh tren "‹ Ghi chú" + nut "..." + "Xong" mau vang he thong, o ghi chu vang nhu giay nho. Phang, khong bong do.
-function themeChevron(x, cy, h, t, mau, name) {
-  var a = h / 2, k = t * 0.7071;
-  return poly([[x, cy], [x + a, cy - a], [x + a + k, cy - a + k], [x + 2 * k, cy], [x + a + k, cy + a - k], [x + a, cy + a]], mau, name || "Mũi quay lại");
-}
-function themeDongKe(y0, buoc, mau) {
-  var doc = app.activeDocument, L = doc.artLayers.add(), dau = true;
-  L.name = "Dòng kẻ giấy";
-  for (var y = y0; y < H - 24; y += buoc) {
-    doc.selection.select([[0, y], [W, y], [W, y + 2], [0, y + 2]], dau ? SelectionType.REPLACE : SelectionType.EXTEND, 0, false);
-    dau = false;
-  }
-  if (!dau) { doc.selection.fill(col(mau)); doc.selection.deselect(); }
-  return L;
-}
-function themeGhiChuNen() {
-  var v = THEME.vang;
-  themeDongKe(THEME.ke_tren || 204, THEME.ke_buoc || 64, THEME.dong_ke || "1C1C1E");
-  themeChevron(36, 58, 34, 6, v, "Thanh trên - quay lại");
-  text(THEME.gc_thu_muc || "Ghi chú", F.B, 34, v, 70, 70, { name: "Thanh trên - thư mục" });
-  var X = text("Xong", F.B, 34, v, 0, 70, { name: "Thanh trên - Xong" }), q = bb(X);
-  X.translate(W - 40 - q[2], 0); q = bb(X);
-  var cx = Math.round(q[0] - 56), cy = Math.round((q[1] + q[3]) / 2), r = 21;
-  var O = oval(cx - r, cy - r, cx + r, cy + r, THEME.nen, "Thanh trên - nút tròn");
-  THEME_FX0(O, { stroke: { hex: v, size: 3, op: 100, inside: true } });
-  for (var i = -1; i <= 1; i++) oval(cx + i * 9 - 3, cy - 3, cx + i * 9 + 3, cy + 3, v, "Thanh trên - chấm " + (i + 2));
-}
-function themeNgayGio() {
-  var d = new Date(), p = d.getMinutes();
-  return d.getDate() + " tháng " + (d.getMonth() + 1) + ", " + d.getFullYear() + " lúc " + d.getHours() + ":" + (p < 10 ? "0" : "") + p;
-}
-// bia ghi chu (theme Ghi chu iPhone luon dung): ngay gio xam, tieu de 2 dong (trang + vang), dong nho xam, danh sach tick kieu Ghi chu,
-// anh may dinh kem trong o bo tron o duoi. Goi ngay sau newDoc.
-// o = { t1, t2, nho, ds: [[true, "việc đã tick"], [false, "việc chưa tick"]] (2-4 dòng), may: "anh-may.png" }
-function biaGhiChu(o) {
-  o = o || {};
-  var AA = typeof A != "undefined" ? A : (typeof TN != "undefined" ? TN : "");
-  var v = THEME.vang, xam = THEME.xam || "8E8E93", TF = THEME.font_bia ? pick(THEME.font_bia.concat([F.T])) : F.T;
-  var x = 64, mw = W - 2 * x, q, ls = [];
-  var D = text(themeNgayGio() + " · POLY STORE", F.B, 26, xam, W / 2, 150, { align: Justification.CENTER, name: "Ngày giờ" });
-  themeGiua(D, W / 2);
-  if (o.t1) ls.push(text(o.t1, TF, 108, "FFFFFF", x, 330, { maxW: mw, name: "Tiêu đề - dòng 1" }));
-  if (o.t2) ls.push(text(o.t2, TF, 108, v, x, 460, { maxW: mw, name: "Tiêu đề - dòng 2" }));
-  if (o.nho) ls.push(text(o.nho, F.B, 38, xam, x, 540, { maxW: mw, name: "Dòng nhỏ" }));
-  themeXepDoc(ls, x, 216, 216, [12, 28]);
-  var y = ls.length ? bb(ls[ls.length - 1])[3] + 44 : 240, ds = o.ds || [], r = 24;
-  for (var i = 0; i < ds.length; i++) {
-    var cy = y + 30, cxo = x + r;
-    if (ds[i][0]) { oval(cxo - r, cy - r, cxo + r, cy + r, v, "Tick " + (i + 1) + " - nền"); check(cxo, cy + 1, r * 1.05, "000000"); }
-    else { var Ov = oval(cxo - r, cy - r, cxo + r, cy + r, THEME.nen, "Tick " + (i + 1) + " - vòng"); THEME_FX0(Ov, { stroke: { hex: xam, size: 3, op: 100, inside: true } }); }
-    var Ti = text(ds[i][1], F.B, 40, "FFFFFF", x + 2 * r + 26, cy + 14, { maxW: mw - 2 * r - 26, name: "Việc " + (i + 1) });
-    q = bb(Ti); Ti.translate(0, cy - (q[1] + q[3]) / 2);
-    y = cy + r + 34;
-  }
-  var may = themeAnhDau(o.may), t0 = Math.max(y + 24, 700), b0 = H - 56;
-  if (may && b0 - t0 > 220) {
-    rect(x - 16, t0, W - x + 16, b0, 36, THEME.the, "Ảnh đính kèm - khung");
-    try { themeDat(AA + may, x + 30, t0 + 34, W - x - 30, b0 - 34, 0, "Ảnh máy"); } catch (e) { THEME_LOG += "Theme: khong dat duoc anh may " + may + " (" + e.message + ")\n"; }
-  }
-}
 var THEME_NEWDOC0 = newDoc;
 newDoc = function (name) {
   var d = THEME_NEWDOC0(name);
@@ -430,7 +322,7 @@ var THEME_BG0 = bgPhoto, THEME_BGR0 = background;
 function themeAnhMo(goc, args) {
   if (THEME.nen_kieu != "kinh" || !args[0]) return;
   try { goc(args); } catch (e) { THEME_LOG += "Theme: khong dat duoc anh nen " + args[0] + " (" + e.message + "), giu nen dom mau\n"; return; }
-  var T = rect(0, 0, W, H, 0, THEME.nen, "Lớp màu theme"); T.opacity = THEME.anh_mau || 45;
+  if (THEME.anh_mau !== 0) { var T = rect(0, 0, W, H, 0, THEME.nen, "Lớp màu theme"); T.opacity = THEME.anh_mau || 45; }
   themeDom(THEME.dom_tren || 55);
 }
 bgPhoto = function (file, imgW, cropL, cropT, cropW, blur, op) {
@@ -441,12 +333,105 @@ background = function (file, imgW, cropL, cropT, cropW, blurR) {
 };
 // the: theme phang -> the dac; theme kinh -> the trang trong + vien mong (khong bong)
 glass = function (l, t, r, b, rad, name) {
+  if (THEME.the_kieu == "toi") { var Gt = rect(l, t, r, b, rad, THEME.the, name || "Thẻ"); Gt.fillOpacity = THEME.the_op || 50; return Gt; }   // khung toi trong, khong vien, khong bong
   if (THEME.nen_kieu != "kinh") return rect(l, t, r, b, rad, THEME.the, name || "Thẻ");
   var G = rect(l, t, r, b, rad, "FFFFFF", name || "Thẻ kính");
   G.fillOpacity = THEME.kinh_op || 14;
   THEME_FX0(G, { stroke: { hex: "FFFFFF", size: 2, op: THEME.kinh_vien || 45, inside: true } });
   return G;
 };
+
+// ---------- nhan / dau tick mau rieng (theme anh that 14/11: nhan vang chu den). nhan = mau nen tron cua C.GREEN (dau tick, so buoc...) giu toi cho chu trang ----------
+if (THEME.pill) {
+  var THEME_PILLC0 = pillC;
+  pillC = function (str, cx, cy, size, txtH, fillH, padX, hgt, font, track, name) {
+    if (fillH == THEME.nhan) { fillH = THEME.pill[0]; txtH = THEME.pill[1]; }
+    return THEME_PILLC0(str, cx, cy, size, txtH, fillH, padX, hgt, font, track, name);
+  };
+  if (typeof pill != "undefined") {
+    var THEME_PILL0 = pill;
+    pill = function (str, x, cy, size, txtH, fillH, padX, hgt, font, track, name) {
+      if (fillH == THEME.nhan) { fillH = THEME.pill[0]; txtH = THEME.pill[1]; }
+      return THEME_PILL0(str, x, cy, size, txtH, fillH, padX, hgt, font, track, name);
+    };
+  }
+}
+if (THEME.dau_tick) {
+  if (typeof dotIcon != "undefined") {
+    var THEME_DOT0 = dotIcon;
+    dotIcon = function (kind, cx, cy, r) {
+      if (kind != "check") return THEME_DOT0(kind, cx, cy, r);
+      return [oval(cx - r, cy - r, cx + r, cy + r, THEME.dau_tick[0], "Biểu tượng - nền"), check(cx, cy + 1, r * 1.05, THEME.dau_tick[1])];
+    };
+  }
+  if (typeof checkDot != "undefined") {
+    checkDot = function (cx, cy, r) {
+      oval(cx - r, cy - r, cx + r, cy + r, THEME.dau_tick[0], "Dấu tích - nền");
+      check(cx, cy + 1, r * 1.05, THEME.dau_tick[1]);
+    };
+  }
+}
+
+// ---------- bia anh that (fen 14/11 gui anh mau TikTok: anh that cam may, chu vang rat to chu hep vien toi + dong nghieng trang; "style kieu co anh that r thumbnail") ----------
+// Anh that cua bai phu kin trang (khong lam mo, khong ve them may), chu thumbnail de len. Goi ngay sau newDoc.
+// o = { anh: "ten-anh.jpg" (tim o thu muc anh cua bai, roi "Anh tai ve") hoac duong dan day du,
+//       cat: [rongAnh, catTrai, catTren, catRong] (tuy chon, nhu bgPhoto; khong co thi tu cat phu kin, giu diem tam [x, y] 0..1 o giua),
+//       t1: "dòng tiêu đề 1", t2: "dòng 2" (tuy chon), nho: "dòng nghiêng", vi_tri: "giua" | "tren" | "duoi" (cho trong cua anh), toi: 0..60 }
+function themeTimAnh(f) {
+  if (!f) return null;
+  if (/^[A-Za-z]:[\\\/]|^[\\\/~]/.test(f)) { var g0 = new File(f); return g0.exists ? g0 : null; }
+  var ds = [];
+  if (typeof A == "string") ds.push(A);
+  if (typeof TN == "string") ds.push(TN);
+  if (typeof IMG == "string") ds.push(IMG);
+  for (var i = 0; i < ds.length; i++) { var g = new File(ds[i] + f); if (g.exists) return g; }
+  return null;
+}
+function themeAnhPhu(o) {
+  var f = themeTimAnh(o.anh);
+  if (!f) { THEME_LOG += "Theme: khong thay anh bia " + o.anh + " (giu nen theme)\n"; return null; }
+  var L = placeSO(f.fsName, "Ảnh thật - bìa"), q = bb(L);
+  if (o.cat && o.cat.length >= 4) fitSO(L, o.cat[0], o.cat[1], o.cat[2], o.cat[3], 0, 0, W);
+  else {
+    var w = q[2] - q[0], h = q[3] - q[1], s = Math.max(W / w, H / h) * 100;
+    L.resize(s, s, AnchorPosition.TOPLEFT); q = bb(L); w = q[2] - q[0]; h = q[3] - q[1];
+    var tm = o.tam || [0.5, 0.5];
+    var x = Math.min(0, Math.max(W - w, W / 2 - tm[0] * w)), y = Math.min(0, Math.max(H - h, H / 2 - tm[1] * h));
+    L.translate(x - q[0], y - q[1]);
+  }
+  try { L.rasterize(RasterizeType.ENTIRELAYER); } catch (e) {}
+  return L;
+}
+function themeDoiMuc(it, dx, dy) { for (var i = 0; i < it.ls.length; i++) it.ls[i].translate(dx, dy); }
+function biaAnhThat(o) {
+  o = o || {};
+  var Ph = themeAnhPhu(o), toi = o.toi != null ? o.toi : (THEME.bia_toi || 0), cx = W / 2;
+  if (Ph && toi > 0) { var O = rect(0, 0, W, H, 0, "000000", "Lớp tối ảnh bìa"); O.opacity = toi; }
+  var Br = THEME_TEXT0("POLY STORE", F.B, 22, "FFFFFF", cx, 96, { track: 200, align: Justification.CENTER, name: "Thương hiệu" });
+  themeGiua(Br, cx);
+  var co = o.co || THEME.bia_co || 150, tr = THEME.bia_track || 0, it = [], dong = [o.t1, o.t2];
+  for (var i = 0; i < dong.length; i++) {
+    if (!dong[i]) continue;
+    var T = THEME_TEXT0(dong[i], F.T, co, i == 0 ? THEME.bia_mau : (THEME.bia_mau2 || THEME.bia_mau), cx, 0, { track: tr, align: Justification.CENTER, maxW: W - 120, name: "Tiêu đề bìa - dòng " + (i + 1) });
+    if (THEME.bia_vien) THEME_FX0(T, { stroke: THEME.bia_vien });
+    it.push({ ls: [T], m: T, gap: THEME.bia_gian || 10 });
+  }
+  if (o.nho) {
+    var S = THEME_TEXT0(o.nho, F.P || F.B, THEME.bia_co_phu || 60, THEME.bia_mau_phu || "FFFFFF", cx, 0, { align: Justification.CENTER, maxW: W - 140, name: "Dòng nghiêng bìa" });
+    if (THEME.bia_vien_phu) THEME_FX0(S, { stroke: THEME.bia_vien_phu });
+    it.push({ ls: [S], m: S, gap: 0 });
+    if (it.length > 1) it[it.length - 2].gap = THEME.bia_cach_phu != null ? THEME.bia_cach_phu : 24;
+  }
+  if (!it.length) return;
+  var tong = 0;
+  for (var j = 0; j < it.length; j++) { var b = bb(it[j].m); tong += b[3] - b[1] + (j < it.length - 1 ? it[j].gap : 0); }
+  var vt = o.vi_tri || THEME.bia_vi_tri || "giua", y = vt == "tren" ? 190 : (vt == "duoi" ? H - 150 - tong : Math.round((H - tong) / 2 + (THEME.bia_lech || 0)));
+  for (var k = 0; k < it.length; k++) {
+    var bk = bb(it[k].m);
+    themeDoiMuc(it[k], Math.round(cx - (bk[0] + bk[2]) / 2), Math.round(y - bk[1]));
+    y += bk[3] - bk[1] + it[k].gap;
+  }
+}
 
 // ---------- bia kieu quang cao san pham (fen 12/11 21h32 gui anh mau + "cover anh nay lam thumbnail") ----------
 // Dong nho (dong may) + TEN MAY RAT TO o tren, slogan 2 dong giua, 1-3 may xoe quat giua trang, 2 thong so 2 ben (so to + nhan vien trang), dong chu nho cuoi.

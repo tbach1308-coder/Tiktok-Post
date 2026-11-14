@@ -3858,7 +3858,7 @@ def theme_ps_ds():
                 anh.append("/api/theme-ps/anh/%s/%d?t=%d" % (ten, n, int(os.path.getmtime(f))))
         ds.append({"id": ten, "ten": str(t.get("ten") or ten)[:80], "kenh": t.get("kenh") if t.get("kenh") in CFG["kenh"] else "",
                    "mo_ta": str(t.get("mo_ta") or "")[:300], "anh": anh, "kc": True,
-                   "kieu": "glass" if t.get("nen_kieu") == "kinh" else "phẳng",     # fen 21h26 "cho thêm theme kiểu glass"
+                   "kieu": str(t.get("kieu") or "")[:20] or ("glass" if t.get("nen_kieu") == "kinh" else "phẳng"),     # fen 21h26 "cho thêm theme kiểu glass"; 14/11 "ảnh thật"
                    "mau": ["#" + str(t[k]) for k in ("nen", "nhan", "vang") if re.fullmatch(r"[0-9A-Fa-f]{6}", str(t.get(k) or ""))]})
     return ds
 

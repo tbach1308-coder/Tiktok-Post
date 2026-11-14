@@ -1,0 +1,141 @@
+{
+ "id": "anh-that-chu-vang",
+ "ten": "Ảnh thật · Chữ vàng",
+ "kieu": "ảnh thật",
+ "kenh": "",
+ "nen_kieu": "kinh",
+ "mo_ta": "Như ảnh mẫu fen gửi 14/11: bìa là ảnh thật của bài phủ kín trang (không làm mờ), tiêu đề vàng rất to chữ hẹp giãn chữ, viền tối mảnh, dòng nghiêng trắng có chân, đặt giữa ảnh. Trang trong: chính ảnh thật làm mờ, tối lại; tiêu đề vàng, phụ đề nghiêng; khung tối trong, nhãn vàng chữ đen. Phẳng, không bóng.",
+ "nen": "121212",
+ "nen2": "121212",
+ "the": "000000",
+ "the_kieu": "toi",
+ "dom": [],
+ "nhan": "1F1F1F",
+ "nhan_dam": "141414",
+ "nhan_nhat": "FFD400",
+ "vang": "FFD400",
+ "ghi_chu": "141414",
+ "do": "F43F5E",
+ "inkbg": "141414",
+ "font_than": [
+  "UTMAvoBold",
+  "UTMNeoSansIntelBold"
+ ],
+ "co_tieu_de": 1,
+ "giu_vien": false,
+ "trang_tri": "khong",
+ "anh_mau": 0,
+ "pill": [
+  "FFD400",
+  "141414"
+ ],
+ "dau_tick": [
+  "FFD400",
+  "141414"
+ ],
+ "vien_chu": {
+  "hex": "141414",
+  "size": 3
+ },
+ "the_op": 46,
+ "ghi_nen": "FFD400",
+ "font_tieu_de": [
+  "UTM-Impact",
+  "Impact",
+  "Bahnschrift-BoldCondensed"
+ ],
+ "font_phu": [
+  "UTMTimesItalic",
+  "TimesNewRomanPS-ItalicMT",
+  "Georgia-Italic"
+ ],
+ "font_nghieng": [
+  "UTMTimesItalic",
+  "TimesNewRomanPS-ItalicMT",
+  "Georgia-Italic"
+ ],
+ "co_phu": 1.3,
+ "vien_phu": {
+  "hex": "141414",
+  "size": 1,
+  "op": 80
+ },
+ "chu_tieu_de": "FFD400",
+ "anh_mo": 20,
+ "anh_toi": 52,
+ "bia_co": 176,
+ "bia_track": 40,
+ "bia_mau": "FFD400",
+ "bia_mau2": "FFFFFF",
+ "bia_vien": {
+  "hex": "141414",
+  "size": 4
+ },
+ "bia_co_phu": 68,
+ "bia_mau_phu": "FFFFFF",
+ "bia_vien_phu": {
+  "hex": "141414",
+  "size": 2,
+  "op": 85
+ },
+ "bia_vi_tri": "giua",
+ "bia_toi": 15,
+ "bia_gian": 6,
+ "bia_cach_phu": 22,
+ "xem": {
+  "pill": "MẸO 1",
+  "tieu": "TẮT APP CHẠY NỀN",
+  "phu": "Máy mượt lại chỉ sau 1 phút",
+  "ten": "iPad Pro M1",
+  "cau": "Chip M1 · 128GB",
+  "gia": "11.990.000đ",
+  "y": [
+   [
+    "check",
+    "Vuốt từ dưới lên, giữ giữa màn hình"
+   ],
+   [
+    "check",
+    "Vuốt từng app lên để tắt"
+   ],
+   [
+    "x",
+    "Đừng tắt app đang tải dở"
+   ]
+  ],
+  "ghi": [
+   "Tắt app rồi vẫn lag?",
+   "Ghé POLY kiểm tra máy miễn phí"
+  ],
+  "moc": "Xem mẹo 2",
+  "hoi": "iPad của bạn\rlag tới mức nào?",
+  "nen": [
+   null,
+   [
+    "unsplash-goi-video-ipad-10tr.jpg",
+    2000,
+    700,
+    0,
+    1000
+   ],
+   [
+    "thai-nguyen-I4XoCArS2IU-unsplash.jpg",
+    6228,
+    900,
+    0,
+    3120
+   ]
+  ],
+  "bia_anh": {
+   "anh": "thai-nguyen-I4XoCArS2IU-unsplash.jpg",
+   "cat": [
+    6228,
+    900,
+    0,
+    3120
+   ],
+   "t1": "iPad lag?",
+   "nho": "Thử ngay mẹo này."
+  }
+ }
+}

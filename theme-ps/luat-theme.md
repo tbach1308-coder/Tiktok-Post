@@ -31,7 +31,7 @@ Mỗi theme ở `theme-ps/<id>/` (thư mục app): `theme.json` (bảng màu, fo
 - `biaTinhNang({t1, t2, mo: "dòng 1\rdòng 2", so: "M2", may: ["a.png", "b.png"], kieu: "nho-to"?, xoay?})`: 2 dòng tiêu đề giữa, chữ / số rất to mờ phía sau, 1–2 máy to nghiêng tràn mép dưới.
   `kieu: "nho-to"`: dòng 1 nhỏ trắng, dòng 2 rất to màu nhấn (chuyển sắc nếu theme có `bia_sac`). Theme phẳng / tối dùng kiểu này.
 - `biaToiGian({ten, mo: ["dòng 1", "dòng 2", "dòng 3"], may: "a.png", hop: [trái, trên, rộng]})`: nền đen, tên máy chữ mảnh căn trái, 2 gạch ngắn kẹp mô tả, ảnh cận 1 góc máy (cụm camera) phóng rất to tràn góc dưới phải. Theme "Tối giản · Đen" dùng kiểu này.
-- Bìa mặc định của từng theme: xem `theme.json` mục `xem` (`bia_sp` / `bia_tn` / `bia_tg` / `bia_tiem` / `bia_bento` / `bia_ghichu`).
+- Bìa mặc định của từng theme: xem `theme.json` mục `xem` (`bia_sp` / `bia_tn` / `bia_tg` / `bia_tiem` / `bia_anh`).
 
 ## Theme "Tiệm Poly · Vẽ tay" (`tiem-ve-tay`, fen 13/11 18h01 gửi 5 ảnh tiệm Poly Store vẽ tay + "tạo theme pts")
 - Bìa **luôn** dùng `biaTiem(o)` ngay sau `newDoc`: ảnh tiệm vẽ tay ~2/3 trên (mép dưới lượn như mái hiên), dưới là giấy be ghi tiêu đề chữ tròn xanh lá viền kem + nâu, 1 dòng nhỏ nâu.
@@ -41,27 +41,20 @@ Mỗi theme ở `theme-ps/<id>/` (thư mục app): `theme.json` (bảng màu, fo
 - Trang trong: `newDoc` tự vẽ tường giấy be hạt sáp màu + mái hiên xanh mép lượn trên cùng + bảng xanh lá (như biển hiệu, viền nâu) phủ gần kín trang: chữ, thẻ, ô ghi chú đặt trên bảng như mọi theme tối (chữ `C.WHITE`).
   Không đặt gì ra ngoài bảng (lề 36px, trên 62px). Màu nhấn: `YEL2`/`YEL` vàng đèn, `C.GREEN_L` xanh trời (tên máy, số), nhãn `C.GREEN` đỏ ngói.
 
-## Theme "Bento · Cloud Dancer" (`bento-cloud-dancer`, fen 13/11 20h20 "tìm nhiều nguồn làm thêm 2 theme đang xu hướng")
-- Xu hướng 2026: lưới bento (ô bo tròn nhiều cỡ như keynote / trang sản phẩm Apple) + màu Pantone 2026 Cloud Dancer (trắng mây) với bộ phấn Powdered Pastels.
-- Bìa **luôn** dùng `biaBento(o)` ngay sau `newDoc`: `biaBento({t1: "MacBook Air M1", t2: "Vẫn đáng mua?", nho: "dòng nhỏ", may: "a.png", so1: ["M1", "Chip Apple"], so2: ["18h", "Pin xem video"], chan: "Máy likenew, có sẵn tại POLY STORE"})`.
-  Ô tiêu đề than (t1 trắng, t2 vàng phấn, dòng nhỏ xám), ô ảnh máy xanh phấn (`may` = ảnh máy đã tách nền trong thư mục ảnh của bài: iPad `A`, Laptop `TN`),
-  1–2 ô thông số (số to + nhãn, nền vàng / hồng đào), ô cuối than có nút mũi tên. t1 / t2 ≤ 16 ký tự, số ≤ 6 ký tự, nhãn ≤ 16, `chan` ≤ 48 ký tự.
-  Không có ảnh máy thì bỏ `may` (ô vẫn giữ màu); chỉ 1 thông số thì chỉ ghi `so1`. Bìa không thêm "POLY STORE" (ô tiêu đề đã có).
-- Trang trong: `newDoc` tự vẽ viền trắng mây + 1 ô lớn màu than chứa nội dung (lề 40px) + cụm 3 ô phấn nhỏ góc trên phải; bài iPad còn hàng 3 ô phấn dưới đáy
-  (ô lớn tới y = 1316: thân bài, câu móc phải nằm trên y 1300). Chữ, thẻ đặt trên ô lớn như mọi theme tối (chữ `C.WHITE`).
-  Màu nhấn: `YEL2`/`YEL` vàng phấn (chữ nhấn), `C.GREEN_L` xanh phấn (tên máy, số), nhãn `C.GREEN` tím xanh, ô ghi chú hồng đào chữ than.
-
-## Theme "Ghi chú iPhone · Tối" (`ghi-chu-iphone`, fen 13/11 20h20)
-- Xu hướng 2026: kiểu ảnh chụp ứng dụng Ghi chú iPhone (Notes App: chữ như ghi chú riêng, thật, không bóng bẩy), chế độ tối.
-- Bìa **luôn** dùng `biaGhiChu(o)` ngay sau `newDoc`: `biaGhiChu({t1: "3 cài đặt iPad", t2: "nên tắt ngay", nho: "dòng nhỏ", ds: [[true, "việc đã tick"], [false, "việc chưa tick"]], may: "a.png"})`.
-  Ngày giờ dựng + "POLY STORE" tự ghi trên cùng (xám), t1 trắng, t2 vàng hệ thống, dòng nhỏ xám, `ds` 2–4 dòng tick tròn kiểu Ghi chú (true = đã tick vàng),
-  `may` = ảnh máy đính kèm trong ô bo tròn phía dưới (bỏ nếu không có). t1 / t2 ≤ 18 ký tự, mỗi dòng tick ≤ 32 ký tự.
-- Trang trong: `newDoc` tự vẽ nền đen + dòng kẻ giấy tối (cách 64px) + thanh trên "‹ Ghi chú" … "Xong" màu vàng (y 30–90, không đặt gì vào đó).
-  Thẻ `glass()` xám iOS 1C1C1E, ô ghi chú vàng như giấy nhớ (chữ đen), nhãn vàng đậm chữ trắng, chữ nhấn / tên máy vàng FFD60A.
-  Hợp bài mẹo, danh sách, "những điều nên biết"; không có logo Apple, không chụp màn hình thật.
+## Theme "Ảnh thật · Chữ vàng" (`anh-that-chu-vang`, fen 14/11 gửi ảnh mẫu TikTok + "style kiểu có ảnh thật r thumbnail")
+- Bìa **luôn** dùng `biaAnhThat(o)` ngay sau `newDoc` (không gọi `bgPhoto` trước): ảnh thật của bài phủ kín trang, không làm mờ, không thêm ảnh máy tách nền, chữ thumbnail đè lên ảnh.
+  `biaAnhThat({anh: "ten-anh.jpg", cat: [rộngẢnh, cắtTrái, cắtTrên, cắtRộng]?, tam: [x, y]?, t1: "iPad lag?", t2: "dòng 2"?, nho: "Thử ngay mẹo này.", vi_tri: "giua" | "tren" | "duoi"?})`.
+  `anh`: ảnh chụp thật hợp chủ đề (tay cầm máy, người dùng máy ở quán / bàn học, máy trên bàn…), tìm theo thứ tự: thư mục ảnh của bài (iPad `A`, Laptop `TN`) rồi "E:/Social Claude/Anh tai ve/"; đường dẫn đầy đủ cũng được.
+  `cat` giống `bgPhoto` (khung dọc 3:4: cắtRộng × 4/3 ≤ cao ảnh); không có `cat` thì tự cắt phủ kín, `tam` (0..1) là điểm giữ ở giữa trang. Chọn khung để máy / tay / người nằm ngoài chỗ đặt chữ.
+  `vi_tri`: đặt chữ vào chỗ trống của ảnh (mặc định ở giữa). Không có ảnh thật hợp thì tìm tải ảnh (Unsplash / Pexels) rồi mới dựng, không dùng ảnh máy tách nền làm bìa.
+  t1 ngắn như câu hỏi / vấn đề (≤ 16 ký tự), `nho` ≤ 30 ký tự (gợi tò mò: "Thử ngay mẹo này."). "POLY STORE" nhỏ tự ghi trên cùng.
+  t1 vàng rất to chữ hẹp giãn chữ viền tối mảnh, t2 (nếu có) trắng, `nho` nghiêng có chân trắng.
+- Trang trong: nền là ảnh thật của bài làm mờ + tối lại (`bgPhoto` / `headC` như theme glass, mỗi slide 1 ảnh hợp nội dung, nên dùng lại ảnh bìa hoặc ảnh cùng bối cảnh). Thẻ `glass()` = khung đen trong (không viền, không bóng).
+  Tiêu đề (`F.T`) vàng viền tối mảnh; dòng "Phụ đề" tự đổi sang chữ nghiêng có chân trắng. Nhãn vàng chữ đen, dấu tích vàng.
+  Ô ghi chú nền vàng chữ đen. Chữ thường `C.WHITE`, chữ nhấn `YEL2` / `YEL`, tên máy / số `C.GREEN_L` (vàng).
 
 ## Khi viết slide
-- Theme phẳng: không đặt ảnh phủ kín trang (ảnh nền mờ, `bg-thumb.png`, `lopBia` có nền): nền phẳng của theme là nền. Theme glass: xem mục trên (dùng `bgPhoto`, không dùng `bg-thumb` / `lopBia` có nền). Bìa: `newDoc` → "POLY STORE" → tiêu đề → ảnh máy tách nền (`devIn` / `placeAt`), không khung, không bóng.
+- Theme phẳng: không đặt ảnh phủ kín trang (ảnh nền mờ, `bg-thumb.png`, `lopBia` có nền): nền phẳng của theme là nền. Theme glass và theme ảnh thật: xem mục trên (dùng `bgPhoto`, không dùng `bg-thumb` / `lopBia` có nền; bìa theme ảnh thật là `biaAnhThat`). Bìa: `newDoc` → "POLY STORE" → tiêu đề → ảnh máy tách nền (`devIn` / `placeAt`), không khung, không bóng.
 - Màu: chỉ dùng biến (`C.WHITE` chữ thường, `YEL2` iPad / `YEL` Laptop cho chữ nhấn, `C.GREEN_L` tên máy / số nổi bật, `C.GREEN` nhãn, `MINT` + `NAVY` ô ghi chú). Không ghi mã màu cứng trong slide.
 - Font: chỉ `F.T` (tiêu đề, giá, câu hỏi cuối), `F.B` (thân, nhãn). Không gọi tên font cụ thể.
 - Không tự thêm hiệu ứng nổi khối: bóng đổ, phát sáng, kính mờ, vát, gradient. Phẳng, màu đặc.
