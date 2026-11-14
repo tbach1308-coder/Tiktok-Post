@@ -137,6 +137,8 @@ a.btn{color:var(--tx);text-decoration:none}
 .kcwarn{font-size:12.5px;color:var(--mut);background:var(--ysoft);border-radius:8px;padding:7px 10px}
 .kcwarn summary{cursor:pointer;color:var(--ytext)}
 .thc .kcb{font-size:11px;color:#9cc8ff}
+.thc .thmua{font-size:11px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.thc .thmua.het{color:#f5b84a}.thpage .thc.hetmua .tha{opacity:.5}   /* fen 14/11 theme theo mùa */
+.thmuag a{margin-left:4px}
 .meta .dungc{font-size:12px;color:var(--mut);border:1px solid var(--line2);border-radius:999px;padding:1px 8px;cursor:help}.kcw{font-size:11px;color:#f5b84a;font-weight:500}
 .thc .thmore[hidden],.thc .thinfo[hidden]{display:none}
 .thc .thmore{display:flex;flex-wrap:wrap;gap:5px}.thc .thmore .btn{padding:3px 8px;font-size:12px}
@@ -1302,7 +1304,7 @@ function newView(){
     if (f.theme && !ths.some(t => t.id === f.theme)) f.theme = '';
     const dg = doanDang((f.chude || '') + ' ' + (f.brief || '').split('\n')[0]);
     // fen 11/11 "bài Canva đạt hơn": làm bằng Canva mà chưa chọn theme thì tự chọn theme hợp dạng bài (bấm ✕ / Mẫu kênh là thôi tự chọn cho nháp này)
-    if (cv && !f.theme && !f.themeBo && dg) { const g = ths.filter(t => (t.dang || []).includes(dg) && !(t.nguon === 'kho-chung' && !t.chia_se));
+    if (cv && !f.theme && !f.themeBo && dg) { const g = ths.filter(t => (t.dang || []).includes(dg) && !(t.nguon === 'kho-chung' && !t.chia_se) && !t.ngoai_mua);   // fen 14/11: theme hết mùa không tự chọn
       if (g.length) { f.theme = g[g.length - 1].id; f.themeTu = 1; saveForm(); } }
     if (!f.theme) f.themeTu = 0;
     // fen 10/11 13h31 "chỗ làm bài mới cho chọn theme để chạy bài viết": hàng theme luôn hiện; bấm 1 theme là chuyển sang làm bằng Canva
@@ -2282,6 +2284,7 @@ async function khoTheme(){
       </div></details>
     <p class="err" id="thErr"></p>
     <div class="thed" id="thEd" hidden></div>
+    <p class="pnote thmuag" id="thMua" hidden></p>
     <div class="thg" id="thG">Đang tải…</div>
     <p class="pnote thbo" id="thBo"></p>
     <h3 class="thkch" title="Máy dùng chung thấy và dùng được đúng các theme này">☁️ Kho chung <span id="thKcN"></span></h3>
@@ -2333,7 +2336,13 @@ async function khoTheme(){
     // fen 12/11 19h35: mỗi máy theme riêng + kho chung; 19h42 "hiển thị template lấy từ drive như canva": kho chung là 1 lưới thẻ riêng
     const cuaMay = t => KHACH ? !!(t.may && S.khach && t.may === S.khach.id) : t.nguon !== 'kho-chung';
     // fen 13/11 11h21 "hiển thị dư rồi nè": theme đã vào kho chung chỉ hiện 1 chỗ (mục ☁️ Kho chung), lưới trên = theme chưa vào kho chung
-    const dsRieng = ds.filter(t => cuaMay(t) && !(t.kc && !KHACH)), dsChung = ds.filter(t => t.kc);
+    // fen 14/11 12h13 "theme theo mùa": theme hết mùa (Christmas, Tết… ngoài mùa) ẩn mặc định, bấm Hiện để xem / chỉnh
+    if (r.mua_ds) S.muaDs = r.mua_ds;
+    const hetMua = ds.filter(t => t.ngoai_mua), hienMua = !!S.thHetMua, conMua = t => hienMua || !t.ngoai_mua;
+    const dsRieng = ds.filter(t => cuaMay(t) && !(t.kc && !KHACH) && conMua(t)), dsChung = ds.filter(t => t.kc && conMua(t));
+    const mm = $('#thMua'); mm.hidden = !hetMua.length;
+    setH(mm, hetMua.length ? `🍂 ${hetMua.length} theme đang hết mùa ${hienMua ? 'đang hiện (mờ)' : 'đang ẩn'}: ${hetMua.map(t => esc(tenGon(t))).join(', ')}<a href="#" id="thMuaBat">${hienMua ? 'Ẩn đi' : 'Hiện'}</a>` : '');
+    const mb = $('#thMuaBat'); if (mb) mb.onclick = ev => { ev.preventDefault(); S.thHetMua = !S.thHetMua; ve(cuoi); };
     const the = (t, trongKc) => { const x = t.xem || {}, sx = t.sua || {}, ban = sx.tt === 'dang', kc = t.nguon === 'kho-chung';
       const rieng = cuaMay(t) && !trongKc;     // rieng = thẻ có Chỉnh / ⋯ (theme máy này sửa / bỏ được)
       const anh = t.anh ? `<img src="${esc(t.anh)}" alt="">` : `<span>${x.tt === 'dang' ? 'Đang lấy ảnh xem trước…' : x.tt === 'loi' ? 'Chưa lấy được ảnh: ' + esc(x.ghi || '') : 'Chưa có ảnh xem trước'}</span>`;
@@ -2345,9 +2354,11 @@ async function khoTheme(){
         : (t.kc && S.kcDung && KC_DRIVE && !t.chia_se ? '<small class="kcw" title="Máy cài app khác tải kho chung có thể không mở được theme này. Thêm link: ⋯ → Thông tin → Link chia sẻ Canva">☁️ Chưa chia sẻ cho máy khác</small>' : '');
       // fen 13/11 10h25 "nằm lộn xộn quá": nút kho chung thành ngôi sao nhỏ cùng hàng ▶ Làm bài / ⋯ (thẻ không còn dòng chip cao thấp khác nhau)
       const sao = kc || KHACH ? '' : `<button class="kctg sao${t.kc ? ' on' : ''}" data-kc="${t.id}" title="${t.kc ? 'Đang trong kho chung: máy dùng chung và máy tải kho chung thấy, dùng được. Bấm để bỏ ra (chỉ máy shop thấy)' : 'Chỉ máy shop thấy. Bấm để đưa vào kho chung cho máy khác dùng'}">${t.kc ? '★' : '☆'}</button>`;
+      const mua = !t.mua ? '' : t.ngoai_mua ? `<small class="thmua het" title="Theme mùa ${esc(t.mua_ten)}: ngoài mùa thì ẩn ở chỗ chọn, app không tự chọn. Đổi ở ⋯ → Thông tin">🍂 Hết mùa · hiện lại ${esc(t.mua_tu)}</small>`
+        : `<small class="thmua" title="Theme mùa ${esc(t.mua_ten)}: qua ${esc(t.mua_den)} tự ẩn, năm sau tự hiện lại. Đổi ở ⋯ → Thông tin">🗓 Mùa ${esc(t.mua_ten)} · tới ${esc(t.mua_den)}</small>`;
       const meta = `${t.kenh ? KENH[t.kenh].ten : 'Cả 2 kênh'}${(t.dang || []).length ? ' · ' + t.dang.map(tenDang).join(', ') : ''}${t.so_trang ? ' · ' + t.so_trang + ' trang' : ''}${t.goc ? ' · bản nhân' : ''}`;
-      return `<div class="thc" data-id="${t.id}"><div class="tha">${anh}</div><b title="${esc(t.ten)}">${esc(tenGon(t))}</b>
-        <small class="thm" title="${esc(meta)}">${esc(meta)}</small>${chung}${tt}
+      return `<div class="thc${t.ngoai_mua ? ' hetmua' : ''}" data-id="${t.id}"><div class="tha">${anh}</div><b title="${esc(t.ten)}">${esc(tenGon(t))}</b>
+        <small class="thm" title="${esc(meta)}">${esc(meta)}</small>${mua}${chung}${tt}
         <div class="thb"><button class="btn sm pri" data-dung="${t.id}" title="${choBai ? 'Dùng theme này cho bài đang viết' : 'Mở bài mới với theme này'}, làm bằng Canva">${nutDung}</button>${sao}<button class="btn sm ghost" data-more="${t.id}" title="Thêm: ${rieng ? 'chỉnh, ' : ''}nhân bản, mở Canva…">⋯</button></div>
         <div class="thmore"${moMore === t.id ? '' : ' hidden'}>${rieng ? `<button class="btn sm ghost" data-chinh="${t.id}"${ban ? ' disabled' : ''} title="Sửa chữ, màu ngay trong app, Claude lưu lên Canva (bản cũ được cất lại)">✏️ Chỉnh</button>` : ''}<button class="btn sm ghost" data-nb="${t.id}"${ban ? ' disabled' : ''} title="Tạo theme mới từ theme này, chỉnh luôn nếu muốn">⧉ Nhân bản</button><a class="btn sm ghost" href="${esc(t.link)}" target="_blank" rel="noopener">Mở Canva</a>${rieng ? `<button class="btn sm ghost" data-info="${t.id}" title="Đổi tên, kênh, dạng bài, link chia sẻ (không đụng thiết kế)">Thông tin</button><button class="btn sm ghost" data-xem="${t.id}"${x.tt === 'dang' ? ' disabled' : ''}>${t.anh ? 'Làm mới ảnh' : 'Lấy ảnh'}</button><button class="btn sm ghost" data-xoa="${t.id}">Bỏ khỏi kho</button>` : ''}</div>
         <div class="thinfo" hidden></div></div>`; };
@@ -2369,6 +2380,7 @@ async function khoTheme(){
   const moThongTin = (t, the) => { const f = the.querySelector('.thinfo'); if (!f) return; moInfo = t.id; moMore = ''; the.querySelector('.thmore').hidden = true; f.hidden = false; const c = new Set(t.dang || []);
     setH(f, `<input class="in" data-f="ten" value="${esc(t.ten)}" placeholder="Tên theme">
       <select class="in" data-f="kenh"><option value="">Cả 2 kênh</option>${Object.entries(KENH).map(([k, v]) => `<option value="${k}"${t.kenh === k ? ' selected' : ''}>${v.ten}</option>`).join('')}</select>
+      <select class="in" data-f="mua" title="Theme mùa: ngoài mùa tự ẩn ở chỗ chọn theme, app không tự chọn; tới mùa năm sau tự hiện lại"><option value="auto"${t.mua_chon ? '' : ' selected'}>Mùa: tự theo tên (${t.mua_doan ? esc(((S.muaDs || []).find(x => x[0] === t.mua_doan) || [0, t.mua_doan])[1]) : 'cả năm'})</option><option value=""${t.mua_chon && !t.mua ? ' selected' : ''}>Mùa: cả năm (luôn hiện)</option>${(S.muaDs || []).map(([k, n]) => `<option value="${k}"${t.mua_chon && t.mua === k ? ' selected' : ''}>Mùa ${esc(n)}</option>`).join('')}</select>
       <div class="thdang">${dang.map(([k, n]) => `<button data-dgi="${k}" class="${c.has(k) ? 'on' : ''}">${esc(n)}</button>`).join('')}</div>
       ${t.nguon === 'kho-chung' ? '' : `<input class="in" data-f="lcs" value="${esc(t.link_chia_se || '')}" placeholder="Link chia sẻ Canva cho máy khác: Canva → Chia sẻ → Bất kỳ ai có liên kết → Sao chép">`}
       <div class="acts"><button class="btn sm" data-ihuy>Huỷ</button><button class="btn sm pri" data-iluu>Lưu</button></div>`);
@@ -2376,7 +2388,7 @@ async function khoTheme(){
       if (b.dataset.dgi) { c.has(b.dataset.dgi) ? c.delete(b.dataset.dgi) : c.add(b.dataset.dgi); b.classList.toggle('on'); return; }
       if (b.hasAttribute('data-ihuy')) { moInfo = ''; ve(cuoi); return; }
       if (b.hasAttribute('data-iluu')) { $('#thErr').textContent = ''; b.disabled = true;
-        const x = {id: t.id, ten: f.querySelector('[data-f=ten]').value.trim(), kenh: f.querySelector('[data-f=kenh]').value, dang: [...c]};
+        const x = {id: t.id, ten: f.querySelector('[data-f=ten]').value.trim(), kenh: f.querySelector('[data-f=kenh]').value, dang: [...c], mua: f.querySelector('[data-f=mua]').value};
         const l = f.querySelector('[data-f=lcs]'); if (l) x.link_chia_se = l.value.trim();
         try { moInfo = ''; ve(await api('/api/theme-canva', {sua: x})); toast('Đã lưu thông tin theme'); } catch(err) { moInfo = t.id; $('#thErr').textContent = err.message; b.disabled = false; } } };
     f.querySelector('[data-f=ten]').focus(); };

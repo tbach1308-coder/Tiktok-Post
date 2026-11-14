@@ -635,6 +635,7 @@ def claude_info(force=False):
     _CLAUDE.update(cmd=cmd, version=None, err=None, t=now())
     if not cmd:
         _CLAUDE["err"] = "Không tìm thấy Claude Code trên máy (lệnh claude)."
+        bao_mat_noi("claude", True, "không chạy được (không tìm thấy lệnh claude)", "auth")
         return _CLAUDE
     try:
         out = subprocess.run(
@@ -664,6 +665,10 @@ def claude_info(force=False):
             _CLAUDE["login"] = out.returncode == 0
     except Exception:
         pass
+    if _CLAUDE["login"] is False:            # fen 14/11: báo Telegram khi mất nối / nối lại
+        bao_mat_noi("claude", True, "bị đăng xuất (chưa đăng nhập)", "auth")
+    elif _CLAUDE["login"]:
+        bao_mat_noi("claude", False, nguon="auth")
     return _CLAUDE
 
 
@@ -1144,13 +1149,8 @@ def dung_bu_cu():
         for r in j.get("runs") or []:          # đọc cả lượt cũ hơn mốc để trừ đúng phần cộng dồn của phiên
             if not r.get("ended"):
                 continue
-            f = os.path.join(JOBS, jid, "stream-%d.jsonl" % r["n"])
-            try:
-                with open(f, "rb") as fh:
-                    fh.seek(0, 2)
-                    fh.seek(max(0, fh.tell() - 400000))
-                    duoi = fh.read().decode("utf-8", "replace")
-            except OSError:
+            duoi = log_luot_duoi(os.path.join(JOBS, jid, "stream-%d.jsonl" % r["n"]))     # bài cũ đã nén: đọc bản .gz
+            if duoi is None:
                 continue
             best = None
             for line in duoi.splitlines():
@@ -1230,6 +1230,70 @@ def han_muc_ghi(loai, chu, jid=None):
         if CFG.get("telegram_token") and (CFG.get("tg_lenh_chat") or CFG.get("telegram_chat")):
             threading.Thread(target=_bao_tg, args=(msg,), kwargs={"chats": [c for c in (CFG.get("tg_lenh_chat"), CFG.get("telegram_chat")) if c]}, daemon=True).start()
     log("het han muc Claude (%s) reset %s%s" % (loai or "?", chu or "?", (" bai " + jid) if jid else ""))
+
+
+# fen 14/11 12h13 "báo Telegram khi mất nối": 13/11 tối app mất nối Canva (chỉ ghi app-log + chip nhỏ, fen không biết).
+# Giờ nhắn fen 1 lần mỗi đợt mất nối (Canva / Claude Code trên máy shop) và 1 tin khi nối lại. Nhớ đợt đang mất trong mat-noi.json
+# (khởi động lại app không báo lặp). Claude Code kiểm mỗi 20 phút (lệnh auth status, không tốn lượt); Canva biết qua các lượt có dùng Canva.
+MAT_NOI_F = os.path.join(APP, "mat-noi.json")
+MAT_NOI = {k: v for k, v in (read_json(MAT_NOI_F, None) or {}).items()
+           if (k in ("canva", "claude") and isinstance(v, (int, float))) or (k in ("canva_tu", "claude_tu") and isinstance(v, str))}
+MAT_NOI_KHOA = threading.Lock()
+
+
+def _gio_ngan(t):
+    lt, hom = time.localtime(t), time.localtime()
+    return time.strftime("%H:%M", lt) + ("" if (lt.tm_mday, lt.tm_mon) == (hom.tm_mday, hom.tm_mon) else time.strftime(" %d/%m", lt))
+
+
+def bao_mat_noi(loai, mat, ly_do="", nguon=""):
+    """loai: canva | claude. mat=True: vừa thấy mất nối (báo nếu đợt này chưa báo); False: đang nối được (báo nối lại nếu đã báo mất).
+    nguon "auth" (lệnh auth status): mất nối do 1 lượt chạy báo lỗi đăng nhập (nguon "luot") thì auth status báo đã đăng nhập chưa đủ
+    tin là nối lại (token hết hạn vẫn hiện loggedIn) — chờ 1 lượt chạy xong mới báo nối lại."""
+    with MAT_NOI_KHOA:
+        tu = MAT_NOI.get(loai)
+        if bool(mat) == bool(tu):
+            return False
+        if not mat and nguon == "auth" and MAT_NOI.get(loai + "_tu") == "luot":
+            return False
+        if mat:
+            MAT_NOI[loai], MAT_NOI[loai + "_tu"] = now(), nguon or ""
+        else:
+            MAT_NOI.pop(loai, None)
+            MAT_NOI.pop(loai + "_tu", None)
+        try:
+            write_json(MAT_NOI_F, MAT_NOI)
+        except OSError as e:
+            log("ghi mat-noi loi: %s" % e)
+    if loai == "canva":
+        msg = ("⚠️ Canva trên máy shop mất nối%s. Bài làm bằng Canva và kho theme Canva tạm không chạy được. Nối lại: claude.ai "
+               "(tài khoản Claude của máy shop) > Customize > Connectors > Canva bấm Connect, xong mở app Poly Dựng Bài kiểm lại Canva."
+               % (" (thấy khi: " + ("kiểm Canva" if ly_do == "kiểm" else ly_do) + ")" if ly_do else "")) if mat else \
+              "✅ Canva trên máy shop nối lại rồi (mất nối từ %s)." % _gio_ngan(tu)
+    else:
+        msg = ("⚠️ Claude Code trên máy shop %s. Dựng bài, bài hẹn giờ và Remote Telegram tạm không chạy được. Mở app Poly Dựng Bài "
+               "trên máy shop, bấm Đăng nhập." % (ly_do or "không chạy được")) if mat else \
+              "✅ Claude Code trên máy shop chạy lại rồi (lỗi từ %s)." % _gio_ngan(tu)
+    log("mat noi %s: %s%s" % (loai, "MAT" if mat else "noi lai", (" (" + ly_do + ")") if mat and ly_do else ""))
+    chats = [c for c in (CFG.get("tg_lenh_chat"), CFG.get("telegram_chat")) if c]
+    if CFG.get("telegram_token") and chats:
+        threading.Thread(target=_bao_tg, args=(msg,), kwargs={"chats": list(dict.fromkeys(chats))}, daemon=True).start()
+    return True
+
+
+def _loi_dang_nhap(s):
+    low = (s or "").lower()
+    return "not logged in" in low or "/login" in low or "invalid api key" in low or "oauth token" in low or "authentication_error" in low
+
+
+def canh_mat_noi():
+    """Kiểm Claude Code trên máy mỗi 20 phút (claude_info tự báo mất / nối lại)."""
+    while True:
+        time.sleep(1200)
+        try:
+            claude_info(force=True)
+        except Exception:
+            log("canh mat noi loi: " + traceback.format_exc())
 
 
 def han_muc_gio():
@@ -1329,8 +1393,15 @@ def _danh_dau_ket(st, run):
 
 
 def _doc_luot(st, p, n):
-    """Đọc tiếp phần mới của stream-n.jsonl (chỉ tới dòng hoàn chỉnh cuối)."""
+    """Đọc tiếp phần mới của stream-n.jsonl (chỉ tới dòng hoàn chỉnh cuối). Bài cũ đã nén (stream-n.jsonl.gz): đọc hết 1 lần."""
     if not os.path.exists(p):
+        if os.path.exists(p + ".gz") and not st.setdefault("gz", {}).get(str(n)):
+            b = log_luot_doc(p)
+            if b is not None:
+                off = st["offsets"].get(n, 0)
+                st["offsets"][n] = len(b)
+                st["gz"][str(n)] = 1
+                _doc_dong(st, b[off:], n)
         return
     off = st["offsets"].get(n, 0)
     size = os.path.getsize(p)
@@ -1344,6 +1415,10 @@ def _doc_luot(st, p, n):
         return
     body = chunk[: last_nl + 1]
     st["offsets"][n] = off + len(body)
+    _doc_dong(st, body, n)
+
+
+def _doc_dong(st, body, n):
     for line in body.splitlines():
         line = line.strip()
         if not line:
@@ -1420,9 +1495,13 @@ def parse_job(jid):
                 elif _luot_xong(st, last):
                     job["status"] = last["ket_qua"] = "xong"
                     han_muc_xoa()        # chạy được = hạn mức còn
+                    bao_mat_noi("claude", False)
                 else:
                     job["status"] = last["ket_qua"] = "loi"
                     hm = han_muc_text(res[-1]["text"]) if res else None
+                    if _loi_dang_nhap((res[-1]["text"] if res else "") + "\n" +
+                                      read_text(os.path.join(job_dir(jid), "stderr-%d.txt" % last["n"]))[-800:]):
+                        bao_mat_noi("claude", True, "bị đăng xuất hoặc hết phiên đăng nhập", "luot")
                     if hm:
                         han_muc_ghi(hm[0], hm[1], jid)
                         last["ly_do"] = job["loi_chay"] = han_muc_ly_do()
@@ -1473,6 +1552,128 @@ def read_text(p):
             return f.read().decode("utf-8", "replace")
     except Exception:
         return ""
+
+
+# fen 14/11 12h13 "nén log bài cũ" (chọn "Bỏ bản gốc, giữ bản nén"): log Claude từng lượt (stream-N.jsonl, 13–22MB/bài) của bài đã
+# xong / lỗi / dừng quá 7 ngày nén thành stream-N.jsonl.gz (~1/10). Bản gốc chỉ bỏ khi bản nén giải ra khớp từng byte.
+# Mọi chỗ đọc log (trang bài, sổ hạn mức) đọc được cả 2 dạng. Chạy nền 10 phút sau khi mở app, rồi mỗi ngày 1 lần.
+NEN_LOG_NGAY = 7
+NEN_LOG = {"t": 0, "dang": False, "kq": None}
+_LOG_TEN = re.compile(r"stream-\d+\.jsonl")
+
+
+def log_luot_doc(p):
+    """Nội dung log 1 lượt (bytes): file thường, không có thì bản nén p + ".gz"; không có cả 2 thì None."""
+    try:
+        with open(p, "rb") as f:
+            return f.read()
+    except OSError:
+        pass
+    try:
+        with gzip.open(p + ".gz", "rb") as f:
+            return f.read()
+    except (OSError, EOFError):
+        return None
+
+
+def log_luot_duoi(p, n=400000):
+    """n byte cuối của log 1 lượt (chữ), file thường hay bản nén đều được; không có thì None."""
+    try:
+        with open(p, "rb") as fh:
+            fh.seek(0, 2)
+            fh.seek(max(0, fh.tell() - n))
+            return fh.read().decode("utf-8", "replace")
+    except OSError:
+        pass
+    b = log_luot_doc(p)
+    return None if b is None else b[-n:].decode("utf-8", "replace")
+
+
+def _nen_1(f):
+    """Nén 1 file log: ghi .gz.tam, giải ra so sha256 với bản gốc, khớp mới thay. Trả (cỡ trước, cỡ sau) hoặc None (file đang đổi)."""
+    import hashlib
+    s0 = os.stat(f)
+    tam = f + ".gz.tam"
+    h1, h2 = hashlib.sha256(), hashlib.sha256()
+    try:
+        with open(f, "rb") as src, gzip.open(tam, "wb", compresslevel=6) as dst:
+            for k in iter(lambda: src.read(1 << 20), b""):
+                h1.update(k)
+                dst.write(k)
+        with gzip.open(tam, "rb") as g:
+            for k in iter(lambda: g.read(1 << 20), b""):
+                h2.update(k)
+        if h1.digest() != h2.digest():
+            raise OSError("bản nén giải ra không khớp")
+        with LOCK:            # trang bài đọc log trong LOCK: không ai đọc giữa lúc đổi file
+            s1 = os.stat(f)
+            if (s1.st_size, s1.st_mtime_ns) != (s0.st_size, s0.st_mtime_ns):
+                return None
+            os.replace(tam, f + ".gz")
+            os.utime(f + ".gz", ns=(s0.st_atime_ns, s0.st_mtime_ns))
+            os.remove(f)
+        return s0.st_size, os.path.getsize(f + ".gz")
+    finally:
+        if os.path.exists(tam):
+            os.remove(tam)        # file tạm của chính hàm này (nén dở / không khớp)
+
+
+def nen_log_cu(ngay=NEN_LOG_NGAY):
+    """Nén log các bài đã kết thúc (xong / lỗi / dừng, mọi lượt đã xong) mà lượt cuối xong quá `ngay` ngày."""
+    kq = {"bai": 0, "file": 0, "truoc": 0, "sau": 0, "loi": 0}
+    if not os.path.isdir(JOBS):
+        return kq
+    moc = now() - ngay * 86400
+    for jid in sorted(os.listdir(JOBS)):
+        d = os.path.join(JOBS, jid)
+        if not re.fullmatch(r"[0-9a-zA-Z_-]{6,64}", jid) or not os.path.isdir(d):
+            continue
+        j = read_json(os.path.join(d, "job.json"))
+        runs = (j or {}).get("runs") if isinstance(j, dict) else None
+        if not runs or j.get("status") not in ("xong", "loi", "dung") or any(not r.get("ended") for r in runs) \
+                or max(r.get("ended") or 0 for r in runs) > moc:
+            continue
+        co = False
+        for fn in sorted(os.listdir(d)):
+            if not _LOG_TEN.fullmatch(fn):
+                continue
+            try:
+                r = _nen_1(os.path.join(d, fn))
+            except Exception as e:
+                kq["loi"] += 1
+                log("nen log loi %s/%s: %s" % (jid, fn, e))
+                continue
+            if r:
+                co = True
+                kq["file"] += 1
+                kq["truoc"] += r[0]
+                kq["sau"] += r[1]
+        kq["bai"] += co
+    if kq["file"] or kq["loi"]:
+        log("nen log: %d bai, %d file, %.1fMB -> %.1fMB%s" % (kq["bai"], kq["file"], kq["truoc"] / 1e6, kq["sau"] / 1e6,
+                                                           ", %d loi" % kq["loi"] if kq["loi"] else ""))
+    return kq
+
+
+def nen_log_chay(ngay=NEN_LOG_NGAY):
+    with LOCK:
+        if NEN_LOG["dang"]:
+            return False
+        NEN_LOG["dang"] = True
+    try:
+        NEN_LOG["kq"] = nen_log_cu(ngay)
+    except Exception:
+        log("nen log loi: " + traceback.format_exc())
+    finally:
+        NEN_LOG.update(dang=False, t=now())
+    return True
+
+
+def nen_log_lich():
+    time.sleep(600)               # mở app xong 10 phút mới nén (khỏi tranh đĩa lúc đang mở)
+    while True:
+        nen_log_chay()
+        time.sleep(86400)
 
 
 def explain_err(err):
@@ -2731,12 +2932,19 @@ CANVA_KIEM = ('Kiểm kết nối Canva cho app Poly Dựng Bài. Làm thật nh
 def canva_ghi_tt(tt, nguon, ghi="", t=None):
     if tt == CANVA_TT.get("tt") and nguon == CANVA_TT.get("nguon") and (t or now()) - CANVA_TT.get("t", 0) < 60:
         return
+    cu = CANVA_TT.get("tt")
     CANVA_TT.update({"tt": tt, "t": t or now(), "nguon": nguon, "ghi": short(ghi, 200)})
     if tt != "dang":
         try:
             write_json(CANVA_TT_F, dict(CANVA_TT))
         except OSError as e:
             log("ghi canva-tt loi: %s" % e)
+    # fen 14/11: báo Telegram. Chỉ trạng thái mới (đọc lại lượt cũ không tính); "loi" (Canva lỗi khác, có khi thoáng qua) phải 2 lần liền
+    if (t or now()) > now() - 1800:
+        if tt == "chua" or (tt == "loi" and cu == "loi"):
+            bao_mat_noi("canva", True, nguon)
+        elif tt == "noi":
+            bao_mat_noi("canva", False)
 
 
 def canva_tt(data=None):
@@ -2836,6 +3044,66 @@ def canva_doc(jid):
 THEME_CV_FILE = os.path.join(APP, "theme-canva.json")
 THEME_CV_ANH = os.path.join(APP, "theme-canva")
 THEME_DANG = [["so-sanh", "So sánh 2 máy"], ["top", "Top / danh sách máy"], ["meo", "Mẹo / lỗi"], ["gia", "Giới thiệu máy / bảng giá"], ["khac", "Khác"]]
+# fen 14/11 12h13 "theme theo mùa": theme Black Friday / Christmas / Tết… chỉ hiện để chọn quanh mùa đó, hết mùa tự ẩn (Kho theme vẫn
+# giữ, có nút hiện), tới mùa năm sau tự hiện lại. Mùa đoán theo tên theme; fen chỉnh ở ⋯ → Thông tin (t["mua"]: key | "" = cả năm).
+# key: (tên, chữ trong tên theme, (tháng, ngày) từ, (tháng, ngày) đến); Tết theo âm lịch: 35 ngày trước mùng 1 tới mùng 10.
+MUA = {
+    "black-friday": ("Black Friday", r"black\s*friday|cyber\s*monday", (11, 10), (12, 2)),
+    "christmas": ("Christmas", r"christmas|x-?mas|noel|gi[aá]ng\s*sinh", (11, 20), (12, 26)),
+    "tet": ("Tết", r"\bt[eế]t\b|lunar\s*new\s*year", None, None),
+    "valentine": ("Valentine", r"valentine", (2, 1), (2, 15)),
+    "halloween": ("Halloween", r"halloween", (10, 15), (11, 1)),
+}
+TET_MUNG_1 = {2026: (2, 17), 2027: (2, 6), 2028: (1, 26), 2029: (2, 13), 2030: (2, 3), 2031: (1, 23), 2032: (2, 11), 2033: (1, 31)}
+
+
+def _doan_mua(ten):
+    import unicodedata
+    s = unicodedata.normalize("NFC", str(ten or ""))
+    return next((k for k, v in MUA.items() if re.search(v[1], s, re.I)), None)
+
+
+def mua_cua(t):
+    """Mùa của theme: fen chọn (t["mua"], "" = cả năm) hoặc đoán theo tên. None = cả năm."""
+    if "mua" in t:
+        return t["mua"] if t["mua"] in MUA else None
+    return _doan_mua(t.get("ten"))
+
+
+def mua_khoang(k, hom=None):
+    """Khoảng ngày (date từ, date đến) của mùa k đang diễn ra hoặc sắp tới nhất; không biết (Tết quá bảng) thì None."""
+    import datetime
+    hom = hom or datetime.date.today()
+    ds = []
+    if k == "tet":
+        for y, (th, ng) in TET_MUNG_1.items():
+            m1 = datetime.date(y, th, ng)
+            ds.append((m1 - datetime.timedelta(days=35), m1 + datetime.timedelta(days=9)))
+    elif k in MUA:
+        (th1, ng1), (th2, ng2) = MUA[k][2], MUA[k][3]
+        for y in (hom.year - 1, hom.year, hom.year + 1):
+            a = datetime.date(y, th1, ng1)
+            b = datetime.date(y + (1 if (th2, ng2) < (th1, ng1) else 0), th2, ng2)
+            ds.append((a, b))
+    ds = sorted(x for x in ds if x[1] >= hom)
+    return ds[0] if ds else None
+
+
+def theme_ngoai_mua(t, hom=None):
+    """Theme có mùa mà hôm nay ngoài mùa (ẩn ở chỗ chọn theme, app không tự chọn)."""
+    import datetime
+    k = mua_cua(t or {})
+    w = mua_khoang(k, hom) if k else None
+    return bool(w) and not (w[0] <= (hom or datetime.date.today()) <= w[1])
+
+
+def _mua_ra(t):
+    k = mua_cua(t)
+    w = mua_khoang(k) if k else None
+    return {"mua": k or "", "mua_ten": MUA[k][0] if k else "", "mua_chon": "mua" in t, "mua_doan": _doan_mua(t.get("ten")) or "",
+            "mua_tu": w[0].strftime("%d/%m") if w else "", "mua_den": w[1].strftime("%d/%m") if w else "", "ngoai_mua": theme_ngoai_mua(t)}
+
+
 THEME_KHOA = threading.Lock()
 THEME_XEM = {}      # id -> {"tt": dang|ok|loi, "t", "ghi"}
 # fen 10/11 13h11 "kho theme không lấy về luôn được hả hay phải nhập link": thư mục Canva "POLY Theme" = kho theme.
@@ -2878,7 +3146,7 @@ def theme_goi_y(kenh, chu):
     if not dg:
         return None
     ds = [t for t in theme_cv_ds(kenh) if dg in (t.get("dang") or []) and not (t.get("nguon") == "kho-chung" and not t.get("chia_se"))
-          and theme_thay(t)]
+          and theme_thay(t) and not theme_ngoai_mua(t)]       # fen 14/11: theme hết mùa không tự chọn
     return max(ds, key=lambda t: t.get("t") or 0) if ds else None
 
 
@@ -3229,6 +3497,7 @@ def _theme_ra(t):
     o["may"] = t.get("may") or ""
     o["link_chia_se"] = t.get("link_chia_se") or ""
     o["chia_se"] = bool(t.get("link_chia_se") or t.get("chia_se"))
+    o.update(_mua_ra(t))          # fen 14/11 theme theo mùa: mua, mua_ten, mua_tu / mua_den (dd/mm), ngoai_mua
     return o
 
 
@@ -3299,9 +3568,16 @@ def theme_cv(data=None, may=None):
                 t = next((y for y in doc["ds"] if y.get("id") == x.get("id") and not y.get("an")), None)
                 if not t:
                     raise ValueError("Không thấy theme")
+                if "mua" in x and x["mua"] != "auto" and x["mua"] != "" and x["mua"] not in MUA:
+                    raise ValueError("Mùa không đúng")
                 if ten:
                     t["ten"] = ten
                 t["kenh"], t["dang"] = kenh, dang
+                if "mua" in x:              # fen 14/11: "auto" = đoán theo tên, "" = cả năm, hoặc 1 mùa trong MUA
+                    if x["mua"] == "auto":
+                        t.pop("mua", None)
+                    else:
+                        t["mua"] = x["mua"]
                 if "link_chia_se" in x:
                     v = _la_link_canva(str(x.get("link_chia_se") or "").strip()) if str(x.get("link_chia_se") or "").strip() else ""
                     if str(x.get("link_chia_se") or "").strip() and not v:
@@ -3342,6 +3618,7 @@ def theme_cv(data=None, may=None):
     elif not data and not may:
         kho_chung_tu_tai()        # mở Kho theme / Bài mới: máy khác tự lấy kho chung mới (tối đa 30 phút 1 lần)
     return {"ds": [_theme_ra(t) for t in theme_cv_ds() if theme_thay(t, may)], "dang": THEME_DANG, "db": dict(THEME_DB), "may": may or "",
+            "mua_ds": [[k, v[0]] for k, v in MUA.items()],
             "bo_ds": [{"id": t["id"], "ten": t.get("ten") or ""} for t in theme_cv_ds(ca_an=True)
                       if t.get("an") and t.get("bo") and (t.get("may") or None) == (may or None)],
             "thu_muc": CFG.get("theme_thu_muc") or "POLY Theme"}
@@ -3459,6 +3736,8 @@ def kho_chung_dua(chon):
                 anh = base64.b64encode(fh.read()).decode("ascii")
         x = {"ma": t["ma"], "ten": t.get("ten") or "", "kenh": t.get("kenh") or "", "dang": t.get("dang") or [], "so_trang": t.get("so_trang"),
              "link": t.get("link_chia_se") or t.get("link"), "chia_se": bool(t.get("link_chia_se")), "anh": anh, "t": now()}
+        if "mua" in t:            # fen chọn mùa tay (không có: máy khác tự đoán theo tên như máy shop)
+            x["mua"] = t["mua"]
         c = cu_theo_ma.get(t["ma"])
         if c is None:
             them += 1
@@ -3570,6 +3849,10 @@ def kho_chung_tai():
                       "dang": [k for k in (x.get("dang") or []) if k in dict(THEME_DANG)]})
             if isinstance(x.get("so_trang"), int):
                 t["so_trang"] = x["so_trang"]
+            if "mua" in x and (x["mua"] == "" or x["mua"] in MUA):
+                t["mua"] = x["mua"]
+            else:
+                t.pop("mua", None)
             if x.get("anh"):
                 try:
                     raw = base64.b64decode(x["anh"])
@@ -7126,6 +7409,8 @@ class H(BaseHTTPRequestHandler):
                     return self.send(200, fh.read(), "image/png", {"Cache-Control": "max-age=86400"})
             if u.path == "/api/kho-chung":
                 return self.send(200, kho_chung())
+            if u.path == "/api/nen-log":
+                return self.send(200, dict(NEN_LOG))
             m = re.fullmatch(r"/api/theme-canva/(?:trang|trang-anh|anh)/(t[0-9a-f]{8}).*", u.path)
             if m and self.may() and not theme_tim_cho(m.group(1), self.may()):
                 return self.send(404, {"err": "Không thấy theme"})
@@ -7256,6 +7541,14 @@ class H(BaseHTTPRequestHandler):
                 return self.send(200, canva_cai(data, self.may()))
             if u.path == "/api/canva-tt":
                 return self.send(200, canva_tt(data))
+            if u.path == "/api/nen-log":          # nén log bài cũ ngay (bình thường tự chạy mỗi ngày); {ngay}: bài xong quá mấy ngày
+                if self.may():
+                    raise ValueError("Chỉ máy shop")
+                ngay = data.get("ngay")
+                ngay = NEN_LOG_NGAY if not isinstance(ngay, (int, float)) or ngay < 0 else ngay
+                if not NEN_LOG["dang"]:
+                    threading.Thread(target=nen_log_chay, args=(ngay,), daemon=True).start()
+                return self.send(200, {"bat": True})
             if u.path == "/api/run":
                 job = create_job(data)
                 return self.send(200, {"id": job["id"], "xep_hang": bool(job.get("xep_hang") and job.get("status") == "hen"), "thu": job.get("thu") or 0})
@@ -7478,7 +7771,9 @@ def main():
     if IS_WIN:
         threading.Thread(target=win_tu_bat, daemon=True).start()
     threading.Thread(target=dung_bu_cu, daemon=True).start()     # sổ hạn mức: ghi bù lượt cũ
-    hm = read_json(HAN_MUC_FILE, None)
+    threading.Thread(target=nen_log_lich, daemon=True).start()   # fen 14/11: nén log bài cũ (10 phút sau khi mở, rồi mỗi ngày)
+    threading.Thread(target=canh_mat_noi, daemon=True).start()   # fen 14/11: kiểm Claude Code mỗi 20 phút, mất nối thì báo Telegram
+    hm =read_json(HAN_MUC_FILE, None)
     if isinstance(hm, dict) and hm.get("het") and (hm.get("reset_t") or 0) > now():   # mở lại app giữa đợt hết hạn mức: nhớ tiếp
         HAN_MUC.update({k: hm.get(k) for k in ("het", "chu", "reset", "reset_t", "t")})
         HAN_MUC["bao"] = True

@@ -31,3 +31,5 @@ theme-canva/
 # dùng chung: cloudflared + nhật ký đường nối, nháp từng máy khách
 _cf/
 nhap-*.json
+mat-noi.json
+han-muc.json

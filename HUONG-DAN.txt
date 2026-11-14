@@ -6,6 +6,12 @@ MỞ APP
 - Nhấp đúp icon "Poly Dung Bai" ngoài Desktop (hoặc file "Poly Dung Bai.vbs" trong thư mục này).
 - App mở thành cửa sổ riêng (Edge, hồ sơ riêng trong thư mục _edge, không tự dịch sang tiếng Anh).
   Tắt cửa sổ thì bài đang chạy vẫn chạy tiếp, mở lại là thấy. Có bản app mới thì trang tự tải lại.
+- Báo mất nối (14/11): Claude Code trên máy shop bị đăng xuất / hết phiên, hoặc Canva mất nối thì app nhắn Telegram 1 tin
+  (vào chat Remote + nhóm nhận slide), kèm cách nối lại; nối lại được thì nhắn 1 tin "✅ … rồi". Không nhắn lặp, khởi động lại
+  app cũng không nhắn lại. Claude Code app tự kiểm mỗi 20 phút (không tốn lượt); Canva biết khi có việc dùng Canva (dựng, lấy theme).
+- Nén log bài cũ (14/11): bài xong / lỗi / dừng quá 7 ngày thì log Claude của bài (jobs\<id>\stream-N.jsonl, 13–22MB/bài)
+  được nén thành stream-N.jsonl.gz (còn ~1/10), bản gốc bỏ khi bản nén giải ra khớp từng byte. Mở bài cũ vẫn xem như thường.
+  App tự làm 10 phút sau khi mở, rồi mỗi ngày 1 lần; ghi "nen log: …" trong app-log.txt.
 - Cửa sổ app thu nhỏ / bị che (13/11 tối ưu): app 30 giây mới hỏi máy chủ 1 lần cho đỡ tốn máy, nên báo "bài xong"
   có thể trễ tới 30 giây; mở app lên là cập nhật ngay. Máy dùng chung nhận trang app nén (nhẹ ~3 lần), font nhớ 1 ngày.
 - App chạy trên máy này, cổng 8777 (cổng 8765 là của tool đăng bài, không dùng chung).
@@ -78,6 +84,11 @@ KHO THEME CANVA (10/11)
   Máy khác: dán link đó 1 lần → "⬇ Tải kho chung" là có theme. Theme muốn dùng ở tài khoản Canva khác: trên Canva mở theme →
   Chia sẻ → "Bất kỳ ai có liên kết", dán link vào ⋯ → Thông tin của theme rồi đưa lên lại.
 - Máy khác / tài khoản Canva khác: theme phải là thiết kế người đó mở được (fen chia sẻ link). Kho theme lưu riêng từng máy (theme-canva.json).
+- Theme theo mùa (14/11): theme có Black Friday, Christmas / Noel / Giáng sinh, Tết, Valentine, Halloween trong tên tự thành theme mùa:
+  Black Friday 10/11–02/12, Christmas 20/11–26/12, Tết từ 35 ngày trước mùng 1 tới mùng 10, Valentine 01–15/02, Halloween 15/10–01/11.
+  Ngoài mùa: app không tự chọn theme đó (Bài mới, Telegram), Kho theme ẩn đi, có dòng "🍂 … theme đang hết mùa" + nút Hiện / Ẩn đi.
+  Tới mùa năm sau tự hiện lại. Thẻ theme có nhãn "🗓 Mùa … · tới dd/mm" hoặc "🍂 Hết mùa · hiện lại dd/mm".
+  Đổi mùa: ⋯ → Thông tin → ô Mùa (tự theo tên / cả năm (luôn hiện) / chọn 1 mùa). Mùa chọn tay đi theo kho chung sang máy khác.
 - Kho theme Photoshop (12/11): Kho theme → bấm "🖌 Photoshop". Theme nằm sẵn trong kho chung, máy nào dùng app (kể cả máy dùng chung)
   cũng thấy, chọn được. Có 4 theme: 2 phẳng ("Phẳng · Xanh lá đêm", "Phẳng · Than xanh dương": nền màu, không 3D) và 2 glass
   ("Glass · Tím hồng", "Glass · Xanh ngọc": nền ảnh thật làm mờ + thẻ kính trong). Bìa có 2 kiểu như ảnh mẫu fen gửi: kiểu quảng cáo
