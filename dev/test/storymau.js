@@ -1,6 +1,8 @@
-// 📱 Thư viện mẫu story (fen 15/11 13h07 "phần này cho thư viện template tạo riêng, để gắn ảnh vô chạy, cho điền text"; chọn "App tự vẽ,
-// mẫu có sẵn" + "Có: ảnh nền + chọn bố cục"): tab "Thư viện mẫu" trong trang Story / reel, 6 mẫu có sẵn, gắn ảnh + điền chữ → ảnh 9:16,
-// fen thêm mẫu bằng ảnh nền + bố cục, bỏ mẫu (dời _to_delete), máy dùng chung làm được nhưng không thêm / bỏ mẫu.
+// 📱 Thư viện mẫu story (fen 15/11 13h07 "phần này cho thư viện template tạo riêng, để gắn ảnh vô chạy, cho điền text") + 🎨 khung design
+// kéo thả (13h58 "cho có công cụ design cơ bản như canva", chọn "Kéo thả trên ảnh"; 13h57 / 14h04 "cho preview trực tiếp"): khung 9:16
+// vẽ trên trình duyệt = xem trước trực tiếp; chọn / kéo / đổi cỡ, bảng chỉnh chữ màu cỡ, thêm chữ / ảnh / khối, hoàn tác, Lưu ảnh 1080×1920,
+// ⬇ Tải về máy (14h07 "cho thêm nút lưu ảnh"), Lưu thành mẫu (máy shop). Mẫu fen thêm bằng ảnh nền + bố cục vẫn có. Máy dùng chung làm
+// ảnh được, không lưu / bỏ mẫu.
 const { chromium } = require('playwright');
 const { execFileSync } = require('child_process');
 const fs = require('fs');
@@ -12,68 +14,113 @@ execFileSync('python3', ['-c', `from PIL import Image,ImageDraw
 im=Image.new('RGB',(1600,1200),'#f0f0f0');d=ImageDraw.Draw(im);d.rounded_rectangle((300,100,1300,1100),60,fill='#2b6cff');im.save('/tmp/sm-may.png')
 n=Image.new('RGB',(1200,2000),'#f4e6c8');ImageDraw.Draw(n).rectangle((0,0,1200,300),fill='#c0392b');n.save('/tmp/sm-nen.jpg')`]);
 (async () => {
+  for (const d of fs.readdirSync(APP + '/story-mau')) if (/^f[0-9a-f]{8}$/.test(d)) fs.renameSync(APP + '/story-mau/' + d, '/tmp/_bo_mau_' + Date.now() + '_' + d);   // mẫu fen của lần thử trước
   const api = await j(A + '/api/story-mau');
-  check('API: 6 mẫu có sẵn + 4 bố cục cho mẫu fen thêm', api.b.ds.filter(x => x.san).map(x => x.id).join() === 'may-moi-ve,gia-soc,so-sanh,feedback,thong-bao,noel' && api.b.bo_cuc.length === 4, api.b);
+  check('API: 6 mẫu có sẵn (kèm bản vẽ đầy đủ cho khung kéo thả) + 4 bố cục', api.b.ds.filter(x => x.san).map(x => x.id).join() === 'may-moi-ve,gia-soc,so-sanh,feedback,thong-bao,noel' && api.b.bo_cuc.length === 4 && api.b.ds[1].ve.nen === '#a61e1e' && api.b.ds[1].ve.o.length >= 7, api.b.ds[1].ve);
   const xem = await fetch(A + api.b.ds[1].xem);
   check('ảnh xem trước mẫu (JPG nhỏ)', xem.status === 200 && /jpeg/.test(xem.headers.get('content-type')), xem.status);
   const b = await chromium.launch({ args: ['--host-resolver-rules=MAP poly-thu.example 127.0.0.1:8791'] }); const errs = [];
-  const p = await b.newPage({ viewport: { width: 1386, height: 900 } }); p.on('pageerror', e => errs.push(e.message + ' @ ' + (e.stack || '').split('\n').slice(0, 3).join(' | ')));
+  const p = await b.newPage({ viewport: { width: 1386, height: 950 }, acceptDownloads: true }); p.on('pageerror', e => errs.push(e.message + ' @ ' + (e.stack || '').split('\n').slice(0, 3).join(' | ')));
   await p.goto(A + '/#story'); await p.waitForSelector('#stTab');
-  await p.evaluate(() => { localStorage.removeItem('poly-mau-chu'); localStorage.removeItem('poly-st-tab'); });
+  await p.evaluate(() => { localStorage.removeItem('poly-tk'); localStorage.removeItem('poly-st-tab'); });
   await p.click('#stTab [data-tab="mau"]'); await p.waitForSelector('#mPick [data-m]');
-  const t1 = await p.evaluate(() => ({ hash: location.hash, n: document.querySelectorAll('#mPick [data-m]').length, them: !!$('#mThem'), on: document.querySelector('#stTab .on').dataset.tab, chon: document.querySelector('#mPick .on').dataset.m }));
-  check('tab "Thư viện mẫu": 6 mẫu có ảnh xem trước, nút Thêm mẫu của fen, chọn sẵn mẫu đầu, #storymau=…', t1.n === 6 && t1.them && t1.on === 'mau' && t1.chon === 'may-moi-ve' && t1.hash === '#storymau=may-moi-ve', t1);
-  await p.click('#mPick [data-m="gia-soc"]'); await p.waitForSelector('#mc-ten');
-  const f1 = await p.evaluate(() => ({ nhan: $('#mc-nhan').value, ten: $('#mc-ten').value, ph: $('#mc-ten').placeholder, anh: document.querySelectorAll('[data-a]').length, kq: !!document.querySelector('#mKq img') }));
-  check('chọn Giá sốc: ô nhãn điền sẵn, ô tên máy trống (chữ gợi ý mờ), 1 ô ảnh, bên phải ảnh mẫu', f1.nhan === 'GIÁ SỐC HÔM NAY' && f1.ten === '' && /MacBook/.test(f1.ph) && f1.anh === 1 && f1.kq, f1);
-  await p.fill('#mc-ten', 'iPad Air 5 M1'); await p.fill('#mc-gia', '9.990.000đ'); await p.fill('#mc-gia_cu', '11.490.000đ');
-  await p.click('#mLam'); await p.waitForFunction(() => [...document.querySelectorAll('.toast')].some(t => /Gắn ảnh/.test(t.textContent)), null, { timeout: 8000 }).catch(() => {});
-  check('chưa gắn ảnh: báo "Gắn ảnh vào ô …", không làm', await p.evaluate(() => [...document.querySelectorAll('.toast')].some(t => /Gắn ảnh vào ô/.test(t.textContent)) && !/Xong/.test($('#mSt').textContent)));
-  await p.setInputFiles('[data-a="anh"] input', '/tmp/sm-may.png'); await p.waitForFunction(() => !$('[data-a="anh"] img').hidden, null, { timeout: 8000 });
-  check('gắn ảnh: hiện ảnh nhỏ + nút Bỏ', await p.evaluate(() => /Đổi ảnh/.test($('[data-a="anh"] span').textContent) && !$('[data-xa="anh"]').hidden));
-  await p.click('#mLam'); await p.waitForFunction(() => /Xong/.test($('#mSt').textContent), null, { timeout: 20000 });
-  const kq = await p.evaluate(() => ({ src: $('#mKq img').src.slice(0, 22), ten: $('#mTai').getAttribute('download'), tg: !!$('#mTg'), mo: !!$('#mMo') }));
-  const thang = new Date().toISOString().slice(0, 7), dir = APP + '/Story/' + thang, file = dir + '/' + kq.ten;
-  check('Làm ảnh: bên phải ảnh kết quả, ⬇ Tải ảnh / 📨 Telegram / 📂 Mở thư mục, file lưu "<thư mục làm việc>/Story/<tháng>"', kq.src === 'data:image/jpeg;base64' && fs.existsSync(file) && kq.tg && kq.mo, { kq, file });
-  const px = pil(file, '40,1700');
-  check('ảnh 1080×1920, nền đỏ của mẫu Giá sốc', px[0][0] === 1080 && px[0][1] === 1920 && px[1][0] > 140 && px[1][1] < 60, px);
-  await p.reload(); await p.waitForSelector('#mc-ten');
-  check('tải lại trang: vẫn ở mẫu Giá sốc, chữ đã điền còn nguyên', await p.evaluate(() => location.hash === '#storymau=gia-soc' && $('#mc-ten').value === 'iPad Air 5 M1' && $('#mc-gia').value === '9.990.000đ'));
-  const tg = await j(A + '/api/story-mau', { tg: kq.ten });
-  check('📨 Gửi Telegram ảnh vừa làm (hoặc báo cần cài Telegram)', (tg.s === 200 && tg.b.ok) || /CAI_TELEGRAM/.test(tg.b.err || ''), tg);
-  const xau = await j(A + '/api/story-mau', { tg: '../config.json' });
-  check('gửi Telegram chỉ ảnh story trong thư mục Story', xau.s === 400, xau);
-  // thêm mẫu của fen
+  const t1 = await p.evaluate(() => ({ hash: location.hash, n: document.querySelectorAll('#mPick [data-m]').length, them: !!$('#mThem'), chon: document.querySelector('#mPick .on').dataset.m }));
+  check('tab "Thư viện mẫu": 6 mẫu, nút Thêm mẫu của fen, chọn sẵn mẫu đầu, #storymau=…', t1.n === 6 && t1.them && t1.chon === 'may-moi-ve' && t1.hash === '#storymau=may-moi-ve', t1);
+  await p.click('#mPick [data-m="gia-soc"]'); await p.waitForSelector('#tkCv'); await p.waitForTimeout(800);
+  const px = (x, y) => p.evaluate(([x, y]) => [...$('#tkCv').getContext('2d').getImageData(x, y, 1, 1).data].slice(0, 3), [x, y]);
+  const e0 = await p.evaluate(() => ({ cv: !!$('#tkCv'), nd: [...document.querySelectorAll('#tkNd [data-nd]')].map(t => t.value), n: TK.d.o.length }));
+  check('chọn Giá sốc: khung design 9:16 + "Nội dung" điền sẵn chữ mẫu (Nhãn GIÁ SỐC HÔM NAY …)', e0.cv && e0.nd[0] === 'GIÁ SỐC HÔM NAY' && e0.nd.includes('16.490.000đ'), e0);
+  const truoc = await p.evaluate(() => $('#tkCv').toDataURL().length);
+  const iTen = await p.evaluate(() => TK.d.o.findIndex(x => x.k === 'ten'));
+  await p.fill(`#tkNd [data-nd="${iTen}"]`, 'iPad Air 5 M1 64GB'); await p.waitForTimeout(250);
+  check('xem trước trực tiếp: gõ chữ là khung vẽ lại ngay (không cần bấm Làm ảnh)', await p.evaluate(n => $('#tkCv').toDataURL().length !== n && TK.d.o.find(x => x.k === 'ten').text === 'iPad Air 5 M1 64GB', truoc));
+  const box = await p.locator('#tkCv').boundingBox(), k = box.width / 1080, cl = (x, y) => [box.x + x * k, box.y + y * k];
+  const ten = await p.evaluate(() => TK.d.o.find(x => x.k === 'ten'));
+  await p.mouse.click(...cl(ten.x + ten.w / 2, ten.y + 30)); await p.waitForTimeout(200);
+  check('bấm vào chữ trên khung: chọn đúng ô (viền xanh), bảng bên trái hiện chỉnh chữ', await p.evaluate(() => TK.d.o[TK.sel].k === 'ten' && !!$('#tkpText') && $('#tkpText').value === 'iPad Air 5 M1 64GB'));
+  await p.mouse.move(...cl(ten.x + ten.w / 2, ten.y + 30)); await p.mouse.down(); await p.mouse.move(...cl(ten.x + ten.w / 2 + 90, ten.y + 30 - 120), { steps: 6 }); await p.mouse.up(); await p.waitForTimeout(200);
+  const sau = await p.evaluate(() => TK.d.o.find(x => x.k === 'ten'));
+  check('kéo chữ: di chuyển theo chuột (≈ +90, -120)', Math.abs(sau.x - ten.x - 90) < 8 && Math.abs(sau.y - ten.y + 120) < 8, [ten.x, ten.y, sau.x, sau.y]);
+  await p.mouse.move(...cl(sau.x + sau.w / 2 + 5, sau.y + 30)); await p.mouse.down(); await p.mouse.move(...cl(sau.x + sau.w / 2 - 85, sau.y + 32), { steps: 6 }); await p.mouse.up();
+  check('kéo gần đường giữa: dính giữa khung', await p.evaluate(() => { const x = TK.d.o.find(x => x.k === 'ten'); return Math.abs(x.x + x.w / 2 - 540) < 1; }));
+  const s1 = await p.evaluate(() => TK.d.o.find(x => x.k === 'ten'));
+  await p.mouse.move(...cl(s1.x + s1.w - 4, s1.y + s1.h - 4)); await p.mouse.down(); await p.mouse.move(...cl(s1.x + s1.w - 104, s1.y + s1.h + 56), { steps: 6 }); await p.mouse.up();
+  const s2 = await p.evaluate(() => TK.d.o.find(x => x.k === 'ten'));
+  check('kéo ô vuông góc dưới phải: đổi cỡ khung chữ', Math.abs(s2.w - (s1.w - 100)) < 8 && Math.abs(s2.h - (s1.h + 60)) < 8, [s1.w, s1.h, s2.w, s2.h]);
+  await p.$eval('#tkpMau', e => { e.value = '#00ff00'; e.dispatchEvent(new Event('input', { bubbles: true })); }); await p.waitForTimeout(150);
+  await p.$eval('#tkpCo', e => { e.value = '90'; e.dispatchEvent(new Event('input', { bubbles: true })); }); await p.waitForTimeout(150);
+  check('bảng chỉnh: đổi màu chữ / cỡ chữ là thấy ngay', await p.evaluate(() => { const x = TK.d.o.find(x => x.k === 'ten'); return x.mau === '#00ff00' && x.co === 90; }));
+  const nTruoc = await p.evaluate(() => TK.d.o.length);
+  await p.click('[data-them="chu"]'); await p.waitForTimeout(150);
+  await p.click('#tkUndo'); await p.waitForTimeout(150); const nUndo = await p.evaluate(() => TK.d.o.length);
+  await p.click('#tkRedo'); await p.waitForTimeout(150); const nRedo = await p.evaluate(() => TK.d.o.length);
+  check('＋ Chữ thêm ô chữ mới (chọn sẵn), ↶ hoàn tác bỏ đi, ↷ làm lại có lại', nUndo === nTruoc && nRedo === nTruoc + 1, [nTruoc, nUndo, nRedo]);
+  await p.focus('#tkCv'); await p.keyboard.press('Delete'); await p.waitForTimeout(150);
+  check('phím Delete: xoá ô đang chọn', await p.evaluate(n => TK.d.o.length === n && TK.sel === -1, nTruoc));
+  const iAnh = await p.evaluate(() => TK.d.o.findIndex(x => x.loai === 'anh'));
+  const [fc] = await Promise.all([p.waitForEvent('filechooser'), p.click(`#tkNd [data-anh="${iAnh}"]`)]);
+  await fc.setFiles('/tmp/sm-may.png'); await p.waitForFunction(i => /^img:/.test(TK.d.o[i].img || '') && !!tkHinh(TK.d.o[i].img), iAnh, { timeout: 8000 });
+  await p.waitForTimeout(300); const a = await p.evaluate(i => TK.d.o[i], iAnh);
+  const cx = await px(Math.round(a.x + a.w / 2), Math.round(a.y + a.h / 2));
+  check('gắn ảnh vào ô ảnh: ảnh hiện ngay trên khung (giữa ô màu xanh của ảnh)', cx[2] > 200 && cx[0] < 100, cx);
+  await p.click('[data-them="hcn"]'); await p.waitForTimeout(100);
+  await p.click('[data-lop="xuong"]'); await p.click('[data-lop="doi"]'); await p.waitForTimeout(100);
+  check('＋ Khối, ⬇ Xuống lớp, ⧉ Nhân đôi', await p.evaluate(() => TK.d.o.filter(x => x.loai === 'hcn').length === 3));
+  const [dl] = await Promise.all([p.waitForEvent('download', { timeout: 10000 }), p.click('#tkTai')]);
+  const dp = '/tmp/tk-tai.jpg'; await dl.saveAs(dp); const dpx = pil(dp, '40,1700');
+  check('⬇ Tải về máy (fen 14h07 "cho thêm nút lưu ảnh"): tải thẳng ảnh 1080×1920 đúng khung, chưa cần Lưu ảnh', /^story-\d{8}-\d{6}-gia-soc\.jpg$/.test(dl.suggestedFilename()) && dpx[0][0] === 1080 && dpx[1][0] > 140, [dl.suggestedFilename(), dpx]);
+  await p.click('#tkLuu'); await p.waitForSelector('#tkTg', { timeout: 15000 });
+  const r1 = await p.evaluate(() => ({ st: $('#tkTt').textContent, tg: !!$('#tkTg'), mo: !!$('#tkMo'), mau: !!$('#tkMau') }));
+  r1.ten = (r1.st.match(/story-[\w-]+\.jpg/) || [])[0];
+  const thang = new Date().toISOString().slice(0, 7), file = APP + '/Story/' + thang + '/' + r1.ten;
+  const f1 = fs.existsSync(file) ? pil(file, '40,1700') : null, f2 = f1 && pil(file, '540,600');      // trong ảnh máy (khối vàng vừa thêm che giữa ô ảnh)
+  check('📸 Lưu ảnh: ảnh 1080×1920 vẽ đúng khung (nền đỏ, ảnh máy), lưu thư mục Story, có 📨 Telegram / 📂 / 💾', f1 && f1[0][0] === 1080 && f1[0][1] === 1920 && f1[1][0] > 140 && f2[1][2] > 200 && r1.tg && r1.mo && r1.mau, { r1, f1, f2 });
+  const tg = await j(A + '/api/story-mau', { tg: r1.ten });
+  check('📨 Gửi Telegram ảnh vừa lưu (hoặc báo cần cài Telegram)', (tg.s === 200 && tg.b.ok) || /CAI_TELEGRAM/.test(tg.b.err || ''), tg);
+  await p.reload(); await p.waitForSelector('#tkCv'); await p.waitForTimeout(500);
+  check('tải lại trang: vẫn mẫu Giá sốc, chỉnh sửa còn nguyên (ảnh vừa gắn thì không nhớ)', await p.evaluate(() => location.hash === '#storymau=gia-soc' && TK.d.o.find(x => x.k === 'ten').text === 'iPad Air 5 M1 64GB' && TK.d.o.find(x => x.k === 'ten').mau === '#00ff00'));
+  const [fc2] = await Promise.all([p.waitForEvent('filechooser'), p.click(`#tkNd [data-anh="${iAnh}"]`)]); await fc2.setFiles('/tmp/sm-may.png');
+  await p.waitForFunction(i => /^img:/.test(TK.d.o[i].img || ''), iAnh);
+  // lưu thành mẫu
+  await p.click('#tkMau'); await p.waitForSelector('#tkmTen'); await p.fill('#tkmTen', 'Giá sốc của fen'); await p.click('#tkmMoi');
+  await p.waitForFunction(() => !document.querySelector('#tkmTen') && document.querySelector('#mPick .on .kn'), null, { timeout: 15000 });
+  const mt = await p.evaluate(() => ({ id: S.mauId, ten: document.querySelector('#mPick .on b').textContent, chu: TK.d.o.find(x => x.k === 'ten').text, anh: TK.d.o.find(x => x.loai === 'anh').img }));
+  const mj = JSON.parse(fs.readFileSync(APP + '/story-mau/' + mt.id + '/mau.json'));
+  const xem2 = await fetch(A + '/api/story-mau/xem/' + mt.id);
+  check('💾 Lưu thành mẫu: mẫu mới "của fen" mở sẵn, giữ chữ / màu / vị trí, ảnh gắn lưu thành file trong mẫu, có ảnh xem trước', mt.ten === 'Giá sốc của fen' && mt.chu === 'iPad Air 5 M1 64GB' && /\/api\/story-mau\/tep\/f[0-9a-f]{8}\/e\d+\.png/.test(mt.anh || '') && mj.tk && mj.o.some(x => x.src && fs.existsSync(APP + '/story-mau/' + mt.id + '/' + x.src)) && xem2.status === 200, { mt, o: mj.o.filter(x => x.loai === 'anh') });
+  await p.fill(`#tkNd [data-nd="${await p.evaluate(() => TK.d.o.findIndex(x => x.k === 'ten'))}"]`, 'MacBook Pro M3'); await p.waitForTimeout(200);
+  await p.click('#tkMau'); await p.waitForSelector('#tkmSua'); await p.click('#tkmSua');
+  await p.waitForFunction(() => !document.querySelector('#tkmTen'), null, { timeout: 15000 }); await p.waitForTimeout(300);
+  const mj2 = JSON.parse(fs.readFileSync(APP + '/story-mau/' + mt.id + '/mau.json'));
+  check('mẫu của fen: "Cập nhật mẫu này" ghi đè đúng mẫu đó (giữ ảnh cũ trong mẫu)', mj2.o.find(x => x.k === 'ten').mac === 'MacBook Pro M3' && mj2.o.some(x => x.src && fs.existsSync(APP + '/story-mau/' + mt.id + '/' + x.src)), mj2.o.filter(x => x.loai === 'anh'));
+  // mẫu bằng ảnh nền + bố cục (hộp cũ)
   await p.click('#mThem'); await p.waitForSelector('#mtTen');
   await p.fill('#mtTen', 'Nền kem thử'); await p.setInputFiles('#mtNen input', '/tmp/sm-nen.jpg'); await p.waitForFunction(() => !$('#mtNen img').hidden);
   await p.selectOption('#mtBc', 'so-sanh'); await p.click('#mtChu [data-chu="den"]'); await p.click('#mtLuu');
-  await p.waitForFunction(() => !document.querySelector('#mtTen') && document.querySelector('#mPick .on .kn'), null, { timeout: 15000 });
-  const mt = await p.evaluate(() => ({ id: S.mauId, ten: document.querySelector('#mPick .on b').textContent, o: [...document.querySelectorAll('[data-a]')].map(x => x.dataset.a), bo: !!$('#mBo') }));
-  check('Thêm mẫu của fen (ảnh nền + bố cục So sánh 2 ảnh + chữ đen): mẫu mới chọn sẵn, nhãn "của fen", 2 ô ảnh, có nút Bỏ mẫu', mt.ten === 'Nền kem thử' && mt.o.join() === 'anh1,anh2' && mt.bo && fs.existsSync(APP + '/story-mau/' + mt.id + '/nen.jpg'), mt);
-  await p.setInputFiles('[data-a="anh1"] input', '/tmp/sm-may.png'); await p.setInputFiles('[data-a="anh2"] input', '/tmp/sm-may.png');
-  await p.waitForFunction(() => !$('[data-a="anh2"] img').hidden); await p.fill('#mc-ten1', 'Máy A'); await p.click('#mLam');
-  await p.waitForFunction(() => /Xong/.test($('#mSt').textContent), null, { timeout: 20000 });
-  const f2 = dir + '/' + await p.evaluate(() => $('#mTai').getAttribute('download')), px2 = pil(f2, '540,100');
-  check('làm ảnh từ mẫu fen thêm: dùng ảnh nền của fen (vùng trên đỏ)', px2[1][0] > 150 && px2[1][2] < 80, px2);
-  p.once('dialog', d => d.accept()); await p.click('#mBo'); await p.waitForFunction(id => !document.querySelector(`#mPick [data-m="${id}"]`), mt.id, { timeout: 10000 });
-  const dd = fs.readdirSync(APP + '/_to_delete/story-mau').filter(x => x.startsWith(mt.id));
-  check('🗑 Bỏ mẫu: hết trong thư viện, thư mục mẫu dời vào _to_delete/story-mau (không xoá hẳn)', !fs.existsSync(APP + '/story-mau/' + mt.id) && dd.length === 1, dd);
-  const bo2 = await j(A + '/api/story-mau', { bo: 'gia-soc' });
-  check('không bỏ được mẫu có sẵn', bo2.s === 400, bo2);
+  await p.waitForFunction(() => !document.querySelector('#mtTen') && document.querySelector('#mPick .on .kn') && $('#tkCv'), null, { timeout: 15000 }); await p.waitForTimeout(800);
+  const nk = await p.evaluate(() => ({ id: S.mauId, anh: TK.d.o.filter(x => x.loai === 'anh').length, nen: TK.d.nenImg }));
+  const pn = await px(540, 100);
+  check('Thêm mẫu của fen (ảnh nền + bố cục So sánh): mở trong khung, nền ảnh của fen (vùng trên đỏ), 2 ô ảnh', nk.anh === 2 && /nen\.jpg/.test(nk.nen) && pn[0] > 150 && pn[2] < 90, { nk, pn });
+  p.once('dialog', d => d.accept()); await p.click('#mBo'); await p.waitForFunction(id => !document.querySelector(`#mPick [data-m="${id}"]`), nk.id, { timeout: 10000 });
+  check('🗑 Bỏ mẫu: dời vào _to_delete/story-mau (không xoá hẳn)', !fs.existsSync(APP + '/story-mau/' + nk.id) && fs.readdirSync(APP + '/_to_delete/story-mau').some(x => x.startsWith(nk.id)));
+  check('không bỏ / sửa được mẫu có sẵn', (await j(A + '/api/story-mau', { bo: 'gia-soc' })).s === 400 && (await j(A + '/api/story-mau', { sua_tk: { id: 'gia-soc', ten: 'x', nen: '#000', o: [{ loai: 'hcn', x: 0, y: 0, w: 9, h: 9 }] } })).s === 400);
+  const bay = await j(A + '/api/story-mau', { them_tk: { ten: 'x', nen: '#000000', o: [{ loai: 'chu', k: '../x', text: 'a', mau: 'red;x', x: 'NaN', co: 1e9 }, { loai: 'script' }] } });
+  const bj = bay.s === 200 && JSON.parse(fs.readFileSync(APP + '/story-mau/' + bay.b.mau.id + '/mau.json'));
+  check('lưu mẫu: lọc bản vẽ (bỏ loại lạ, màu sai, số quá lớn)', bj && bj.o.length === 1 && !bj.o[0].mau && bj.o[0].co <= 6000, bj && bj.o);
+  if (bj) await j(A + '/api/story-mau', { bo: bay.b.mau.id });
   await p.screenshot({ path: 'shots/storymau.png' });
   // máy dùng chung
   await j(A + '/api/chung', { bat: true }); await new Promise(x => setTimeout(x, 1500));
   const ma = (await j(A + '/api/chung', { ma_moi: true })).b.ma;
   const v = (await j(K + '/api/chung/vao', { ma, ten: 'Máy con mẫu' }, H)).b, HK = Object.assign({ 'X-Poly-Khach': v.token }, H);
-  const kds = await j(K + '/api/story-mau', undefined, HK), kthem = await j(K + '/api/story-mau', { them: { ten: 'x', nen: 'data:,' } }, HK);
-  const anh = 'data:image/png;base64,' + fs.readFileSync('/tmp/sm-may.png').toString('base64');
-  const klam = await j(K + '/api/story-mau', { lam: { id: 'may-moi-ve', chu: { ten: 'Máy khách' }, anh: { anh } } }, HK);
-  const kf = klam.b.ten && fs.readdirSync(APP + '/story-mau/_khach').some(d => fs.existsSync(APP + '/story-mau/_khach/' + d + '/' + klam.b.ten));
-  check('máy dùng chung: thấy thư viện mẫu, làm được ảnh (lưu riêng story-mau/_khach/<máy>, không lộ thư mục máy shop), không thêm mẫu', kds.s === 200 && kds.b.ds.length >= 6 && klam.s === 200 && kf && klam.b.thu_muc === '' && kthem.s === 400, { k: kds.s, klam: klam.s, kf, tm: klam.b.thu_muc, kthem });
-  const g = await b.newPage({ viewport: { width: 1280, height: 800 } }); g.on('pageerror', e => errs.push('con: ' + e.message));
+  const anh = 'data:image/jpeg;base64,' + fs.readFileSync(file).toString('base64');
+  const kds = await j(K + '/api/story-mau', undefined, HK), kluu = await j(K + '/api/story-mau', { luu: { anh, mau: 'gia-soc' } }, HK), kthem = await j(K + '/api/story-mau', { them_tk: { ten: 'x', nen: '#000', o: [] } }, HK);
+  const kf = kluu.b.ten && fs.readdirSync(APP + '/story-mau/_khach').some(d => fs.existsSync(APP + '/story-mau/_khach/' + d + '/' + kluu.b.ten));
+  check('máy dùng chung: thấy thư viện, lưu ảnh được (riêng story-mau/_khach/<máy>, không lộ thư mục máy shop), không lưu mẫu', kds.s === 200 && kds.b.ds.length >= 6 && kluu.s === 200 && kf && kluu.b.thu_muc === '' && kthem.s === 400, { k: kds.s, kluu: kluu.s, kf, kthem: kthem.s });
+  const g = await b.newPage({ viewport: { width: 1280, height: 860 } }); g.on('pageerror', e => errs.push('con: ' + e.message));
   await g.goto('http://poly-thu.example/#vao=' + v.token); await g.waitForSelector('#khc:not([hidden])', { timeout: 20000 }).catch(() => {}); await g.waitForTimeout(1000);
-  await g.click('#bStory'); await g.waitForSelector('#stTab'); await g.click('#stTab [data-tab="mau"]'); await g.waitForSelector('#mPick [data-m]');
-  check('máy dùng chung: tab Thư viện mẫu không có Thêm mẫu / Bỏ mẫu', await g.evaluate(() => !$('#mThem') && !$('#mBo')));
+  await g.click('#bStory'); await g.waitForSelector('#stTab'); await g.click('#stTab [data-tab="mau"]'); await g.waitForSelector('#tkCv');
+  check('máy dùng chung: có khung design + Lưu ảnh / Tải về máy, không có Thêm mẫu / Lưu thành mẫu / Bỏ mẫu', await g.evaluate(() => !$('#mThem') && !$('#tkMau') && !$('#mBo') && !!$('#tkLuu') && !!$('#tkTai')));
   check('không lỗi JS', errs.length === 0, errs);
   await b.close(); await j(A + '/api/chung', { bat: false });
   console.log(`\n${ok} đạt, ${bad} lỗi`); process.exit(bad ? 1 : 0);

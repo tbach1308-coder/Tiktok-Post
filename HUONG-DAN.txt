@@ -270,14 +270,24 @@ LÀM 1 BÀI
   nền "Màu slide" (phẳng, màu viền slide) hoặc "Mờ". Vài giây, không tốn Claude. Ảnh ở thư mục bài\story\story-NN.jpg; "⬇ Tải tất cả"
   (.zip), "📨 Gửi Telegram" (album, cùng nơi nhận như Gửi Telegram), "📂 Mở thư mục". Làm lại thì ảnh cũ thay bằng ảnh mới.
   "Mở bài có sẵn" (bài làm ngoài app trong thư mục Laptop / iPad) giờ ở nút "📂 Mở bài có sẵn" góc trên hộp Lịch sử brief.
-  Tab "Thư viện mẫu" (cạnh "Từ bài đã làm", 15/11): làm ảnh story không cần bài. 6 mẫu có sẵn: Máy mới về, Giá sốc, So sánh 2 máy,
-  Feedback khách, Thông báo, Noel. Bấm 1 mẫu → bên trái gắn ảnh (📎 Chọn ảnh) + điền chữ (ô nhãn điền sẵn, ô trống thì bỏ trống trên ảnh,
-  chữ mờ trong ô chỉ là gợi ý), bấm "Làm ảnh" → bên phải ảnh 9:16 + "⬇ Tải ảnh" / "📨 Gửi Telegram" / "📂 Mở thư mục".
-  Ảnh lưu ở E:\Social Claude\Story\<năm-tháng>\. Chữ đã điền nhớ theo từng mẫu (mở lại vẫn còn). Emoji không vẽ được (font không có).
-  "＋ Thêm mẫu của fen" (máy shop): đặt tên + ảnh nền của fen (nên dọc 1080×1920, ví dụ làm trên Canva; ảnh khác cỡ app cắt giữa)
-  + chọn bố cục (Ảnh giữa + tên + giá / So sánh 2 ảnh / Ảnh + lời khách / Chỉ chữ) + chữ Trắng (nền tối) hoặc Đen (nền sáng).
-  Mẫu fen thêm có nút "🗑 Bỏ mẫu" (dời vào _to_delete). Máy dùng chung làm ảnh được nhưng không thêm / bỏ mẫu.
-- 💬 Hỏi app (15/11, chip xanh "💬 Hỏi app" đầu thanh trên cùng, máy nào cũng có): hỏi cách dùng app ("cách đăng TikTok trên máy Phú?") hoặc số liệu
+  Tab "Thư viện mẫu" (cạnh "Từ bài đã làm", 15/11): làm ảnh story không cần bài, design kéo thả như Canva (15/11 14h).
+  6 mẫu có sẵn: Máy mới về, Giá sốc, So sánh 2 máy, Feedback khách, Thông báo, Noel. Bấm 1 mẫu → khung 9:16 bên phải là ẢNH THẬT,
+  sửa gì thấy ngay (xem trước trực tiếp):
+  · Bấm vào chữ / ảnh / khối trên khung để chọn (viền xanh), kéo để di chuyển (gần giữa thì tự dính giữa), kéo ô vuông xanh góc dưới
+    phải để đổi cỡ. Phím mũi tên nhích (Shift nhích xa), Delete xoá, Ctrl+Z hoàn tác, Ctrl+Y làm lại, Ctrl+D nhân đôi.
+  · Bảng bên trái: chữ (nội dung, cỡ, độ đậm, màu, nền chữ + ôm chữ, bo góc, canh trái / giữa / phải, số dòng, gạch ngang giá cũ);
+    ảnh (chọn / đổi ảnh, Vừa khung / Phủ kín, khung màu, bo góc); khối / tròn (màu, bo góc); bấm chỗ trống = chỉnh nền (màu / ảnh nền).
+  · "＋ Chữ", "＋ Ảnh", "▭ Khối", "◯ Tròn" thêm vào khung; "⧉ Nhân đôi", "⬆ Lên lớp", "⬇ Xuống lớp", "🗑 Xoá"; "↺ Mẫu gốc" bỏ hết chỉnh sửa.
+  · "Nội dung (điền nhanh)": mọi ô chữ + ô ảnh của mẫu để điền lẹ.
+  · Vạch mờ trên / dưới: vùng chữ + nút của TikTok, tránh để chữ quan trọng ở đó.
+  · "📸 Lưu ảnh": lưu ảnh 1080×1920 vào E:\Social Claude\Story\<năm-tháng>\, rồi có "📨 Telegram", "📂 Thư mục".
+    "⬇ Tải về máy" (fen 14h07 "cho thêm nút lưu ảnh"): tải thẳng ảnh về máy đang dùng (thư mục Tải về), không cần Lưu ảnh trước.
+  · "💾 Lưu thành mẫu" (máy shop): lưu bản đang sửa (vị trí, màu, chữ, ảnh) thành mẫu của fen; mẫu của fen có "Cập nhật mẫu này".
+  · Chỉnh sửa nhớ theo từng mẫu trên máy đó (ảnh vừa gắn thì tải lại trang là mất, gắn lại hoặc Lưu thành mẫu).
+  "＋ Thêm mẫu của fen" (máy shop): đặt tên + ảnh nền của fen (nên dọc 1080×1920; ảnh khác cỡ app cắt giữa) + chọn bố cục
+  (Ảnh giữa + tên + giá / So sánh 2 ảnh / Ảnh + lời khách / Chỉ chữ) + chữ Trắng (nền tối) hoặc Đen (nền sáng), rồi sửa tiếp trong khung.
+  Mẫu fen thêm có nút "🗑 Bỏ mẫu" (dời vào _to_delete). Máy dùng chung làm / tải ảnh được nhưng không lưu / bỏ mẫu.
+- 💬 Thư ký Poly (15/11, trước tên "Hỏi app"; chip xanh "💬 Thư ký Poly" cuối thanh trên cùng, máy nào cũng có): hỏi cách dùng app ("cách đăng TikTok trên máy Phú?") hoặc số liệu
   ("hôm nay mỗi máy đăng mấy bài?", "bài nào đang chờ đăng?"). Mỗi câu Claude trên máy shop trả lời trong 10–40 giây (tính vào hạn mức
   tuần, model Sonnet), chỉ đọc hướng dẫn + số liệu app, KHÔNG làm thay (muốn làm thì bấm nút như bot chỉ). Enter gửi, Shift+Enter xuống
   dòng, "Xoá" xoá cuộc chat trên máy đó, Esc đóng. Máy dùng chung chỉ hỏi được số liệu của máy đó.

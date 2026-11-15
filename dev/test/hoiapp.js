@@ -39,7 +39,7 @@ const cho = async (id, h, u) => { for (let i = 0; i < 40; i++) { const r = await
   const n0 = await p.evaluate(() => ({ nut: !!document.querySelector('#hoiNut'), an: document.querySelector('#hoiBox').hidden, chu: document.querySelector('#hoiNut').innerText.trim(), tren: document.querySelector('#hoiNut').closest('.top') !== null }));
   await p.click('#hoiNut'); await p.waitForTimeout(150);
   const gy = await p.evaluate(() => [...document.querySelectorAll('#hoiDs [data-q]')].map(e => e.textContent));
-  check('chip "💬 Hỏi app" trên thanh trên cùng (fen 12h17 "chat box đâu"), bấm mở khung, chưa hỏi thì có 3 câu gợi ý', n0.nut && n0.an && n0.tren && n0.chu === '💬 Hỏi app' && gy.length === 3 && await p.evaluate(() => !document.querySelector('#hoiBox').hidden), { n0, gy });
+  check('chip "💬 Thư ký Poly" (fen 14h05 đổi tên từ Hỏi app) trên thanh trên cùng (fen 12h17 "chat box đâu"), bấm mở khung, chưa hỏi thì có 3 câu gợi ý', n0.nut && n0.an && n0.tren && n0.chu === '💬 Thư ký Poly' && gy.length === 3 && await p.evaluate(() => !document.querySelector('#hoiBox').hidden), { n0, gy });
   await p.click('#hoiDs [data-q]'); await p.waitForTimeout(200);
   check('bấm câu gợi ý: gửi, hiện "Đang tìm câu trả lời…", nút Gửi khoá', await p.evaluate(() => /Đang tìm/.test(document.querySelector('#hoiDs').innerText) && document.querySelector('#hoiGui').disabled));
   await p.waitForFunction(() => !HOI.cho, null, { timeout: 25000 });

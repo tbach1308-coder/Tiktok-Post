@@ -8523,7 +8523,12 @@ def story_mau_ra(m):
     o = [{"k": x["k"], "loai": x["loai"], "nhan": x.get("nhan") or x["k"], "mac": x.get("mac") or "", "dong": x.get("dong") or 1,
           "bo_qua": bool(x.get("bo_qua")), "dien": bool(x.get("dien"))} for x in m["o"]
          if x.get("k") and x["loai"] in ("anh", "chu") and not x.get("co_dinh")]
-    return {"id": m["id"], "ten": m.get("ten") or m["id"], "san": m.get("san", True), "o": o, "xem": "/api/story-mau/xem/%s?t=%d" % (m["id"], int(m.get("t") or 1))}
+    tep = "/api/story-mau/tep/%s/" % m["id"]
+    ve = {"nen": m["nen"] if isinstance(m.get("nen"), str) and m["nen"].startswith("#") else "",
+          "nen_url": "" if isinstance(m.get("nen"), str) and m["nen"].startswith("#") else tep + "nen.jpg?t=%d" % int(m.get("t") or 1),
+          "o": [dict({k: v for k, v in x.items() if k != "src"}, **({"src_url": tep + x["src"]} if x.get("src") else {})) for x in m["o"]]}
+    return {"id": m["id"], "ten": m.get("ten") or m["id"], "san": m.get("san", True), "o": o, "ve": ve, "tk": bool(m.get("tk")),
+            "xem": "/api/story-mau/xem/%s?t=%d" % (m["id"], int(m.get("t") or 1))}
 
 
 def _sm_anh_data(v):
@@ -8577,9 +8582,9 @@ def _sm_chu(im, d, x, chu):
     chu = str(chu or "").strip()
     if not chu:
         return
-    pad = x.get("pad") or 0
+    pad = int(x.get("pad") or 0)
     w, h = x["w"] - 2 * pad, x["h"]
-    co, toi_da = x["co"], max(1, int(x.get("dong") or 1))
+    co, toi_da = int(round(x["co"])), max(1, int(x.get("dong") or 1))
     while True:
         f = _sm_font(x.get("font") or 700, co)
         ls = _sm_xuong_dong(d, chu, f, w)
@@ -8663,7 +8668,14 @@ def story_mau_ve(m, chu=None, anh=None, nho=False):
         elif x["loai"] == "hcn":
             d.rectangle((x["x"], x["y"], x["x"] + x["w"], x["y"] + x["h"]), fill=x["mau"])
         elif x["loai"] == "anh":
-            _sm_anh(im, x, anh.get(x["k"]), nho)
+            a = anh.get(x["k"])
+            if a is None and x.get("src"):
+                f = os.path.join(STORY_MAU_DIR, m["id"], os.path.basename(x["src"]))
+                try:
+                    a = Image.open(f) if os.path.isfile(f) else None
+                except Exception:
+                    a = None
+            _sm_anh(im, x, a, nho)
             d = ImageDraw.Draw(im)
         elif x["loai"] == "chu":
             if x.get("chi_khi_trong") and anh.get(x["chi_khi_trong"]) is not None:
@@ -8752,11 +8764,148 @@ def story_mau_them(data):
     return story_mau_ra(dict(m, san=False))
 
 
+# ---- 🎨 Khung design kéo thả (fen 15/11 13h58 "cho có công cụ design cơ bản như canva", chọn "Kéo thả trên ảnh"; 13h57 "cho preview
+# trực tiếp trước khi làm"): trang vẽ thẳng trên khung 9:16 (canvas trên trình duyệt, cùng font Be Vietnam Pro), ảnh xuất 1080×1920
+# vẽ ở trình duyệt rồi gửi về đây lưu (POST {luu}). Lưu thành mẫu (POST {them_tk} / {sua_tk}): bản vẽ JSON cùng dạng mẫu có sẵn
+# (chu / anh / hcn / tron), ảnh trong bản vẽ tách ra file e<n>.png|jpg, nền ảnh = nen.jpg.
+SM_KIEU = {"chu": ("x", "y", "w", "h", "co", "font", "mau", "nen", "bo", "pad", "om", "canh", "gach", "dong", "giua_doc", "co_dinh", "dien", "k", "nhan", "mac"),
+           "anh": ("x", "y", "w", "h", "bo", "the", "pad", "phu", "k", "nhan", "bo_qua"),
+           "hcn": ("x", "y", "w", "h", "mau", "bo"), "tron": ("x", "y", "r", "mau")}
+
+
+def _sm_so(v, lo=-4000, hi=6000):
+    try:
+        return int(max(lo, min(hi, round(float(v)))))
+    except (TypeError, ValueError):
+        return 0
+
+
+def _sm_mau_hop(v):
+    v = str(v or "")
+    return v if re.fullmatch(r"#[0-9a-fA-F]{3,8}", v) else None
+
+
+def story_tk_sach(o_ds, thu_muc=None):
+    """Làm sạch bản vẽ từ trình duyệt: chỉ giữ khoá biết, số trong khoảng, màu #hex; ảnh (src data URL) ghi file vào thu_muc."""
+    out = []
+    for i, x in enumerate((o_ds or [])[:80]):
+        if not isinstance(x, dict) or x.get("loai") not in SM_KIEU:
+            continue
+        y = {"loai": x["loai"]}
+        for k in SM_KIEU[x["loai"]]:
+            if k not in x or x[k] is None:
+                continue
+            v = x[k]
+            if k in ("mau", "nen", "the"):
+                v = _sm_mau_hop(v)
+                if v is None:
+                    continue
+            elif k in ("k", "nhan", "canh"):
+                v = short(str(v), 40)
+            elif k == "mac":
+                v = str(v)[:600]
+            elif k in ("om", "gach", "giua_doc", "co_dinh", "dien", "phu", "bo_qua"):
+                v = bool(v)
+            elif k == "font":
+                v = int(v) if v in (400, 500, 600, 700, 800, "400", "500", "600", "700", "800") else 700
+            else:
+                v = _sm_so(v)
+            y[k] = v
+        if y["loai"] in ("chu", "anh") and not y.get("k"):
+            y["k"] = "%s%d" % (y["loai"][0], i + 1)
+        src = x.get("src")
+        if thu_muc and y["loai"] == "anh" and isinstance(src, str) and src.startswith("data:"):
+            a = _sm_anh_data(src)
+            if a is not None:
+                ten = "e%d.png" % i if a.mode in ("RGBA", "LA", "P") else "e%d.jpg" % i
+                a.thumbnail((1600, 1600))
+                (a.save(os.path.join(thu_muc, ten), "PNG") if ten.endswith(".png") else a.convert("RGB").save(os.path.join(thu_muc, ten), "JPEG", quality=90))
+                y["src"] = ten
+        elif thu_muc and y["loai"] == "anh" and isinstance(x.get("src_tep"), str) and re.fullmatch(r"e\d+\.(png|jpg)", x["src_tep"]):
+            y["src"] = x["src_tep"]
+        out.append(y)
+    return out
+
+
+def story_tk_luu(data, may=None):
+    """POST {luu: {anh: data URL JPEG/PNG (ảnh trình duyệt vẽ), mau: id}}: lưu ảnh story vào thư mục Story như Làm ảnh."""
+    from PIL import Image
+    a = _sm_anh_data(data.get("anh"))
+    if a is None:
+        raise ValueError("Ảnh gửi lên không đọc được, bấm Lưu ảnh lại")
+    a = a.convert("RGB")
+    if a.size != (STORY_W, STORY_H):
+        a = a.resize((STORY_W, STORY_H), Image.LANCZOS)
+    mid = re.sub(r"[^\w-]", "", str(data.get("mau") or "tk"))[:30] or "tk"
+    d = _sm_thu_muc(may)
+    os.makedirs(d, exist_ok=True)
+    ten = "story-%s-%s.jpg" % (time.strftime("%Y%m%d-%H%M%S"), mid)
+    a.save(os.path.join(d, ten), "JPEG", quality=92, optimize=True)
+    log("story tk luu %s" % ten)
+    return {"ten": ten, "thu_muc": "" if may else d}
+
+
+def story_tk_mau(data, sua=None):
+    """Lưu bản vẽ thành mẫu của fen: {ten, nen: "#màu" | data URL ảnh | "giu" (giữ nền ảnh cũ khi sửa), o: [...]}."""
+    from PIL import Image
+    ten = short(str(data.get("ten") or "").strip(), 40)
+    if not ten:
+        raise ValueError("Đặt tên cho mẫu")
+    if sua:
+        if not re.fullmatch(r"f[0-9a-f]{8}", sua) or not os.path.isdir(os.path.join(STORY_MAU_DIR, sua)):
+            raise ValueError("Chỉ sửa được mẫu fen tự thêm")
+        mid, d = sua, os.path.join(STORY_MAU_DIR, sua)
+        cu = read_json(os.path.join(d, "mau.json"), {}) or {}
+    else:
+        mid = "f" + uuid.uuid4().hex[:8]
+        d = os.path.join(STORY_MAU_DIR, mid)
+        os.makedirs(d, exist_ok=True)
+        cu = {}
+    nen = data.get("nen")
+    if isinstance(nen, str) and nen.startswith("data:"):
+        a = _sm_anh_data(nen)
+        if a is None:
+            raise ValueError("Ảnh nền không đọc được")
+        a = a.convert("RGB")
+        k = max(STORY_W / a.width, STORY_H / a.height)
+        a = a.resize((max(STORY_W, round(a.width * k)), max(STORY_H, round(a.height * k))), Image.LANCZOS)
+        l, t = (a.width - STORY_W) // 2, (a.height - STORY_H) // 2
+        a.crop((l, t, l + STORY_W, t + STORY_H)).save(os.path.join(d, "nen.jpg"), "JPEG", quality=92)
+        nen = "anh"
+    elif nen == "giu" and cu.get("nen") == "anh":
+        nen = "anh"
+    else:
+        nen = _sm_mau_hop(nen) or "#222222"
+    o = story_tk_sach(data.get("o"), d)
+    if not o:
+        raise ValueError("Bản vẽ trống")
+    m = {"id": mid, "ten": ten, "nen": nen, "tk": True, "o": o, "t": int(now())}
+    write_json(os.path.join(d, "mau.json"), m)
+    log("story mau %s %s (%s, %d lớp)" % ("sua" if sua else "luu tk", mid, ten, len(o)))
+    return {"mau": story_mau_ra(dict(m, san=False)), "ds": [story_mau_ra(x) for x in story_mau_ds()]}
+
+
+def story_mau_tep(mid, ten):
+    if not re.fullmatch(r"f[0-9a-f]{8}", mid) or not re.fullmatch(r"(nen|e\d+)\.(jpg|png)", ten):
+        raise ValueError("Không thấy file")
+    f = os.path.join(STORY_MAU_DIR, mid, ten)
+    if not os.path.isfile(f):
+        raise ValueError("Không thấy file")
+    with open(f, "rb") as fh:
+        return fh.read(), "image/png" if ten.endswith(".png") else "image/jpeg"
+
+
 def story_mau_cai(data, may=None):
     """POST /api/story-mau: {lam: {...}} vẽ ảnh; {them: {...}} thêm mẫu (máy shop); {bo: id} bỏ mẫu fen thêm (dời _to_delete);
     {tg: tên ảnh} gửi Telegram; {mo: true} mở thư mục ảnh story (máy shop)."""
     if isinstance(data.get("lam"), dict):
         return story_mau_lam(data["lam"], may)
+    if isinstance(data.get("luu"), dict):          # 🎨 ảnh vẽ ở khung kéo thả
+        return story_tk_luu(data["luu"], may)
+    if isinstance(data.get("them_tk"), dict) or isinstance(data.get("sua_tk"), dict):
+        if may:
+            raise ValueError("Lưu mẫu làm trên máy shop")
+        return story_tk_mau(data.get("them_tk") or data["sua_tk"], (data.get("sua_tk") or {}).get("id"))
     if isinstance(data.get("them"), dict):
         if may:
             raise ValueError("Thêm mẫu làm trên máy shop")
@@ -8971,6 +9120,10 @@ class H(BaseHTTPRequestHandler):
                 return self.send(200, goi_y_khach() if self.may() else goi_y_doc())
             if u.path == "/api/story-mau":
                 return self.send(200, story_mau_cai({}, self.may()))
+            m = re.fullmatch(r"/api/story-mau/tep/([\w-]+)/([\w.]+)", u.path)
+            if m:
+                b, kieu = story_mau_tep(m.group(1), m.group(2))
+                return self.send(200, b, kieu, {"Cache-Control": "max-age=86400"})
             m = re.fullmatch(r"/api/story-mau/xem/([\w-]+)", u.path)
             if m:
                 return self.send(200, story_mau_xem(m.group(1)), "image/jpeg", {"Cache-Control": "max-age=86400"})
