@@ -2361,6 +2361,15 @@ def goi_y_doc():
     return d
 
 
+def goi_y_khach():
+    """Máy dùng chung xem kho (fen 15/11 13h31 "kho poly chỉ đăng nhập ở máy admin, rồi có nút bấm update cho máy con"; chọn "Máy shop quét
+    kho, máy con xem được"): bản máy shop bấm 🔄 Cập nhật kho gần nhất (tên máy, số máy, giá bán, gợi ý chủ đề), không mã lượt / lỗi chi tiết."""
+    d = goi_y_doc()
+    return {"luc": d.get("luc"), "dang": bool(d.get("dang")), "loi": "Máy shop chưa cập nhật được kho" if d.get("loi") and not d.get("may") else "",   # lỗi lần sau: máy con vẫn xem bản cũ
+            "may": [{k: x.get(k) for k in ("kenh", "ten", "so", "gia", "moi")} for x in d.get("may") or []],
+            "ds": [{k: x.get(k) for k in ("kenh", "may", "gia", "chu_de", "ly_do", "moi")} for x in d.get("ds") or []], "khach": True}
+
+
 def goi_y_xong(jid):
     """Lượt quét xong: đọc dòng GOI_Y_JSON / GOI_Y_LOI ở kết quả, ghi goi-y-kho.json + ngày thấy dòng máy lần đầu."""
     j = load_job(jid)
@@ -7357,7 +7366,7 @@ CHUNG = {"srv": None, "pid": 0, "pid_t": 0, "url": "", "loi": "", "dang": "", "m
 CHUNG_KHOA = threading.Lock()
 CHUNG_DIR = os.path.join(APP, "_cf")
 CHUNG_MA_HAN = 900
-CHUNG_CAM = {"GET": (r"/api/chung", r"/api/chung/may", r"/api/bai-co-san", r"/api/thong-ke", r"/api/goi-y", r"/api/poly-tt"),
+CHUNG_CAM = {"GET": (r"/api/chung", r"/api/chung/may", r"/api/bai-co-san", r"/api/thong-ke", r"/api/poly-tt"),
              "POST": (r"/api/tat", r"/api/login", r"/api/thong-ke", r"/api/goi-y", r"/api/poly-tt", r"/api/cai-claude", r"/api/chung", r"/api/tiktok-(soi|dang|nhac)", r"/api/quy-tac", r"/api/tg-lenh",
                       r"/api/job/[\w-]+/(mo|tiktok)", r"/api/bai-co-san")}
 CHUNG_TM = {}       # mã máy -> (lúc, [thư mục bài của máy đó]) để kiểm /file nhanh
@@ -8720,8 +8729,8 @@ class H(BaseHTTPRequestHandler):
                 return self.send(200, nhap_doc())
             if u.path == "/api/thong-ke":
                 return self.send(200, thong_ke_bai())
-            if u.path == "/api/goi-y":
-                return self.send(200, goi_y_doc())
+            if u.path == "/api/goi-y":      # máy dùng chung: chỉ xem bản kho máy shop cập nhật (fen 15/11 13h31)
+                return self.send(200, goi_y_khach() if self.may() else goi_y_doc())
             if u.path == "/api/story-mau":
                 return self.send(200, story_mau_cai({}, self.may()))
             m = re.fullmatch(r"/api/story-mau/xem/([\w-]+)", u.path)

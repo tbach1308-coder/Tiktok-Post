@@ -1,4 +1,4 @@
-// 💡 Gợi ý bài từ kho (fen 15/11 11h23 chọn "Gợi ý bài từ hàng mới về"): dòng gọn dưới ô Kho ở Bài mới (chỉ máy shop), 🔄 Quét kho = 1 lượt
+// 💡 Gợi ý bài từ kho (fen 15/11 11h23 chọn "Gợi ý bài từ hàng mới về"): dòng gọn dưới ô Kho ở Bài mới (máy shop cập nhật, máy con xem — fen 13h31), 🔄 Quét kho = 1 lượt
 // Claude chỉ đọc kho (tim_may / du_lieu_may; cấm Bash / Write / Edit / Canva / anh_may; không bộ dựng bài), kết quả dòng GOI_Y_JSON; lần
 // quét đầu coi hết là hàng cũ, lần sau dòng máy mới thấy = 🆕; "Dùng" điền chủ đề + tên máy vào ô Kho; tự quét 7h30 bật / tắt; máy dùng
 // chung không thấy, API chặn. Claude giả (FAKE_KHO2 = thêm 1 dòng máy mới, FAKE_KHO_LOI = báo lỗi).
@@ -17,7 +17,7 @@ const cho = async () => { for (let i = 0; i < 40; i++) { const r = await j(A + '
   const b = await chromium.launch({ args: ['--host-resolver-rules=MAP poly-thu.example 127.0.0.1:8791'] }); const errs = [];
   const p = await b.newPage({ viewport: { width: 1386, height: 900 } }); p.on('pageerror', e => errs.push(e.message));
   await p.goto(A + '/#moi'); await p.evaluate(() => localStorage.removeItem('poly-gy-mo')); await p.reload(); await p.waitForSelector('#gyKho .gyhd', { timeout: 15000 });
-  check('Bài mới: dòng 💡 Gợi ý từ kho dưới ô Kho, chưa quét thì ghi cách dùng + nút 🔄 Quét kho', await p.evaluate(() => /Chưa quét/.test(document.querySelector('#gyKho').innerText) && !!document.querySelector('#gyQuet')));
+  check('Bài mới: dòng 💡 Gợi ý từ kho dưới ô Kho, chưa cập nhật thì ghi cách dùng + nút 🔄 Cập nhật kho (fen 13h31: máy con xem được)', await p.evaluate(() => /Chưa cập nhật/.test(document.querySelector('#gyKho').innerText) && /máy con xem được/.test(document.querySelector('#gyKho').innerText) && /Cập nhật kho/.test(document.querySelector('#gyQuet').textContent)));
   await p.click('#gyQuet'); await p.waitForTimeout(400);
   const args = JSON.parse(fs.readFileSync(T + '/last-args.json')), pr = fs.readFileSync(T + '/last-prompt.txt', 'utf8');
   const al = args.indexOf('--allowedTools'), da = args.indexOf('--disallowedTools');
@@ -29,10 +29,14 @@ const cho = async () => { for (let i = 0; i < 40; i++) { const r = await j(A + '
   check('quét xong lần đầu: 2 dòng máy, 2 gợi ý, chưa có 🆕 (lần đầu coi là hàng cũ)', d && d.may.length === 2 && d.ds.length === 2 && !d.ds.some(x => x.moi) && d.lan_dau, d);
   await p.waitForFunction(() => S.gy && !S.gy.dang && S.gy.luc, null, { timeout: 15000 });
   const gy = await p.evaluate(() => ({ st: document.querySelector('#gyKho .gyst').innerText, mo: !!document.querySelector('#gyMo'), ds: document.querySelectorAll('#gyKho .gyi').length, h: document.querySelector('#gyKho').getBoundingClientRect().height }));
-  check('xong: dòng gọn "1 gợi ý Laptop · quét …", danh sách đóng (bấm Xem mới mở)', /1 gợi ý Laptop/.test(gy.st) && gy.mo && gy.ds === 0 && gy.h < 50, gy);
+  check('xong: dòng gọn "1 gợi ý Laptop · 1 dòng máy · cập nhật …", danh sách đóng (bấm Xem mới mở)', /1 gợi ý Laptop · 1 dòng máy · cập nhật/.test(gy.st) && gy.mo && gy.ds === 0 && gy.h < 50, gy);
   await p.click('#gyMo'); await p.waitForTimeout(150);
   const it = await p.evaluate(() => [...document.querySelectorAll('#gyKho .gyi')].map(e => e.innerText));
   check('Xem: gợi ý đúng kênh đang chọn (Laptop: Dell 7420 + giá + chủ đề + lý do)', it.length === 1 && /Dell Latitude 7420/.test(it[0]) && /12,9–13,5 triệu/.test(it[0]) && /4 máy/.test(it[0]), it);
+  const my = await p.evaluate(() => [...document.querySelectorAll('#gyKho .gymay [data-gm]')].map(e => e.innerText));
+  check('Xem: thêm "📦 Máy trong kho" của kênh (tên · số máy · giá bán)', my.length === 1 && /Dell Latitude 7420 i7 16GB 512GB · 4 máy · 12,9–13,5 triệu/.test(my[0]), my);
+  await p.click('#gyKho [data-gm="0"]'); await p.waitForTimeout(150);
+  check('bấm 1 máy trong kho: điền tên máy vào ô Kho', await p.evaluate(() => $('#fKho').value === 'Dell Latitude 7420 i7 16GB 512GB' && S.form.kho === $('#fKho').value));
   await p.click('#gyKho [data-gy="0"]'); await p.waitForTimeout(150);
   check('Dùng: điền chủ đề + tên máy vào ô Kho (lưu nháp)', await p.evaluate(() => $('#fChuDe').value === 'Dell 7420 i7: laptop văn phòng bền nhất tầm 13 triệu?' && $('#fKho').value === 'Dell Latitude 7420 i7 16GB 512GB' && S.form.kho === $('#fKho').value));
   await p.click('#seg [data-k="ipad"]'); await p.waitForTimeout(400);
@@ -60,10 +64,16 @@ const cho = async () => { for (let i = 0; i < 40; i++) { const r = await j(A + '
   const v = (await j(K + '/api/chung/vao', { ma, ten: 'Máy con gợi ý kho' }, H)).b;
   const HK = Object.assign({ 'X-Poly-Khach': v.token }, H);
   const g1 = await j(K + '/api/goi-y', null, HK), g2 = await j(K + '/api/goi-y', { quet: true }, HK);
-  check('máy dùng chung: GET / POST /api/goi-y bị chặn', [g1.s, g2.s].every(s => s === 403 || s === 404), [g1.s, g2.s]);
+  check('máy dùng chung: xem được bản kho máy shop (máy + gợi ý, không mã lượt), không cập nhật / tự cập nhật được', g1.s === 200 && g1.b.khach && g1.b.may.length >= 2 && g1.b.ds.length >= 2 && !('jid' in g1.b) && !('tu' in g1.b) && [g2.s, (await j(K + '/api/goi-y', { tu: true }, HK)).s].every(s => s === 403 || s === 404), [g1.s, g2.s, Object.keys(g1.b)]);
   const g = await b.newPage({ viewport: { width: 1280, height: 800 } }); g.on('pageerror', e => errs.push('con: ' + e.message));
   await g.goto('http://poly-thu.example/#vao=' + v.token); await g.waitForSelector('#khc:not([hidden])', { timeout: 20000 }).catch(() => {}); await g.waitForTimeout(1500);
-  check('máy dùng chung: Bài mới không có dòng Gợi ý từ kho', await g.evaluate(() => S.view === 'new' && !document.querySelector('#gyKho')));
+  await g.waitForSelector('#gyKho .gyhd', { timeout: 10000 }).catch(() => {});
+  const gk = await g.evaluate(() => ({ v: S.view, st: (document.querySelector('#gyKho .gyst') || {}).innerText, quet: !!document.querySelector('#gyQuet'), mo: !!document.querySelector('#gyMo') }));
+  check('máy dùng chung: Bài mới có dòng Gợi ý từ kho "… (máy shop)", không nút Cập nhật kho', gk.v === 'new' && /cập nhật .*\(máy shop\)/.test(gk.st || '') && !gk.quet && gk.mo, gk);
+  await g.click('#gyMo'); await g.waitForTimeout(150);
+  const gm = await g.evaluate(() => ({ m: document.querySelectorAll('#gyKho [data-gm]').length, tu: !!document.querySelector('#gyTu') }));
+  await g.click('#gyKho [data-gm="0"]'); await g.waitForTimeout(150);
+  check('máy dùng chung: Xem thấy máy trong kho, bấm 1 máy điền ô Kho, không có tự cập nhật', gm.m >= 1 && !gm.tu && await g.evaluate(() => !!$('#fKho').value), gm);
   await p.screenshot({ path: 'shots/goi-y-kho.png' });
   check('không lỗi JS', errs.length === 0, errs);
   rm(T + '/FAKE_KHO2'); await b.close(); await j(A + '/api/chung', { bat: false });

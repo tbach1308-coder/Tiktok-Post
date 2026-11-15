@@ -328,6 +328,10 @@ body:not(.kcdrive) .thkcd{display:none!important}   /* fen 12/11 21h47 "dấu c�
 .gyk .gyi .t{flex:1;min-width:0}.gyk .gyi .t b{font-weight:600}.gyk .gyi .t .cd{display:block;color:var(--tx)}.gyk .gyi .t i{font-style:normal;color:var(--dim);font-size:11.5px}
 .gyk .gyi .gymoi{color:var(--gl);font-weight:700;font-size:11px;margin-right:5px}.gyk .gyi .btn{padding:3px 10px;font-size:12px;flex:none}
 .gyk .gytu{display:flex;align-items:center;gap:6px;color:var(--dim);font-size:11.5px;margin-top:6px;cursor:pointer}.gyk .gytu input{margin:0}
+.gyk .gymay{margin-top:6px}.gyk .gymay>span{display:block;font-size:11.5px;color:var(--dim);margin-bottom:4px}
+.gyk .gymay .mys{display:flex;flex-wrap:wrap;gap:5px}
+.gyk .gymay button{background:var(--panel2);border:1px solid var(--line);border-radius:7px;color:var(--tx);font:inherit;font-size:12px;padding:3px 8px;cursor:pointer;text-align:left}
+.gyk .gymay button:hover{border-color:var(--g)}.gyk .gymay button i{font-style:normal;color:var(--dim)}.gyk .gymay button .gymoi{color:var(--gl);font-weight:700;font-size:10.5px;margin-right:4px}
 .vbst{font-size:12.5px;color:var(--mut);line-height:1.5;margin:0 0 12px;min-height:4px}
 .vbst a{color:var(--gl)}
 
@@ -1392,7 +1396,7 @@ function newView(){
     <div class="vb"><input class="in" id="fChuDe" placeholder="${esc(CHUDE_PH[f.kenh])}" value="${esc(f.chude || '')}"><button class="btn" id="bVietBrief">✍ Viết brief</button></div>
     <div class="vbst" id="vbSt"></div>
     <div class="khor"><span class="lbl" title="Claude đọc kho Polysto qua kết nối POLY của tài khoản Claude, chỉ lấy thông tin máy và giá bán (không lấy giá vốn, HH, ghi chú, tên khách)">📦 Kho</span><input class="in" id="fKho" autocomplete="off" placeholder="Dán link kho Polysto hoặc seri máy: Claude lấy máy + giá thật trong kho để viết brief" value="${esc(f.kho || '')}"><button class="btn sm ghost" id="bKhoCa" title="Lấy máy trong cả kho (${esc(KHO_LINK)})">Cả kho</button></div>
-    ${KHACH ? '' : '<div class="gyk" id="gyKho"></div>'}
+    <div class="gyk" id="gyKho"></div>
     <span class="lbl">Brief từng slide</span>
     <textarea class="in" id="fBrief" placeholder="${esc(k.ph.brief)}">${esc(f.brief || '')}</textarea>
     <div class="chatb" id="chatB"><div class="chatl" id="chatL"></div>
@@ -2893,29 +2897,35 @@ async function khoTheme(){
 // ---- 💡 Gợi ý từ kho (fen 15/11 11h23 chọn "Gợi ý bài từ hàng mới về"): dòng gọn dưới ô Kho ở Bài mới (chỉ máy shop). 🔄 Quét kho =
 // 1 lượt Claude đọc kho Polysto (tên máy + giá bán), gợi ý chủ đề cho máy chưa có bài; 🆕 = dòng máy app thấy lần đầu trong 7 ngày.
 // "Dùng" điền chủ đề + tên máy vào ô Kho (rồi fen bấm ✍ Viết brief). Đang quét thì 5 giây hỏi lại 1 lần.
+// fen 15/11 13h31 "kho poly chỉ đăng nhập ở máy admin, rồi có nút bấm update cho máy con" (chọn "Máy shop quét kho, máy con xem được"):
+// nút "🔄 Cập nhật kho" ở máy shop; máy dùng chung xem bản máy shop cập nhật gần nhất (không có nút quét / tự quét). Mở Xem thêm
+// "📦 Máy trong kho" (tên · số máy · giá bán theo kênh), bấm 1 máy = điền tên máy vào ô Kho.
 async function gyTai(ep){
-  if (KHACH || !$('#gyKho')) return;
+  if (!$('#gyKho')) return;
   if (ep || !S.gy || Date.now() - (S.gyT || 0) > 60000 || S.gy.dang) { try { S.gy = await api('/api/goi-y'); S.gyT = Date.now(); } catch(e) { S.gy = { loi: 'Chưa lấy được gợi ý (' + e.message + '), tải lại trang thử lại' }; } }
   gyVe();
   clearTimeout(S.gyHen); if (S.gy && S.gy.dang && S.view === 'new') S.gyHen = setTimeout(() => gyTai(true), 5000);
 }
 function gyVe(){
   const el = $('#gyKho'); if (!el || !S.gy) return;
-  const d = S.gy, f = S.form, ds = (d.ds || []).filter(x => x.kenh === f.kenh), moi = (d.may || []).filter(x => x.moi && x.kenh === f.kenh).length;
+  const d = S.gy, f = S.form, ds = (d.ds || []).filter(x => x.kenh === f.kenh), mays = (d.may || []).filter(x => x.kenh === f.kenh), moi = mays.filter(x => x.moi).length;
   const mo = !!store.get('poly-gy-mo', false);
-  const st = d.dang ? 'Đang đọc kho Polysto… (1–3 phút)' : d.loi ? '⚠ ' + esc(d.loi) : d.luc
-    ? `${ds.length} gợi ý ${esc(KENH[f.kenh].ten)}${moi ? ` · <span class="moi">🆕 ${moi} mới về</span>` : ''} · quét ${esc(henTxt(d.luc))}`
-    : 'Chưa quét: Claude đọc kho Polysto (tên máy + giá bán), gợi ý chủ đề cho máy chưa có bài';
+  const st = d.dang ? (KHACH ? 'Máy shop đang cập nhật kho… (1–3 phút)' : 'Đang đọc kho Polysto… (1–3 phút)') : d.loi ? '⚠ ' + esc(d.loi) : d.luc
+    ? `${ds.length} gợi ý ${esc(KENH[f.kenh].ten)}${mays.length ? ` · ${mays.length} dòng máy` : ''}${moi ? ` · <span class="moi">🆕 ${moi} mới về</span>` : ''} · cập nhật ${esc(henTxt(d.luc))}${KHACH ? ' (máy shop)' : ''}`
+    : KHACH ? 'Máy shop chưa cập nhật kho' : 'Chưa cập nhật: Claude đọc kho Polysto (tên máy + giá bán), gợi ý chủ đề cho máy chưa có bài; máy con xem được bản này';
   setH(el, `<div class="gyhd"><b>💡 Gợi ý từ kho</b><span class="gyst${d.loi && !d.dang ? ' loi' : ''}">${st}</span>
-      ${ds.length ? `<button class="btn ghost sm" id="gyMo">${mo ? 'Ẩn' : 'Xem'}</button>` : ''}<button class="btn ghost sm" id="gyQuet"${d.dang ? ' disabled' : ''} title="1 lượt Claude (Sonnet) đọc kho, tính vào hạn mức tuần">🔄 Quét kho</button></div>
-    ${mo && ds.length ? `<div class="gyds">${ds.map((x, i) => `<div class="gyi"><div class="t">${x.moi ? '<span class="gymoi">MỚI VỀ</span>' : ''}<b>${esc(x.may)}</b>${x.gia ? ' · ' + esc(x.gia) : ''}<span class="cd">${esc(x.chu_de)}</span>${x.ly_do ? `<i>${esc(x.ly_do)}</i>` : ''}</div><button class="btn sm" data-gy="${i}" title="Điền chủ đề này + tên máy vào ô Kho">Dùng</button></div>`).join('')}
-      <label class="gytu"><input type="checkbox" id="gyTu"${d.tu ? ' checked' : ''}> Tự quét mỗi sáng 7h30</label></div>` : ''}`);
+      ${ds.length || mays.length ? `<button class="btn ghost sm" id="gyMo">${mo ? 'Ẩn' : 'Xem'}</button>` : ''}${KHACH ? '' : `<button class="btn ghost sm" id="gyQuet"${d.dang ? ' disabled' : ''} title="1 lượt Claude (Sonnet) đọc kho Polysto, tính vào hạn mức tuần. Máy con (máy dùng chung) xem được bản mới nhất">🔄 Cập nhật kho</button>`}</div>
+    ${mo && (ds.length || mays.length) ? `<div class="gyds">${ds.map((x, i) => `<div class="gyi"><div class="t">${x.moi ? '<span class="gymoi">MỚI VỀ</span>' : ''}<b>${esc(x.may)}</b>${x.gia ? ' · ' + esc(x.gia) : ''}<span class="cd">${esc(x.chu_de)}</span>${x.ly_do ? `<i>${esc(x.ly_do)}</i>` : ''}</div><button class="btn sm" data-gy="${i}" title="Điền chủ đề này + tên máy vào ô Kho">Dùng</button></div>`).join('')}
+      ${mays.length ? `<div class="gymay"><span>📦 Máy trong kho ${esc(KENH[f.kenh].ten)} (bấm 1 máy = điền vào ô Kho)</span><div class="mys">${mays.map((x, i) => `<button data-gm="${i}" title="Điền ${esc(x.ten)} vào ô Kho">${x.moi ? '<span class="gymoi">MỚI</span>' : ''}${esc(x.ten)}<i>${x.so ? ' · ' + esc(String(x.so)) + ' máy' : ''}${x.gia ? ' · ' + esc(x.gia) : ''}</i></button>`).join('')}</div></div>` : ''}
+      ${KHACH ? '' : `<label class="gytu"><input type="checkbox" id="gyTu"${d.tu ? ' checked' : ''}> Tự cập nhật mỗi sáng 7h30</label>`}</div>` : ''}`);
   const q = $('#gyQuet'); if (q) q.onclick = async () => { q.disabled = true; try { S.gy = await api('/api/goi-y', { quet: true }); S.gyT = Date.now(); gyTai(); } catch(e) { toast(e.message, true); q.disabled = false; } };
   const m = $('#gyMo'); if (m) m.onclick = () => { store.set('poly-gy-mo', !mo); gyVe(); };
-  const t = $('#gyTu'); if (t) t.onchange = async () => { try { S.gy = await api('/api/goi-y', { tu: t.checked }); toast(t.checked ? 'Mỗi sáng 7h30 app tự quét kho' : 'Đã tắt tự quét kho'); } catch(e) { toast(e.message, true); } };
+  const t = $('#gyTu'); if (t) t.onchange = async () => { try { S.gy = await api('/api/goi-y', { tu: t.checked }); toast(t.checked ? 'Mỗi sáng 7h30 app tự cập nhật kho' : 'Đã tắt tự cập nhật kho'); } catch(e) { toast(e.message, true); } };
   el.querySelectorAll('[data-gy]').forEach(b => b.onclick = () => { const x = ds[+b.dataset.gy]; if (!x) return;
     f.chude = x.chu_de; f.kho = x.may; $('#fChuDe').value = x.chu_de; $('#fKho').value = x.may; saveForm();
     toast('Đã điền chủ đề + máy vào ô Kho: bấm ✍ Viết brief'); $('#fChuDe').focus(); });
+  el.querySelectorAll('[data-gm]').forEach(b => b.onclick = () => { const x = mays[+b.dataset.gm]; if (!x) return;
+    f.kho = x.ten; $('#fKho').value = x.ten; saveForm(); toast('Đã điền ' + x.ten + ' vào ô Kho'); $('#fChuDe').focus(); });
 }
 // ---- 📱 Story / reel (fen 15/11 12h36 "thay ô này thành ô chức năng làm ảnh story reel", chọn "Từ bài đã làm"; 12h50 "cho tab riêng để
 // làm luôn"): trang riêng #story (như Kho theme / Số bài). Hàng trên: bài đã làm xong (theo ô Máy đang lọc), bài đang chọn viền xanh; dưới:
