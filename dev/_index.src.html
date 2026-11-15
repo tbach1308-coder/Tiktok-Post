@@ -2395,7 +2395,8 @@ function plDialog(){
     <h3>Kho Polysto</h3>
     <p id="plTt">${plChu(S.pl || {tt: 'chua-kiem'})}</p>
     <p class="pnote">Claude đọc kho Polysto qua kết nối POLY trong tài khoản Claude đang đăng nhập trên máy (chỉ đọc tên máy + giá bán). Dùng ở ô 📦 Kho, 💡 Gợi ý từ kho. "Kiểm lại" chạy 1 lượt Claude rất ngắn gọi thử tìm máy, khoảng 20–60 giây.</p>
-    <ol><li>Chưa nối: vào <b>claude.ai</b> (đúng tài khoản Claude của máy này) > <b>Customize</b> > <b>Connectors</b>, tìm <b>POLY</b>, bấm <b>Connect</b>.</li>
+    ${(S.health && S.health.tk && S.health.tk.email) ? `<p class="pnote">Tài khoản Claude trên máy này: <b>${esc(S.health.tk.email)}</b>. POLY phải nối ở đúng tài khoản này (fen đổi tài khoản Claude thì nối lại POLY ở tài khoản mới).</p>` : ''}
+    <ol><li>Chưa nối: vào <b>claude.ai</b> (đúng tài khoản Claude của máy này) > <b>Customize</b> > <b>Connectors</b>, tìm <b>POLY</b>, bấm <b>Connect</b>. POLY là connector riêng của shop thì bấm <b>Add custom connector</b>, dán link POLY như ở tài khoản cũ.</li>
       <li>Nối xong quay lại đây bấm <b>Kiểm lại</b>.</li></ol>
     <div class="acts"><button class="btn" id="plKiem">Kiểm lại</button><button class="btn pri" id="plDong">Đóng</button></div></div>`;
   document.body.appendChild(m);
