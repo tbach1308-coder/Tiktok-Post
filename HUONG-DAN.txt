@@ -278,6 +278,11 @@ LÀM 1 BÀI
   · Bảng bên trái: chữ (nội dung, cỡ, độ đậm, màu, nền chữ + ôm chữ, bo góc, canh trái / giữa / phải, số dòng, gạch ngang giá cũ);
     ảnh (chọn / đổi ảnh, Vừa khung / Phủ kín, khung màu, bo góc); khối / tròn (màu, bo góc); bấm chỗ trống = chỉnh nền (màu / ảnh nền).
   · "＋ Chữ", "＋ Ảnh", "▭ Khối", "◯ Tròn" thêm vào khung; "⧉ Nhân đôi", "⬆ Lên lớp", "⬇ Xuống lớp", "🗑 Xoá"; "↺ Mẫu gốc" bỏ hết chỉnh sửa.
+  · 🔤 Font (bảng chữ, 15/11 14h18): bấm ô Font mở bảng 15 font có tiếng Việt: Hiện đại (Be Vietnam Pro, Montserrat, Lexend),
+    Sale / giá sốc (Anton, Oswald, Bungee, Paytone One), Sang trọng (Playfair), Tết (Lobster, Charm), Noel / Valentine (Dancing Script),
+    Hè (Pacifico), Dễ thương (Baloo 2), Viết tay (Pangolin, Patrick Hand). Thêm "Viền chữ" và "Bóng" (màu tuỳ chọn).
+  · "🔤 Kiểu chữ có sẵn": 14 kiểu theo mùa / chủ đề (Tết, Noel, Sale, Black Friday, Sang trọng, Hè, Back to school, Viết tay).
+    Đang chọn 1 ô chữ thì bấm kiểu = đổi font + màu + viền / nền của ô đó (giữ chữ); chưa chọn gì thì thêm ô chữ mới kiểu đó.
   · "Nội dung (điền nhanh)": mọi ô chữ + ô ảnh của mẫu để điền lẹ.
   · Vạch mờ trên / dưới: vùng chữ + nút của TikTok, tránh để chữ quan trọng ở đó.
   · "📸 Lưu ảnh": lưu ảnh 1080×1920 vào E:\Social Claude\Story\<năm-tháng>\, rồi có "📨 Telegram", "📂 Thư mục".

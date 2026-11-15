@@ -8400,14 +8400,18 @@ def story_tg(jid):
 # Chữ: Be Vietnam Pro 500 / 700 / 800 (story-mau/fonts). Vùng chữ / ảnh nằm trong khoảng y 250–1580 (chừa chỗ chữ, nút của app).
 STORY_MAU_DIR = os.path.join(APP, "story-mau")
 STORY_FONT = {500: "BeVietnamPro-500.ttf", 700: "BeVietnamPro-700.ttf", 800: "BeVietnamPro-800.ttf"}
+# 🔤 thư viện chữ (fen 15/11 14h18 "cho thư viện chữ đẹp đi, font phù hợp nhiều mùa, chủ đề"): font Google (OFL, có tiếng Việt),
+# trình duyệt dùng ui/fonts/tv/<khoá>-latin|vietnamese.woff2 (family 'tv-<khoá>'), Pillow dùng story-mau/fonts/tv-<khoá>.ttf (ghép 2 phần)
+STORY_FONT_TV = ("montserrat", "lexend", "anton", "oswald", "bungee", "paytone", "playfair", "lobster", "charm", "dancing", "pacifico",
+                 "baloo", "pangolin", "patrick")
 _SM_FONT = {}
 
 
-def _sm_font(nang, co):
-    k = (nang, co)
+def _sm_font(nang, co, ff=None):
+    k = (nang, co, ff)
     if k not in _SM_FONT:
         from PIL import ImageFont
-        f = os.path.join(STORY_MAU_DIR, "fonts", STORY_FONT.get(nang) or STORY_FONT[700])
+        f = os.path.join(STORY_MAU_DIR, "fonts", ("tv-%s.ttf" % ff) if ff in STORY_FONT_TV else (STORY_FONT.get(nang) or STORY_FONT[700]))
         cands = [f] + ([os.path.join(os.environ.get("WINDIR", "C:\\Windows"), "Fonts", "segoeuib.ttf")] if IS_WIN else []) + \
             ["/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"]
         for c in cands:
@@ -8586,7 +8590,7 @@ def _sm_chu(im, d, x, chu):
     w, h = x["w"] - 2 * pad, x["h"]
     co, toi_da = int(round(x["co"])), max(1, int(x.get("dong") or 1))
     while True:
-        f = _sm_font(x.get("font") or 700, co)
+        f = _sm_font(x.get("font") or 700, co, x.get("ff"))
         ls = _sm_xuong_dong(d, chu, f, w)
         cao = co * 1.22
         if (len(ls) <= toi_da and len(ls) * cao <= h + 2 and max(d.textlength(l, font=f) for l in ls) <= w) or co <= max(14, x["co"] * 0.45):
@@ -8611,7 +8615,10 @@ def _sm_chu(im, d, x, chu):
         tw = d.textlength(l, font=f)
         lx = lx0 + ((lw - tw) / 2 if canh == "giua" else (lw - tw if canh == "phai" else 0))
         ly = y0 + i * cao + (cao - co * 1.1) / 2
-        d.text((lx, ly), l, font=f, fill=x.get("mau") or "#ffffff")
+        if x.get("bong"):          # bóng chữ (Pillow: lệch xuống, không nhoè)
+            d.text((lx, ly + max(2, co * 0.06)), l, font=f, fill=x["bong"])
+        d.text((lx, ly), l, font=f, fill=x.get("mau") or "#ffffff",
+               **({"stroke_width": max(2, int(co * 0.06)), "stroke_fill": x["vien"]} if x.get("vien") else {}))
         if x.get("gach"):
             gy = ly + co * 0.62
             d.line((lx - 4, gy, lx + tw + 4, gy), fill=x.get("mau") or "#ffffff", width=max(2, co // 12))
@@ -8768,7 +8775,8 @@ def story_mau_them(data):
 # trực tiếp trước khi làm"): trang vẽ thẳng trên khung 9:16 (canvas trên trình duyệt, cùng font Be Vietnam Pro), ảnh xuất 1080×1920
 # vẽ ở trình duyệt rồi gửi về đây lưu (POST {luu}). Lưu thành mẫu (POST {them_tk} / {sua_tk}): bản vẽ JSON cùng dạng mẫu có sẵn
 # (chu / anh / hcn / tron), ảnh trong bản vẽ tách ra file e<n>.png|jpg, nền ảnh = nen.jpg.
-SM_KIEU = {"chu": ("x", "y", "w", "h", "co", "font", "mau", "nen", "bo", "pad", "om", "canh", "gach", "dong", "giua_doc", "co_dinh", "dien", "k", "nhan", "mac"),
+SM_KIEU = {"chu": ("x", "y", "w", "h", "co", "font", "mau", "nen", "bo", "pad", "om", "canh", "gach", "dong", "giua_doc", "co_dinh", "dien", "k", "nhan", "mac",
+                   "ff", "vien", "bong"),
            "anh": ("x", "y", "w", "h", "bo", "the", "pad", "phu", "k", "nhan", "bo_qua"),
            "hcn": ("x", "y", "w", "h", "mau", "bo"), "tron": ("x", "y", "r", "mau")}
 
@@ -8796,7 +8804,10 @@ def story_tk_sach(o_ds, thu_muc=None):
             if k not in x or x[k] is None:
                 continue
             v = x[k]
-            if k in ("mau", "nen", "the"):
+            if k == "ff":
+                if v not in STORY_FONT_TV:
+                    continue
+            elif k in ("mau", "nen", "the", "vien", "bong"):
                 v = _sm_mau_hop(v)
                 if v is None:
                     continue

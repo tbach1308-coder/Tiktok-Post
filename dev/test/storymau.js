@@ -1,7 +1,7 @@
 // 📱 Thư viện mẫu story (fen 15/11 13h07 "phần này cho thư viện template tạo riêng, để gắn ảnh vô chạy, cho điền text") + 🎨 khung design
 // kéo thả (13h58 "cho có công cụ design cơ bản như canva", chọn "Kéo thả trên ảnh"; 13h57 / 14h04 "cho preview trực tiếp"): khung 9:16
 // vẽ trên trình duyệt = xem trước trực tiếp; chọn / kéo / đổi cỡ, bảng chỉnh chữ màu cỡ, thêm chữ / ảnh / khối, hoàn tác, Lưu ảnh 1080×1920,
-// ⬇ Tải về máy (14h07 "cho thêm nút lưu ảnh"), Lưu thành mẫu (máy shop). Mẫu fen thêm bằng ảnh nền + bố cục vẫn có. Máy dùng chung làm
+// ⬇ Tải về máy (14h07 "cho thêm nút lưu ảnh"), Lưu thành mẫu (máy shop), thư viện font + kiểu chữ có sẵn (14h18). Mẫu fen thêm bằng ảnh nền + bố cục vẫn có. Máy dùng chung làm
 // ảnh được, không lưu / bỏ mẫu.
 const { chromium } = require('playwright');
 const { execFileSync } = require('child_process');
@@ -57,6 +57,18 @@ n=Image.new('RGB',(1200,2000),'#f4e6c8');ImageDraw.Draw(n).rectangle((0,0,1200,3
   check('＋ Chữ thêm ô chữ mới (chọn sẵn), ↶ hoàn tác bỏ đi, ↷ làm lại có lại', nUndo === nTruoc && nRedo === nTruoc + 1, [nTruoc, nUndo, nRedo]);
   await p.focus('#tkCv'); await p.keyboard.press('Delete'); await p.waitForTimeout(150);
   check('phím Delete: xoá ô đang chọn', await p.evaluate(n => TK.d.o.length === n && TK.sel === -1, nTruoc));
+  // 🔤 thư viện chữ (fen 14h18 "cho thư viện chữ đẹp đi, font phù hợp nhiều mùa, chủ đề")
+  await p.evaluate(() => { TK.sel = TK.d.o.findIndex(x => x.k === 'nhan'); tkBang(); });
+  await p.click('#tkpFf'); await p.waitForSelector('#tkpFg:not([hidden])');
+  const nf = await p.evaluate(() => document.querySelectorAll('#tkpFg [data-ff]').length);
+  await p.click('#tkpFg [data-ff="lobster"]'); await p.waitForTimeout(600);
+  check('Font: bảng 15 font (hiện đại, sale, sang trọng, Tết, Noel, viết tay…) chọn là đổi ngay, font tải về dùng được', nf === 15 && await p.evaluate(() => TK.d.o.find(x => x.k === 'nhan').ff === 'lobster' && document.fonts.check('400 40px "tv-lobster"', 'Ưu đãi')), nf);
+  const nk0 = await p.evaluate(() => TK.d.o.length);
+  await p.click('[data-kieu="5"]'); await p.waitForTimeout(300);
+  check('Kiểu chữ có sẵn: đang chọn chữ thì đổi kiểu (GIÁ SỐC: Anton vàng viền đen), không thêm ô', await p.evaluate(n => { const x = TK.d.o.find(x => x.k === 'nhan'); return TK.d.o.length === n && x.ff === 'anton' && x.mau === '#ffe600' && x.vien === '#111111' && x.text === 'GIÁ SỐC HÔM NAY'; }, nk0));
+  await p.evaluate(() => { TK.sel = -1; tkBang(); }); await p.click('[data-kieu="0"]'); await p.waitForTimeout(300);
+  check('chưa chọn chữ: bấm kiểu "Chúc Mừng Năm Mới" thêm ô chữ mới đúng kiểu (Lobster, vàng, viền đỏ)', await p.evaluate(n => { const x = TK.d.o[TK.sel]; return TK.d.o.length === n + 1 && x.text === 'Chúc Mừng Năm Mới' && x.ff === 'lobster' && x.vien === '#8b0a14'; }, nk0));
+  await p.click('#tkUndo'); await p.waitForTimeout(150);
   const iAnh = await p.evaluate(() => TK.d.o.findIndex(x => x.loai === 'anh'));
   const [fc] = await Promise.all([p.waitForEvent('filechooser'), p.click(`#tkNd [data-anh="${iAnh}"]`)]);
   await fc.setFiles('/tmp/sm-may.png'); await p.waitForFunction(i => /^img:/.test(TK.d.o[i].img || '') && !!tkHinh(TK.d.o[i].img), iAnh, { timeout: 8000 });
@@ -87,6 +99,7 @@ n=Image.new('RGB',(1200,2000),'#f4e6c8');ImageDraw.Draw(n).rectangle((0,0,1200,3
   const mt = await p.evaluate(() => ({ id: S.mauId, ten: document.querySelector('#mPick .on b').textContent, chu: TK.d.o.find(x => x.k === 'ten').text, anh: TK.d.o.find(x => x.loai === 'anh').img }));
   const mj = JSON.parse(fs.readFileSync(APP + '/story-mau/' + mt.id + '/mau.json'));
   const xem2 = await fetch(A + '/api/story-mau/xem/' + mt.id);
+  check('mẫu lưu giữ font + viền chữ (ảnh xem trước vẽ bằng đúng font)', mj.o.some(x => x.k === 'nhan' && x.ff === 'anton' && x.vien === '#111111'), mj.o.find(x => x.k === 'nhan'));
   check('💾 Lưu thành mẫu: mẫu mới "của fen" mở sẵn, giữ chữ / màu / vị trí, ảnh gắn lưu thành file trong mẫu, có ảnh xem trước', mt.ten === 'Giá sốc của fen' && mt.chu === 'iPad Air 5 M1 64GB' && /\/api\/story-mau\/tep\/f[0-9a-f]{8}\/e\d+\.png/.test(mt.anh || '') && mj.tk && mj.o.some(x => x.src && fs.existsSync(APP + '/story-mau/' + mt.id + '/' + x.src)) && xem2.status === 200, { mt, o: mj.o.filter(x => x.loai === 'anh') });
   await p.fill(`#tkNd [data-nd="${await p.evaluate(() => TK.d.o.findIndex(x => x.k === 'ten'))}"]`, 'MacBook Pro M3'); await p.waitForTimeout(200);
   await p.click('#tkMau'); await p.waitForSelector('#tkmSua'); await p.click('#tkmSua');
