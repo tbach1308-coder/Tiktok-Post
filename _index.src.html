@@ -2406,6 +2406,8 @@ const PL_TT = {noi: ['ok', 'Kho Poly: đã nối'], chua: ['err', 'Kho Poly: ch�
 const PL_NGAN = {noi: 'Kho Poly', chua: 'Kho Poly chưa nối', loi: 'Kho Poly lỗi', dang: 'Kho Poly…', 'chua-kiem': 'Kho Poly'};
 const plChu = st => `<b>${esc((PL_TT[st.tt] || PL_TT['chua-kiem'])[1])}</b>${st.t ? ` · ${st.tt === 'dang' ? 'bắt đầu' : 'biết lúc'} ${hm(st.t)}${st.nguon ? ' (' + esc(st.nguon) + ')' : ''}` : ''}${st.ghi ? '<br><span class="stc">' + esc(st.ghi) + '</span>' : ''}`;
 function plVe(st){
+  // đọc kho qua Chrome (cách web): trạng thái cũ của lượt kiểm connector POLY không còn đúng → coi như chưa đọc (fen 14h30 "kho chưa dc nè")
+  if ((st.cach || 'web') === 'web' && st.tt !== 'dang' && st.nguon && st.nguon !== 'đọc web') st = Object.assign({}, st, { tt: 'chua-kiem', nguon: '', t: 0, ghi: 'Chưa đọc kho qua Chrome: bấm Cập nhật kho' });
   S.pl = st; const b = $('#bPoly'); if (!b) return; const [d, t] = PL_TT[st.tt] || PL_TT['chua-kiem'];
   setH(b, `<span class="dot ${d}"></span><span>${PL_NGAN[st.tt] || 'Kho Poly'}</span>`); b.title = t + ' · bấm để kiểm, xem cách nối';
   const x = $('#plTt'); if (x) setH(x, plChu(st));
