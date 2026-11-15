@@ -2415,7 +2415,9 @@ function plVe(st){
 }
 async function plChip(kiem){
   if (KHACH) return;
-  let st; try { st = await api('/api/poly-tt', kiem ? {kiem: true} : undefined); } catch(e) { if (kiem) toast(e.message, true); return; }
+  let st; try { st = await api('/api/poly-tt', kiem ? {kiem: true} : undefined); }
+  catch(e) { if (kiem && e.message.startsWith('CHON_HS|')) { toast(e.message.slice(8), true); try { S.gy = await api('/api/goi-y'); } catch(_) {} document.querySelectorAll('.modal').forEach(m => m.remove()); khoLinkDialog(); }
+    else if (kiem) toast(e.message, true); return; }
   // fen 15/11 13h41 "có nút update mình bấm mới truy cập kho": không tự kiểm khi mở app, chỉ kiểm khi fen bấm Kiểm lại / Cập nhật kho
   plVe(st);
 }
@@ -2951,7 +2953,8 @@ function gyVe(){
     ${mo && (ds.length || mays.length) ? `<div class="gyds">${ds.map((x, i) => `<div class="gyi"><div class="t">${x.moi ? '<span class="gymoi">MỚI VỀ</span>' : ''}<b>${esc(x.may)}</b>${x.gia ? ' · ' + esc(x.gia) : ''}<span class="cd">${esc(x.chu_de)}</span>${x.ly_do ? `<i>${esc(x.ly_do)}</i>` : ''}</div><button class="btn sm" data-gy="${i}" title="Điền chủ đề này + tên máy vào ô Kho">Dùng</button></div>`).join('')}
       ${mays.length ? `<div class="gymay"><span>📦 Máy trong kho ${esc(KENH[f.kenh].ten)} (bấm 1 máy = điền vào ô Kho)</span><div class="mys">${mays.map((x, i) => `<button data-gm="${i}" title="Điền ${esc(x.ten)} vào ô Kho">${x.moi ? '<span class="gymoi">MỚI</span>' : ''}${esc(x.ten)}<i>${x.so ? ' · ' + esc(String(x.so)) + ' máy' : ''}${x.gia ? ' · ' + esc(x.gia) : ''}</i></button>`).join('')}</div></div>` : ''}
 </div>` : ''}`);
-  const q = $('#gyQuet'); if (q) q.onclick = async () => { q.disabled = true; try { S.gy = await api('/api/goi-y', { quet: true }); S.gyT = Date.now(); gyTai(); } catch(e) { toast(e.message, true); q.disabled = false; } };
+  const q = $('#gyQuet'); if (q) q.onclick = async () => { q.disabled = true; try { S.gy = await api('/api/goi-y', { quet: true }); S.gyT = Date.now(); gyTai(); }
+    catch(e) { if (e.message.startsWith('CHON_HS|')) { toast(e.message.slice(8), true); khoLinkDialog(); } else toast(e.message, true); q.disabled = false; } };
   const m = $('#gyMo'); if (m) m.onclick = () => { store.set('poly-gy-mo', !mo); gyVe(); };
   const lb = $('#gyLink'); if (lb) lb.onclick = khoLinkDialog;
   el.querySelectorAll('[data-gy]').forEach(b => b.onclick = () => { const x = ds[+b.dataset.gy]; if (!x) return;
@@ -2968,6 +2971,7 @@ function khoLinkDialog(){
     <p class="pnote">Dán link trang kho (lọc sẵn loại máy trên web Polysto rồi chép link càng tốt). App lưu lại, chỉ khi fen bấm <b>🔄 Cập nhật kho</b> mới mở link trên Chrome máy shop (hồ sơ Chrome iPad, đã đăng nhập POLY), tiện ích Poly TikTok chép tên máy · cấu hình · giá bán rồi đóng tab. Bỏ trống iPad thì đọc 1 link, app tự chia máy iPad / laptop theo tên.</p>
     <label class="mfl" for="klLap">Kho Laptop</label><input class="in" id="klLap" placeholder="https://app.polystorevn.com/kho-may…" value="${esc(l.laptop || '')}">
     <label class="mfl" for="klIpad">Kho iPad</label><input class="in" id="klIpad" placeholder="https://app.polystorevn.com/…" value="${esc(l.ipad || '')}">
+    <label class="mfl" for="klHs">Hồ sơ Chrome đã đăng nhập POLY (có tiện ích Poly TikTok)</label><select class="in" id="klHs"><option value="">${(S.gy && S.gy.hs_ipad) ? 'Như hồ sơ đăng TikTok iPad' : '— Chọn hồ sơ —'}</option>${((S.gy && S.gy.ho_so) || []).map(h => `<option value="${esc(h.dir)}"${(S.gy.hs === h.dir) ? ' selected' : ''}>${esc(h.ten)} (${esc(h.dir)})</option>`).join('')}</select>
     <label class="mfl" for="klCach">Đọc kho bằng</label><select class="in" id="klCach"><option value="web">Chrome máy shop đã đăng nhập POLY (mở link)</option><option value="poly"${(S.gy && S.gy.cach) === 'poly' ? ' selected' : ''}>Connector POLY của tài khoản Claude</option></select>
     <p class="err" id="klErr"></p>
     <div class="acts"><button class="btn" id="klHuy">Huỷ</button><button class="btn" id="klLuu">Lưu</button><button class="btn pri" id="klCn">Lưu & cập nhật kho</button></div></div>`;
@@ -2975,7 +2979,7 @@ function khoLinkDialog(){
   const dong = () => m.remove();
   $('#klHuy').onclick = dong; m.onclick = e => { if (e.target === m) dong(); };
   const luu = async quet => { $('#klErr').textContent = ''; m.querySelectorAll('.acts .btn').forEach(b => b.disabled = true);
-    try { S.gy = await api('/api/goi-y', { link: { laptop: $('#klLap').value.trim(), ipad: $('#klIpad').value.trim() }, cach: $('#klCach').value, quet: !!quet }); S.gyT = Date.now();
+    try { S.gy = await api('/api/goi-y', { link: { laptop: $('#klLap').value.trim(), ipad: $('#klIpad').value.trim() }, cach: $('#klCach').value, hs: $('#klHs').value, quet: !!quet }); S.gyT = Date.now();
       dong(); toast(quet ? 'Đã lưu link, đang đọc kho (1–3 phút)' : 'Đã lưu link kho'); gyTai(); }
     catch(e) { $('#klErr').textContent = e.message; m.querySelectorAll('.acts .btn').forEach(b => b.disabled = false); } };
   $('#klLuu').onclick = () => luu(false); $('#klCn').onclick = () => luu(true);

@@ -32,6 +32,9 @@ setTimeout(ve, 1200);
 const trangLogin = `<!doctype html><meta charset=utf-8><title>POLY Store</title><body><h1>Đăng nhập</h1><input type=text placeholder="Tài khoản"><input type=password><button>Đăng nhập hệ thống</button>`;
 (async () => {
   [T + '/goi-y-kho.json', T + '/kho-snap.json', T + '/kho-web.json', T + '/FAKE_KHO_LOI', T + '/poly-tt.json'].forEach(rm);
+  const LS = T + '/fakechrome/ud/Local State';     // hồ sơ Chrome giả (chỉ trong lúc chạy test này)
+  fs.writeFileSync(LS, JSON.stringify({ profile: { info_cache: { Default: { name: 'Your Chrome' }, 'Profile 2': { name: 'Laptop' }, 'Profile 9': { name: 'Kho POLY' } } } }));
+  await j(A + '/api/tiktok-cai', { ho_so: 'Default' }); await j(A + '/api/goi-y', { hs: '' });
   await j(A + '/api/goi-y', { cach: 'web', link: { laptop: 'https://app.polystorevn.com/kho-may', ipad: '' } });
   fs.writeFileSync(T + '/fakechrome/args.log', '');
   let r = await j(A + '/api/goi-y', { quet: true });
@@ -86,16 +89,25 @@ const trangLogin = `<!doctype html><meta charset=utf-8><title>POLY Store</title>
   const mo3 = await moTu();
   const c2 = await b.newContext(); const p3 = await c2.newPage(); await p3.goto(mo3); await p3.waitForTimeout(2500);
   d = (await j(A + '/api/goi-y')).b;
-  check('Chrome hồ sơ không có tiện ích Poly TikTok: trang /kho-mo báo, app báo lỗi rõ', /chưa có tiện ích/.test(await p3.innerText('body')) && /chưa có tiện ích Poly TikTok/.test(d.loi) && !d.dang, d.loi);
+  check('Chrome hồ sơ không có tiện ích Poly TikTok: trang /kho-mo báo, app báo lỗi rõ', /chưa có tiện ích/.test(await p3.innerText('body')) && /chưa chạy tiện ích Poly TikTok/.test(d.loi) && /Link kho/.test(d.loi) && !d.dang, d.loi);
   // quá 3 phút không thấy gửi về
   await j(A + '/api/goi-y', { quet: true });
   const f = JSON.parse(fs.readFileSync(T + '/goi-y-kho.json')); f.bat -= 200; fs.writeFileSync(T + '/goi-y-kho.json', JSON.stringify(f));
   d = (await j(A + '/api/goi-y')).b;
   check('Chrome không gửi kho về sau 3 phút: hết chờ, báo lỗi rõ', !d.dang && /sau 3 phút/.test(d.loi), d.loi);
+  // chưa chọn hồ sơ Chrome (fen 14h30: Chrome tự chọn hồ sơ mở gần nhất → mở nhầm hồ sơ không có tiện ích)
+  await j(A + '/api/tiktok-cai', { ho_so: '' }); await j(A + '/api/goi-y', { hs: '' });
+  const ch = await j(A + '/api/goi-y', { quet: true });
+  check('chưa chọn hồ sơ Chrome đọc kho (và hồ sơ iPad cũng chưa chọn): báo chọn hồ sơ, không mở Chrome bừa', ch.s === 400 && /^CHON_HS\|/.test(ch.b.err || '') && !(await j(A + '/api/goi-y')).b.dang, ch);
+  r = await j(A + '/api/goi-y', { hs: 'Profile 9' }); fs.writeFileSync(T + '/fakechrome/args.log', '');
+  const ch2 = await j(A + '/api/goi-y', { quet: true }); const a2 = (await moTu(), fs.readFileSync(T + '/fakechrome/args.log', 'utf8'));
+  check('chọn hồ sơ "Kho POLY" ở 🔗 Link kho: Cập nhật kho mở đúng hồ sơ đó', r.b.hs === 'Profile 9' && ch2.s === 200 && /--profile-directory=Profile 9/.test(a2), { hs: r.b.hs, a2 });
+  check('hồ sơ không có trên máy: không lưu', (await j(A + '/api/goi-y', { hs: 'Profile 77' })).s === 400);
+  await j(A + '/api/tiktok-cai', { ho_so: 'Default' }); await j(A + '/api/goi-y', { hs: '' });
   // giao diện
   const u = await ctx.newPage(); u.on('pageerror', e => errs.push(e.message));
   await u.goto(A + '/#moi'); await u.waitForSelector('#gyLink'); await u.click('#gyLink'); await u.waitForSelector('#klCach');
-  check('🔗 Link kho: ô "Đọc kho bằng" (Chrome đã đăng nhập POLY / Connector POLY), mặc định Chrome', await u.evaluate(() => $('#klCach').value === 'web' && $('#klCach').options.length === 2));
+  check('🔗 Link kho: ô "Hồ sơ Chrome đã đăng nhập POLY" (danh sách hồ sơ trên máy) + "Đọc kho bằng" (Chrome / Connector POLY), mặc định Chrome', await u.evaluate(() => $('#klCach').value === 'web' && $('#klCach').options.length === 2 && [...$('#klHs').options].map(o => o.value).join() === ',Default,Profile 2,Profile 9'));
   await u.evaluate(() => document.querySelectorAll('.modal').forEach(m => m.remove()));
   await u.click('#bPoly'); await u.waitForSelector('#plKiem');
   check('hộp Kho Poly (cách web): giải thích đọc qua Chrome, nút "Cập nhật kho"', await u.evaluate(() => /trang web Polysto trên Chrome/.test(document.querySelector('.modal.on').innerText) && $('#plKiem').textContent === 'Cập nhật kho'));
@@ -106,6 +118,6 @@ const trangLogin = `<!doctype html><meta charset=utf-8><title>POLY Store</title>
   const k1 = await j(K + '/api/kho-web', d0, HK), k2 = await j(K + '/kho-mo?tok=x', undefined, HK);
   check('máy dùng chung: không gửi kho / mở trang /kho-mo được', [k1.s, k2.s].every(s => s === 403 || s === 404 || s === 401), [k1.s, k2.s]);
   check('không lỗi JS', errs.length === 0, errs);
-  await b.close(); await j(A + '/api/chung', { bat: false });
+  await b.close(); await j(A + '/api/chung', { bat: false }); rm(LS);
   console.log(`\n${ok} đạt, ${bad} lỗi`); process.exit(bad ? 1 : 0);
 })().catch(e => { console.error(e); process.exit(1); });

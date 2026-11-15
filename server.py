@@ -2360,6 +2360,12 @@ def goi_y_doc():
     d["ds"] = sorted(d.get("ds") or [], key=lambda x: not x.get("moi"))
     d["link"] = kho_link_ds()
     d["cach"] = CFG.get("kho_cach") or "web"
+    d["hs"] = CFG.get("kho_hs") or ""
+    d["hs_ipad"] = CFG.get("chrome_profile") or ""
+    try:
+        d["ho_so"] = [{"dir": x["dir"], "ten": x["ten"]} for x in chrome_ho_so()]
+    except Exception:
+        d["ho_so"] = []
     d["co_poly"] = True
     return d
 
@@ -2371,7 +2377,7 @@ def goi_y_khach():
     return {"luc": d.get("luc"), "dang": bool(d.get("dang")), "loi": "Máy shop chưa cập nhật được kho" if d.get("loi") and not d.get("may") else "",   # lỗi lần sau: máy con vẫn xem bản cũ
             "may": [{k: x.get(k) for k in ("kenh", "ten", "so", "gia", "moi")} for x in d.get("may") or []],
             "ds": [{k: x.get(k) for k in ("kenh", "may", "gia", "chu_de", "ly_do", "moi")} for x in d.get("ds") or []], "khach": True,
-            "link": d.get("link") or {}}
+            "link": d.get("link") or {}}      # (không gửi hồ sơ Chrome máy shop cho máy con)
 
 
 def goi_y_xong(jid):
@@ -2486,7 +2492,11 @@ def kho_web_bat():
         raise ValueError("Chưa lưu link kho: bấm 🔗 Link kho, dán link trang kho Polysto")
     KHO_WEB.clear()
     KHO_WEB.update(tok=uuid.uuid4().hex[:16], ds=ds, i=0, rows=[], bat=now(), cot=[])
-    _kho_web_mo()
+    try:
+        _kho_web_mo()
+    except Exception:
+        KHO_WEB["tok"] = None
+        raise
     cu = read_json(GOI_Y_FILE, {}) or {}
     cu.pop("web_may", None)
     write_json(GOI_Y_FILE, dict(cu, dang=True, jid=None, web=True, bat=now(), loi="", buoc="Đang mở trang kho trên Chrome, đọc bảng máy… (dưới 1 phút)"))
@@ -2495,9 +2505,27 @@ def kho_web_bat():
     return goi_y_doc()
 
 
+def kho_hs():
+    """Hồ sơ Chrome đọc kho (fen 15/11 14h35: Chrome tự chọn hồ sơ mở gần nhất thì có khi mở nhầm hồ sơ không có tiện ích / chưa đăng nhập POLY):
+    config kho_hs (chọn ở 🔗 Link kho), chưa chọn thì hồ sơ đăng TikTok iPad; cả 2 chưa chọn = None (bắt chọn)."""
+    ds = [x["dir"] for x in chrome_ho_so()]
+    for hs in (CFG.get("kho_hs"), CFG.get("chrome_profile")):
+        if hs and (hs in ds or not ds):
+            return hs
+    return None
+
+
 def _kho_web_mo():
     """Mở trang nhỏ /kho-mo của app trong Chrome trước (tiện ích có bản mới trong thư mục thì tự nạp lại ở đây), rồi trang đó chuyển sang link kho."""
-    mo_chrome("http://127.0.0.1:%d/kho-mo?tok=%s" % (CFG["port"], KHO_WEB["tok"]), "ipad")
+    ch, hs = tim_chrome(), kho_hs()
+    if not ch:
+        raise ValueError("Không thấy Chrome trên máy. Mở Kiểm máy > Đăng TikTok, dán đường dẫn chrome.exe.")
+    if not hs:
+        raise ValueError("CHON_HS|Chọn hồ sơ Chrome đã đăng nhập POLY (🔗 Link kho → Hồ sơ Chrome) rồi bấm Cập nhật kho lại")
+    url = "http://127.0.0.1:%d/kho-mo?tok=%s" % (CFG["port"], KHO_WEB["tok"])
+    if IS_MAC:
+        return mac_mo_chrome(ch, url, hs)
+    subprocess.Popen([ch, "--profile-directory=" + hs, url], creationflags=CREATE_NO_WINDOW if IS_WIN else 0)
 
 
 def kho_mo_trang(tok):
@@ -2531,7 +2559,9 @@ def kho_web_nhan(data):
         KHO_WEB["tok"] = None
         ly = ("Chrome chưa đăng nhập POLY: fen đăng nhập ở tab Polysto vừa mở trên Chrome (hồ sơ Chrome iPad) rồi bấm 🔄 Cập nhật kho lại"
               if tt == "dang-nhap" else
-              "Chrome hồ sơ iPad chưa có tiện ích Poly TikTok nên chưa đọc được kho" if tt == "chua-tien-ich" else
+              ("Chrome hồ sơ «%s» chưa chạy tiện ích Poly TikTok trên trang app nên chưa đọc được kho: chọn đúng hồ sơ (có tiện ích + đã đăng nhập POLY) "
+               "ở 🔗 Link kho, hoặc cài / bật tiện ích trong hồ sơ này" % next((x["ten"] for x in chrome_ho_so() if x["dir"] == kho_hs()), kho_hs() or "?"))
+              if tt == "chua-tien-ich" else
               "Không thấy bảng máy trên trang kho (cột thấy: %s). Kiểm link kho đúng trang danh sách máy" % (", ".join(cot) or "không có"))
         cu = read_json(GOI_Y_FILE, {}) or {}
         cu.update(dang=False, loi=ly, loi_t=now(), buoc="")
@@ -2674,6 +2704,11 @@ def goi_y_cai(data):
             lk[k] = v
         save_cfg_keys({"kho_link": lk})
         log("kho link luu: %s" % ", ".join("%s=%s" % (k, short(v, 80)) for k, v in lk.items()))
+    if "hs" in data:            # hồ sơ Chrome đọc kho
+        hs = str(data.get("hs") or "")
+        if hs and hs not in [x["dir"] for x in chrome_ho_so()]:
+            raise ValueError("Không thấy hồ sơ Chrome này")
+        save_cfg_keys({"kho_hs": hs})
     if data.get("cach") in ("web", "poly"):        # cách đọc kho: web = Chrome đã đăng nhập mở link kho (mặc định, fen 15/11 13h49); poly = connector POLY
         save_cfg_keys({"kho_cach": data["cach"]})
     if data.get("quet"):

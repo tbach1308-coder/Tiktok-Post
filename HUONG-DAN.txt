@@ -138,6 +138,8 @@ LẤY MÁY + GIÁ TỪ KHO POLYSTO (Ô KHO, 9/11)
   Chrome (hồ sơ đăng TikTok iPad) mở link kho, tiện ích Poly TikTok đợi bảng hiện, chỉ chép tên máy · cấu hình · tình trạng · giá bán
   (không mã, giá nhập / vốn, khách, ngày), tự sang trang sau, gửi về app rồi đóng tab; app gom theo dòng máy rồi Claude gợi ý chủ đề.
   Chrome chưa đăng nhập POLY: tab đăng nhập để nguyên, fen tự đăng nhập (mật khẩu + mã PIN) rồi bấm Cập nhật kho lại.
+  Ô "Hồ sơ Chrome đã đăng nhập POLY" (🔗 Link kho, 15/11 14h55): chọn đúng hồ sơ Chrome có tiện ích Poly TikTok + đã đăng nhập POLY.
+  Chưa chọn thì dùng hồ sơ đăng TikTok iPad; hồ sơ đó cũng chưa chọn thì app nhắc chọn (không để Chrome tự mở hồ sơ bất kỳ).
   Viết brief có ô 📦 Kho cũng dùng danh sách kho vừa đọc (14 ngày). Chọn "Connector POLY của tài khoản Claude" nếu muốn Claude tự đọc qua POLY.
   Nút "Cả kho" ở ô 📦 Kho điền link đã lưu của kênh đang chọn. Không còn tự cập nhật mỗi sáng: chỉ đọc kho khi fen bấm.
   Máy con (máy dùng chung): chỉ máy shop cần nối POLY; máy con thấy bản kho máy shop cập nhật gần nhất (ghi "(máy shop)"), không có nút
