@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Poly TikTok",
-  "version": "0.12.0",
-  "description": "App Poly Dựng Bài bấm Đăng TikTok là tiện ích này mở tab Ảnh, gắn sẵn slide + caption vào TikTok Studio (máy shop, hoặc máy dùng chung qua đường nối của máy shop). Fen tự kiểm và tự bấm Đăng (tiện ích không bao giờ bấm Đăng).",
+  "version": "0.13.0",
+  "description": "App Poly Dựng Bài bấm Đăng TikTok là tiện ích này mở tab Ảnh, gắn sẵn slide + caption vào TikTok Studio (máy shop, hoặc máy dùng chung qua đường nối của máy shop). Fen tự kiểm và tự bấm Đăng (tiện ích không bao giờ bấm Đăng). 0.13: bấm 🔄 Cập nhật kho trong app thì đọc trang kho Polysto (chỉ tên máy, cấu hình, giá bán) rồi đóng tab.",
   "minimum_chrome_version": "111",
   "permissions": [
     "storage"
@@ -10,7 +10,8 @@
   "host_permissions": [
     "https://www.tiktok.com/*",
     "http://127.0.0.1:8777/*",
-    "https://*.trycloudflare.com/*"
+    "https://*.trycloudflare.com/*",
+    "https://app.polystorevn.com/*"
   ],
   "background": {
     "service_worker": "background.js"
@@ -33,6 +34,15 @@
       ],
       "js": [
         "app.js"
+      ],
+      "run_at": "document_start"
+    },
+    {
+      "matches": [
+        "https://app.polystorevn.com/*"
+      ],
+      "js": [
+        "kho.js"
       ],
       "run_at": "document_start"
     }

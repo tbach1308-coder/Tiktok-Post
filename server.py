@@ -2343,6 +2343,7 @@ def _goi_y_khoa(ten):
 
 
 def goi_y_doc():
+    kho_web_het_gio()
     d = read_json(GOI_Y_FILE, {}) or {}
     jid = d.get("jid")
     if jid and d.get("dang"):
@@ -2358,6 +2359,7 @@ def goi_y_doc():
         x["moi"] = bool(t and t >= moi_t)
     d["ds"] = sorted(d.get("ds") or [], key=lambda x: not x.get("moi"))
     d["link"] = kho_link_ds()
+    d["cach"] = CFG.get("kho_cach") or "web"
     d["co_poly"] = True
     return d
 
@@ -2408,6 +2410,8 @@ def goi_y_xong(jid):
     kenh_ok = lambda k: k if k in CFG["kenh"] else "laptop"
     may = [{"kenh": kenh_ok(x.get("kenh")), "ten": s_(x.get("ten")), "so": x.get("so") if isinstance(x.get("so"), int) else None, "gia": s_(x.get("gia"), 40)}
            for x in (kq.get("may") or []) if isinstance(x, dict) and x.get("ten")][:200]
+    if cu.get("web_may"):           # đọc kho qua Chrome: danh sách máy do app gom từ bảng kho (đúng số, đúng giá), Claude chỉ gợi ý
+        may = cu["web_may"][:300]
     ds = [{"kenh": kenh_ok(x.get("kenh")), "may": s_(x.get("may")), "gia": s_(x.get("gia"), 40), "chu_de": s_(x.get("chu_de"), 160), "ly_do": s_(x.get("ly_do"), 100)}
           for x in (kq.get("goi_y") or []) if isinstance(x, dict) and x.get("chu_de")][:15]
     snap = read_json(KHO_SNAP, {}) or {}
@@ -2417,15 +2421,205 @@ def goi_y_xong(jid):
         if k and k not in snap:
             snap[k] = 0 if dau else int(now())
     write_json(KHO_SNAP, snap)
-    write_json(GOI_Y_FILE, {"luc": now(), "jid": jid, "dang": False, "loi": "", "may": may, "ds": ds, "lan_dau": dau})
+    write_json(GOI_Y_FILE, {"luc": now(), "jid": jid, "dang": False, "loi": "", "may": may, "ds": ds, "lan_dau": dau, "web": bool(cu.get("web_may"))})
     if may:
         poly_ghi_tt("noi", "quét gợi ý kho")
     log("goi y kho: %d dong may, %d goi y" % (len(may), len(ds)))
 
 
-def goi_y_quet():
+# ---- 🌐 Đọc kho qua Chrome (fen 15/11 13h49 "https://app.polystorevn.com/kho-may đọc qua link này là dc mầ", chọn "Đọc link qua
+# Chrome đã đăng nhập"): trang kho cần đăng nhập (Mật khẩu + Mã PIN) nên app mở link kho đã lưu (🔗 Link kho) trong Chrome máy shop
+# (hồ sơ Chrome iPad), tiện ích Poly TikTok (kho.js) đợi bảng hiện, CHỈ chép cột tên / cấu hình / tình trạng / giá bán (bỏ giá vốn,
+# seri, khách, nhân viên…) rồi gửi về POST /api/kho-web (chỉ tiện ích trên chính máy này, đúng mã lượt) và đóng tab. App gom theo dòng máy
+# (tên · số máy · giá bán), ghi kho-web.json, rồi 1 lượt Claude (không công cụ) gợi ý chủ đề từ danh sách đó. Chrome chưa đăng nhập:
+# tiện ích báo về, tab để nguyên cho fen tự đăng nhập. Chỉ chạy khi fen bấm 🔄 Cập nhật kho / Kiểm lại.
+KHO_WEB_F = os.path.join(APP, "kho-web.json")
+KHO_WEB = {"tok": None}
+KHO_LAP = re.compile(r"dell|thinkpad|lenovo|legion|asus|rog|zenbook|vivobook|hp\b|elitebook|probook|omen|victus|msi|acer|predator|macbook|"
+                     r"surface|lg gram|gram|razer|laptop|latitude|precision|xps|inspiron|vostro|zbook|yoga|ideapad", re.I)
+
+
+def _kho_so(v):
+    d = re.sub(r"[^\d]", "", str(v or ""))
+    return int(d) if d and 5 <= len(d) <= 10 else None
+
+
+def _kho_tien(v):
+    if v >= 1000000:            # 12.900.000 → "12,9 triệu", 13.990.000 → "13,99 triệu" (không làm tròn mất số)
+        t = ("%.3f" % (v / 1e6)).rstrip("0").rstrip(".").replace(".", ",")
+        return t + " triệu"
+    return "{:,}".format(v).replace(",", ".") + "đ"
+
+
+def kho_web_gom(rows, k_mac):
+    """rows: [{"ten", "gia", "them"}] → [{kenh, ten, so, gia}] gom theo tên (+ cấu hình), giá thấp nhất–cao nhất."""
+    nhom = collections.OrderedDict()
+    for r in rows:
+        ten = re.sub(r"\s+", " ", " ".join(x for x in (r.get("ten"), r.get("them")) if x)).strip()[:120]
+        if not ten:
+            continue
+        kenh = k_mac if k_mac in ("laptop", "ipad") else ("ipad" if re.search(r"ipad", ten, re.I) else "laptop" if KHO_LAP.search(ten) else "")
+        if not kenh:
+            continue
+        g = nhom.setdefault((kenh, ten.lower()), {"kenh": kenh, "ten": ten, "so": 0, "gia": []})
+        g["so"] += 1
+        v = _kho_so(r.get("gia"))
+        if v:
+            g["gia"].append(v)
+    out = []
+    for g in nhom.values():
+        gs = sorted(set(g["gia"]))
+        gia = "" if not gs else _kho_tien(gs[0]) if len(gs) == 1 else "%s–%s" % (_kho_tien(gs[0]).replace(" triệu", ""), _kho_tien(gs[-1]))
+        out.append({"kenh": g["kenh"], "ten": g["ten"], "so": g["so"], "gia": gia})
+    return out[:300]
+
+
+def kho_web_bat():
+    """Bấm Cập nhật kho: mở link kho trong Chrome, chờ tiện ích gửi bảng về."""
+    lk = kho_link_ds()
+    ds = []
+    if lk["laptop"] and lk["ipad"] and lk["laptop"] != lk["ipad"]:
+        ds = [("laptop", lk["laptop"]), ("ipad", lk["ipad"])]
+    elif lk["laptop"] or lk["ipad"]:
+        ds = [("ca", lk["laptop"] or lk["ipad"])]
+    if not ds:
+        raise ValueError("Chưa lưu link kho: bấm 🔗 Link kho, dán link trang kho Polysto")
+    KHO_WEB.clear()
+    KHO_WEB.update(tok=uuid.uuid4().hex[:16], ds=ds, i=0, rows=[], bat=now(), cot=[])
+    _kho_web_mo()
     cu = read_json(GOI_Y_FILE, {}) or {}
-    if cu.get("dang") and cu.get("jid"):
+    cu.pop("web_may", None)
+    write_json(GOI_Y_FILE, dict(cu, dang=True, jid=None, web=True, bat=now(), loi="", buoc="Đang mở trang kho trên Chrome, đọc bảng máy… (dưới 1 phút)"))
+    poly_ghi_tt("dang", "đọc web")
+    log("kho web: mo %s" % ", ".join("%s=%s" % (k, short(u, 70)) for k, u in ds))
+    return goi_y_doc()
+
+
+def _kho_web_mo():
+    """Mở trang nhỏ /kho-mo của app trong Chrome trước (tiện ích có bản mới trong thư mục thì tự nạp lại ở đây), rồi trang đó chuyển sang link kho."""
+    mo_chrome("http://127.0.0.1:%d/kho-mo?tok=%s" % (CFG["port"], KHO_WEB["tok"]), "ipad")
+
+
+def kho_mo_trang(tok):
+    if not KHO_WEB.get("tok") or tok != KHO_WEB["tok"]:
+        return "<!doctype html><meta charset=utf-8><p style='font:15px system-ui;padding:30px'>Lượt đọc kho này hết hạn. Trong app bấm lại 🔄 Cập nhật kho.</p>"
+    k, u = KHO_WEB["ds"][KHO_WEB["i"]]
+    u = u.split("#")[0] + "#poly_kho=%s&k=%s" % (KHO_WEB["tok"], k)
+    return """<!doctype html><meta charset="utf-8"><title>Poly · mở kho</title>
+<body style="font:15px system-ui;padding:30px;background:#111;color:#eee"><p id="t">Poly Dựng Bài đang mở trang kho Polysto (chỉ đọc tên máy + giá bán)…</p>
+<script>
+const U = %s, TOK = %s; let nap = false;
+addEventListener('message', e => { if (e.source === window && e.data && e.data.polyTiktokNap) nap = true; });
+setTimeout(() => {
+  if (!document.documentElement.dataset.polyTiktok) {
+    document.getElementById('t').textContent = 'Chrome này chưa có tiện ích Poly TikTok nên chưa đọc được kho. Mở Chrome hồ sơ đăng TikTok iPad (đã cài tiện ích) rồi bấm lại Cập nhật kho.';
+    fetch('/api/kho-web', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tok: TOK, tt: 'chua-tien-ich' }) });
+    return;
+  }
+  setTimeout(() => location.replace(U), nap ? 2500 : 200);
+}, 1500);
+</script>""" % (json.dumps(u), json.dumps(KHO_WEB["tok"]))
+
+
+def kho_web_nhan(data):
+    """POST /api/kho-web (tiện ích): {tok, k, tt: "ok" | "dang-nhap" | "khong-thay", cot, chon, rows: [{ten, gia, them}], trang}."""
+    if not KHO_WEB.get("tok") or data.get("tok") != KHO_WEB["tok"]:
+        raise ValueError("Mã đọc kho hết hạn: trong app bấm lại 🔄 Cập nhật kho")
+    cot = [short(str(x), 40) for x in (data.get("cot") or [])][:30]
+    tt = data.get("tt")
+    if tt != "ok":
+        KHO_WEB["tok"] = None
+        ly = ("Chrome chưa đăng nhập POLY: fen đăng nhập ở tab Polysto vừa mở trên Chrome (hồ sơ Chrome iPad) rồi bấm 🔄 Cập nhật kho lại"
+              if tt == "dang-nhap" else
+              "Chrome hồ sơ iPad chưa có tiện ích Poly TikTok nên chưa đọc được kho" if tt == "chua-tien-ich" else
+              "Không thấy bảng máy trên trang kho (cột thấy: %s). Kiểm link kho đúng trang danh sách máy" % (", ".join(cot) or "không có"))
+        cu = read_json(GOI_Y_FILE, {}) or {}
+        cu.update(dang=False, loi=ly, loi_t=now(), buoc="")
+        write_json(GOI_Y_FILE, cu)
+        poly_ghi_tt("chua" if tt == "dang-nhap" else "loi", "đọc web", ly)
+        log("kho web: %s (cot: %s)" % (tt, ", ".join(cot)))
+        return {"ok": True, "dong": tt != "dang-nhap"}
+    rows = [{"ten": short(str(r.get("ten") or ""), 120), "gia": short(str(r.get("gia") or ""), 30), "them": short(str(r.get("them") or ""), 80)}
+            for r in (data.get("rows") or [])[:3000] if isinstance(r, dict)]
+    k = KHO_WEB["ds"][KHO_WEB["i"]][0]
+    KHO_WEB["rows"] += kho_web_gom(rows, k)
+    KHO_WEB["cot"] = cot
+    log("kho web: nhan %s %d dong (%s trang, cot: %s; chon: %s)" % (k, len(rows), data.get("trang") or 1, ", ".join(cot), json.dumps(data.get("chon") or {}, ensure_ascii=False)))
+    KHO_WEB["i"] += 1
+    if KHO_WEB["i"] < len(KHO_WEB["ds"]):
+        _kho_web_mo()
+        return {"ok": True, "dong": True}
+    KHO_WEB["tok"] = None
+    may = KHO_WEB["rows"]
+    if not may:
+        cu = read_json(GOI_Y_FILE, {}) or {}
+        cu.update(dang=False, loi="Đọc được trang kho nhưng không ra dòng máy nào (cột: %s)" % (", ".join(cot) or "?"), loi_t=now(), buoc="")
+        write_json(GOI_Y_FILE, cu)
+        poly_ghi_tt("loi", "đọc web", "bảng kho trống")
+        return {"ok": True, "dong": True}
+    write_json(KHO_WEB_F, {"luc": now(), "may": may, "cot": cot})
+    poly_ghi_tt("noi", "đọc web", "%d dòng máy" % len(may))
+    threading.Thread(target=_kho_web_goi_y, args=(may,), daemon=True).start()
+    return {"ok": True, "dong": True}
+
+
+def kho_web_ds(kenh=None, n=150):
+    d = read_json(KHO_WEB_F, {}) or {}
+    ds = [x for x in d.get("may") or [] if not kenh or x.get("kenh") == kenh]
+    return d.get("luc"), "\n".join("- %s · %s máy%s" % (x["ten"], x.get("so") or 1, " · " + x["gia"] if x.get("gia") else "") for x in ds[:n])
+
+
+def _kho_web_goi_y(may):
+    try:
+        cu = read_json(GOI_Y_FILE, {}) or {}
+        write_json(GOI_Y_FILE, dict(cu, web_may=may, buoc="Đã đọc %d dòng máy, Claude đang gợi ý chủ đề… (1–2 phút)" % len(may)))
+        goi_y_quet(web=True)
+    except Exception as e:
+        cu = read_json(GOI_Y_FILE, {}) or {}
+        cu.update(dang=False, loi=short("Đã đọc kho nhưng chưa gợi ý được: %s" % e, 200), loi_t=now(), buoc="")
+        write_json(GOI_Y_FILE, cu)
+
+
+def kho_web_het_gio():
+    """Đang chờ Chrome mà quá 3 phút không thấy gửi về: báo lỗi (tiện ích chưa nạp bản mới, Chrome không mở, trang treo)."""
+    cu = read_json(GOI_Y_FILE, {}) or {}
+    if cu.get("dang") and cu.get("web") and not cu.get("jid") and not cu.get("web_may") and now() - (cu.get("bat") or 0) > 180:
+        KHO_WEB["tok"] = None
+        ly = ("Chrome chưa gửi kho về sau 3 phút: kiểm Chrome có mở trang kho không, đã đăng nhập POLY chưa; tiện ích Poly TikTok "
+              "tự nạp bản mới khi mở trang app trong Chrome")
+        cu.update(dang=False, loi=ly, loi_t=now(), buoc="")
+        write_json(GOI_Y_FILE, cu)
+        poly_ghi_tt("loi", "đọc web", ly)
+
+
+GOI_Y_WEB_LENH = """GỢI Ý BÀI TỪ HÀNG TRONG KHO POLYSTO (kho app vừa đọc từ trang web Polysto lúc %(luc)s). KHÔNG dùng công cụ nào: chỉ dựa trên danh sách dưới. Hôm nay %(ngay)s.
+
+Máy còn trong kho kênh Laptop (tên · số máy · giá bán):
+%(laptop)s
+
+Máy còn trong kho kênh iPad (tên · số máy · giá bán):
+%(ipad)s
+
+Bài shop đã làm 45 ngày qua (tránh trùng chủ đề / trùng máy):
+%(bai)s
+
+Gợi ý 6–12 bài (cả 2 kênh): ưu tiên dòng máy nhiều hàng, giá tốt, CHƯA có bài 45 ngày qua. Mỗi gợi ý: kênh (laptop / ipad), máy (đúng tên trong danh sách, có thể rút gọn), giá (đúng như danh sách), chủ đề bài 1 câu kiểu chủ đề fen hay gõ (vd "Dell 7420 i7: laptop văn phòng bền nhất tầm 13 triệu?", "iPad Air 5 hay Air 4 cho sinh viên?"), lý do ngắn (vd "6 máy, chưa có bài"). KHÔNG ghi seri, giá vốn, tên khách.
+
+Câu trả lời cuối cùng: đúng 1 dòng bắt đầu bằng GOI_Y_JSON rồi 1 khoảng trắng rồi JSON 1 dòng:
+{"goi_y": [{"kenh": "laptop", "may": "...", "gia": "...", "chu_de": "...", "ly_do": "..."}]}
+Danh sách trống hết: 1 dòng GOI_Y_LOI <lý do ngắn>."""
+
+
+def goi_y_quet(web=False):
+    """Bấm 🔄 Cập nhật kho. Cách đọc kho (fen 15/11 13h49): mặc định "web" = mở link kho trong Chrome (kho_web_bat), xong mới gọi lại
+    với web=True để Claude gợi ý từ danh sách; "poly" (config kho_cach) = Claude đọc qua connector POLY như cũ."""
+    if not web and (CFG.get("kho_cach") or "web") == "web":
+        cu = read_json(GOI_Y_FILE, {}) or {}
+        if cu.get("dang") and cu.get("web") and now() - (cu.get("bat") or 0) < 180:
+            return goi_y_doc()
+        return kho_web_bat()
+    cu = read_json(GOI_Y_FILE, {}) or {}
+    if not web and cu.get("dang") and cu.get("jid"):
         goi_y_xong(cu["jid"])
         cu = read_json(GOI_Y_FILE, {}) or {}
         if cu.get("dang") and now() - (cu.get("bat") or 0) < 900:
@@ -2449,12 +2643,17 @@ def goi_y_quet():
             + link) if link else ""
     prompt = GOI_Y_LENH % {"ngay": time.strftime("%d/%m/%Y"), "laptop": KHO_HANG["laptop"], "ipad": KHO_HANG["ipad"], "bai": "\n".join(bai[:150]) or "(chưa có)",
                            "link": link}
+    if web:
+        luc, lap = kho_web_ds("laptop")
+        _, ipad = kho_web_ds("ipad")
+        prompt = GOI_Y_WEB_LENH % {"ngay": time.strftime("%d/%m/%Y"), "luc": time.strftime("%H:%M %d/%m", time.localtime(luc or now())),
+                                   "laptop": lap or "(không có)", "ipad": ipad or "(không có)", "bai": "\n".join(bai[:150]) or "(chưa có)"}
     job = {"id": jid, "kenh": "laptop", "loai": "goi-y", "tieu_de": "Gợi ý bài từ kho", "brief": "", "created": now(), "status": "moi", "runs": []}
     with LOCK:
         save_job(job)
         start_run(job, prompt, "goi-y", None, "Gợi ý từ kho", model=model_viec("model_goi_y") or "sonnet")
-    write_json(GOI_Y_FILE, dict(cu, dang=True, jid=jid, bat=now(), loi=""))
-    log("goi y kho: quet %s" % jid)
+    write_json(GOI_Y_FILE, dict(cu, dang=True, jid=jid, bat=now(), loi="", web=bool(web)))
+    log("goi y kho: quet %s%s" % (jid, " (tu web)" if web else ""))
     return goi_y_doc()
 
 
@@ -2475,6 +2674,8 @@ def goi_y_cai(data):
             lk[k] = v
         save_cfg_keys({"kho_link": lk})
         log("kho link luu: %s" % ", ".join("%s=%s" % (k, short(v, 80)) for k, v in lk.items()))
+    if data.get("cach") in ("web", "poly"):        # cách đọc kho: web = Chrome đã đăng nhập mở link kho (mặc định, fen 15/11 13h49); poly = connector POLY
+        save_cfg_keys({"kho_cach": data["cach"]})
     if data.get("quet"):
         return goi_y_quet()
     return goi_y_doc()
@@ -2567,7 +2768,18 @@ Cách đọc kho: connector POLY của tài khoản Claude, CHỈ 2 công cụ �
 - Link cả kho (%s) hay chỉ nói "kho": tim_may lần lượt theo hãng / dòng của kênh (%s), gom các dòng "Máy …" còn hàng, chọn máy hợp chủ đề, rồi du_lieu_may từng máy chọn.
 - Brief chỉ dùng số có trong du_lieu_may; giá bán ghi đúng số kho (vd 38.800.000đ hoặc 38,8 triệu), không làm tròn khác đi. Không ghi seri, không lấy giá vốn, tên khách / nhân viên; không dùng công cụ POLY nào khác (không ghi, không sửa, không đăng gì trong Polysto).
 - Không đọc được kho: không bịa máy, không đổi máy trong brief; câu trả lời cuối nói "Chưa đọc được kho (Claude trên máy này chưa nạp được POLY), fen thử lại sau ít phút"."""  % (
-        KHO_LINK, KHO_HANG.get(kenh) or KHO_HANG["laptop"])
+        KHO_LINK, KHO_HANG.get(kenh) or KHO_HANG["laptop"]) + kho_web_khoi(kenh)
+
+
+def kho_web_khoi(kenh):
+    """Danh sách kho app đọc từ trang web (🔄 Cập nhật kho qua Chrome) cho Viết brief: nguồn chính khi POLY chưa nối."""
+    luc, ds = kho_web_ds(kenh)
+    if not ds or not luc or now() - luc > 14 * 86400:
+        return ""
+    return ("\nKHO ĐỌC TỪ TRANG WEB POLYSTO (app chép lúc %s, chỉ tên máy · số máy · giá bán) kênh này:\n%s\n"
+            "Danh sách này là nguồn chính: chọn máy hợp chủ đề / ô Kho từ đây, giá bán ghi đúng như danh sách. POLY có thì dùng thêm để lấy "
+            "cấu hình chi tiết; POLY không có thì KHÔNG báo \"chưa đọc được kho\", dùng danh sách này." % (
+                time.strftime("%H:%M %d/%m", time.localtime(luc)), ds))
 
 
 def _anh_chat_cu(kenh, ls):
@@ -3382,6 +3594,9 @@ def poly_ghi_tt(tt, nguon, ghi="", t=None):
 
 def poly_tt(data=None):
     """GET: trạng thái kho Polysto. POST {kiem: true}: chạy 1 lượt Claude rất ngắn (haiku) gọi thử tim_may."""
+    if data and data.get("kiem") and (CFG.get("kho_cach") or "web") == "web":      # đọc kho qua Chrome: Kiểm lại = Cập nhật kho
+        goi_y_quet()
+        return dict(POLY_TT, cach="web")
     if data and data.get("kiem"):
         if POLY_TT.get("tt") == "dang" and now() - POLY_TT.get("t", 0) < 200:
             return dict(POLY_TT)
@@ -3390,7 +3605,11 @@ def poly_tt(data=None):
             raise ValueError("Không tìm thấy Claude Code trên máy. Bấm Kiểm lại ở góc trên.")
         poly_ghi_tt("dang", "kiểm")
         threading.Thread(target=_poly_kiem_chay, args=(cmd,), daemon=True).start()
-    return dict(POLY_TT)
+    if POLY_TT.get("tt") == "dang" and POLY_TT.get("nguon") == "đọc web":
+        kho_web_het_gio()
+        if POLY_TT.get("tt") == "dang" and now() - POLY_TT.get("t", 0) > 600:
+            poly_ghi_tt("loi", "đọc web", "lượt đọc kho bị ngắt (app khởi động lại?)")
+    return dict(POLY_TT, cach=CFG.get("kho_cach") or "web")
 
 
 def _poly_kiem_chay(cmd):
@@ -7383,8 +7602,8 @@ CHUNG = {"srv": None, "pid": 0, "pid_t": 0, "url": "", "loi": "", "dang": "", "m
 CHUNG_KHOA = threading.Lock()
 CHUNG_DIR = os.path.join(APP, "_cf")
 CHUNG_MA_HAN = 900
-CHUNG_CAM = {"GET": (r"/api/chung", r"/api/chung/may", r"/api/bai-co-san", r"/api/thong-ke", r"/api/poly-tt"),
-             "POST": (r"/api/tat", r"/api/login", r"/api/thong-ke", r"/api/goi-y", r"/api/poly-tt", r"/api/cai-claude", r"/api/chung", r"/api/tiktok-(soi|dang|nhac)", r"/api/quy-tac", r"/api/tg-lenh",
+CHUNG_CAM = {"GET": (r"/api/chung", r"/api/chung/may", r"/api/bai-co-san", r"/api/thong-ke", r"/api/poly-tt", r"/kho-mo"),
+             "POST": (r"/api/tat", r"/api/login", r"/api/thong-ke", r"/api/goi-y", r"/api/poly-tt", r"/api/kho-web", r"/api/cai-claude", r"/api/chung", r"/api/tiktok-(soi|dang|nhac)", r"/api/quy-tac", r"/api/tg-lenh",
                       r"/api/job/[\w-]+/(mo|tiktok)", r"/api/bai-co-san")}
 CHUNG_TM = {}       # mã máy -> (lúc, [thư mục bài của máy đó]) để kiểm /file nhanh
 
@@ -8630,7 +8849,7 @@ class H(BaseHTTPRequestHandler):
                 re.match(r"^/(api/tiktok/[\w-]+|file)(\?|$)", self.path):
             return True
         # ... và gửi cấu trúc trang TikTok (tên nút, tab, ô nhập) để Claude soi giao diện thật
-        if origin and origin.startswith("chrome-extension://") and self.command == "POST" and self.path in ("/api/tiktok-soi", "/api/tiktok-nhac", "/api/tiktok-dang"):
+        if origin and origin.startswith("chrome-extension://") and self.command == "POST" and self.path in ("/api/tiktok-soi", "/api/tiktok-nhac", "/api/tiktok-dang", "/api/kho-web"):
             return True
         if origin and not re.match(r"^http://(127\.0\.0\.1|localhost):%d$" % CFG["port"], origin):
             self.send(403, {"err": "origin lạ"})
@@ -8670,6 +8889,8 @@ class H(BaseHTTPRequestHandler):
                 return self.send(200, b, kieu, {"Content-Disposition": 'attachment; filename="%s"' % ten})
             if u.path == "/tai":
                 return self.send(200, chung_trang_tai(), "text/html; charset=utf-8")
+            if u.path == "/kho-mo":       # 🌐 đọc kho qua Chrome: trang trung gian (fen 15/11 13h49)
+                return self.send(200, kho_mo_trang((q.get("tok") or [""])[0]).encode("utf-8"), "text/html; charset=utf-8")
             if u.path == "/tai-tien-ich":
                 b, ten = tien_ich_zip()
                 return self.send(200, b, "application/zip", {"Content-Disposition": 'attachment; filename="%s"' % ten})
@@ -8843,6 +9064,8 @@ class H(BaseHTTPRequestHandler):
                 return self.send(200, {"ok": True})
             if u.path == "/api/tiktok-soi":
                 return self.send(200, tiktok_soi(data))
+            if u.path == "/api/kho-web":       # tiện ích Poly TikTok gửi bảng kho đọc trên Chrome (fen 15/11 13h49)
+                return self.send(200, kho_web_nhan(data))
             if u.path == "/api/tiktok-dang":
                 return self.send(200, tiktok_dang(data))
             if u.path == "/api/tiktok-nhac":

@@ -11,6 +11,7 @@ const rm = f => { try { fs.renameSync(f, '/tmp/_bo_' + Date.now() + '_' + f.spli
 const cho = async () => { for (let i = 0; i < 40; i++) { const r = await j(A + '/api/goi-y'); if (!r.b.dang) return r.b; await new Promise(x => setTimeout(x, 500)); } return null; };
 (async () => {
   [T + '/goi-y-kho.json', T + '/kho-snap.json', T + '/FAKE_KHO2', T + '/FAKE_KHO_LOI'].forEach(rm);
+  await j(A + '/api/goi-y', { cach: 'poly', link: { laptop: 'https://app.polystorevn.com/kho-may', ipad: '' } });   // test này thử cách connector POLY (cách Chrome: khoweb.js)
   let r = await j(A + '/api/goi-y');
   check('chưa quét: không có gợi ý, link kho mặc định Laptop = kho-may, iPad trống', r.s === 200 && !(r.b.ds || []).length && r.b.link.laptop === 'https://app.polystorevn.com/kho-may' && r.b.link.ipad === '' && !('tu' in r.b), r.b);
   // --- giao diện trước khi quét
@@ -85,5 +86,6 @@ const cho = async () => { for (let i = 0; i < 40; i++) { const r = await j(A + '
   await p.screenshot({ path: 'shots/goi-y-kho.png' });
   check('không lỗi JS', errs.length === 0, errs);
   rm(T + '/FAKE_KHO2'); await b.close(); await j(A + '/api/chung', { bat: false });
+  await j(A + '/api/goi-y', { cach: 'web' });
   console.log(`\n${ok} đạt, ${bad} lỗi`); process.exit(bad ? 1 : 0);
 })().catch(e => { console.error(e); process.exit(1); });

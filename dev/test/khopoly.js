@@ -11,6 +11,7 @@ const rm = f => { try { fs.renameSync(f, '/tmp/_bo_' + Date.now() + '_' + f.spli
 const cho = async () => { for (let i = 0; i < 40; i++) { const r = await j(A + '/api/poly-tt'); if (r.b.tt !== 'dang') return r.b; await new Promise(x => setTimeout(x, 500)); } return null; };
 (async () => {
   [T + '/poly-tt.json', T + '/FAKE_POLY_CHUA'].forEach(rm);
+  await j(A + '/api/goi-y', { cach: 'poly' });   // test này thử cách connector POLY (cách Chrome: khoweb.js)
   const b = await chromium.launch({ args: ['--host-resolver-rules=MAP poly-thu.example 127.0.0.1:8791'] }); const errs = [];
   const p = await b.newPage({ viewport: { width: 1440, height: 900 } }); p.on('pageerror', e => errs.push(e.message));
   await p.goto(A + '/#moi'); await p.waitForTimeout(800);
@@ -51,5 +52,6 @@ const cho = async () => { for (let i = 0; i < 40; i++) { const r = await j(A + '
   check('máy dùng chung: không thấy chip Kho Poly', await g.evaluate(() => getComputedStyle($('#bPoly')).display === 'none'));
   check('không lỗi JS', errs.length === 0, errs);
   await b.close(); await j(A + '/api/chung', { bat: false });
+  await j(A + '/api/goi-y', { cach: 'web' });
   console.log(`\n${ok} đạt, ${bad} lỗi`); process.exit(bad ? 1 : 0);
 })().catch(e => { console.error(e); process.exit(1); });

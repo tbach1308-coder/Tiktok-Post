@@ -66,6 +66,13 @@ chrome.runtime.onMessage.addListener((msg, sender, send) => {
     if (sender.tab) chrome.storage.session.set({ ['dang' + sender.tab.id]: { id: msg.id, t: Date.now(), lich: msg.lich || 0, brand: msg.brand } }).then(() => send({ ok: true }));
     return true;
   }
+  if (msg.poly === 'kho') {   // 0.13 kho.js đọc xong bảng kho Polysto: gửi app (chỉ app trên chính máy này), app bảo đóng tab thì đóng
+    fetch(APP + '/api/kho-web', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(msg.data || {}) })
+      .then(r => r.json().catch(() => ({})))
+      .then(d => { send(d); if (d && d.dong && sender.tab) setTimeout(() => chrome.tabs.remove(sender.tab.id).catch(() => {}), 800); },
+            () => send({ err: 'Không nối được app Poly Dựng Bài' }));
+    return true;
+  }
   if (msg.poly === 'soi') {   // cấu trúc trang (tên nút, tab, ô nhập) gửi về app để Claude soi giao diện thật
     (sender.tab ? lay1(sender.tab.id) : Promise.resolve(null)).then(j => gui(j && j.id, '/api/tiktok-soi', msg.data))
       .then(r => send({ ok: r.ok }), () => send({ ok: false }));
