@@ -271,7 +271,9 @@ LÀM 1 BÀI
   (.zip), "📨 Gửi Telegram" (album, cùng nơi nhận như Gửi Telegram), "📂 Mở thư mục". Làm lại thì ảnh cũ thay bằng ảnh mới.
   "Mở bài có sẵn" (bài làm ngoài app trong thư mục Laptop / iPad) giờ ở nút "📂 Mở bài có sẵn" góc trên hộp Lịch sử brief.
   Tab "Thư viện mẫu" (cạnh "Từ bài đã làm", 15/11): làm ảnh story không cần bài, design kéo thả như Canva (15/11 14h).
-  6 mẫu có sẵn: Máy mới về, Giá sốc, So sánh 2 máy, Feedback khách, Thông báo, Noel. Bấm 1 mẫu → khung 9:16 bên phải là ẢNH THẬT,
+  10 mẫu có sẵn: Máy mới về, Giá sốc, So sánh 2 máy, Feedback khách, Thông báo, Noel + 4 mẫu reel Facebook (15/11 14h19: Reel FB ·
+  Máy mới về / Top 3 máy / Flash sale / Review khách; chữ và ảnh nằm trong vùng Facebook không che: trên 270, dưới 1250, chừa cột nút
+  bên phải; khung design vẽ vạch đúng vùng Facebook). Bấm 1 mẫu → khung 9:16 bên phải là ẢNH THẬT,
   sửa gì thấy ngay (xem trước trực tiếp):
   · Bấm vào chữ / ảnh / khối trên khung để chọn (viền xanh), kéo để di chuyển (gần giữa thì tự dính giữa), kéo ô vuông xanh góc dưới
     phải để đổi cỡ. Phím mũi tên nhích (Shift nhích xa), Delete xoá, Ctrl+Z hoàn tác, Ctrl+Y làm lại, Ctrl+D nhân đôi.

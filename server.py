@@ -8461,7 +8461,7 @@ STORY_MAU_SAN = [
     {"id": "feedback", "ten": "Feedback khách", "nen": "#f3ede2", "o": [
         _sm_c("nhan", "Nhãn", "KHÁCH NÓI GÌ VỀ POLY", 90, 270, 900, 64, 36, 800, "#ffffff", nen="#1f6b46", bo=32, pad=26, om=True, dien=True),
         _sm_a("anh", "Ảnh khách / máy", 90, 380, 900, 700, bo=34, phu=True),
-        _sm_c("ngoac", "Dấu ngoặc", "“", 90, 1080, 200, 160, 160, 800, "#1f6b46", co_dinh=True),
+        _sm_c("ngoac", "Dấu ngoặc", "“", 90, 1030, 220, 300, 240, 800, "#1f6b46", co_dinh=True),
         _sm_c("loi", "Lời khách", "Chép đúng lời khách nhắn / bình luận", 90, 1200, 900, 230, 50, 700, "#1d2420", dong=4),
         _sm_c("ten", "Tên khách", "— Tên khách · máy đã mua", 90, 1450, 900, 64, 36, 500, "#5d6b62")]},
     {"id": "thong-bao", "ten": "Thông báo", "nen": "#101a33", "o": [
@@ -8483,6 +8483,38 @@ STORY_MAU_SAN = [
         _sm_c("ten", "Tên máy", "iPad Pro M1 11 inch", 90, 1200, 900, 110, 64, 800, canh="giua"),
         _sm_c("gia", "Giá", "13.990.000đ", 240, 1320, 600, 110, 64, 800, "#8e1b1f", nen="#ffffff", bo=24, canh="giua", pad=30, om=True),
         _sm_c("ghi", "Ghi chú", "Tặng kèm bút + ốp đến 25/12", 90, 1460, 900, 60, 36, 700, "#f7e3c6", canh="giua")]},
+]
+# 📘 Mẫu reel Facebook (fen 15/11 14h19 "clone theme reel facebook", chọn "Mẫu story kiểu reel Facebook"): bố cục chừa đúng vùng Facebook
+# che (trên ~270px tên trang, dưới từ ~1250px chú thích + nút, phải ~140px nút thích / bình luận / chia sẻ) → "vung" để khung design vẽ vạch.
+STORY_VUNG_FB = {"tren": 270, "duoi": 1250, "phai": 940, "ten": "Facebook Reels"}
+STORY_MAU_SAN += [
+    {"id": "fb-moi-ve", "ten": "Reel FB · Máy mới về", "nen": "#111111", "vung": STORY_VUNG_FB, "o": [
+        _sm_a("anh", "Ảnh nền (máy)", 0, 0, 1080, 1920, phu=True),
+        {"loai": "hcn", "x": 0, "y": 240, "w": 1080, "h": 330, "mau": "#000000a6"},
+        _sm_c("nhan", "Nhãn", "MỚI VỀ", 60, 280, 500, 70, 40, 800, "#111111", nen="#ffd60a", om=True, pad=24, bo=10, dien=True),
+        _sm_c("ten", "Tên máy", "iPad Air 5 M1 64GB", 60, 370, 860, 170, 74, 800, "#ffffff", dong=2, ff="montserrat"),
+        _sm_c("gia", "Giá", "11.200.000đ", 60, 1060, 700, 120, 84, 400, "#ffd60a", ff="anton", vien="#000000"),
+        _sm_c("ghi", "Dòng cuối", "Inbox hoặc ghé shop xem máy", 60, 1185, 860, 56, 36, 700, "#ffffff", bong="#000000aa", dien=True)]},
+    {"id": "fb-top3", "ten": "Reel FB · Top 3 máy", "nen": "#0b1220", "vung": STORY_VUNG_FB, "o": [
+        _sm_c("tieu_de", "Tiêu đề", "Top 3 laptop sinh viên dưới 15 triệu", 60, 280, 880, 200, 70, 800, "#ffffff", dong=2, ff="montserrat", dien=True)] + [
+        x for i, y in enumerate((510, 750, 990), 1) for x in (
+            _sm_a("anh%d" % i, "Ảnh máy %d" % i, 60, y, 260, 210, bo=20, phu=True),
+            {"loai": "tron", "x": 92, "y": y + 32, "r": 30, "mau": "#facc15"},
+            _sm_c("so%d" % i, "Số %d" % i, str(i), 62, y + 8, 60, 50, 36, 800, "#0b1220", canh="giua", co_dinh=True),
+            _sm_c("ten%d" % i, "Tên máy %d" % i, ("Dell Latitude 7420 i7", "ThinkPad T14 Gen 2", "HP EliteBook 840 G8")[i - 1], 350, y + 14, 590, 112, 50, 800, "#ffffff", dong=2),
+            _sm_c("gia%d" % i, "Giá máy %d" % i, ("12.900.000đ", "13.500.000đ", "11.900.000đ")[i - 1], 350, y + 136, 420, 60, 42, 700, "#facc15", ff="oswald"))]},
+    {"id": "fb-sale", "ten": "Reel FB · Flash sale", "nen": "#dc2626", "vung": STORY_VUNG_FB, "o": [
+        {"loai": "hcn", "x": 0, "y": 250, "w": 1080, "h": 14, "mau": "#ffe600"},
+        _sm_c("nhan", "Nhãn", "FLASH SALE", 60, 290, 880, 160, 150, 400, "#ffe600", canh="giua", ff="anton", vien="#000000", dien=True),
+        _sm_a("anh", "Ảnh máy", 140, 470, 720, 520, bo=30, the="#ffffff", pad=24),
+        _sm_c("ten", "Tên máy", "MacBook Air M2 13 inch", 60, 1005, 880, 90, 56, 800, "#ffffff", canh="giua"),
+        _sm_c("gia_cu", "Giá cũ (gạch)", "18.990.000đ", 60, 1095, 880, 54, 40, 500, "#fecaca", canh="giua", gach=True),
+        _sm_c("gia", "Giá mới", "16.490.000đ", 190, 1150, 700, 98, 70, 400, "#dc2626", nen="#ffe600", om=True, pad=26, bo=18, canh="giua", ff="anton")]},
+    {"id": "fb-review", "ten": "Reel FB · Review khách", "nen": "#f8f5ef", "vung": STORY_VUNG_FB, "o": [
+        _sm_a("anh", "Ảnh khách / máy", 60, 270, 880, 560, bo=32, phu=True),
+        _sm_c("ngoac", "Dấu ngoặc", "“", 60, 770, 220, 300, 240, 800, "#16a34a", co_dinh=True, ff="playfair"),
+        _sm_c("loi", "Lời khách", "Chép đúng lời khách nhắn / bình luận", 60, 945, 880, 220, 46, 700, "#1c1917", dong=4),
+        _sm_c("ten", "Tên khách", "— Tên khách · máy đã mua", 60, 1175, 880, 56, 34, 500, "#57534e")]},
 ]
 # bố cục cho mẫu fen tự thêm (ảnh nền của fen, chữ trắng / đen): giữ ô của mẫu có sẵn, bỏ nền + trang trí
 STORY_BO_CUC = [("anh-giua", "Ảnh giữa + tên + giá", "may-moi-ve"), ("so-sanh", "So sánh 2 ảnh", "so-sanh"),
@@ -8528,7 +8560,7 @@ def story_mau_ra(m):
           "bo_qua": bool(x.get("bo_qua")), "dien": bool(x.get("dien"))} for x in m["o"]
          if x.get("k") and x["loai"] in ("anh", "chu") and not x.get("co_dinh")]
     tep = "/api/story-mau/tep/%s/" % m["id"]
-    ve = {"nen": m["nen"] if isinstance(m.get("nen"), str) and m["nen"].startswith("#") else "",
+    ve = {"vung": m.get("vung") or None, "nen": m["nen"] if isinstance(m.get("nen"), str) and m["nen"].startswith("#") else "",
           "nen_url": "" if isinstance(m.get("nen"), str) and m["nen"].startswith("#") else tep + "nen.jpg?t=%d" % int(m.get("t") or 1),
           "o": [dict({k: v for k, v in x.items() if k != "src"}, **({"src_url": tep + x["src"]} if x.get("src") else {})) for x in m["o"]]}
     return {"id": m["id"], "ten": m.get("ten") or m["id"], "san": m.get("san", True), "o": o, "ve": ve, "tk": bool(m.get("tk")),
@@ -8670,10 +8702,19 @@ def story_mau_ve(m, chu=None, anh=None, nho=False):
             im = im.resize((STORY_W, STORY_H))
     d = ImageDraw.Draw(im)
     for x in m["o"]:
-        if x["loai"] == "tron":
+        if x["loai"] in ("tron", "hcn") and len(str(x.get("mau") or "")) == 9:      # màu có độ trong: vẽ lớp riêng rồi trộn
+            lop = Image.new("RGBA", im.size, (0, 0, 0, 0))
+            dl = ImageDraw.Draw(lop)
+            if x["loai"] == "tron":
+                dl.ellipse((x["x"] - x["r"], x["y"] - x["r"], x["x"] + x["r"], x["y"] + x["r"]), fill=x["mau"])
+            else:
+                dl.rounded_rectangle((x["x"], x["y"], x["x"] + x["w"], x["y"] + x["h"]), x.get("bo") or 0, fill=x["mau"])
+            im.alpha_composite(lop)
+            d = ImageDraw.Draw(im)
+        elif x["loai"] == "tron":
             d.ellipse((x["x"] - x["r"], x["y"] - x["r"], x["x"] + x["r"], x["y"] + x["r"]), fill=x["mau"])
         elif x["loai"] == "hcn":
-            d.rectangle((x["x"], x["y"], x["x"] + x["w"], x["y"] + x["h"]), fill=x["mau"])
+            d.rounded_rectangle((x["x"], x["y"], x["x"] + x["w"], x["y"] + x["h"]), x.get("bo") or 0, fill=x["mau"])
         elif x["loai"] == "anh":
             a = anh.get(x["k"])
             if a is None and x.get("src"):
@@ -8890,7 +8931,11 @@ def story_tk_mau(data, sua=None):
     o = story_tk_sach(data.get("o"), d)
     if not o:
         raise ValueError("Bản vẽ trống")
-    m = {"id": mid, "ten": ten, "nen": nen, "tk": True, "o": o, "t": int(now())}
+    vung = data.get("vung") if isinstance(data.get("vung"), dict) else None
+    vung = {k: _sm_so(vung[k], 0, 1920) for k in ("tren", "duoi", "phai") if vung and k in vung} or None
+    if vung and isinstance((data.get("vung") or {}).get("ten"), str):
+        vung["ten"] = short(data["vung"]["ten"], 30)
+    m = {"id": mid, "ten": ten, "nen": nen, "tk": True, "o": o, "t": int(now()), **({"vung": vung} if vung else {})}
     write_json(os.path.join(d, "mau.json"), m)
     log("story mau %s %s (%s, %d lớp)" % ("sua" if sua else "luu tk", mid, ten, len(o)))
     return {"mau": story_mau_ra(dict(m, san=False)), "ds": [story_mau_ra(x) for x in story_mau_ds()]}
