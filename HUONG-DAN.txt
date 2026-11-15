@@ -125,6 +125,7 @@ LẤY MÁY + GIÁ TỪ KHO POLYSTO (Ô KHO, 9/11)
   Trong chat nhắn "lấy máy trong kho", "dùng seri ..." cũng được.
 - Claude đọc kho qua kết nối POLY của tài khoản Claude (claude.ai > Customize > Connectors > POLY). Báo "Chưa đọc
   được kho" thì vào đó bấm Connect lại.
+  Chip "Kho Poly" trên thanh trên cùng (15/11): chấm xanh = đã nối, đỏ = chưa nối; bấm chip → Kiểm lại (1 lượt Claude rất ngắn).
 - Chỉ lấy thông tin máy và giá bán (fen 9/11). Không lấy giá vốn, HH, ghi chú, tên khách; không ghi, không sửa gì
   trong Polysto (app chỉ cho Claude 2 lệnh đọc: tìm máy, số liệu 1 máy). Seri không ghi vào bài.
 - 💡 Gợi ý từ kho (15/11, dòng dưới ô Kho, chỉ máy shop): bấm "🔄 Quét kho" → Claude (Sonnet, 1–3 phút, tính hạn mức tuần) đọc

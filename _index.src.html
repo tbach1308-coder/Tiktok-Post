@@ -37,6 +37,7 @@ a{color:var(--gl)}
 .chip .dot{width:7px;height:7px}
 @media (max-width:1365px){.top .chip .tk{display:none}}
 .chip.tgc{cursor:pointer;margin-right:0;font-family:inherit}
+body.khach #bPoly{display:none}
 .chip.tgc:hover{border-color:var(--g);color:var(--tx)}
 .chip.hcc{cursor:pointer;font-family:inherit}
 .chip.hcc:hover{border-color:var(--g);color:var(--tx)}
@@ -692,8 +693,9 @@ details.brief ul{margin:0;padding-left:18px;color:var(--mut)}
 <div class="top">
   <div class="brand"><div class="logo">P</div><div>POLY DỰNG BÀI<small>CAROUSEL TIKTOK</small></div></div>
   <div class="sp"></div>
-  <!-- fen 15/11 13h09 "sắp xếp thứ tự nút bấm cho hợp lý": kết nối (Canva · Telegram · Remote · Máy khác) | Claude (Quy tắc · tài khoản, hạn mức) | 💬 Hỏi app -->
+  <!-- fen 15/11 13h09 "sắp xếp thứ tự nút bấm cho hợp lý": kết nối (Canva · Kho Poly · Telegram · Remote · Máy khác) | Claude (Quy tắc · tài khoản, hạn mức) | 💬 Hỏi app -->
   <button class="chip tgc" id="bCv" title="Canva: Claude đã nối với Canva của fen chưa (bấm để kiểm, xem cách nối)"><span class="dot"></span><span>Canva</span></button>
+  <button class="chip tgc" id="bPoly" title="Kho Polysto: Claude đã nối được kho POLY chưa (bấm để kiểm, xem cách nối)"><span class="dot"></span><span>Kho Poly</span></button>
   <button class="chip tgc" id="bTg" title="Cài / đổi Telegram nhận slide bài Laptop, iPad"><span class="dot"></span><span>Telegram</span></button>
   <span class="chip rmc" id="bRm" title="Remote: nhắn việc cho app từ Telegram (viết brief, bấm Chạy, ghi quy tắc, hỏi tình hình). Chỉ nghe khi bật. Bấm chữ Remote để xem mã nối, hướng dẫn."><span class="dot"></span><span class="rml" role="button">📱 Remote</span><span class="kseg rmsw"><button data-rb="0">Tắt</button><button data-rb="1">Bật</button></span></span>
   <button class="chip tgc" id="bChung" title="Dùng chung: máy khác (MacBook…) mở app này qua mạng, không cần đăng nhập Claude"><span class="dot"></span><span>💻<span class="lb"> Máy khác</span></span></button>
@@ -2352,6 +2354,35 @@ function cvDialog(){
   $('#cvKiem').onclick = async e => { e.currentTarget.disabled = true; await cvChip(true); setTimeout(() => { const b = $('#cvKiem'); if (b) b.disabled = false; }, 3000); };
   $('#cvMau').onclick = () => { dong(); kiemMay(); setTimeout(() => { const k = $('#kmCv'); if (k) k.scrollIntoView({block: 'center'}); }, 300); };
 }
+// ô Kho Poly trên thanh trên cùng (fen 15/11 13h10 "thêm trạng thái để biết kho poly đã được kết nối chưa"): như ô Canva
+const PL_TT = {noi: ['ok', 'Kho Poly: đã nối'], chua: ['err', 'Kho Poly: chưa nối'], loi: ['warn', 'Kho Poly: lỗi'], dang: ['run', 'Kho Poly: đang kiểm…'], 'chua-kiem': ['', 'Kho Poly: chưa kiểm']};
+const PL_NGAN = {noi: 'Kho Poly', chua: 'Kho Poly chưa nối', loi: 'Kho Poly lỗi', dang: 'Kho Poly…', 'chua-kiem': 'Kho Poly'};
+const plChu = st => `<b>${esc((PL_TT[st.tt] || PL_TT['chua-kiem'])[1])}</b>${st.t ? ` · ${st.tt === 'dang' ? 'bắt đầu' : 'biết lúc'} ${hm(st.t)}${st.nguon ? ' (' + esc(st.nguon) + ')' : ''}` : ''}${st.ghi ? '<br><span class="stc">' + esc(st.ghi) + '</span>' : ''}`;
+function plVe(st){
+  S.pl = st; const b = $('#bPoly'); if (!b) return; const [d, t] = PL_TT[st.tt] || PL_TT['chua-kiem'];
+  setH(b, `<span class="dot ${d}"></span><span>${PL_NGAN[st.tt] || 'Kho Poly'}</span>`); b.title = t + ' · bấm để kiểm, xem cách nối';
+  const x = $('#plTt'); if (x) setH(x, plChu(st));
+  clearTimeout(S._plT); if (st.tt === 'dang') S._plT = setTimeout(function cho(){ if (duocHoi('pl')) plChip(); else S._plT = setTimeout(cho, 3000); }, 3000);
+}
+async function plChip(kiem){
+  if (KHACH) return;
+  let st; try { st = await api('/api/poly-tt', kiem ? {kiem: true} : undefined); } catch(e) { if (kiem) toast(e.message, true); return; }
+  if (!kiem && st.tt !== 'dang' && (st.tt === 'chua-kiem' || nowS() - (st.t || 0) > 43200)) return plChip(true);   // chưa biết / quá 12 giờ: tự kiểm 1 lần
+  plVe(st);
+}
+function plDialog(){
+  const m = document.createElement('div'); m.className = 'modal on'; m.innerHTML = `<div class="mbox">
+    <h3>Kho Polysto</h3>
+    <p id="plTt">${plChu(S.pl || {tt: 'chua-kiem'})}</p>
+    <p class="pnote">Claude đọc kho Polysto qua kết nối POLY trong tài khoản Claude đang đăng nhập trên máy (chỉ đọc tên máy + giá bán). Dùng ở ô 📦 Kho, 💡 Gợi ý từ kho. "Kiểm lại" chạy 1 lượt Claude rất ngắn gọi thử tìm máy, khoảng 20–60 giây.</p>
+    <ol><li>Chưa nối: vào <b>claude.ai</b> (đúng tài khoản Claude của máy này) > <b>Customize</b> > <b>Connectors</b>, tìm <b>POLY</b>, bấm <b>Connect</b>.</li>
+      <li>Nối xong quay lại đây bấm <b>Kiểm lại</b>.</li></ol>
+    <div class="acts"><button class="btn" id="plKiem">Kiểm lại</button><button class="btn pri" id="plDong">Đóng</button></div></div>`;
+  document.body.appendChild(m);
+  const dong = () => m.remove();
+  $('#plDong').onclick = dong; m.onclick = e => { if (e.target === m) dong(); };
+  $('#plKiem').onclick = async e => { e.currentTarget.disabled = true; await plChip(true); setTimeout(() => { const b = $('#plKiem'); if (b) b.disabled = false; }, 3000); };
+}
 async function tgChip(){
   const st = await api('/api/telegram').catch(() => null); if (!st) return;
   setH($('#bTg'), `<span class="dot ${st.xong ? 'ok' : ''}"></span><span>${st.xong ? 'Telegram' : 'Cài Telegram'}</span>`); $('#bTg').title = (st.xong ? 'Telegram: ' + (st.ten || '') + ' · ' : '') + 'Cài / đổi Telegram nhận slide bài Laptop, iPad';
@@ -2479,6 +2510,7 @@ function mayXem(id){
 $('#bNew').onclick = baiMoi;
 $('#bTg').onclick = () => tgDialog();
 $('#bCv').onclick = () => cvDialog();
+$('#bPoly').onclick = () => plDialog(); plChip();
 $('#bQt').onclick = () => quyTac();
 $('#bChung').onclick = () => chungDlg();
 $('#bRm .rml').onclick = () => remote();

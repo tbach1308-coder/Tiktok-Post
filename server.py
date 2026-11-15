@@ -2390,6 +2390,8 @@ def goi_y_xong(jid):
         lo = re.search(r"GOI_Y_LOI\s*(.*)", tra)
         cu.update(dang=False, loi=short((lo.group(1) if lo else "") or "Chưa đọc được kho (Claude trên máy shop chưa nạp được POLY hoặc hết hạn mức). Thử lại sau ít phút.", 200), loi_t=now())
         write_json(GOI_Y_FILE, cu)
+        if lo and "POLY" in lo.group(1).upper():
+            poly_ghi_tt("chua", "quét gợi ý kho", lo.group(1))
         return
     s_ = lambda v, n=120: short(re.sub(r"\s+", " ", str(v or "")).strip(), n)
     kenh_ok = lambda k: k if k in CFG["kenh"] else "laptop"
@@ -2405,6 +2407,8 @@ def goi_y_xong(jid):
             snap[k] = 0 if dau else int(now())
     write_json(KHO_SNAP, snap)
     write_json(GOI_Y_FILE, {"luc": now(), "jid": jid, "dang": False, "loi": "", "may": may, "ds": ds, "lan_dau": dau})
+    if may:
+        poly_ghi_tt("noi", "quét gợi ý kho")
     log("goi y kho: %d dong may, %d goi y" % (len(may), len(ds)))
 
 
@@ -3325,6 +3329,86 @@ def _canva_kiem_chay(cmd):
         ghi = ghi or short(kq, 200) or "không đọc được kết quả"
     log("kiem canva: %s %s" % (tt, ghi))
     canva_ghi_tt(tt, "kiểm", ghi, t=now())
+
+
+# ---------------------------------------------------------------- trạng thái kho Polysto (fen 15/11 13h10 "thêm trạng thái để biết kho
+# poly đã được kết nối chưa"): chip "Kho Poly" trên thanh trên cùng như chip Canva. Kiểm = 1 lượt Claude haiku rất ngắn: nạp công cụ POLY,
+# gọi tim_may 1 lần, chỉ trả 1 dòng POLY_OK / POLY_CHUA / POLY_LOI (không ghi số liệu kho). Quét 💡 Gợi ý từ kho cũng cập nhật trạng thái.
+POLY_TT_F = os.path.join(APP, "poly-tt.json")
+POLY_TT = {"tt": "chua-kiem", "t": 0}
+POLY_TT.update({k: v for k, v in (read_json(POLY_TT_F, None) or {}).items() if k in ("tt", "t", "nguon", "ghi") and v != "dang"})
+POLY_KIEM = ('Kiểm kết nối kho Polysto (connector POLY) cho app Poly Dựng Bài. Làm thật nhanh, không đọc file, không làm việc gì khác.\n'
+             '1. Dùng ToolSearch tìm "POLY". Chưa thấy công cụ mcp__claude_ai_POLY__tim_may thì chờ 5 giây bằng lệnh '
+             'python -c "import time; time.sleep(5)" rồi tìm lại, tối đa 3 lần.\n'
+             '2. Có công cụ: gọi mcp__claude_ai_POLY__tim_may 1 lần với tu_khoa "iPad".\n'
+             'Trả lời đúng 1 dòng, KHÔNG chép số liệu kho, tên khách hay giá: POLY_OK nếu tim_may chạy được; POLY_CHUA nếu không có công cụ POLY; '
+             'POLY_CHUA <lỗi ngắn> nếu công cụ báo cần đăng nhập / không có quyền; POLY_LOI <lỗi ngắn> nếu lỗi khác.')
+
+
+def poly_ghi_tt(tt, nguon, ghi="", t=None):
+    POLY_TT.update({"tt": tt, "t": t or now(), "nguon": nguon, "ghi": short(ghi, 200)})
+    if tt != "dang":
+        try:
+            write_json(POLY_TT_F, dict(POLY_TT))
+        except OSError as e:
+            log("ghi poly-tt loi: %s" % e)
+
+
+def poly_tt(data=None):
+    """GET: trạng thái kho Polysto. POST {kiem: true}: chạy 1 lượt Claude rất ngắn (haiku) gọi thử tim_may."""
+    if data and data.get("kiem"):
+        if POLY_TT.get("tt") == "dang" and now() - POLY_TT.get("t", 0) < 200:
+            return dict(POLY_TT)
+        cmd = resolve_claude()
+        if not cmd:
+            raise ValueError("Không tìm thấy Claude Code trên máy. Bấm Kiểm lại ở góc trên.")
+        poly_ghi_tt("dang", "kiểm")
+        threading.Thread(target=_poly_kiem_chay, args=(cmd,), daemon=True).start()
+    return dict(POLY_TT)
+
+
+def _poly_kiem_chay(cmd):
+    args = cmd + ["-p", "--output-format", "stream-json", "--verbose", "--model", "haiku", "--max-turns", "12",
+                  "--allowedTools", POLY_DOC[0], "Bash(python *)"]
+    env = env_claude()
+    if IS_MAC:
+        mac_env(env)
+    kw = {"creationflags": CREATE_NO_WINDOW} if IS_WIN else {}
+    kq, ma, ghi = "", None, ""
+    try:
+        p = subprocess.Popen(args, cwd=APP, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env, **kw)
+        try:
+            out, err = p.communicate(POLY_KIEM.encode("utf-8"), timeout=180)
+        except subprocess.TimeoutExpired:
+            p.kill()
+            out, err = p.communicate()
+            ghi = "kiểm quá 3 phút"
+        for line in (out or b"").decode("utf-8", "replace").splitlines():
+            try:
+                o = json.loads(line)
+            except Exception:
+                continue
+            if o.get("type") == "system" and o.get("subtype") == "init":
+                for sv in o.get("mcp_servers") or []:
+                    if isinstance(sv, dict) and "POLY" in str(sv.get("name") or "") and sv.get("status") in CANVA_TT_MA:
+                        ma = CANVA_TT_MA[sv["status"]]
+            elif o.get("type") == "result":
+                kq = str(o.get("result") or "")
+                ghi_dung("kiem-poly:" + str(o.get("session_id") or now()), now(), _so(o.get("total_cost_usd")), _dung_model(o), "kiem-poly")
+        if not kq and not ghi:
+            ghi = short(explain_err((err or b"").decode("utf-8", "replace")[-600:]), 200)
+    except Exception as e:
+        log("kiem poly loi: %s" % e)
+        ghi = str(e)
+    m = re.search(r"POLY_(OK|CHUA|LOI)\b[ :\-]*(.*)", kq)
+    if m:
+        tt = {"OK": "noi", "CHUA": "chua", "LOI": "loi"}[m.group(1)]
+        ghi = short(m.group(2).strip(), 120)
+    else:
+        tt = ma or "loi"
+        ghi = ghi or "không đọc được kết quả"
+    log("kiem poly: %s %s" % (tt, ghi))
+    poly_ghi_tt(tt, "kiểm", ghi)
 
 
 def canva_mau(kenh, may=None):
@@ -7264,8 +7348,8 @@ CHUNG = {"srv": None, "pid": 0, "pid_t": 0, "url": "", "loi": "", "dang": "", "m
 CHUNG_KHOA = threading.Lock()
 CHUNG_DIR = os.path.join(APP, "_cf")
 CHUNG_MA_HAN = 900
-CHUNG_CAM = {"GET": (r"/api/chung", r"/api/chung/may", r"/api/bai-co-san", r"/api/thong-ke", r"/api/goi-y"),
-             "POST": (r"/api/tat", r"/api/login", r"/api/thong-ke", r"/api/goi-y", r"/api/cai-claude", r"/api/chung", r"/api/tiktok-(soi|dang|nhac)", r"/api/quy-tac", r"/api/tg-lenh",
+CHUNG_CAM = {"GET": (r"/api/chung", r"/api/chung/may", r"/api/bai-co-san", r"/api/thong-ke", r"/api/goi-y", r"/api/poly-tt"),
+             "POST": (r"/api/tat", r"/api/login", r"/api/thong-ke", r"/api/goi-y", r"/api/poly-tt", r"/api/cai-claude", r"/api/chung", r"/api/tiktok-(soi|dang|nhac)", r"/api/quy-tac", r"/api/tg-lenh",
                       r"/api/job/[\w-]+/(mo|tiktok)", r"/api/bai-co-san")}
 CHUNG_TM = {}       # mã máy -> (lúc, [thư mục bài của máy đó]) để kiểm /file nhanh
 
@@ -8214,6 +8298,8 @@ class H(BaseHTTPRequestHandler):
                     return self.send(200, fh.read(), "image/png", {"Cache-Control": "max-age=86400"})
             if u.path == "/api/canva-tt":
                 return self.send(200, canva_tt())
+            if u.path == "/api/poly-tt":
+                return self.send(200, poly_tt())
             if u.path == "/api/quy-tac":
                 return self.send(200, quy_tac_ds())
             if u.path == "/api/nhap":
@@ -8341,6 +8427,8 @@ class H(BaseHTTPRequestHandler):
                 return self.send(200, canva_cai(data, self.may()))
             if u.path == "/api/canva-tt":
                 return self.send(200, canva_tt(data))
+            if u.path == "/api/poly-tt":
+                return self.send(200, poly_tt(data))
             if u.path == "/api/nen-log":          # nén log bài cũ ngay (bình thường tự chạy mỗi ngày); {ngay}: bài xong quá mấy ngày
                 if self.may():
                     raise ValueError("Chỉ máy shop")

@@ -25,6 +25,10 @@ if 'KHUNG CHAT CỦA BÀI' in prompt and prompt.split('KHUNG CHAT CỦA BÀI')[0
     out({"type": "assistant", "message": {"content": [{"type": "text", "text": "Đọc bài…"}]}})
     out({"type": "result", "subtype": "success", "is_error": False, "result": "Slide 3 đọc rõ rồi fen, chữ 64px trên nền tối.\nCHI_TRA_LOI", "session_id": sid, "duration_ms": 1500, "num_turns": 3, "total_cost_usd": 0.05})
     sys.exit(0)
+if prompt.startswith('Kiểm kết nối kho Polysto'):   # chip Kho Poly (15/11): FAKE_POLY_CHUA = chưa nối
+    chua = os.path.exists(os.path.join(HERE, 'FAKE_POLY_CHUA'))
+    out({"type": "result", "subtype": "success", "is_error": False, "result": "POLY_CHUA cần Connect POLY" if chua else "POLY_OK", "session_id": sid, "duration_ms": 900, "num_turns": 3, "total_cost_usd": 0.01})
+    sys.exit(0)
 if prompt.startswith('GỢI Ý BÀI TỪ HÀNG TRONG KHO POLYSTO'):   # 💡 Gợi ý từ kho (15/11): FAKE_KHO_LOI = báo lỗi, FAKE_KHO2 = có thêm 1 dòng máy mới về
     time.sleep(float(open(os.path.join(HERE, 'FAKE_KHO_CHAM')).read() or 0) if os.path.exists(os.path.join(HERE, 'FAKE_KHO_CHAM')) else 0)
     if os.path.exists(os.path.join(HERE, 'FAKE_KHO_LOI')):
