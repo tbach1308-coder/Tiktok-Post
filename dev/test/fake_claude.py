@@ -21,6 +21,13 @@ def out(o, d=0.12):
         o.setdefault("modelUsage", {"claude-opus-5-5": {"costUSD": round(o["total_cost_usd"] * 0.9, 4)}, "claude-haiku-5-5": {"costUSD": round(o["total_cost_usd"] * 0.1, 4)}})
     print(json.dumps(o, ensure_ascii=False), flush=True); time.sleep(d)
 out({"type": "system", "subtype": "init", "session_id": sid, "model": "claude-opus-5-5"})
+if prompt.startswith('HỎI APP POLY DỰNG BÀI'):   # 💬 Hỏi app (15/11): trả lời thử = câu hỏi + vài dòng số liệu app đưa vào
+    if 'HOICHAM' in prompt: time.sleep(600)
+    cau = prompt.split('CÂU HỎI:')[-1].strip()
+    so = prompt.split('SỐ LIỆU APP')[1].split('CÁC CÂU TRƯỚC')[0].strip().splitlines()[1:4] if 'SỐ LIỆU APP' in prompt else []
+    out({"type": "assistant", "message": {"role": "assistant", "content": [{"type": "text", "text": "Để mình xem…"}]}})
+    out({"type": "result", "subtype": "success", "is_error": False, "result": "**Trả lời thử:** " + cau + "\n" + "\n".join(so), "session_id": sid, "duration_ms": 1500, "num_turns": 2, "total_cost_usd": 0.02})
+    sys.exit(0)
 if 'theme Canva cho kho theme của app Poly Dựng Bài. Fen bấm nút' in prompt:   # nhân bản / chỉnh theme
     import re as _re
     fa = _re.search(r'File ảnh xem trước: (.+)', prompt).group(1).strip()

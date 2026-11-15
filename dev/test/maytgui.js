@@ -18,6 +18,8 @@ let ok = 0, bad = 0; const check = (n, c, x) => { c ? ok++ : bad++; console.log(
   await p.click('#bThongKe'); await p.waitForTimeout(500);
   const t2 = await p.evaluate(() => ({ dong: [...document.querySelectorAll('.tktg .tgr')].map(e => [e.querySelector('span').textContent.trim(), e.querySelector('select').value, e.querySelector('select').classList.contains('on')]) }));
   check('nối rồi: mỗi máy đang dùng chung 1 dòng (máy cũ không có), Mac Quân đang nối Quân', t2.dong.length === 2 && t2.dong[1][1] === '222' && t2.dong[1][2] && t2.dong[0][1] === '', t2);
+  const sang = await p.evaluate(() => [...document.querySelectorAll('.tktg select')].map(e => getComputedStyle(e).color.match(/\d+/g).slice(0, 3).reduce((a, x) => a + +x, 0) / 3));
+  check('chữ trong ô chọn sáng rõ (fen 12h03 "tối thui sao thấy đường")', sang.every(x => x > 150), sang);
   await p.selectOption('.tktg select[data-tg="chu"]', '111'); await p.waitForTimeout(300);
   check('chọn người cho máy shop: gửi đúng { tg: { may, nguoi } }', await p.evaluate(() => JSON.stringify(window.__goi) === JSON.stringify([{ tg: { may: 'chu', nguoi: '111' } }])), await p.evaluate(() => window.__goi));
   check('không tràn ngang ở 1024', await (async () => { await p.setViewportSize({ width: 1024, height: 760 }); await p.waitForTimeout(300); return p.evaluate(() => document.querySelector('.tkpage').scrollWidth <= document.querySelector('#main').clientWidth + 2); })());

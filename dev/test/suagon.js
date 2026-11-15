@@ -19,6 +19,11 @@ let ok = 0, bad = 0; const check = (n, c, x) => { c ? ok++ : bad++; console.log(
   await p.fill('#fixText', 'chữ cả bài to hơn'); await p.waitForTimeout(150);
   check('gõ sửa chung: dòng tóm tắt đổi', /Sửa chung cả bài/.test(await p.evaluate(() => document.querySelector('#fixTom').textContent)));
   await p.fill('#fixText', ''); await p.evaluate(() => { const df = draft(); df.text = ''; });
+  // fen 15/11 12h01 "nút telegram dài bằng nút đăng tiktok": bài đã đăng (không còn ⏰ Hẹn giờ đăng) thì Gửi Telegram cả hàng
+  const jd = js.jobs.find(x => x.status === 'xong' && x.da_dang);
+  if (jd) { await p.goto('http://127.0.0.1:8790/#bai=' + jd.id); await p.reload(); await p.waitForSelector('#bGuiTg', { timeout: 15000 }); await p.waitForTimeout(300);
+    const w = await p.evaluate(() => ({ tg: Math.round(document.querySelector('#bGuiTg').getBoundingClientRect().width), pa: Math.round(document.querySelector('.post .pa2').getBoundingClientRect().width), hen: !!document.querySelector('#bHenDang') }));
+    check('bài đã đăng: nút Gửi Telegram dài cả hàng (bằng nút Đăng TikTok)', !w.hen && w.tg === w.pa, w); }
   check('không lỗi JS', errs.length === 0, errs);
   await b.close(); console.log(`\n${ok} đạt, ${bad} lỗi`); process.exit(bad ? 1 : 0);
 })().catch(e => { console.error(e); process.exit(1); });

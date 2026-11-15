@@ -248,6 +248,10 @@ LÀM 1 BÀI
   theme Photoshop ở tab Photoshop);
   sao vàng ★ = đang trong kho chung, bấm lại để thôi. Máy khác chỉ ▶ Làm bài / ⧉ Nhân bản theme kho chung.
   Mẫu Canva của kênh (Kiểm máy > Canva) cũng riêng từng máy.
+- 💬 Hỏi app (15/11, nút tròn góc dưới phải, máy nào cũng có): hỏi cách dùng app ("cách đăng TikTok trên máy Phú?") hoặc số liệu
+  ("hôm nay mỗi máy đăng mấy bài?", "bài nào đang chờ đăng?"). Mỗi câu Claude trên máy shop trả lời trong 10–40 giây (tính vào hạn mức
+  tuần, model Sonnet), chỉ đọc hướng dẫn + số liệu app, KHÔNG làm thay (muốn làm thì bấm nút như bot chỉ). Enter gửi, Shift+Enter xuống
+  dòng, "Xoá" xoá cuộc chat trên máy đó, Esc đóng. Máy dùng chung chỉ hỏi được số liệu của máy đó.
 - Nút "📱 Remote" trên cùng (30/10): ra ngoài vẫn giao việc cho app qua Telegram (chat riêng với bot, hoặc 1 nhóm có thêm người).
   DÙNG TRONG NHÓM (12/11, thêm người làm cùng): tạo nhóm Telegram có fen + người đó → app: 📱 Remote > 👥 Dùng trong nhóm
   > bấm "Thêm bot vào nhóm", chọn nhóm, bấm Thêm → cho bot làm Quản trị viên nhóm (để bot đọc được tin thường).

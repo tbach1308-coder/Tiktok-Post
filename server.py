@@ -561,8 +561,9 @@ MODEL_VIEC = {   # khoá config: (mặc định, các model cho chọn). Fen ch�
     "model_duyet": ("opus", ("", "opus", "sonnet")),      # agent duyệt + thiết kế bài Photoshop ("" = theo phiên chính)
     "model_duyet_canva": ("sonnet", ("", "opus", "sonnet")),  # agent duyệt bài Canva (fen 10/11 15h22)
     "model_quytac": ("sonnet", ("", "opus", "sonnet")),   # nút Quy tắc: ghi luật mới vào file quy tắc (30/10; 10/11 đổi Sonnet)
+    "model_hoi": ("sonnet", ("", "opus", "sonnet", "haiku")),     # 💬 Hỏi app (fen 15/11 "thêm chat bot để hỏi")
 }
-VIEC_AN = ("brief", "quy-tac")   # việc ẩn, không phải bài: Viết brief / Chat brief, Ghi quy tắc
+VIEC_AN = ("brief", "quy-tac", "hoi")   # việc ẩn, không phải bài: Viết brief / Chat brief, Ghi quy tắc, 💬 Hỏi app
 
 
 def model_viec(k):
@@ -1774,7 +1775,7 @@ def start_run(job, prompt, kind, resume=None, label=None, model=None, them_dir=N
                                                             else model_cho(job, "model_duyet_canva" if job.get("dung_bang") == "canva" else "model_duyet")))
     if doi_goc():   # lệnh mẫu ghi đường dẫn máy shop (E:/Social Claude/...): đổi sang thư mục máy này (Mac / máy mới)
         prompt = mac_doi(prompt, mac_bang_cfg())
-    if job.get("khach") and kind != "quy-tac":
+    if job.get("khach") and kind not in ("quy-tac", "hoi"):
         prompt += KHACH_KHONG_LUAT
     with open(os.path.join(d, "prompt-%d.txt" % n), "w", encoding="utf-8") as f:
         f.write(prompt)
@@ -1799,18 +1800,21 @@ def start_run(job, prompt, kind, resume=None, label=None, model=None, them_dir=N
         model = ""
     if model:
         args += ["--model", model]
-    them = list(CFG.get("cho_phep_them") or [])
-    if "mcp__claude_ai_Canva" not in them:   # config.json fen tự ghi cho_phep_them riêng: vẫn cho công cụ Canva
-        them.append("mcp__claude_ai_Canva")
-    them += [t for t in POLY_DOC if t not in them]     # kho Polysto: chỉ 2 công cụ đọc
-    args += ["--allowedTools"] + them
+    if kind == "hoi":       # 💬 Hỏi app: chỉ đọc (hướng dẫn app), không sửa / chạy lệnh / Canva / kho, không nạp bộ dựng bài
+        args += ["--allowedTools", "Read", "Glob", "Grep", "--disallowedTools"] + HOI_CAM
+    else:
+        them = list(CFG.get("cho_phep_them") or [])
+        if "mcp__claude_ai_Canva" not in them:   # config.json fen tự ghi cho_phep_them riêng: vẫn cho công cụ Canva
+            them.append("mcp__claude_ai_Canva")
+        them += [t for t in POLY_DOC if t not in them]     # kho Polysto: chỉ 2 công cụ đọc
+        args += ["--allowedTools"] + them
     if resume:
         args += ["--resume", resume]
-    pd = plugin_dir()
+    pd = plugin_dir() if kind != "hoi" else ""
     if pd:
         args += ["--plugin-dir", pd]          # chung tên plugin đã cài thì bản này thay (cùng thư mục nguồn)
     lc = os.path.join(PROMPTS, "luat-chung.md")
-    if os.path.isfile(lc):
+    if os.path.isfile(lc) and kind != "hoi":
         if IS_MAC:   # bản cho Mac: đường dẫn Mac + bảng đổi đường dẫn, lệnh macOS (ghi kèm lượt chạy)
             lc = mac_luat_chung(lc, os.path.join(d, "luat-chung-%d.md" % n))
         elif CFG.get("_may_moi"):
@@ -2168,6 +2172,140 @@ def lich_su_brief(may=None):
                 x["bai"], x["bai_ten"] = b["id"], b["ten"]
                 break
     return {"ds": ds}
+
+
+# ---------------------------------------------------------------- 💬 Hỏi app (fen 15/11 11h51 "thêm chat bot để hỏi", chọn
+# "Cách dùng app + số liệu"): nút 💬 góc dưới phải, hỏi cách làm / bài nào chờ đăng / máy nào đăng mấy bài… Mỗi câu = 1 lượt Claude
+# chỉ đọc (Read / Glob / Grep hướng dẫn app; số liệu app tính sẵn đưa vào lệnh), không làm thay. Máy dùng chung chỉ thấy số liệu máy đó.
+HOI_CAM = ["Bash", "PowerShell", "Write", "Edit", "MultiEdit", "NotebookEdit", "WebFetch", "WebSearch", "Task", "Agent",
+           "mcp__claude_ai_Canva", "mcp__claude_ai_POLY"]
+HOI_LENH = """HỎI APP POLY DỰNG BÀI. Bạn là trợ lý trong app Poly Dựng Bài (app dựng bài carousel TikTok của shop Poly: kênh Laptop
+@polystorelaptop, kênh iPad @poly.store). Người hỏi: %(ai)s. Trả lời câu hỏi cuối cùng bên dưới.
+
+Cách trả lời:
+- Tiếng Việt, gọi người hỏi là "fen", xưng "mình". Ngắn gọn (thường 2–6 dòng), đúng việc, không thuật ngữ lập trình, không nói tên file / mã lệnh.
+- Hỏi cách làm / sao không được: tìm trong hướng dẫn app (dùng Grep / Read trên file hướng dẫn dưới đây, chỉ đọc đoạn liên quan), chỉ rõ bấm nút nào ở đâu.
+- Hỏi số liệu (bài, máy, lịch, Telegram, hạn mức…): chỉ dùng SỐ LIỆU APP dưới đây, không đoán. Không có trong số liệu thì nói không có.
+- Bạn chỉ trả lời, KHÔNG làm thay (không sửa file, không chạy gì, không đăng bài). Fen muốn làm gì thì chỉ cách bấm.
+- Câu hỏi ngoài app / ngoài việc shop: trả lời 1 câu ngắn rồi nhắc bot này dùng để hỏi về app.
+- Câu trả lời cuối cùng của bạn là thứ hiện trong khung chat (chữ thường, xuống dòng được, **đậm** được).
+
+FILE HƯỚNG DẪN APP: %(hd)s
+
+SỐ LIỆU APP (lúc %(luc)s):
+%(so)s
+
+CÁC CÂU TRƯỚC (cũ → mới):
+%(ls)s
+
+CÂU HỎI: %(cau)s
+"""
+
+
+def _hoi_gio(t):
+    return time.strftime("%H:%M %d/%m", time.localtime(t)) if t else "?"
+
+
+def hoi_so_lieu(may):
+    """Số liệu gọn cho 💬 Hỏi app. may = None: máy shop (mọi máy); mã máy dùng chung: chỉ máy đó."""
+    tk, out = thong_ke_bai(31), []
+    dt = time.localtime()
+    dau_ngay = time.mktime((dt.tm_year, dt.tm_mon, dt.tm_mday, 0, 0, 0, 0, 0, -1))
+    mk = None
+    if may:
+        v = (CFG.get("chung_may") or {}).get(str(may)) or {}
+        mk = may_khoa(v.get("ten"))
+    may_ds = [m for m in tk["may"] if not mk or m["id"] == mk]
+    out.append("Máy (bài đã đăng: hôm nay / 7 ngày / 30 ngày · chờ đăng · đang làm hoặc hẹn dựng · chỉ tiêu đăng mỗi ngày):")
+    for m in may_ds:
+        b = [x for x in tk["bai"] if x["may"] == m["id"]]
+        dang = [x for x in b if x.get("dang") and x["dang"] <= now() + 86400 * 400]
+        out.append("- %s%s: %d / %d / %d · chờ đăng %d · đang làm %d · chỉ tiêu %s" % (
+            m["ten"], "" if m.get("con") else " (đã bỏ khỏi dùng chung)",
+            sum(1 for x in dang if dau_ngay <= x["dang"] < dau_ngay + 86400), sum(1 for x in dang if x["dang"] >= dau_ngay - 6 * 86400),
+            len(dang), sum(1 for x in b if x["st"] == "xong" and not x.get("dang")),
+            sum(1 for x in b if x["st"] in ("dang-chay", "hen", "moi")), tk["chi_tieu"].get(m["id"]) or "chưa đặt"))
+    jobs = [j for j in list_jobs() if not may or (j.get("khach") or {}).get("id") == str(may)]
+    ten = lambda j: "%s [%s]%s" % (j.get("tieu_de") or "Bài", CFG["kenh"].get(j.get("kenh"), {}).get("ten", j.get("kenh") or ""),
+                                   (" · máy " + ((j.get("khach") or {}).get("ten") or "")) if (j.get("khach") and not may) else "")
+    cho = [j for j in jobs if j.get("status") == "xong" and not j.get("da_dang")]
+    out.append("Bài chờ đăng (%d): %s" % (len(cho), "; ".join("%s, xong %s" % (ten(j), _hoi_gio(j.get("ended"))) for j in cho[:15]) or "không có"))
+    dd = sorted([j for j in jobs if j.get("da_dang")], key=lambda j: -((j["da_dang"].get("lich") or j["da_dang"].get("t")) or 0))
+    out.append("Đã đăng gần đây: %s" % ("; ".join("%s %s%s" % (_hoi_gio(j["da_dang"].get("lich") or j["da_dang"].get("t")), ten(j),
+               " (TikTok hẹn giờ)" if (j["da_dang"].get("lich") or 0) > now() else "") for j in dd[:12]) or "không có"))
+    lam = [j for j in jobs if j.get("status") in ("dang-chay", "hen", "moi")]
+    out.append("Đang làm / hẹn dựng: %s" % ("; ".join("%s (%s)" % (ten(j), {"dang-chay": "đang chạy", "hen": "hẹn " + _hoi_gio(j.get("hen_luc"))}.get(j.get("status"), "mới")) for j in lam[:10]) or "không có"))
+    loi = [j for j in jobs if j.get("status") in ("loi", "dung") and (j.get("ended") or j.get("created") or 0) > now() - 3 * 86400]
+    out.append("Bài lỗi / dừng 3 ngày qua: %s" % ("; ".join(ten(j) for j in loi[:8]) or "không có"))
+    hm = han_muc_tt()
+    out.append("Hạn mức Claude: %s" % (("ĐANG HẾT, mở lại " + (hm.get("gio") or "?")) if hm.get("het") else "còn dùng được") +
+               ("" if may else " · dùng tuần này: %s" % (json.dumps(_dung_tuan_gon(), ensure_ascii=False) if _dung_tuan_gon() else "?")))
+    if not may:
+        out.append("Telegram Remote: %s%s%s" % ("đang bật" if CFG.get("tg_lenh") else "đang tắt", " · đã nối" if tgl_noi() else " · chưa nối",
+                   " (nhóm %s)" % (CFG.get("tg_lenh_ten") or "") if tgl_nhom() else ""))
+        mt = may_tg_ds()
+        nguoi = {str(x["id"]): x["ten"] for x in mt["nguoi"]}
+        if mt["tg"]:
+            out.append("Máy ↔ Telegram: " + "; ".join("%s → %s" % ("Máy shop" if k == "chu" else k[2:], nguoi.get(v, "người cũ")) for k, v in mt["tg"].items()))
+        ct = chung_tt()
+        out.append("Dùng chung (máy khác vào app máy shop): %s%s" % ("bật" if ct["bat"] else "tắt", (" · link " + ct["url"]) if ct.get("url") else ""))
+        for m in ct["may"]:
+            out.append("  - %s: vào %s, mở app gần nhất %s%s" % (m["ten"], _hoi_gio(m.get("t")), _hoi_gio(m.get("lan")) if m.get("lan") else "chưa thấy từ lúc mở app",
+                       "" if m.get("ui_moi") is None else (" · giao diện bản mới" if m["ui_moi"] else " · giao diện bản cũ")))
+        out.append("Tiện ích Poly TikTok bản mới nhất: %s" % (tien_ich_ban() or "?"))
+    return "\n".join(out)
+
+
+def hoi_app(data):
+    cau = re.sub(r"\s+", " ", str(data.get("cau") or "")).strip()[:1500]
+    if len(cau) < 2:
+        raise ValueError("Gõ câu hỏi trước")
+    if not resolve_claude():
+        raise ValueError("Không tìm thấy Claude Code trên máy shop. Bấm Kiểm lại ở góc trên.")
+    kh = data.get("_khach") if isinstance(data.get("_khach"), dict) and data["_khach"].get("id") else None
+    ls = [x for x in (data.get("lich_su") or []) if isinstance(x, dict) and str(x.get("text") or "").strip()][-8:]
+    hd = [os.path.join(APP, f).replace("\\", "/") for f in ("HUONG-DAN.txt", "HUONG-DAN-MAC.txt") if os.path.isfile(os.path.join(APP, f))]
+    # mã "0hoi-…": xếp cuối thư mục jobs (các vòng đọc N bài mới nhất không bị câu hỏi chiếm chỗ của bài)
+    jid = "0hoi-" + time.strftime("%Y%m%d-%H%M%S-") + uuid.uuid4().hex[:4]
+    os.makedirs(job_dir(jid), exist_ok=True)
+    prompt = HOI_LENH % {
+        "ai": ("máy dùng chung \"%s\" (chỉ thấy bài của máy này; đổi cài đặt / quy tắc chỉ máy shop làm được)" % kh.get("ten")) if kh else "fen, chủ shop, trên máy shop (thấy mọi máy)",
+        "hd": " ; ".join(hd) or "(không có)", "luc": time.strftime("%H:%M %d/%m/%Y"), "so": hoi_so_lieu(kh["id"] if kh else None),
+        "ls": "\n".join("%s: %s" % ("Bot" if x.get("ai") else "Fen", short(str(x.get("text")), 600)) for x in ls) or "(chưa có)", "cau": cau}
+    job = {"id": jid, "kenh": "laptop", "loai": "hoi", "tieu_de": "Hỏi: " + short(cau, 60), "brief": "", "chu_de": cau,
+           **({"khach": {"id": kh["id"], "ten": kh.get("ten")}} if kh else {}), "created": now(), "status": "moi", "runs": []}
+    with LOCK:
+        save_job(job)
+        try:
+            start_run(job, prompt, "hoi", None, "Hỏi app", model=model_viec("model_hoi") or "sonnet", them_dir=[APP])
+        except Exception as e:
+            job["status"], job["loi_chay"] = "loi", str(e)
+            save_job(job)
+            raise ValueError(str(e))
+    return {"id": jid}
+
+
+def hoi_ket_qua(jid, may=None):
+    """GET /api/hoi/<id>: {tt: dang | xong | loi, tra}. Máy dùng chung chỉ đọc câu của máy đó."""
+    j = load_job(jid)
+    if not j or j.get("loai") != "hoi" or ((j.get("khach") or {}).get("id") or None) != (may or None):
+        raise ValueError("Không thấy câu hỏi này")
+    r = (j.get("runs") or [{}])[-1]
+    tra, loi = "", False
+    f = os.path.join(job_dir(jid), "stream-%s.jsonl" % r.get("n", 1))
+    for line in (read_text(f).splitlines() if os.path.isfile(f) else []):
+        if '"result"' in line:
+            try:
+                o = json.loads(line)
+            except ValueError:
+                continue
+            if o.get("type") == "result":
+                tra, loi = str(o.get("result") or ""), bool(o.get("is_error"))
+    if tra:
+        return {"tt": "loi" if loi else "xong", "tra": tra}
+    if j.get("status") == "dang-chay" and "exit" not in r:
+        return {"tt": "dang", "giay": int(now() - (r.get("started") or now()))}
+    return {"tt": "loi", "tra": j.get("loi_chay") or "Chưa trả lời được (Claude trên máy shop dừng giữa chừng). Fen hỏi lại nha."}
 
 
 def viet_brief(data):
@@ -7769,6 +7907,12 @@ class H(BaseHTTPRequestHandler):
                 return self.send(200, nhap_doc())
             if u.path == "/api/thong-ke":
                 return self.send(200, thong_ke_bai())
+            m = re.fullmatch(r"/api/hoi/([\w-]+)", u.path)
+            if m:
+                try:
+                    return self.send(200, hoi_ket_qua(m.group(1), self.may()))
+                except ValueError as e:
+                    return self.send(404, {"err": str(e)})
             if u.path == "/api/jobs":
                 # "ui": ban giao dien hien tai, trang tu tai lai khi doi (fen khoi phai dong mo app)
                 uiv = ui_ban()
@@ -7892,6 +8036,11 @@ class H(BaseHTTPRequestHandler):
                 return self.send(200, chung_cai(data))
             if u.path == "/api/thong-ke":
                 return self.send(200, may_tg_cai(data["tg"]) if isinstance(data.get("tg"), dict) else chi_tieu_cai(data))
+            if u.path == "/api/hoi":        # 💬 Hỏi app: máy dùng chung tự gắn máy (chỉ số liệu máy đó)
+                data.pop("_khach", None)
+                if self.khach:
+                    data["_khach"] = dict(self.khach)
+                return self.send(200, hoi_app(data))
             if u.path == "/api/bai-co-san":
                 return self.send(200, mo_bai_co_san(data))
             m = re.fullmatch(r"/api/job/([\w-]+)/(caption|telegram|tiktok)", u.path)
