@@ -2448,8 +2448,15 @@ KHO_LAP = re.compile(r"dell|thinkpad|lenovo|legion|asus|rog|zenbook|vivobook|hp\
 
 
 def _kho_so(v):
-    d = re.sub(r"[^\d]", "", str(v or ""))
-    return int(d) if d and 5 <= len(d) <= 10 else None
+    """Giá bán trong ô: CHỈ số đầu tiên (ô có thể có thêm số khác, không lấy); kho ghi theo nghìn ("42.000" = 42 triệu) thì nhân 1000."""
+    m = re.search(r"\d[\d.,]*", str(v or ""))
+    d = re.sub(r"[^\d]", "", m.group(0)) if m else ""
+    if not d or len(d) > 10:
+        return None
+    n = int(d)
+    if 1000 <= n < 1000000:
+        n *= 1000
+    return n if n >= 100000 else None
 
 
 def _kho_tien(v):

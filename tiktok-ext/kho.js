@@ -82,7 +82,9 @@
         const ten = boSeri(String(r[cot.ten] || '').split('\n').map(x => x.trim()).filter(Boolean)[0] || '');
         if (!ten) continue;
         const loai = re => cot.them.filter(i => re.test(hd[i] || '')).map(i => gon(r[i])).filter(Boolean).join(' · ');
-        rows.push({ ten, gia: cot.gia >= 0 ? gon(r[cot.gia]) : '', them: cot.them.map(i => gon(r[i])).filter(Boolean).join(' · '), tt: cot.tt >= 0 ? gon(r[cot.tt]).slice(0, 30) : '',
+        // ô giá có thể 2 dòng (kho thật 15/11 14h59: "42.000" + dòng số khác): CHỈ lấy dòng đầu = giá bán
+        const giaDau = cot.gia >= 0 ? (String(r[cot.gia] || '').split('\n').map(x => x.trim()).filter(Boolean)[0] || '') : '';
+        rows.push({ ten, gia: gon(giaDau), them: cot.them.map(i => gon(r[i])).filter(Boolean).join(' · '), tt: cot.tt >= 0 ? gon(r[cot.tt]).slice(0, 30) : '',
           cau: loai(/cấu hình|cpu|chip|ram|ổ cứng|ssd|dung lượng|màu|loại/i), tinh: loai(/tình trạng|t\.\s*trạng|ngoại hình/i), pin: loai(/pin/i) });
       }
       const s = trang < 40 && nutSau();

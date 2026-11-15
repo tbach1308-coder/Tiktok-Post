@@ -16,8 +16,8 @@ const cho = async (f, n = 60) => { for (let i = 0; i < n; i++) { const r = await
 const moTu = async () => { for (let i = 0; i < 30; i++) { const m = (fs.readFileSync(T + '/fakechrome/args.log', 'utf8').match(/(http:\/\/127\.0\.0\.1:8790\/kho-mo\?tok=\w+)/) || [])[1]; if (m) return m; await new Promise(x => setTimeout(x, 200)); } return ''; };   // Chrome giả ghi link chậm
 const KHO = fs.readFileSync('/home/claude/repo/tiktok-ext/kho.js', 'utf8');
 // cột giống trang kho thật (15/11 14h49): #, TÊN MÁY & SERI (tên + seri xuống dòng), CẤU HÌNH, T.TRẠNG, PIN, GIÁ BÁN, HH, GHI CHÚ, TRẠNG THÁI, (nút)
-const ROWS = [['1', 'Dell Latitude 7420 i7 16GB 512GB<br>C02DK3XYQ6L4', 'i7-1185G7 · 16GB', 'Like new', '92%', '12.900.000', '500.000', 'Khách Nguyễn Văn A cọc', 'Đang bán', 'Sửa'],
-  ['2', 'Dell Latitude 7420 i7 16GB 512GB<br>C02DK3XYQ6L5', 'i7-1185G7 · 16GB', 'Like new', '90%', '13.500.000', '500.000', '', 'Đang bán', 'Sửa'],
+const ROWS = [['1', 'Dell Latitude 7420 i7 16GB 512GB<br>C02DK3XYQ6L4', 'i7-1185G7 · 16GB', 'Like new', '92%', '12.900<br>9.100', '500.000', 'Khách Nguyễn Văn A cọc', 'Đang bán', 'Sửa'],
+  ['2', 'Dell Latitude 7420 i7 16GB 512GB<br>C02DK3XYQ6L5', 'i7-1185G7 · 16GB', 'Like new', '90%', '13.500<br>9.300', '500.000', '', 'Đang bán', 'Sửa'],
   ['3', 'iPad Air 5 64GB Wifi<br>DMPH12ABCD34', 'M1 · 64GB', '99%', '95%', '11.200.000', '300.000', 'Trần B hỏi', 'Đang bán', 'Sửa'],
   ['4', 'ThinkPad X1 Carbon Gen 10<br>PF3AB12C', 'i7-1260P · 16GB', '98%', '88%', '17.900.000', '700.000', '', 'Đang bán', 'Sửa']];
 const P2 = [['5', 'iPad Pro M1 11 inch 128GB<br>FX8KLM90QW', 'M1 · 128GB', '98%', '97%', '13.990.000', '400.000', 'Võ E', 'Đang bán', 'Sửa'],
@@ -62,8 +62,8 @@ const trangLogin = `<!doctype html><meta charset=utf-8><title>POLY Store</title>
   const msg = await p.evaluate(() => window.__kho), bam = await p.evaluate(() => window.__bam || 0);
   const d0 = (msg || {}).data || {};
   check('kho.js: đợi bảng hiện, bấm trang sau 1 lần, đọc 2 trang (6 dòng)', d0.tt === 'ok' && d0.trang === 2 && bam === 1 && (d0.rows || []).length === 6, { tt: d0.tt, trang: d0.trang, bam, n: (d0.rows || []).length });
-  check('kho.js (cột như kho thật): tên máy (bỏ seri dòng 2) + giá bán + cấu hình / t.trạng / pin + trạng thái; KHÔNG chép seri, HH, ghi chú (tên khách)', d0.chon && d0.chon.ten === 'TÊN MÁY & SERI' && d0.chon.gia === 'GIÁ BÁN' && d0.chon.them.join() === 'CẤU HÌNH,T.TRẠNG,PIN' && d0.chon.tt === 'TRẠNG THÁI'
-    && d0.rows[0].ten === 'Dell Latitude 7420 i7 16GB 512GB' && d0.rows[0].tt === 'Đang bán' && !JSON.stringify(d0.rows).match(/C02DK3XYQ6L4|"[0-9]00\.000"|Nguyễn Văn A|Trần B|Sửa/), { chon: d0.chon, r0: (d0.rows || [])[0] });
+  check('kho.js (cột như kho thật): tên máy (bỏ seri dòng 2) + giá bán (chỉ dòng đầu ô giá, kho ghi theo nghìn) + cấu hình / t.trạng / pin + trạng thái; KHÔNG chép seri, HH, ghi chú (tên khách)', d0.chon && d0.chon.ten === 'TÊN MÁY & SERI' && d0.chon.gia === 'GIÁ BÁN' && d0.chon.them.join() === 'CẤU HÌNH,T.TRẠNG,PIN' && d0.chon.tt === 'TRẠNG THÁI'
+    && d0.rows[0].ten === 'Dell Latitude 7420 i7 16GB 512GB' && d0.rows[0].tt === 'Đang bán' && d0.rows[0].gia === '12.900' && !JSON.stringify(d0.rows).includes('9.100') && !JSON.stringify(d0.rows).match(/C02DK3XYQ6L4|"[0-9]00\.000"|Nguyễn Văn A|Trần B|Sửa/), { chon: d0.chon, r0: (d0.rows || [])[0] });
   const g1 = await post('/api/kho-web', Object.assign({}, d0, { tok: 'sai-ma-123456' }));
   check('gửi về sai mã lượt: bị từ chối', g1.s === 400, g1);
   const g2 = await post('/api/kho-web', d0, 'https://evil.example');
