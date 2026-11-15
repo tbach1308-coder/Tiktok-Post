@@ -4460,6 +4460,7 @@ TGL_HELP = (   # fen 30/10 18h05 "giao diện gọn thôi nha": tin ngắn
     "• Reply tin brief → sửa brief\n"
     "• quy tắc: … → ghi luật (kèm ảnh được)\n"
     "• /cho → coi slide + caption bài chờ đăng\n"
+    "• /nhac → bài hẹn hôm nay + chờ lâu (8h sáng tự nhắc)\n"
     "• /tinhhinh · /bang · /tat · /bat")
 TGL_PV = {"chung": "chung 2 kênh", "laptop": "chỉ Laptop", "ipad": "chỉ iPad"}
 
@@ -4909,6 +4910,8 @@ def tgl_tin(m):
         return tgl_bang(moi=True)
     if lenh in ("/cho", "/chodang") or t0 in ("cho dang", "bai cho dang"):
         return tgl_ds_cho()
+    if lenh == "/nhac" or t0 in ("nhac dang", "nhac bai"):      # 15/11: xem ngay lời nhắc sáng
+        return nhac_cho_dang() or tgl_gui("☀️ Không có bài hẹn đăng hôm nay hay bài chờ quá 1 ngày.")
     if not CFG.get("tg_lenh"):            # Remote đang tắt: chỉ nhận lệnh bật
         if la_bat and tgl_chu(fr):
             tgl_cai({"bat": True})
@@ -5456,6 +5459,95 @@ def tgl_ds_cho():
         return tgl_gui("📮 Không có bài chờ đăng.")
     nut = [[{"text": "%s %s" % (ic.get(j.get("kenh"), ""), short(ten_hien(j)[0], 48)), "callback_data": "xem:" + j["id"]}] for j in ds[:15]]
     tgl_gui("📮 Chờ đăng (%d%s):" % (len(ds), ", 15 bài mới nhất" if len(ds) > 15 else ""), nut)
+
+
+# ---------------------------------------------------------------- nhắc bài chờ đăng (fen 15/11 10h chọn "Nhắc bài chờ đăng")
+# Mỗi sáng (mặc định 8h, máy shop mở muộn thì nhắc ngay lúc mở, trước 12h) gửi 1 lần: album ảnh bìa + danh sách
+# bài hẹn đăng hôm nay và bài xong chờ quá 1 ngày chưa đăng, bấm bài nhận đủ slide + caption (như /cho). Không có thì không nhắn.
+# Bài máy dùng chung không tính (bài của người khác). config: "nhac_cho_dang": false để tắt, "nhac_cho_dang_gio": 8.
+NHAC_CHO_FILE = os.path.join(APP, "nhac-cho-dang.json")
+
+
+def nhac_cho_ds(luc=None):
+    """(hẹn hôm nay, chờ quá 1 ngày): bài xong chưa đăng của máy shop. Hẹn sớm trước, chờ lâu trước."""
+    luc = luc or now()
+    hom = time.strftime("%Y-%m-%d", time.localtime(luc))
+    hen, lau = [], []
+    for jid in (sorted(os.listdir(JOBS), reverse=True)[:300] if os.path.isdir(JOBS) else []):
+        j = read_json(os.path.join(JOBS, jid, "job.json"))
+        if not j or j.get("loai") in VIEC_AN or j.get("an") or j.get("khach") or j.get("status") != "xong" or j.get("da_dang"):
+            continue
+        h = j.get("hen_dang")
+        xong = ((j.get("runs") or [{}])[-1].get("ended")) or j.get("created") or luc
+        if h and time.strftime("%Y-%m-%d", time.localtime(h)) == hom:
+            hen.append(j)
+        elif luc - xong > 86400:
+            lau.append((xong, j))
+    hen.sort(key=lambda j: j.get("hen_dang") or 0)
+    return hen, [j for _, j in sorted(lau, key=lambda x: x[0])]
+
+
+def nhac_cho_dang(luc=None):
+    """Gửi lời nhắc sáng. Trả số bài đã nhắc (0: không có gì để nhắc / chưa nối Telegram)."""
+    luc = luc or now()
+    hen, lau = nhac_cho_ds(luc)
+    if not hen and not lau:
+        return 0
+    ic = {"laptop": "💻", "ipad": "📱"}
+    dong = ["☀️ Nhắc đăng bài sáng %s" % time.strftime("%d/%m", time.localtime(luc))]
+    if hen:
+        dong += ["", "⏰ Hẹn đăng hôm nay (%d):" % len(hen)] + ["• %s %s · %s" % (ic.get(j.get("kenh"), ""), short(ten_hien(j)[0], 60),
+                time.strftime("%H:%M", time.localtime(j["hen_dang"]))) for j in hen[:10]]
+    if lau:
+        dong += ["", "🕰 Xong rồi, chờ quá 1 ngày chưa đăng (%d):" % len(lau)] + ["• %s %s · %d ngày" % (ic.get(j.get("kenh"), ""), short(ten_hien(j)[0], 60),
+                max(1, int((luc - ((j.get("runs") or [{}])[-1].get("ended") or j.get("created") or luc)) // 86400))) for j in lau[:10]]
+        if len(lau) > 10:
+            dong.append("… và %d bài nữa (gõ /cho xem hết)" % (len(lau) - 10))
+    ds = (hen + lau)[:10]
+    lenh = CFG.get("tg_lenh_chat")
+    chat = lenh or CFG.get("telegram_chat")
+    if not chat or not CFG.get("telegram_token"):
+        return 0
+    # album ảnh bìa (slide 1) của tối đa 6 bài đầu danh sách
+    bia = []
+    for j in ds[:6]:
+        sl = list_slides(j.get("thu_muc_bai"))
+        if sl and os.path.getsize(sl[0]["path"]) < 9.5e6:
+            bia.append((j, sl[0]))
+    try:
+        if len(bia) == 1:
+            with open(bia[0][1]["path"], "rb") as f:
+                tg_call("sendPhoto", {"chat_id": chat, "caption": short(ten_hien(bia[0][0])[0], 200)}, {"photo": (bia[0][1]["name"], f.read())}, timeout=120)
+        elif bia:
+            media, files = [], {}
+            for k, (j, x) in enumerate(bia):
+                with open(x["path"], "rb") as f:
+                    files["f%d" % k] = (x["name"], f.read())
+                media.append({"type": "photo", "media": "attach://f%d" % k, "caption": short(ten_hien(j)[0], 200)})
+            tg_call("sendMediaGroup", {"chat_id": chat, "media": json.dumps(media, ensure_ascii=False)}, files, timeout=180)
+    except Exception as e:
+        log("nhac cho dang: gui anh bia loi %s" % e)
+    nut = [[{"text": "📷 %s %s" % (ic.get(j.get("kenh"), ""), short(ten_hien(j)[0], 44)), "callback_data": "xem:" + j["id"]}] for j in ds] if lenh else None
+    if nut:
+        dong += ["", "Bấm bài để nhận đủ slide + caption."]
+    gui = tgl_gui("\n".join(dong), nut, chat=chat)
+    log("nhac cho dang: %d hen, %d cho lau%s" % (len(hen), len(lau), "" if gui else " (gui loi)"))
+    return len(hen) + len(lau) if gui else 0
+
+
+def nhac_cho_lich():
+    """Mỗi phút xem: tới giờ nhắc (mặc định 8h) mà hôm nay chưa nhắc, và chưa quá 12h, thì nhắc 1 lần."""
+    time.sleep(60)
+    while True:
+        try:
+            gio = int(CFG.get("nhac_cho_dang_gio", 8) or 8)
+            lt = time.localtime()
+            hom = time.strftime("%Y-%m-%d", lt)
+            if CFG.get("nhac_cho_dang", True) and gio <= lt.tm_hour < max(gio + 1, 12) and (read_json(NHAC_CHO_FILE, {}) or {}).get("ngay") != hom:
+                write_json(NHAC_CHO_FILE, {"ngay": hom, "t": now(), "bai": nhac_cho_dang()})
+        except Exception:
+            log("nhac cho dang loi: " + traceback.format_exc())
+        time.sleep(60)
 
 
 def tgl_xem(jid, rieng=None):
@@ -7883,6 +7975,7 @@ def main():
     threading.Thread(target=dung_bu_cu, daemon=True).start()     # sổ hạn mức: ghi bù lượt cũ
     threading.Thread(target=nen_log_lich, daemon=True).start()   # fen 14/11: nén log bài cũ (10 phút sau khi mở, rồi mỗi ngày)
     threading.Thread(target=canh_mat_noi, daemon=True).start()   # fen 14/11: kiểm Claude Code mỗi 20 phút, mất nối thì báo Telegram
+    threading.Thread(target=nhac_cho_lich, daemon=True).start()  # fen 15/11: 8h sáng nhắc bài hẹn đăng hôm nay + chờ quá 1 ngày
     hm =read_json(HAN_MUC_FILE, None)
     if isinstance(hm, dict) and hm.get("het") and (hm.get("reset_t") or 0) > now():   # mở lại app giữa đợt hết hạn mức: nhớ tiếp
         HAN_MUC.update({k: hm.get(k) for k in ("het", "chu", "reset", "reset_t", "t")})
