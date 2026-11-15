@@ -104,6 +104,16 @@ a.btn{color:var(--tx);text-decoration:none}
 .side .new .btn{width:100%;padding:11px}
 .side .new .row2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
 .side .new .row2 .btn{padding:7px 4px}
+.lshd{display:flex;align-items:center;gap:10px}.lshd .btn{margin-left:auto;font-size:12px;font-weight:600}
+/* 📱 Story / reel (fen 15/11 12h36): hộp chọn bài + ảnh dọc 9:16 */
+.stpick{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:8px;max-height:56vh;overflow:auto}
+.stpick button{background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:5px;cursor:pointer;text-align:left;color:var(--tx);font:inherit;font-size:11.5px;line-height:1.3}
+.stpick button:hover{border-color:var(--g)}.stpick img,.stpick .nb{width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:6px;display:block;background:var(--line);margin-bottom:4px}
+.stpick b{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-weight:600}
+.stbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:6px 0 10px}
+.stgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px;max-height:52vh;overflow:auto;min-height:40px}
+.stgrid a{display:block;border-radius:7px;overflow:hidden;border:1px solid var(--line);background:var(--panel2)}.stgrid a:hover{border-color:var(--g)}
+.stgrid img{width:100%;aspect-ratio:9/16;object-fit:cover;display:block}
 .side .new .thbtn{width:100%;margin-top:8px;padding:7px 4px}
 .side .new .thbtn.on{border-color:#8b5cf6;background:#241a3d;color:#e3d8ff}
 .side .new .row3 .thbtn{margin-top:0}.side .new .row3{margin-top:8px}body.khach .side .new .row3{grid-template-columns:1fr}body.khach .tkbtn{display:none}
@@ -686,7 +696,7 @@ details.brief ul{margin:0;padding-left:18px;color:var(--mut)}
 </div>
 <div class="wrap" id="wrap">
   <aside class="side">
-    <div class="new"><button class="btn pri" id="bNew">+ Bài mới</button><div class="row2"><button class="btn ghost sm" id="bCoSan" title="Mở bài đã dựng trong thư mục Laptop / iPad để gửi Telegram, đăng TikTok hoặc sửa">Mở bài có sẵn</button><button class="btn ghost sm" id="bLs" title="Brief của mọi bài đã chạy, các lần Claude viết brief và nháp đã bỏ">Lịch sử brief</button></div><div class="row2 row3"><button class="btn ghost sm thbtn" id="bTheme" title="Kho theme Canva: thiết kế mẫu dùng lại, chỉ thay ảnh và chữ">🎨 Kho theme</button><button class="btn ghost sm thbtn tkbtn" id="bThongKe" title="Số bài từng máy (máy shop + máy dùng chung): hôm nay, 7 ngày, tháng này; đặt chỉ tiêu bài đăng / ngày">📊 Số bài</button></div></div>
+    <div class="new"><button class="btn pri" id="bNew">+ Bài mới</button><div class="row2"><button class="btn ghost sm" id="bStory" title="Làm ảnh dọc 9:16 cho Story / Reel từ slide của 1 bài đã làm (vài giây, không tốn Claude)">📱 Story / reel</button><button class="btn ghost sm" id="bLs" title="Brief của mọi bài đã chạy, các lần Claude viết brief và nháp đã bỏ">Lịch sử brief</button></div><div class="row2 row3"><button class="btn ghost sm thbtn" id="bTheme" title="Kho theme Canva: thiết kế mẫu dùng lại, chỉ thay ảnh và chữ">🎨 Kho theme</button><button class="btn ghost sm thbtn tkbtn" id="bThongKe" title="Số bài từng máy (máy shop + máy dùng chung): hôm nay, 7 ngày, tháng này; đặt chỉ tiêu bài đăng / ngày">📊 Số bài</button></div></div>
     <div class="sbtabs" id="sbTabs"></div>
     <div class="jobs" id="jobs"></div>
   </aside>
@@ -2266,16 +2276,18 @@ const TT_BAI = {xong: 'Đã dựng', 'dang-chay': 'Đang dựng', hen: 'Đã h�
 function ngayGio(t){ if (!t) return ''; const d = new Date(t * 1000); return String(d.getDate()).padStart(2, '0') + '/' + String(d.getMonth() + 1).padStart(2, '0') + ' ' + hm(t); }
 async function lsDialog(){
   const m = document.createElement('div'); m.className = 'modal on';
-  m.innerHTML = `<div class="mbox wide"><h3>Lịch sử brief</h3>
+  m.innerHTML = `<div class="mbox wide"><h3 class="lshd">Lịch sử brief${KHACH ? '' : '<button class="btn ghost sm" id="lsCoSan" title="Mở bài đã dựng trong thư mục Laptop / iPad (kể cả bài làm ngoài app) để gửi Telegram, đăng TikTok hoặc sửa">📂 Mở bài có sẵn</button>'}</h3>
     <p class="pnote">Brief của mọi bài đã chạy, các lần bấm Viết brief (cả lần báo trùng) và nháp đã bỏ. Bấm 1 dòng để xem; Dùng lại = mở thành nháp mới, nháp đang gõ vẫn giữ.</p>
     <div class="lsbar"><div class="chips" id="lsK"></div><input class="in" id="lsQ" placeholder="Tìm chữ trong brief…"></div>
     <div class="cslist" id="lsL"><p class="pnote">Đang tải…</p></div>
     <div class="acts"><button class="btn" id="lsDong">Đóng</button></div></div>`;
   document.body.appendChild(m);
   const dong = () => m.remove();
+  const cs = m.querySelector('#lsCoSan'); if (cs) cs.onclick = () => { dong(); coSanDialog(); };     // fen 15/11 12h36: nút cũ ở cột trái dời vào đây
   $('#lsDong').onclick = dong; m.onclick = e => { if (e.target === m) dong(); };
   let ds = [], k = '', q = '', mo = null;
   try { ds = (await api('/api/lich-su-brief')).ds || []; } catch(e) { setH($('#lsL'), `<p class="err">${esc(e.message)}</p>`); return; }
+  if (!m.isConnected) return;      // đã đóng hộp (vd bấm 📂 Mở bài có sẵn) trong lúc tải
   const nhan = x => x.loai === 'bai' ? (TT_BAI[x.trang_thai] || x.trang_thai) + (x.trang_thai === 'hen' && x.hen_luc ? ' ' + henTxt(x.hen_luc) : '') + (x.ngay ? ' · đăng ' + x.ngay : '')
     : x.loai === 'nhap' ? 'Nháp đã bỏ'
     : x.trung ? 'Claude báo trùng, không viết' : x.bai ? 'Claude viết · đã dựng thành "' + (x.bai_ten || 'bài') + '"' : 'Claude viết · chưa dựng';
@@ -2463,7 +2475,7 @@ $('#bChung').onclick = () => chungDlg();
 $('#bRm .rml').onclick = () => remote();
 document.querySelectorAll('#bRm [data-rb]').forEach(b => b.onclick = e => { e.stopPropagation(); const v = b.dataset.rb === '1'; if (S.rm && v === !!S.rm.bat) return; rmBat(v); });
 
-$('#bCoSan').onclick = coSanDialog;
+$('#bStory').onclick = () => storyDialog();
 $('#bLs').onclick = lsDialog;
 $('#bTheme').onclick = () => khoTheme();
 $('#bThongKe').onclick = () => thongKe();
@@ -2847,6 +2859,51 @@ function gyVe(){
   el.querySelectorAll('[data-gy]').forEach(b => b.onclick = () => { const x = ds[+b.dataset.gy]; if (!x) return;
     f.chude = x.chu_de; f.kho = x.may; $('#fChuDe').value = x.chu_de; $('#fKho').value = x.may; saveForm();
     toast('Đã điền chủ đề + máy vào ô Kho: bấm ✍ Viết brief'); $('#fChuDe').focus(); });
+}
+// ---- 📱 Story / reel (fen 15/11 12h36 "thay ô này thành ô chức năng làm ảnh story reel", chọn "Từ bài đã làm"): đang mở 1 bài đã xong thì
+// làm cho bài đó, không thì chọn bài (bài xong gần nhất, theo ô Máy đang lọc). Ảnh 9:16 1080×1920 làm trên máy shop bằng Pillow (vài giây):
+// slide nằm giữa, chừa trên / dưới cho chữ và nút của app; nền màu viền slide hoặc nền mờ. Tải .zip / gửi Telegram / mở thư mục (máy shop).
+function storyDialog(){
+  const j = S.view === 'job' && S.data && S.data.job;
+  if (j && (S.data.slides || []).length) return storyBai(j.id, j.tieu_de);
+  const may = x => KHACH || !S.sbMay || (S.sbMay === 'chu' ? !x.khach : !!x.khach && mayKhoa(x.khach.ten) === S.sbMay);
+  const ds = S.jobs.filter(x => x.status === 'xong' && may(x)).slice(0, 24);
+  const m = document.createElement('div'); m.className = 'modal on';
+  m.innerHTML = `<div class="mbox wide"><h3>📱 Ảnh story / reel</h3><p class="pnote">Chọn 1 bài đã làm: app làm ảnh dọc 9:16 (1080×1920) từ các slide để đăng Story / Reel.</p>
+    <div class="stpick">${ds.length ? ds.map(x => `<button data-st="${esc(x.id)}" title="${esc(x.tieu_de || '')}">${x.bia ? `<img src="${esc(x.bia)}" alt="" loading="lazy">` : '<span class="nb"></span>'}<b>${esc(x.tieu_de || 'Bài')}</b><span class="kn ${x.kenh}">${esc((KENH[x.kenh] || {}).ten || '')}</span></button>`).join('') : '<p class="pnote">Chưa có bài nào làm xong.</p>'}</div>
+    <div class="acts"><button class="btn" id="stDong">Đóng</button></div></div>`;
+  document.body.appendChild(m);
+  $('#stDong').onclick = () => m.remove(); m.onclick = e => { if (e.target === m) m.remove(); };
+  m.querySelectorAll('[data-st]').forEach(b => b.onclick = () => { m.remove(); storyBai(b.dataset.st, (S.jobs.find(x => x.id === b.dataset.st) || {}).tieu_de); });
+}
+async function storyBai(id, ten){
+  const m = document.createElement('div'); m.className = 'modal on';
+  m.innerHTML = `<div class="mbox wide" id="stBox"><h3>📱 Story / reel · ${esc(ten || 'Bài')}</h3>
+    <p class="pnote">Ảnh dọc 9:16 (1080×1920) từ slide: slide nằm giữa, chừa trên / dưới cho chữ và nút của TikTok, Facebook, Instagram.</p>
+    <div class="stbar"><span class="lbl" style="margin:0">Nền</span><div class="kseg segd" id="stNen"><button data-nen="mau">Màu slide</button><button data-nen="mo">Mờ</button></div>
+      <button class="btn pri sm" id="stLam">Làm ảnh story</button><span class="pnote" id="stSt" style="margin:0"></span></div>
+    <div class="stgrid" id="stG"><p class="pnote">Đang tải…</p></div>
+    <div class="acts"><a class="btn ghost" id="stZip" download>⬇ Tải tất cả</a><button class="btn ghost" id="stTg">📨 Gửi Telegram</button>${KHACH ? '' : '<button class="btn ghost" id="stMo">📂 Mở thư mục</button>'}<span style="flex:1"></span><button class="btn" id="stDong">Đóng</button></div></div>`;
+  document.body.appendChild(m);
+  $('#stDong').onclick = () => m.remove(); m.onclick = e => { if (e.target === m) m.remove(); };
+  let r = { story: [], nen: 'mau' }, nen = 'mau';
+  const ve = () => {
+    m.querySelectorAll('#stNen [data-nen]').forEach(b => b.classList.toggle('on', b.dataset.nen === nen));
+    setH($('#stG'), r.story.length ? r.story.map(x => `<a href="${esc(x.url)}" target="_blank" title="Mở ảnh to ${esc(x.name)}"><img src="${esc(x.url)}" alt="${esc(x.name)}" loading="lazy"></a>`).join('') : `<p class="pnote">Chưa có ảnh story: chọn nền rồi bấm Làm ảnh story (${r.slides || 0} slide).</p>`);
+    const z = $('#stZip'); z.href = r.story.length ? '/api/job/' + id + '/story.zip' : '#'; z.style.pointerEvents = r.story.length ? '' : 'none'; z.style.opacity = r.story.length ? '' : '.5';
+    $('#stTg').disabled = !r.story.length; $('#stLam').textContent = r.story.length ? 'Làm lại' : 'Làm ảnh story';
+  };
+  m.querySelectorAll('#stNen [data-nen]').forEach(b => b.onclick = () => { nen = b.dataset.nen; ve(); });
+  $('#stLam').onclick = async () => { const b = $('#stLam'); b.disabled = true; $('#stSt').textContent = 'Đang làm…';
+    try { r = await api('/api/job/' + id + '/story', { nen }); $('#stSt').textContent = 'Xong ' + r.story.length + ' ảnh'; } catch(e) { $('#stSt').textContent = ''; toast(e.message, true); }
+    b.disabled = false; ve(); };
+  $('#stTg').onclick = async () => { const b = $('#stTg'); b.disabled = true; b.textContent = 'Đang gửi…';
+    try { const x = await api('/api/job/' + id + '/story-tg', {}); toast('Đã gửi ' + x.n + ' ảnh story qua Telegram'); }
+    catch(e) { if (e.message.startsWith('CAI_TELEGRAM')) { m.remove(); tgDialog(e.message.split('|')[1]); } else toast(e.message, true); }
+    b.textContent = '📨 Gửi Telegram'; b.disabled = false; };
+  const mo = $('#stMo'); if (mo) mo.onclick = () => api('/api/job/' + id + '/mo', {}).catch(e => toast(e.message, true));
+  try { r = await api('/api/job/' + id + '/story'); nen = r.nen || 'mau'; } catch(e) { setH($('#stG'), `<p class="err">${esc(e.message)}</p>`); return; }
+  ve();
 }
 // ---- 💬 Hỏi app (fen 15/11 11h51 "thêm chat bot để hỏi", chọn "Cách dùng app + số liệu"): hỏi cách làm, bài chờ đăng, máy nào đăng
 // mấy bài… Mỗi câu 1 lượt Claude chỉ đọc trên máy shop (POST /api/hoi → hỏi lại GET /api/hoi/<id>). Lịch sử chat nhớ trên trình duyệt này.

@@ -253,6 +253,11 @@ LÀM 1 BÀI
   theme Photoshop ở tab Photoshop);
   sao vàng ★ = đang trong kho chung, bấm lại để thôi. Máy khác chỉ ▶ Làm bài / ⧉ Nhân bản theme kho chung.
   Mẫu Canva của kênh (Kiểm máy > Canva) cũng riêng từng máy.
+- 📱 Story / reel (15/11, nút ở cột trái, chỗ "Mở bài có sẵn" cũ): đang mở 1 bài đã xong thì làm cho bài đó, không thì chọn bài.
+  App làm ảnh dọc 9:16 (1080×1920) từ mọi slide: slide nằm giữa, chừa trên / dưới cho chữ + nút của TikTok / Facebook / Instagram,
+  nền "Màu slide" (phẳng, màu viền slide) hoặc "Mờ". Vài giây, không tốn Claude. Ảnh ở thư mục bài\story\story-NN.jpg; "⬇ Tải tất cả"
+  (.zip), "📨 Gửi Telegram" (album, cùng nơi nhận như Gửi Telegram), "📂 Mở thư mục". Làm lại thì ảnh cũ thay bằng ảnh mới.
+  "Mở bài có sẵn" (bài làm ngoài app trong thư mục Laptop / iPad) giờ ở nút "📂 Mở bài có sẵn" góc trên hộp Lịch sử brief.
 - 💬 Hỏi app (15/11, chip xanh "💬 Hỏi app" đầu thanh trên cùng, máy nào cũng có): hỏi cách dùng app ("cách đăng TikTok trên máy Phú?") hoặc số liệu
   ("hôm nay mỗi máy đăng mấy bài?", "bài nào đang chờ đăng?"). Mỗi câu Claude trên máy shop trả lời trong 10–40 giây (tính vào hạn mức
   tuần, model Sonnet), chỉ đọc hướng dẫn + số liệu app, KHÔNG làm thay (muốn làm thì bấm nút như bot chỉ). Enter gửi, Shift+Enter xuống

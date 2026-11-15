@@ -7928,6 +7928,132 @@ def chung_zip(jid):
     return b.getvalue(), ten + ".zip"
 
 
+# ---------------------------------------------------------------- 📱 Ảnh story / reel (fen 15/11 12h36 "thay ô này thành ô chức năng làm
+# ảnh story reel", chọn "Từ bài đã làm"): từ slide 3:4 của bài làm ảnh dọc 9:16 (1080×1920) cho Story / Reel: slide thu vừa vùng giữa,
+# chừa trên 250px / dưới 340px (chỗ chữ, nút của TikTok / Facebook / Instagram), nền phẳng màu viền slide (hoặc nền mờ của chính slide).
+# Làm bằng Pillow trên máy shop (vài giây, không tốn Claude). Ảnh ở "<thư mục bài>/story/story-NN.jpg"; ảnh cũ không dùng nữa dời _cu/.
+STORY_W, STORY_H, STORY_TREN, STORY_DUOI = 1080, 1920, 250, 340
+
+
+def story_ds(job):
+    f = (job or {}).get("thu_muc_bai")
+    d = os.path.join(f, "story") if f else ""
+    out = []
+    for fn in (os.listdir(d) if d and os.path.isdir(d) else []):
+        m = re.fullmatch(r"story-0*(\d+)\.jpg", fn, re.I)
+        if m:
+            fp = os.path.join(d, fn)
+            out.append({"n": int(m.group(1)), "name": fn, "path": fp, "mt": os.path.getmtime(fp)})
+    out.sort(key=lambda x: x["n"])
+    return out
+
+
+def story_ra(job):
+    return {"story": [{"n": x["n"], "name": x["name"], "url": "/file?p=" + quote(x["path"]) + "&t=%d" % x["mt"]} for x in story_ds(job)],
+            "slides": len(list_slides(job.get("thu_muc_bai"))), "nen": job.get("story_nen") or "mau"}
+
+
+def story_lam(jid, data):
+    try:
+        from PIL import Image, ImageFilter
+    except ImportError:
+        raise ValueError("Máy này chưa có Pillow (thư viện ảnh của Python) nên chưa làm được ảnh story")
+    job = load_job(jid)
+    if not job:
+        raise ValueError("Không thấy bài")
+    sl = list_slides(job.get("thu_muc_bai"))
+    if not sl:
+        raise ValueError("Bài chưa có slide")
+    chon = {int(x) for x in (data.get("slides") or []) if str(x).isdigit()}
+    sl = [x for x in sl if not chon or x["n"] in chon]
+    nen = "mo" if data.get("nen") == "mo" else "mau"
+    d = os.path.join(job["thu_muc_bai"], "story")
+    os.makedirs(d, exist_ok=True)
+    giu = set()
+    for x in sl:
+        with Image.open(x["path"]) as im0:
+            im = im0.convert("RGB")
+        w, h = im.size
+        k = min(STORY_W / w, (STORY_H - STORY_TREN - STORY_DUOI) / h)
+        nw, nh = max(1, round(w * k)), max(1, round(h * k))
+        if nen == "mo":
+            k2 = max(STORY_W / w, STORY_H / h)
+            bg = im.resize((max(STORY_W, round(w * k2)), max(STORY_H, round(h * k2))))
+            l, t = (bg.width - STORY_W) // 2, (bg.height - STORY_H) // 2
+            bg = bg.crop((l, t, l + STORY_W, t + STORY_H)).filter(ImageFilter.GaussianBlur(40))
+            bg = Image.blend(bg, Image.new("RGB", bg.size, (0, 0, 0)), 0.35)
+        else:
+            nho = im.resize((24, 32))
+            px = [nho.getpixel((i, j)) for i in range(24) for j in range(32) if i in (0, 23) or j in (0, 31)]
+            bg = Image.new("RGB", (STORY_W, STORY_H), tuple(sum(c[i] for c in px) // len(px) for i in range(3)))
+        bg.paste(im.resize((nw, nh), Image.LANCZOS), ((STORY_W - nw) // 2, STORY_TREN + (STORY_H - STORY_TREN - STORY_DUOI - nh) // 2))
+        ten = "story-%02d.jpg" % x["n"]
+        bg.save(os.path.join(d, ten), "JPEG", quality=92, optimize=True)
+        giu.add(ten)
+    if not chon:      # làm cả bài: ảnh story cũ của slide không còn thì dời vào _cu (không xoá)
+        for x in story_ds(job):
+            if x["name"] not in giu:
+                os.makedirs(os.path.join(d, "_cu"), exist_ok=True)
+                shutil.move(x["path"], os.path.join(d, "_cu", "%d-%s" % (int(now()), x["name"])))
+    with LOCK:
+        j = load_job(jid)
+        if j:
+            j["story_nen"] = nen
+            save_job(j)
+            job = j
+    log("story %s: %d anh (nen %s)" % (jid, len(sl), nen))
+    return story_ra(job)
+
+
+def story_zip(jid):
+    import zipfile
+    job = load_job(jid)
+    if not job:
+        raise ValueError("Không thấy bài")
+    ds = story_ds(job)
+    if not ds:
+        raise ValueError("Bài chưa có ảnh story: bấm Làm ảnh story trước")
+    b = io.BytesIO()
+    with zipfile.ZipFile(b, "w", zipfile.ZIP_STORED) as z:
+        for x in ds:
+            z.write(x["path"], x["name"])
+    ten = re.sub(r"[^\w-]+", "-", _bo_dau(ten_hien(job)[0] or jid)).strip("-")[:50] or jid
+    return b.getvalue(), ten + "-story.zip"
+
+
+def story_tg(jid):
+    """Gửi ảnh story của bài vào Telegram (cùng nơi nhận như nút Gửi Telegram), dạng album ảnh, không kèm chữ."""
+    job = load_job(jid)
+    if not job:
+        raise ValueError("Không thấy bài")
+    ng = tg_nguoi_cua(job)
+    if job.get("khach") and not ng:
+        raise ValueError("Máy %s chưa gán Telegram nhận bài (máy shop: 📊 Số bài → Máy ↔ Telegram)" % ((job.get("khach") or {}).get("ten") or "này"))
+    if not (CFG.get("telegram_token") and (ng or CFG.get("telegram_chat"))):
+        raise ValueError("CAI_TELEGRAM")
+    ds = story_ds(job)
+    if not ds:
+        raise ValueError("Bài chưa có ảnh story: bấm Làm ảnh story trước")
+    chat = ng["id"] if ng else CFG["telegram_chat"]
+    i = 0
+    for c in chia_nhom(len(ds)):
+        nhom = ds[i:i + c]
+        i += c
+        if len(nhom) == 1:
+            with open(nhom[0]["path"], "rb") as f:
+                tg_call("sendPhoto", {"chat_id": chat}, {"photo": (nhom[0]["name"], f.read())}, timeout=300)
+        else:
+            media, files = [], {}
+            for k, x in enumerate(nhom):
+                with open(x["path"], "rb") as f:
+                    files["f%d" % k] = (x["name"], f.read())
+                media.append({"type": "photo", "media": "attach://f%d" % k})
+            tg_call("sendMediaGroup", {"chat_id": chat, "media": json.dumps(media)}, files, timeout=300)
+    tg_call("sendMessage", {"chat_id": chat, "text": "📱 Ảnh story / reel: %s (%d ảnh 9:16)" % (ten_hien(job)[0], len(ds))}, timeout=30)
+    _ghi_da_gui(jid, {"t": now(), "kieu": "story-tg", "n": len(ds)})
+    return {"ok": True, "n": len(ds)}
+
+
 def _chung_cookie(h, tok):
     an = "https" in (h.headers.get("X-Forwarded-Proto") or "") + (h.headers.get("Cf-Visitor") or "")
     return "pdb_k=%s; Path=/; Max-Age=31536000; HttpOnly; SameSite=Lax%s" % (tok, "; Secure" if an else "")
@@ -8096,6 +8222,15 @@ class H(BaseHTTPRequestHandler):
                 return self.send(200, thong_ke_bai())
             if u.path == "/api/goi-y":
                 return self.send(200, goi_y_doc())
+            m = re.fullmatch(r"/api/job/([\w-]+)/story(\.zip)?", u.path)
+            if m:
+                if m.group(2):
+                    b, ten = story_zip(m.group(1))
+                    return self.send(200, b, "application/zip", {"Content-Disposition": "attachment; filename=\"%s\"" % ten})
+                j = load_job(m.group(1))
+                if not j:
+                    return self.send(404, {"err": "Không thấy bài"})
+                return self.send(200, story_ra(j))
             m = re.fullmatch(r"/api/hoi/([\w-]+)", u.path)
             if m:
                 try:
@@ -8227,6 +8362,9 @@ class H(BaseHTTPRequestHandler):
                 return self.send(200, may_tg_cai(data["tg"]) if isinstance(data.get("tg"), dict) else chi_tieu_cai(data))
             if u.path == "/api/goi-y":
                 return self.send(200, goi_y_cai(data))
+            m = re.fullmatch(r"/api/job/([\w-]+)/story(-tg)?", u.path)
+            if m:            # 📱 ảnh story / reel (fen 15/11)
+                return self.send(200, story_tg(m.group(1)) if m.group(2) else story_lam(m.group(1), data))
             if u.path == "/api/hoi":        # 💬 Hỏi app: máy dùng chung tự gắn máy (chỉ số liệu máy đó)
                 data.pop("_khach", None)
                 if self.khach:
