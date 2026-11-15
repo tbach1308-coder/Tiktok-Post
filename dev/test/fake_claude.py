@@ -27,6 +27,10 @@ if 'KHUNG CHAT CỦA BÀI' in prompt and prompt.split('KHUNG CHAT CỦA BÀI')[0
     sys.exit(0)
 if prompt.startswith('Kiểm kết nối kho Polysto'):   # chip Kho Poly (15/11): FAKE_POLY_CHUA = chưa nối
     chua = os.path.exists(os.path.join(HERE, 'FAKE_POLY_CHUA'))
+    if os.path.exists(os.path.join(HERE, 'FAKE_POLY_KHONG')):   # tài khoản không có connector POLY: Claude chỉ trả POLY_CHUA, app tự ghi lý do
+        out({"type": "system", "subtype": "init", "session_id": sid, "mcp_servers": [{"name": "claude.ai Canva", "status": "connected", "source": "claudeai"}]})
+        out({"type": "result", "subtype": "success", "is_error": False, "result": "POLY_CHUA", "session_id": sid, "duration_ms": 900, "num_turns": 2, "total_cost_usd": 0.01})
+        sys.exit(0)
     out({"type": "result", "subtype": "success", "is_error": False, "result": "POLY_CHUA cần Connect POLY" if chua else "POLY_OK", "session_id": sid, "duration_ms": 900, "num_turns": 3, "total_cost_usd": 0.01})
     sys.exit(0)
 if prompt.startswith('GỢI Ý BÀI TỪ HÀNG TRONG KHO POLYSTO'):   # 💡 Gợi ý từ kho (15/11): FAKE_KHO_LOI = báo lỗi, FAKE_KHO2 = có thêm 1 dòng máy mới về

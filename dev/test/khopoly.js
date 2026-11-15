@@ -25,6 +25,12 @@ const cho = async () => { for (let i = 0; i < 40; i++) { const r = await j(A + '
   const r = await p.evaluate(() => ({ chip: $('#bPoly').innerText.trim(), dot: $('#bPoly .dot').className, hop: $('#plTt').innerText }));
   check('bấm chip → hộp Kho Polysto, Kiểm lại: chưa nối thì chip đỏ "Kho Poly chưa nối", hộp ghi lý do + cách Connect', r.chip === 'Kho Poly chưa nối' && /err/.test(r.dot) && /chưa nối/.test(r.hop) && /Connect POLY/.test(r.hop) && await p.evaluate(() => /Connectors/.test(document.querySelector('.modal.on').innerText)), r);
   rm(T + '/FAKE_POLY_CHUA');
+  fs.writeFileSync(T + '/FAKE_POLY_KHONG', '1');      // fen 13h28 "kho poly kết nối ntn": tài khoản chưa có POLY → hộp ghi rõ lý do
+  await p.click('#plKiem'); await p.waitForFunction(() => S.pl && S.pl.tt === 'chua' && /connector POLY/.test($('#plTt').innerText), null, { timeout: 15000 }).catch(() => {});
+  const r2 = await p.evaluate(() => $('#plTt').innerText), lg = fs.readFileSync(T + '/app-log.txt', 'utf8').split('\n').filter(l => /kiem poly/.test(l)).pop();
+  check('Claude chỉ báo POLY_CHUA: app ghi lý do theo connector ("tài khoản Claude trên máy này chưa có connector POLY"), nhật ký ghi tên connector đang có', /chưa có connector POLY/.test(r2) && /mcp: claude\.ai Canva=connected/.test(lg || ''), { r2, lg });
+  rm(T + '/FAKE_POLY_KHONG');
+  await p.evaluate(() => document.querySelectorAll('.modal').forEach(m => m.remove()));
   // quét gợi ý kho thành công → đã nối
   rm(T + '/FAKE_KHO_LOI');
   await j(A + '/api/goi-y', { quet: true }); for (let i = 0; i < 40; i++) { if (!(await j(A + '/api/goi-y')).b.dang) break; await new Promise(x => setTimeout(x, 500)); }

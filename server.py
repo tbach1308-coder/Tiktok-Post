@@ -3369,12 +3369,12 @@ def poly_tt(data=None):
 
 def _poly_kiem_chay(cmd):
     args = cmd + ["-p", "--output-format", "stream-json", "--verbose", "--model", "haiku", "--max-turns", "12",
-                  "--allowedTools", POLY_DOC[0], "Bash(python *)"]
+                  "--allowedTools", "ToolSearch", POLY_DOC[0], "Bash(python *)"]
     env = env_claude()
     if IS_MAC:
         mac_env(env)
     kw = {"creationflags": CREATE_NO_WINDOW} if IS_WIN else {}
-    kq, ma, ghi = "", None, ""
+    kq, ma, ghi, sv_poly, sv_ten = "", None, "", None, []
     try:
         p = subprocess.Popen(args, cwd=APP, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env, **kw)
         try:
@@ -3390,8 +3390,12 @@ def _poly_kiem_chay(cmd):
                 continue
             if o.get("type") == "system" and o.get("subtype") == "init":
                 for sv in o.get("mcp_servers") or []:
-                    if isinstance(sv, dict) and "POLY" in str(sv.get("name") or "") and sv.get("status") in CANVA_TT_MA:
-                        ma = CANVA_TT_MA[sv["status"]]
+                    if not isinstance(sv, dict):
+                        continue
+                    sv_ten.append("%s=%s" % (sv.get("name"), sv.get("status")))
+                    if "POLY" in str(sv.get("name") or "").upper():
+                        sv_poly = str(sv.get("status") or "")
+                        ma = CANVA_TT_MA.get(sv_poly, ma)
             elif o.get("type") == "result":
                 kq = str(o.get("result") or "")
                 ghi_dung("kiem-poly:" + str(o.get("session_id") or now()), now(), _so(o.get("total_cost_usd")), _dung_model(o), "kiem-poly")
@@ -3407,7 +3411,12 @@ def _poly_kiem_chay(cmd):
     else:
         tt = ma or "loi"
         ghi = ghi or "không đọc được kết quả"
-    log("kiem poly: %s %s" % (tt, ghi))
+    if tt != "noi" and not ghi:      # fen 15/11 13h28 "kho poly kết nối ntn": ghi rõ lý do theo trạng thái connector lúc Claude mở
+        ghi = {None: "tài khoản Claude trên máy này chưa có connector POLY (bấm Connect POLY)",
+               "needs-auth": "POLY cần đăng nhập lại (bấm Connect / Reconnect POLY)",
+               "failed": "POLY nối bị lỗi (bấm Reconnect POLY)",
+               "connected": "POLY đã nối nhưng Claude chưa gọi được, bấm Kiểm lại"}.get(sv_poly, "POLY: " + str(sv_poly))
+    log("kiem poly: %s %s [mcp: %s]" % (tt, ghi, ", ".join(sv_ten)[:300]))
     poly_ghi_tt(tt, "kiểm", ghi)
 
 
