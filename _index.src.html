@@ -227,7 +227,9 @@ body:not(.kcdrive) .thkcd{display:none!important}   /* fen 12/11 21h47 "dấu c�
 .ji .bia{width:30px;height:40px;border-radius:4px;object-fit:cover;background:var(--panel2);border:1px solid var(--line)}
 .ji .bia.trong{display:block}
 .ji .mt2{font-size:11px;color:var(--mut);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ji .mt2.hen{color:var(--y)} .ji .mt2.ok{color:var(--gl)}
+.ji .mt2.hen{color:var(--y)}
+/* fen 15/11 11h11 "nhìn chói quá" (tab Đã đăng: dòng xanh lá ở mọi bài): chữ xám, chỉ dấu ✓ xanh */
+.ji .mt2.ok,.ji .mt2.lich{color:var(--dim)}.ji .mt2.ok::before{content:"✓ ";color:var(--g);font-weight:800}.ji .mt2.lich::before{content:"⏳ "}
 .nhbar{display:flex;align-items:center;gap:10px 14px;flex-wrap:wrap;margin:0 0 20px}
 .nhbar h1{margin:0 6px 0 0}
 .nhbtn{display:flex;gap:6px;flex-wrap:wrap;margin-left:auto}
@@ -1175,7 +1177,7 @@ function nhomBai(j){
 }
 function dongPhu(j, g){
   if (j.status === 'hen') return j.hen_dang ? ['hen', 'Giờ đăng ' + henTxt(j.hen_dang)] : null;
-  if (g === 'dang') return j.da_dang.lich && j.da_dang.lich > nowS() ? ['ok', 'Đã Schedule, TikTok sẽ đăng ' + henTxt(j.da_dang.lich)] : ['ok', 'Đã đăng ' + henTxt(j.da_dang.lich || j.da_dang.t) + (j.da_dang.tay ? ' (đánh dấu tay)' : '')];
+  if (g === 'dang') return j.da_dang.lich && j.da_dang.lich > nowS() ? ['lich', 'TikTok sẽ đăng ' + henTxt(j.da_dang.lich)] : ['ok', 'Đã đăng ' + henTxt(j.da_dang.lich || j.da_dang.t) + (j.da_dang.tay ? ' · tay' : '')];
   if (g === 'cho' && j.hen_dang) return ['hen', '⏰ Giờ hẹn ' + henTxt(j.hen_dang) + ', chưa Schedule trên TikTok'];
   if (g === 'cho' && j.gui) return ['', (j.gui.kieu === 'tiktok' ? 'Đã mở TikTok ' : 'Đã gửi Telegram ') + hm(j.gui.t) + ', chưa đăng'];
   return null;
