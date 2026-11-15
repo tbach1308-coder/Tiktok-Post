@@ -126,6 +126,7 @@ a.btn{color:var(--tx);text-decoration:none}
 .side .new .tkbtn.on{border-color:var(--g);background:var(--gsoft, rgba(46,160,90,.16));color:var(--gl)}
 /* 💬 Hỏi app (fen 15/11 11h51 "thêm chat bot để hỏi"): nút tròn góc dưới phải + khung chat */
 /* fen 15/11 12h17 "chat box đâu" (nút tròn góc dưới bị khuất): thành chip xanh "💬 Hỏi app" đầu thanh trên cùng, khung mở ngay dưới */
+.top .chip.nhom{margin-left:12px}
 #hoiNut{position:relative;cursor:pointer;color:var(--gl);border-color:var(--g);background:var(--gnote);font-weight:600}
 #hoiNut:hover,#hoiNut.on{background:var(--gsoft);color:#fff}#hoiNut.cho::after{content:"";position:absolute;top:-2px;right:-2px;width:9px;height:9px;border-radius:50%;background:var(--y)}
 #hoiBox{position:fixed;right:18px;top:62px;z-index:45;width:min(380px,calc(100vw - 36px));height:min(540px,calc(100vh - 80px));display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--line2, var(--line));border-radius:14px;overflow:hidden}
@@ -691,14 +692,15 @@ details.brief ul{margin:0;padding-left:18px;color:var(--mut)}
 <div class="top">
   <div class="brand"><div class="logo">P</div><div>POLY DỰNG BÀI<small>CAROUSEL TIKTOK</small></div></div>
   <div class="sp"></div>
-  <button class="chip hoic" id="hoiNut" title="Hỏi app: cách dùng, bài chờ đăng, máy nào đăng mấy bài… (bot chỉ trả lời, không làm thay)"><span>💬<span class="chl"> Hỏi app</span></span></button>
+  <!-- fen 15/11 13h09 "sắp xếp thứ tự nút bấm cho hợp lý": kết nối (Canva · Telegram · Remote · Máy khác) | Claude (Quy tắc · tài khoản, hạn mức) | 💬 Hỏi app -->
+  <button class="chip tgc" id="bCv" title="Canva: Claude đã nối với Canva của fen chưa (bấm để kiểm, xem cách nối)"><span class="dot"></span><span>Canva</span></button>
+  <button class="chip tgc" id="bTg" title="Cài / đổi Telegram nhận slide bài Laptop, iPad"><span class="dot"></span><span>Telegram</span></button>
   <span class="chip rmc" id="bRm" title="Remote: nhắn việc cho app từ Telegram (viết brief, bấm Chạy, ghi quy tắc, hỏi tình hình). Chỉ nghe khi bật. Bấm chữ Remote để xem mã nối, hướng dẫn."><span class="dot"></span><span class="rml" role="button">📱 Remote</span><span class="kseg rmsw"><button data-rb="0">Tắt</button><button data-rb="1">Bật</button></span></span>
   <button class="chip tgc" id="bChung" title="Dùng chung: máy khác (MacBook…) mở app này qua mạng, không cần đăng nhập Claude"><span class="dot"></span><span>💻<span class="lb"> Máy khác</span></span></button>
   <span class="chip khc" id="khc" hidden title="App chạy trên máy shop (máy chủ), bằng tài khoản Claude của fen. Máy này không cần đăng nhập gì."></span>
-  <button class="chip tgc" id="bQt" title="Ghi quy tắc mới cho mọi bài sau (không sửa bài nào)"><span>📏<span class="lb"> Quy tắc</span></span></button>
-  <button class="chip tgc" id="bCv" title="Canva: Claude đã nối với Canva của fen chưa (bấm để kiểm, xem cách nối)"><span class="dot"></span><span>Canva</span></button>
-  <button class="chip tgc" id="bTg" title="Cài / đổi Telegram nhận slide bài Laptop, iPad"><span class="dot"></span><span>Telegram</span></button>
+  <button class="chip tgc nhom" id="bQt" title="Ghi quy tắc mới cho mọi bài sau (không sửa bài nào)"><span>📏<span class="lb"> Quy tắc</span></span></button>
   <span class="chip hcc" id="hc" title="Kiểm máy: tài khoản Claude, plugin, quy tắc" onclick="if (!event.target.closest('button')) kiemMay()"><span class="dot"></span><span>Đang kiểm Claude…</span></span>
+  <button class="chip hoic nhom" id="hoiNut" title="Hỏi app: cách dùng, bài chờ đăng, máy nào đăng mấy bài… (bot chỉ trả lời, không làm thay)"><span>💬<span class="chl"> Hỏi app</span></span></button>
 </div>
 <div class="wrap" id="wrap">
   <aside class="side">
