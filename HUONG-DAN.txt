@@ -138,6 +138,9 @@ LẤY MÁY + GIÁ TỪ KHO POLYSTO (Ô KHO, 9/11)
   Chrome (hồ sơ đăng TikTok iPad) mở link kho, tiện ích Poly TikTok đợi bảng hiện, chỉ chép tên máy · cấu hình · tình trạng · giá bán
   (không mã, giá nhập / vốn, khách, ngày), tự sang trang sau, gửi về app rồi đóng tab; app gom theo dòng máy rồi Claude gợi ý chủ đề.
   Chrome chưa đăng nhập POLY: tab đăng nhập để nguyên, fen tự đăng nhập (mật khẩu + mã PIN) rồi bấm Cập nhật kho lại.
+  (15/11 14h50) Bảng kho thật có cột TÊN MÁY & SERI, CẤU HÌNH, T.TRẠNG, PIN, GIÁ BÁN, HH, GHI CHÚ, TRẠNG THÁI: tiện ích chỉ lấy dòng tên
+  (bỏ seri), cấu hình, tình trạng, pin, giá bán, trạng thái; không lấy seri, HH, ghi chú. App gom theo tên + cấu hình: "2 máy · 12,9–13,5
+  triệu · Like new · pin 90–92%". Ô hồ sơ Chrome tự dò hồ sơ nào có tiện ích Poly TikTok (✓), chưa chọn thì tự dùng hồ sơ đó.
   Ô "Hồ sơ Chrome đã đăng nhập POLY" (🔗 Link kho, 15/11 14h55): chọn đúng hồ sơ Chrome có tiện ích Poly TikTok + đã đăng nhập POLY.
   Chưa chọn thì dùng hồ sơ đăng TikTok iPad; hồ sơ đó cũng chưa chọn thì app nhắc chọn (không để Chrome tự mở hồ sơ bất kỳ).
   Viết brief có ô 📦 Kho cũng dùng danh sách kho vừa đọc (14 ngày). Chọn "Connector POLY của tài khoản Claude" nếu muốn Claude tự đọc qua POLY.
@@ -275,7 +278,10 @@ LÀM 1 BÀI
   Tab "Thư viện mẫu" (cạnh "Từ bài đã làm", 15/11): làm ảnh story không cần bài, design kéo thả như Canva (15/11 14h).
   10 mẫu có sẵn: Máy mới về, Giá sốc, So sánh 2 máy, Feedback khách, Thông báo, Noel + 4 mẫu reel Facebook (15/11 14h19: Reel FB ·
   Máy mới về / Top 3 máy / Flash sale / Review khách; chữ và ảnh nằm trong vùng Facebook không che: trên 270, dưới 1250, chừa cột nút
-  bên phải; khung design vẽ vạch đúng vùng Facebook). Bấm 1 mẫu → khung 9:16 bên phải là ẢNH THẬT,
+  bên phải; khung design vẽ vạch đúng vùng Facebook) + 18 mẫu "Theme · …" theo kho theme Photoshop (15/11 14h43: màu, font gần giống,
+  bố cục như trang bìa bộ dựng: POLY STORE · dòng trên · TIÊU ĐỀ to · dòng phụ · 2 thông số + nhãn · ảnh máy · dòng cuối; theme kính /
+  ảnh thật: nền là ảnh máy làm mờ + tối, muốn nền khác thì gắn vào ô "Ảnh nền"). Hàng nút nhóm: Tất cả / Cơ bản / Reel Facebook /
+  Theme Photoshop / Của fen. Ảnh trong khung chỉnh thêm "Làm mờ" và "Tối lại %". Bấm 1 mẫu → khung 9:16 bên phải là ẢNH THẬT,
   sửa gì thấy ngay (xem trước trực tiếp):
   · Bấm vào chữ / ảnh / khối trên khung để chọn (viền xanh), kéo để di chuyển (gần giữa thì tự dính giữa), kéo ô vuông xanh góc dưới
     phải để đổi cỡ. Phím mũi tên nhích (Shift nhích xa), Delete xoá, Ctrl+Z hoàn tác, Ctrl+Y làm lại, Ctrl+D nhân đôi.

@@ -122,6 +122,7 @@ a.btn{color:var(--tx);text-decoration:none}
 .stgrid a{display:block;border-radius:7px;overflow:hidden;border:1px solid var(--line);background:var(--panel2)}.stgrid a:hover{border-color:var(--g)}
 .stgrid img{width:100%;aspect-ratio:9/16;object-fit:cover;display:block}
 .stpage .tkbar #stTab{align-self:center}
+.mnhom{margin:0 0 8px;flex-wrap:wrap}.mnhom i{font-style:normal;opacity:.6;font-size:11px}
 .stpick.mpick button{flex-basis:92px}.stpick.mpick img,.stpick.mpick .nb{aspect-ratio:9/16}
 .stpick.mpick .nb{display:flex;align-items:center;justify-content:center;font-size:30px;color:var(--mut)}
 .mauw{display:grid;grid-template-columns:minmax(280px,440px) minmax(220px,1fr);gap:22px;align-items:start}
@@ -2971,7 +2972,7 @@ function khoLinkDialog(){
     <p class="pnote">Dán link trang kho (lọc sẵn loại máy trên web Polysto rồi chép link càng tốt). App lưu lại, chỉ khi fen bấm <b>🔄 Cập nhật kho</b> mới mở link trên Chrome máy shop (hồ sơ Chrome iPad, đã đăng nhập POLY), tiện ích Poly TikTok chép tên máy · cấu hình · giá bán rồi đóng tab. Bỏ trống iPad thì đọc 1 link, app tự chia máy iPad / laptop theo tên.</p>
     <label class="mfl" for="klLap">Kho Laptop</label><input class="in" id="klLap" placeholder="https://app.polystorevn.com/kho-may…" value="${esc(l.laptop || '')}">
     <label class="mfl" for="klIpad">Kho iPad</label><input class="in" id="klIpad" placeholder="https://app.polystorevn.com/…" value="${esc(l.ipad || '')}">
-    <label class="mfl" for="klHs">Hồ sơ Chrome đã đăng nhập POLY (có tiện ích Poly TikTok)</label><select class="in" id="klHs"><option value="">${(S.gy && S.gy.hs_ipad) ? 'Như hồ sơ đăng TikTok iPad' : '— Chọn hồ sơ —'}</option>${((S.gy && S.gy.ho_so) || []).map(h => `<option value="${esc(h.dir)}"${(S.gy.hs === h.dir) ? ' selected' : ''}>${esc(h.ten)} (${esc(h.dir)})</option>`).join('')}</select>
+    <label class="mfl" for="klHs">Hồ sơ Chrome đã đăng nhập POLY (có tiện ích Poly TikTok)</label><select class="in" id="klHs"><option value="">${(S.gy && S.gy.hs_tu) ? 'Tự chọn (đang dùng: ' + esc(((S.gy.ho_so || []).find(h => h.dir === S.gy.hs_tu) || { ten: S.gy.hs_tu }).ten) + ')' : '— Chọn hồ sơ —'}</option>${((S.gy && S.gy.ho_so) || []).map(h => `<option value="${esc(h.dir)}"${(S.gy.hs === h.dir) ? ' selected' : ''}>${esc(h.ten)} (${esc(h.dir)})${h.ti ? ' · ✓ có Poly TikTok' : h.ti === false ? ' · Poly TikTok đang tắt' : ''}</option>`).join('')}</select>
     <label class="mfl" for="klCach">Đọc kho bằng</label><select class="in" id="klCach"><option value="web">Chrome máy shop đã đăng nhập POLY (mở link)</option><option value="poly"${(S.gy && S.gy.cach) === 'poly' ? ' selected' : ''}>Connector POLY của tài khoản Claude</option></select>
     <p class="err" id="klErr"></p>
     <div class="acts"><button class="btn" id="klHuy">Huỷ</button><button class="btn" id="klLuu">Lưu</button><button class="btn pri" id="klCn">Lưu & cập nhật kho</button></div></div>`;
@@ -3061,15 +3062,21 @@ async function storyMau(id){
     catch(e) { if (S.view === 'story' && S.stTab === 'mau') m.innerHTML = `<div class="pad stpage"><p class="err">${esc(e.message)}</p></div>`; return; }
     if (S.view !== 'story' || S.stTab !== 'mau') return;
   }
-  const ds = MAU.ds;
+  // nhóm mẫu (fen 15/11 14h43 thêm mẫu theo kho theme Photoshop → nhiều mẫu, lọc theo nhóm)
+  const NHOM = [['', 'Tất cả'], ['co-ban', 'Cơ bản'], ['fb', 'Reel Facebook'], ['ps', 'Theme Photoshop'], ['fen', 'Của fen']];
+  let nhom = store.get('poly-mau-nhom', '') || '';
+  if (id && MAU.ds.some(x => x.id === id && nhom && x.nhom !== nhom)) nhom = '';
+  const ds = MAU.ds.filter(x => !nhom || x.nhom === nhom);
   if (!ds.some(x => x.id === id)) id = (ds[0] || {}).id || '';
   S.mauId = id;
   try { history.replaceState(null, '', '#storymau' + (id ? '=' + id : '')); } catch(e) {}
   m.innerHTML = `<div class="pad stpage"><div class="tkbar"><h1>📱 Story / reel</h1>${stTabH('mau')}<span class="pnote" style="margin:0">Chọn mẫu, gắn ảnh, điền chữ → app vẽ ảnh dọc 9:16 (1080×1920), chừa trên / dưới cho chữ và nút của TikTok, Facebook, Instagram. Vài giây, không tốn Claude.</span></div>
+    <div class="kseg segd mnhom" id="mNhom">${NHOM.filter(([k]) => !k || MAU.ds.some(x => x.nhom === k)).map(([k, t]) => `<button data-nh="${k}" class="${nhom === k ? 'on' : ''}">${t} <i>${k ? MAU.ds.filter(x => x.nhom === k).length : MAU.ds.length}</i></button>`).join('')}</div>
     <div class="stpick mpick" id="mPick">${ds.map(x => `<button data-m="${esc(x.id)}" class="${x.id === id ? 'on' : ''}" title="${esc(x.ten)}"><img src="${esc(x.xem)}" alt="" loading="lazy"><b>${esc(x.ten)}</b>${x.san ? '' : '<span class="kn">của fen</span>'}</button>`).join('')}${KHACH ? '' : '<button id="mThem" title="Thêm mẫu bằng ảnh nền của fen"><span class="nb">＋</span><b>Thêm mẫu của fen</b></button>'}</div>
     <div id="mWork"></div></div>`;
   stTabNoi();
   m.querySelectorAll('#mPick [data-m]').forEach(b => b.onclick = () => storyMau(b.dataset.m));
+  m.querySelectorAll('#mNhom [data-nh]').forEach(b => b.onclick = () => { store.set('poly-mau-nhom', b.dataset.nh); const d0 = MAU.ds.find(x => !b.dataset.nh || x.nhom === b.dataset.nh); storyMau(d0 ? d0.id : ''); });
   const th = $('#mThem'); if (th) th.onclick = mauThem;
   const sel = m.querySelector('#mPick .on'); if (sel) sel.scrollIntoView({ block: 'nearest', inline: 'center' });
   const mau = ds.find(x => x.id === id); if (!mau) return;
@@ -3159,7 +3166,9 @@ function tkChu(c, x){
     if (x.gach) { c.fillRect(lx - 4, ly + co * 0.62, tw + 8, Math.max(2, co / 12)); } });
 }
 function tkAnh(c, x, xuat){
-  const img = tkHinh(x.img), pad = x.pad || 0, bw = x.w - 2 * pad, bh = x.h - 2 * pad;
+  // nguon: ô này trống thì dùng ảnh của ô khác (nền kính theme Photoshop = ảnh máy làm mờ); mo: làm mờ; toi: tối lại (%)
+  const goc = TK.d && x.nguon && !x.img ? TK.d.o.find(y => y.loai === 'anh' && y.k === x.nguon) : null;
+  const img = tkHinh(x.img || (goc && goc.img)), pad = x.pad || 0, bw = x.w - 2 * pad, bh = x.h - 2 * pad;
   if (!img && (xuat || x.bo_qua)) return;
   if (x.the) { c.fillStyle = x.the; tkRR(c, x.x, x.y, x.w, x.h, x.bo || 0); c.fill(); }
   if (!img) {
@@ -3172,7 +3181,10 @@ function tkAnh(c, x, xuat){
   if (x.phu) { const k = Math.max(bw / sw, bh / sh); dw = bw; dh = bh; const cw = bw / k, ch = bh / k; sx = (sw - cw) / 2; sy = (sh - ch) / 2; sw = cw; sh = ch; }
   else { const k = Math.min(bw / sw, bh / sh); dw = sw * k; dh = sh * k; }
   const dx = x.x + pad + (bw - dw) / 2, dy = x.y + pad + (bh - dh) / 2;
-  c.save(); tkRR(c, dx, dy, dw, dh, r); c.clip(); c.drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh); c.restore();
+  c.save(); tkRR(c, dx, dy, dw, dh, r); c.clip(); if (x.mo) c.filter = `blur(${x.mo}px)`;
+  c.drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh); c.filter = 'none';
+  if (x.toi) { c.fillStyle = `rgba(0,0,0,${Math.min(90, x.toi) / 100})`; c.fillRect(dx, dy, dw, dh); }
+  c.restore();
 }
 function tkVeLen(c, d, xuat){
   c.clearRect(0, 0, 1080, 1920);
@@ -3333,7 +3345,7 @@ function tkBang(){
       <div class="tkcc"><button class="btn sm" id="tkpChon">📎 ${x.img ? 'Đổi ảnh' : 'Chọn ảnh'}</button>${x.img ? '<button class="btn ghost sm" id="tkpBoAnh">Bỏ ảnh</button>' : ''}</div>
       <label class="tkf"><span>Kiểu</span><div class="kseg segd" id="tkpPhu"><button data-p="0" class="${x.phu ? '' : 'on'}">Vừa khung</button><button data-p="1" class="${x.phu ? 'on' : ''}">Phủ kín</button></div></label>
       <label class="tkf"><span>Khung</span><input type="checkbox" id="tkpTheCo"${x.the ? ' checked' : ''}><input type="color" id="tkpThe" value="${tkHex(x.the, '#ffffff')}"></label>
-      ${so('tkpBo', x.bo, 'Bo góc', 0, 120)}${so('tkpPad', x.pad, 'Lề trong khung', 0, 80)}${lop}`;
+      ${so('tkpBo', x.bo, 'Bo góc', 0, 120)}${so('tkpPad', x.pad, 'Lề trong khung', 0, 80)}${so('tkpMo', x.mo, 'Làm mờ', 0, 60)}${so('tkpToi', x.toi, 'Tối lại %', 0, 80)}${lop}`;
   else h = `<b class="tkh">${x.loai === 'tron' ? 'Hình tròn' : 'Khối'}</b>${mau('tkpMau', x.mau, 'Màu')}${x.loai === 'hcn' ? so('tkpBo', x.bo, 'Bo góc', 0, 200) : ''}${lop}`;
   el.innerHTML = h;
   const doi = (f, ghi) => { f(); tkVe(); if (ghi) tkGhi(); else { clearTimeout(TK.tG); TK.tG = setTimeout(() => { TK.tG = 0; tkGhi(); }, 600); } };
@@ -3362,7 +3374,7 @@ function tkBang(){
   on('tkpThe', 'oninput', e => doi(() => { x.the = e.target.value; $('#tkpTheCo').checked = true; if (!x.pad) x.pad = 24; }));
   on('tkpChon', 'onclick', () => tkChonFile(k => { x.img = k; tkGhi(); tkVe(); tkBang(); tkNoiDung(); }));
   on('tkpBoAnh', 'onclick', () => { x.img = ''; tkGhi(); tkVe(); tkBang(); tkNoiDung(); });
-  [['tkpCo', 'co'], ['tkpBo', 'bo'], ['tkpPad', 'pad']].forEach(([id, k]) => on(id, 'oninput', e => doi(() => { x[k] = +e.target.value; const v = $('#' + id + 'V'); if (v) v.textContent = e.target.value; })));
+  [['tkpCo', 'co'], ['tkpBo', 'bo'], ['tkpPad', 'pad'], ['tkpMo', 'mo'], ['tkpToi', 'toi']].forEach(([id, k]) => on(id, 'oninput', e => doi(() => { x[k] = +e.target.value; const v = $('#' + id + 'V'); if (v) v.textContent = e.target.value; })));
   el.querySelectorAll('#tkpCanh [data-c]').forEach(b => b.onclick = () => doi(() => { x.canh = b.dataset.c; el.querySelectorAll('#tkpCanh [data-c]').forEach(y => y.classList.toggle('on', y === b)); }, true));
   el.querySelectorAll('#tkpPhu [data-p]').forEach(b => b.onclick = () => doi(() => { x.phu = b.dataset.p === '1'; el.querySelectorAll('#tkpPhu [data-p]').forEach(y => y.classList.toggle('on', y === b)); }, true));
 }

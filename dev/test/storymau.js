@@ -16,7 +16,9 @@ n=Image.new('RGB',(1200,2000),'#f4e6c8');ImageDraw.Draw(n).rectangle((0,0,1200,3
 (async () => {
   for (const d of fs.readdirSync(APP + '/story-mau')) if (/^f[0-9a-f]{8}$/.test(d)) fs.renameSync(APP + '/story-mau/' + d, '/tmp/_bo_mau_' + Date.now() + '_' + d);   // mẫu fen của lần thử trước
   const api = await j(A + '/api/story-mau');
-  check('API: 10 mẫu có sẵn (6 mẫu + 4 mẫu reel Facebook, kèm bản vẽ đầy đủ) + 4 bố cục', api.b.ds.filter(x => x.san).map(x => x.id).join() === 'may-moi-ve,gia-soc,so-sanh,feedback,thong-bao,noel,fb-moi-ve,fb-top3,fb-sale,fb-review' && api.b.bo_cuc.length === 4 && api.b.ds[1].ve.nen === '#a61e1e' && api.b.ds[1].ve.o.length >= 7, api.b.ds.map(x => x.id));
+  check('API: 10 mẫu có sẵn (6 mẫu + 4 mẫu reel Facebook, kèm bản vẽ đầy đủ) + 4 bố cục', api.b.ds.filter(x => x.san).map(x => x.id).slice(0, 10).join() === 'may-moi-ve,gia-soc,so-sanh,feedback,thong-bao,noel,fb-moi-ve,fb-top3,fb-sale,fb-review' && api.b.bo_cuc.length === 4 && api.b.ds[1].ve.nen === '#a61e1e' && api.b.ds[1].ve.o.length >= 7, api.b.ds.map(x => x.id));
+  const ps = api.b.ds.filter(x => x.nhom === 'ps'), glass = ps.find(x => x.id === 'ps-glass-tim-hong');
+  check('mẫu theo kho theme Photoshop (fen 14h43 "cho theme giống style kho photoshop"): 1 mẫu / theme (18), màu + font theo theme (Glass tím hồng: nền 110C26, tiêu đề cam FB923C), nền kính = ảnh máy làm mờ + tối', ps.length === 18 && glass.ve.nen === '#110C26' && glass.ve.o.find(x => x.k === 'tieu_de').mau === '#FB923C' && glass.ve.o.some(x => x.k === 'nen_anh' && x.nguon === 'anh' && x.mo > 0 && x.toi > 0), { n: ps.length, g: glass && glass.ve.o.slice(0, 3) });
   const fb = api.b.ds.find(x => x.id === 'fb-top3');
   check('mẫu reel Facebook (fen 14h19 "clone theme reel facebook"): có vùng Facebook che (trên 270, dưới 1250, phải 940), chữ / ảnh nằm trong vùng an toàn', fb.ve.vung && fb.ve.vung.duoi === 1250 && fb.ve.vung.phai === 940 && api.b.ds.filter(x => /^fb-/.test(x.id)).every(m => m.ve.o.filter(x => x.loai === 'chu').every(x => x.y >= 270 && x.y + x.h <= 1250 && x.x + x.w <= 940)), fb.ve.vung);
   const xem = await fetch(A + api.b.ds[1].xem);
@@ -27,7 +29,7 @@ n=Image.new('RGB',(1200,2000),'#f4e6c8');ImageDraw.Draw(n).rectangle((0,0,1200,3
   await p.evaluate(() => { localStorage.removeItem('poly-tk'); localStorage.removeItem('poly-st-tab'); });
   await p.click('#stTab [data-tab="mau"]'); await p.waitForSelector('#mPick [data-m]');
   const t1 = await p.evaluate(() => ({ hash: location.hash, n: document.querySelectorAll('#mPick [data-m]').length, them: !!$('#mThem'), chon: document.querySelector('#mPick .on').dataset.m }));
-  check('tab "Thư viện mẫu": 10 mẫu, nút Thêm mẫu của fen, chọn sẵn mẫu đầu, #storymau=…', t1.n === 10 && t1.them && t1.chon === 'may-moi-ve' && t1.hash === '#storymau=may-moi-ve', t1);
+  check('tab "Thư viện mẫu": 28 mẫu (Tất cả), nút Thêm mẫu của fen, chọn sẵn mẫu đầu, #storymau=…', t1.n === 28 && t1.them && t1.chon === 'may-moi-ve' && t1.hash === '#storymau=may-moi-ve', t1);
   await p.click('#mPick [data-m="gia-soc"]'); await p.waitForSelector('#tkCv'); await p.waitForTimeout(800);
   const px = (x, y) => p.evaluate(([x, y]) => [...$('#tkCv').getContext('2d').getImageData(x, y, 1, 1).data].slice(0, 3), [x, y]);
   const e0 = await p.evaluate(() => ({ cv: !!$('#tkCv'), nd: [...document.querySelectorAll('#tkNd [data-nd]')].map(t => t.value), n: TK.d.o.length }));
@@ -63,6 +65,17 @@ n=Image.new('RGB',(1200,2000),'#f4e6c8');ImageDraw.Draw(n).rectangle((0,0,1200,3
   await p.click('#mPick [data-m="fb-moi-ve"]'); await p.waitForSelector('#tkCv'); await p.waitForTimeout(500);
   const vfb = await p.evaluate(() => { const c = $('#tkCv').getContext('2d'); return [...c.getImageData(10, 1250, 1, 1).data].slice(0, 3).concat([...c.getImageData(940, 1262, 1, 1).data].slice(0, 3)); });
   check('mẫu reel FB trong khung design: vạch vùng Facebook (dưới 1250, cột nút bên phải 940)', vfb[0] > 60 && vfb[3] > 60, vfb);
+  // nhóm Theme Photoshop + nền kính làm mờ
+  await p.click('#mNhom [data-nh="ps"]'); await p.waitForSelector('#tkCv'); await p.waitForTimeout(300);
+  const nps = await p.evaluate(() => document.querySelectorAll('#mPick [data-m]').length);
+  await p.click('#mPick [data-m="ps-glass-tim-hong"]'); await p.waitForSelector('#tkCv'); await p.waitForTimeout(600);
+  const g0 = await p.evaluate(() => [...$('#tkCv').getContext('2d').getImageData(20, 1800, 1, 1).data].slice(0, 3));
+  const iMay = await p.evaluate(() => TK.d.o.findIndex(x => x.k === 'anh'));
+  const [fcg] = await Promise.all([p.waitForEvent('filechooser'), p.click(`#tkNd [data-anh="${iMay}"]`)]); await fcg.setFiles('/tmp/sm-may.png');
+  await p.waitForFunction(i => /^img:/.test(TK.d.o[i].img || ''), iMay); await p.waitForTimeout(700);
+  const g1 = await p.evaluate(() => [...$('#tkCv').getContext('2d').getImageData(20, 1800, 1, 1).data].slice(0, 3));
+  check('nhóm "Theme Photoshop" lọc 18 mẫu; mẫu Glass: gắn ảnh máy là nền thành ảnh đó làm mờ + tối (góc dưới đổi màu)', nps === 18 && JSON.stringify(g0) !== JSON.stringify(g1), { nps, g0, g1 });
+  await p.click('#mNhom [data-nh=""]'); await p.waitForSelector('#tkCv');
   await p.click('#mPick [data-m="gia-soc"]'); await p.waitForSelector('#tkCv'); await p.waitForTimeout(400);
   // 🔤 thư viện chữ (fen 14h18 "cho thư viện chữ đẹp đi, font phù hợp nhiều mùa, chủ đề")
   await p.evaluate(() => { TK.sel = TK.d.o.findIndex(x => x.k === 'nhan'); tkBang(); });
@@ -136,7 +149,7 @@ n=Image.new('RGB',(1200,2000),'#f4e6c8');ImageDraw.Draw(n).rectangle((0,0,1200,3
   const anh = 'data:image/jpeg;base64,' + fs.readFileSync(file).toString('base64');
   const kds = await j(K + '/api/story-mau', undefined, HK), kluu = await j(K + '/api/story-mau', { luu: { anh, mau: 'gia-soc' } }, HK), kthem = await j(K + '/api/story-mau', { them_tk: { ten: 'x', nen: '#000', o: [] } }, HK);
   const kf = kluu.b.ten && fs.readdirSync(APP + '/story-mau/_khach').some(d => fs.existsSync(APP + '/story-mau/_khach/' + d + '/' + kluu.b.ten));
-  check('máy dùng chung: thấy thư viện, lưu ảnh được (riêng story-mau/_khach/<máy>, không lộ thư mục máy shop), không lưu mẫu', kds.s === 200 && kds.b.ds.length >= 10 && kluu.s === 200 && kf && kluu.b.thu_muc === '' && kthem.s === 400, { k: kds.s, kluu: kluu.s, kf, kthem: kthem.s });
+  check('máy dùng chung: thấy thư viện, lưu ảnh được (riêng story-mau/_khach/<máy>, không lộ thư mục máy shop), không lưu mẫu', kds.s === 200 && kds.b.ds.length >= 28 && kluu.s === 200 && kf && kluu.b.thu_muc === '' && kthem.s === 400, { k: kds.s, kluu: kluu.s, kf, kthem: kthem.s });
   const g = await b.newPage({ viewport: { width: 1280, height: 860 } }); g.on('pageerror', e => errs.push('con: ' + e.message));
   await g.goto('http://poly-thu.example/#vao=' + v.token); await g.waitForSelector('#khc:not([hidden])', { timeout: 20000 }).catch(() => {}); await g.waitForTimeout(1000);
   await g.click('#bStory'); await g.waitForSelector('#stTab'); await g.click('#stTab [data-tab="mau"]'); await g.waitForSelector('#tkCv');

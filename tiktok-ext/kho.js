@@ -15,7 +15,10 @@
   if (!viec || Date.now() - viec.t > 5 * 60000) return;
   if (window.top !== window) return;
   const CAM = /vốn|nhập|gốc|sỉ|lãi|lời|\bhh\b|hoa hồng|cost|khách|\bkh\b|sđt|điện thoại|phone|nhân viên|\bnv\b|người|ncc|nhà cung|ghi chú|note|seri|serial|imei|(^|[\s(])mã([\s:)]|$)|ngày|thời gian|hình ảnh|(^|\s)ảnh(\s|$)|thao tác|hành động|chọn/i;
-  const TEN = /tên|model|máy|sản phẩm|thiết bị|dòng/i, THEM = /cấu hình|cpu|chip|ram|ổ cứng|ssd|dung lượng|màu|tình trạng|trạng thái|pin|ngoại hình|loại|bảo hành/i;
+  const TEN = /tên|model|máy|sản phẩm|thiết bị|dòng/i, THEM = /cấu hình|cpu|chip|ram|ổ cứng|ssd|dung lượng|màu|tình trạng|t\.\s*trạng|pin|ngoại hình|loại|bảo hành/i;
+  // 0.13.1 (kho thật 15/11 14h49: cột "TÊN MÁY & SERI"): cột tên được có chữ seri, chỉ lấy dòng đầu của ô (tên máy), bỏ mã kiểu seri
+  const TEN_CAM = /khách|nhân viên|\bnv\b|người|ncc|nhà cung|ghi chú|giá/i, TT = /^trạng thái$|^tình trạng bán$/i;
+  const boSeri = t => t.replace(/\b(?=[A-Z0-9-]*\d)(?=[A-Z0-9-]*[A-Z])[A-Z0-9-]{8,}\b/g, '').replace(/\s+/g, ' ').trim();
   const GIA = /giá/i, GIA_BAN = /bán|lẻ|niêm yết/i;
   const ngu = ms => new Promise(x => setTimeout(x, ms));
   const sach = e => (e.innerText || e.textContent || '').replace(/\s+/g, ' ').trim();
@@ -29,23 +32,25 @@
     if (best) {
       let hd = [...best.t.querySelectorAll('thead th, thead td')].map(sach);
       if (!hd.length) hd = [...best.t.querySelectorAll('tr:first-child th')].map(sach);
-      return { hd, rows: [...best.rows].filter(r => !r.querySelector('th')).map(r => [...r.children].map(sach)) };
+      return { hd, rows: [...best.rows].filter(r => !r.querySelector('th')).map(r => [...r.children].map(c => (c.innerText || c.textContent || '').trim())) };
     }
     const g = [...document.querySelectorAll('[role=table],[role=grid]')].find(x => x.querySelectorAll('[role=row]').length > 1);
     if (g) {
       return { hd: [...g.querySelectorAll('[role=columnheader]')].map(sach),
-               rows: [...g.querySelectorAll('[role=row]')].filter(r => !r.querySelector('[role=columnheader]')).map(r => [...r.querySelectorAll('[role=cell],[role=gridcell]')].map(sach)) };
+               rows: [...g.querySelectorAll('[role=row]')].filter(r => !r.querySelector('[role=columnheader]')).map(r => [...r.querySelectorAll('[role=cell],[role=gridcell]')].map(c => (c.innerText || c.textContent || '').trim())) };
     }
     return null;
   }
   function chonCot(hd) {
     const ok = h => h && !CAM.test(h);
-    const ten = hd.findIndex(h => ok(h) && TEN.test(h) && !THEM.test(h));
+    let ten = hd.findIndex(h => h && /tên|model|sản phẩm|thiết bị|dòng máy/i.test(h) && !TEN_CAM.test(h));
+    if (ten < 0) ten = hd.findIndex(h => ok(h) && TEN.test(h) && !THEM.test(h));
     const gias = hd.map((h, i) => [h, i]).filter(([h]) => ok(h) && GIA.test(h));
     const ban = gias.filter(([h]) => GIA_BAN.test(h));
     const gia = ban.length ? ban[0][1] : gias.length === 1 ? gias[0][1] : -1;     // nhiều cột "giá" mà không ghi "bán": không lấy cột nào
-    const them = hd.map((h, i) => [h, i]).filter(([h, i]) => ok(h) && THEM.test(h) && i !== ten && i !== gia).map(([, i]) => i).slice(0, 3);
-    return { ten, gia, them };
+    const them = hd.map((h, i) => [h, i]).filter(([h, i]) => ok(h) && THEM.test(h) && !TT.test(h) && i !== ten && i !== gia).map(([, i]) => i).slice(0, 3);
+    const tt = hd.findIndex((h, i) => h && TT.test(h.trim()) && i !== ten);
+    return { ten, gia, them, tt };
   }
   function nutSau() {
     const ds = [...document.querySelectorAll('[class*=paginat] button, [class*=paginat] a, [class*=Paginat] button, [class*=Paginat] a, nav[aria-label] button, nav[aria-label] a, button[aria-label], a[aria-label]')];
@@ -72,10 +77,13 @@
       if (da.has(dau)) break;                 // trang này đọc rồi (bấm trang sau không đổi)
       da.add(dau);
       if (!cot) { hd = b.hd; cot = chonCot(hd); if (cot.ten < 0) break; }
+      const gon = t => String(t || '').replace(/\s+/g, ' ').trim();
       for (const r of b.rows) {
-        const ten = r[cot.ten] || '';
+        const ten = boSeri(String(r[cot.ten] || '').split('\n').map(x => x.trim()).filter(Boolean)[0] || '');
         if (!ten) continue;
-        rows.push({ ten, gia: cot.gia >= 0 ? (r[cot.gia] || '') : '', them: cot.them.map(i => r[i] || '').filter(Boolean).join(' · ') });
+        const loai = re => cot.them.filter(i => re.test(hd[i] || '')).map(i => gon(r[i])).filter(Boolean).join(' · ');
+        rows.push({ ten, gia: cot.gia >= 0 ? gon(r[cot.gia]) : '', them: cot.them.map(i => gon(r[i])).filter(Boolean).join(' · '), tt: cot.tt >= 0 ? gon(r[cot.tt]).slice(0, 30) : '',
+          cau: loai(/cấu hình|cpu|chip|ram|ổ cứng|ssd|dung lượng|màu|loại/i), tinh: loai(/tình trạng|t\.\s*trạng|ngoại hình/i), pin: loai(/pin/i) });
       }
       const s = trang < 40 && nutSau();
       if (!s) break;
@@ -86,7 +94,7 @@
       const nhan = hd.length ? hd : [...document.querySelectorAll('h1,h2,h3,th,[role=columnheader]')].map(sach).filter(Boolean).slice(0, 20);
       return gui({ tt: 'khong-thay', cot: nhan.map(x => x.slice(0, 40)) });
     }
-    gui({ tt: 'ok', cot: hd.map(x => x.slice(0, 40)), chon: { ten: hd[cot.ten], gia: cot.gia >= 0 ? hd[cot.gia] : '', them: cot.them.map(i => hd[i]) }, rows, trang });
+    gui({ tt: 'ok', cot: hd.map(x => x.slice(0, 40)), chon: { ten: hd[cot.ten], gia: cot.gia >= 0 ? hd[cot.gia] : '', them: cot.them.map(i => hd[i]), tt: cot.tt >= 0 ? hd[cot.tt] : '' }, rows, trang });
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', chay); else chay();
 })();

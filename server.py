@@ -2363,7 +2363,9 @@ def goi_y_doc():
     d["hs"] = CFG.get("kho_hs") or ""
     d["hs_ipad"] = CFG.get("chrome_profile") or ""
     try:
-        d["ho_so"] = [{"dir": x["dir"], "ten": x["ten"]} for x in chrome_ho_so()]
+        ti = chrome_tien_ich_hs()
+        d["ho_so"] = [{"dir": x["dir"], "ten": x["ten"], "ti": ti.get(x["dir"])} for x in chrome_ho_so()]
+        d["hs_tu"] = kho_hs() or ""
     except Exception:
         d["ho_so"] = []
     d["co_poly"] = True
@@ -2458,25 +2460,34 @@ def _kho_tien(v):
 
 
 def kho_web_gom(rows, k_mac):
-    """rows: [{"ten", "gia", "them"}] → [{kenh, ten, so, gia}] gom theo tên (+ cấu hình), giá thấp nhất–cao nhất."""
+    """rows: [{"ten", "gia", "cau", "tinh", "pin"}] → [{kenh, ten, so, gia, tinh, pin}] gom theo tên + cấu hình (tình trạng / pin khác
+    nhau từng máy không tách nhóm: ghi gọn "Like new, 99%" / "pin 88–95%"), giá thấp nhất–cao nhất."""
     nhom = collections.OrderedDict()
     for r in rows:
-        ten = re.sub(r"\s+", " ", " ".join(x for x in (r.get("ten"), r.get("them")) if x)).strip()[:120]
+        cau = r.get("cau") if "cau" in r else r.get("them")
+        ten = re.sub(r"\s+", " ", " ".join(x for x in (r.get("ten"), cau) if x)).strip()[:120]
         if not ten:
             continue
         kenh = k_mac if k_mac in ("laptop", "ipad") else ("ipad" if re.search(r"ipad", ten, re.I) else "laptop" if KHO_LAP.search(ten) else "")
         if not kenh:
             continue
-        g = nhom.setdefault((kenh, ten.lower()), {"kenh": kenh, "ten": ten, "so": 0, "gia": []})
+        g = nhom.setdefault((kenh, ten.lower()), {"kenh": kenh, "ten": ten, "so": 0, "gia": [], "tinh": [], "pin": []})
         g["so"] += 1
         v = _kho_so(r.get("gia"))
         if v:
             g["gia"].append(v)
+        if r.get("tinh") and r["tinh"] not in g["tinh"]:
+            g["tinh"].append(r["tinh"])
+        mp = re.search(r"(\d{1,3})\s*%", str(r.get("pin") or ""))
+        if mp and 0 < int(mp.group(1)) <= 100:
+            g["pin"].append(int(mp.group(1)))
     out = []
     for g in nhom.values():
         gs = sorted(set(g["gia"]))
         gia = "" if not gs else _kho_tien(gs[0]) if len(gs) == 1 else "%s–%s" % (_kho_tien(gs[0]).replace(" triệu", ""), _kho_tien(gs[-1]))
-        out.append({"kenh": g["kenh"], "ten": g["ten"], "so": g["so"], "gia": gia})
+        ps = sorted(set(g["pin"]))
+        pin = "" if not ps else "pin %d%%" % ps[0] if len(ps) == 1 else "pin %d–%d%%" % (ps[0], ps[-1])
+        out.append({"kenh": g["kenh"], "ten": g["ten"], "so": g["so"], "gia": gia, "tinh": short(", ".join(g["tinh"][:3]), 40), "pin": pin})
     return out[:300]
 
 
@@ -2505,14 +2516,45 @@ def kho_web_bat():
     return goi_y_doc()
 
 
+_TI_HS = {"t": 0, "ds": {}}
+
+
+def chrome_tien_ich_hs():
+    """Hồ sơ Chrome nào cài tiện ích Poly TikTok (thư mục tiktok-ext của app) — đọc phần extensions trong Preferences / Secure Preferences
+    của từng hồ sơ (chỉ đọc, chỉ xem tiện ích của app). {thư mục hồ sơ: True (đang bật) / False (có nhưng tắt)}. Nhớ 60 giây."""
+    if now() - _TI_HS["t"] < 60:
+        return _TI_HS["ds"]
+    if IS_MAC:
+        goc = CFG.get("chrome_user_data") or os.path.expanduser("~/Library/Application Support/Google/Chrome")
+    else:
+        goc = CFG.get("chrome_user_data") or os.path.join(os.environ.get("LOCALAPPDATA", ""), r"Google\Chrome\User Data")
+    ext = os.path.normcase(os.path.normpath(os.path.join(APP, "tiktok-ext")))
+    ds = {}
+    for h in chrome_ho_so():
+        for ten in ("Secure Preferences", "Preferences"):
+            st = ((read_json(os.path.join(goc, h["dir"], ten), {}) or {}).get("extensions") or {}).get("settings") or {}
+            for v in st.values():
+                if isinstance(v, dict) and v.get("path") and (os.path.normcase(os.path.normpath(str(v["path"]))) == ext
+                                                              or str(v["path"]).replace("\\", "/").rstrip("/").lower().endswith("/tiktok-ext")):
+                    bat = not v.get("disable_reasons") and v.get("state", 1) != 0
+                    ds[h["dir"]] = ds.get(h["dir"], False) or bat
+    _TI_HS.update(t=now(), ds=ds)
+    return ds
+
+
 def kho_hs():
     """Hồ sơ Chrome đọc kho (fen 15/11 14h35: Chrome tự chọn hồ sơ mở gần nhất thì có khi mở nhầm hồ sơ không có tiện ích / chưa đăng nhập POLY):
     config kho_hs (chọn ở 🔗 Link kho), chưa chọn thì hồ sơ đăng TikTok iPad; cả 2 chưa chọn = None (bắt chọn)."""
     ds = [x["dir"] for x in chrome_ho_so()]
-    for hs in (CFG.get("kho_hs"), CFG.get("chrome_profile")):
-        if hs and (hs in ds or not ds):
-            return hs
-    return None
+    if CFG.get("kho_hs") and (CFG["kho_hs"] in ds or not ds):
+        return CFG["kho_hs"]
+    try:                       # chưa chọn: hồ sơ đang bật tiện ích Poly TikTok (fen 14h45 "đọc bằng ai")
+        ti = [k for k, bat in chrome_tien_ich_hs().items() if bat]
+    except Exception:
+        ti = []
+    if CFG.get("chrome_profile") in ti or (len(ti) != 1 and CFG.get("chrome_profile") and (CFG["chrome_profile"] in ds or not ds)):
+        return CFG["chrome_profile"]
+    return ti[0] if ti else None
 
 
 def _kho_web_mo():
@@ -2559,8 +2601,11 @@ def kho_web_nhan(data):
         KHO_WEB["tok"] = None
         ly = ("Chrome chưa đăng nhập POLY: fen đăng nhập ở tab Polysto vừa mở trên Chrome (hồ sơ Chrome iPad) rồi bấm 🔄 Cập nhật kho lại"
               if tt == "dang-nhap" else
-              ("Chrome hồ sơ «%s» chưa chạy tiện ích Poly TikTok trên trang app nên chưa đọc được kho: chọn đúng hồ sơ (có tiện ích + đã đăng nhập POLY) "
-               "ở 🔗 Link kho, hoặc cài / bật tiện ích trong hồ sơ này" % next((x["ten"] for x in chrome_ho_so() if x["dir"] == kho_hs()), kho_hs() or "?"))
+              ("Chrome hồ sơ «%s» chưa chạy tiện ích Poly TikTok trên trang app nên chưa đọc được kho: %s" % (
+                  next((x["ten"] for x in chrome_ho_so() if x["dir"] == kho_hs()), kho_hs() or "?"),
+                  ("tiện ích có ở hồ sơ " + ", ".join("«%s»%s" % (next((x["ten"] for x in chrome_ho_so() if x["dir"] == k), k), "" if b else " (đang tắt)")
+                                                    for k, b in chrome_tien_ich_hs().items()) + ": chọn hồ sơ đó ở 🔗 Link kho (hoặc bấm ↻ tải lại tiện ích ở chrome://extensions)")
+                  if chrome_tien_ich_hs() else "chưa thấy hồ sơ Chrome nào cài tiện ích (chrome://extensions → Tải tiện ích đã giải nén → thư mục tiktok-ext của app)"))
               if tt == "chua-tien-ich" else
               "Không thấy bảng máy trên trang kho (cột thấy: %s). Kiểm link kho đúng trang danh sách máy" % (", ".join(cot) or "không có"))
         cu = read_json(GOI_Y_FILE, {}) or {}
@@ -2569,8 +2614,13 @@ def kho_web_nhan(data):
         poly_ghi_tt("chua" if tt == "dang-nhap" else "loi", "đọc web", ly)
         log("kho web: %s (cot: %s)" % (tt, ", ".join(cot)))
         return {"ok": True, "dong": tt != "dang-nhap"}
-    rows = [{"ten": short(str(r.get("ten") or ""), 120), "gia": short(str(r.get("gia") or ""), 30), "them": short(str(r.get("them") or ""), 80)}
+    rows = [{"ten": short(str(r.get("ten") or ""), 120), "gia": short(str(r.get("gia") or ""), 30), "them": short(str(r.get("them") or ""), 80),
+             "tt": short(str(r.get("tt") or ""), 30), **({"cau": short(str(r.get("cau") or ""), 80), "tinh": short(str(r.get("tinh") or ""), 30),
+                                                          "pin": short(str(r.get("pin") or ""), 20)} if "cau" in r else {})}
             for r in (data.get("rows") or [])[:3000] if isinstance(r, dict)]
+    tts = collections.Counter(r["tt"] for r in rows if r["tt"])
+    if tts:
+        log("kho web: trang thai %s" % ", ".join("%s=%d" % kv for kv in tts.most_common(8)))
     k = KHO_WEB["ds"][KHO_WEB["i"]][0]
     KHO_WEB["rows"] += kho_web_gom(rows, k)
     KHO_WEB["cot"] = cot
@@ -2596,7 +2646,8 @@ def kho_web_nhan(data):
 def kho_web_ds(kenh=None, n=150):
     d = read_json(KHO_WEB_F, {}) or {}
     ds = [x for x in d.get("may") or [] if not kenh or x.get("kenh") == kenh]
-    return d.get("luc"), "\n".join("- %s · %s máy%s" % (x["ten"], x.get("so") or 1, " · " + x["gia"] if x.get("gia") else "") for x in ds[:n])
+    return d.get("luc"), "\n".join("- %s · %s máy%s%s" % (x["ten"], x.get("so") or 1, " · " + x["gia"] if x.get("gia") else "",
+                                                           "".join(" · " + x[k] for k in ("tinh", "pin") if x.get(k))) for x in ds[:n])
 
 
 def _kho_web_goi_y(may):
@@ -8575,13 +8626,103 @@ def _sm_mau_bo_cuc(bc, chu):
     return o
 
 
+# ---- 🎨 Mẫu story theo kho theme Photoshop (fen 15/11 14h43 "cho theme giống style kho photoshop"): mỗi theme trong theme-ps/ (theme.json)
+# thành 1 mẫu "Theme · <tên>" bố cục giống trang bìa bộ dựng: dòng nhỏ POLY STORE, dòng trên, TIÊU ĐỀ to màu theme, dòng phụ + câu, 2 thông số
+# + nhãn (màu pill của theme), ảnh máy, dòng cuối. Theme "kính" / ảnh thật: nền = ảnh làm mờ + tối (ô "Ảnh nền", để trống = ảnh máy làm mờ,
+# độ mờ / tối theo anh_mo / anh_toi của theme); theme phẳng: nền màu + thẻ màu "the" sau ảnh máy. Font UTM của Photoshop → font gần giống
+# trong thư viện chữ (Impact / Bebas → Anton, Times nghiêng → Playfair, Cookies → Baloo, Alberta → Paytone, Ink Free → Patrick Hand, còn lại Montserrat).
+def _ps_ff(ds):
+    n = " ".join(ds or []).lower() if isinstance(ds, list) else str(ds or "").lower()
+    for k, ff in (("impact", "anton"), ("bebas", "anton"), ("condensed", "anton"), ("swiss", "anton"), ("times", "playfair"), ("italic", "playfair"),
+                  ("cookies", "baloo"), ("alberta", "paytone"), ("inkfree", "patrick"), ("ink free", "patrick"), ("neo", "montserrat"),
+                  ("avo", "montserrat"), ("helve", "montserrat")):
+        if k in n:
+            return ff
+    return "montserrat"
+
+
+def _ps_hex(v, mac):
+    v = str(v or "").strip().lstrip("#")
+    return "#" + v if re.fullmatch(r"[0-9a-fA-F]{6}", v) else mac
+
+
+def _ps_sang(hexv):
+    v = hexv.lstrip("#")
+    r, g, b = int(v[0:2], 16), int(v[2:4], 16), int(v[4:6], 16)
+    return (r * 299 + g * 587 + b * 114) / 1000 > 150
+
+
+def story_mau_ps():
+    """Mẫu story sinh từ kho theme Photoshop (đọc theme-ps/*/theme.json mỗi lần, theme mới / sửa là có ngay)."""
+    goc = os.path.join(APP, "theme-ps")
+    out = []
+    for tid in sorted(os.listdir(goc)) if os.path.isdir(goc) else []:
+        t = read_json(os.path.join(goc, tid, "theme.json"), None)
+        if not isinstance(t, dict) or not t.get("id"):
+            continue
+        nen = _ps_hex(t.get("nen"), "#121212")
+        sang = _ps_sang(nen)
+        vang = _ps_hex(t.get("vang"), "#FFD60A")
+        do = _ps_hex(t.get("do"), "#E23B32")
+        chinh = "#1C1917" if sang else "#FFFFFF"
+        phu = _ps_hex(t.get("bia_mau_phu"), "#44403C" if sang else "#E5E7EB")
+        tieu = _ps_hex(t.get("bia_mau"), do if sang else vang)
+        if sang and not _ps_hex(t.get("bia_mau"), ""):
+            tieu = do
+        kinh = t.get("nen_kieu") == "kinh"
+        if kinh and not _ps_sang(tieu) and _ps_hex(t.get("bia_mau"), ""):
+            # theme ảnh thật nền sáng (chữ tối): nền story sáng, ảnh nền không làm tối
+            nen, sang, chinh = "#EFEEEC", True, "#1C1917"
+            phu = _ps_hex(t.get("bia_mau_phu"), "#44403C")
+        tren = _ps_hex(t.get("bia_mau_tren"), chinh)
+        if isinstance(t.get("pill"), list) and len(t["pill"]) == 2:
+            pn, pc = _ps_hex(t["pill"][0], vang), _ps_hex(t["pill"][1], nen)
+        else:                               # theme không có màu nhãn: nhãn màu tiêu đề, chữ trắng / đen theo độ sáng
+            pn = tieu
+            pc = "#141414" if _ps_sang(pn) else "#FFFFFF"
+        ff_tieu = _ps_ff(t.get("font_tieu_de") or t.get("font_kicker") or t.get("font_than"))
+        ff_than = _ps_ff(t.get("font_than"))
+        o = []
+        if kinh:
+            o.append(_sm_a("nen_anh", "Ảnh nền (trống = ảnh máy làm mờ)", 0, 0, 1080, 1920, phu=True, bo_qua=True, nguon="anh",
+                           mo=int(min(60, max(10, (t.get("anh_mo") or 20) * 1.6))),
+                           toi=0 if sang else int(min(80, max(15, t.get("anh_toi") or t.get("bia_toi") or 45)))))
+        else:
+            the = _ps_hex(t.get("the"), "")
+            if the and the.lower() != nen.lower():
+                o.append({"loai": "hcn", "x": 60, "y": 975, "w": 960, "h": 540, "mau": the, "bo": 40})
+        if "noel" in t["id"]:               # tuyết rơi như phần Noel của theme
+            for i, (x, y, rr) in enumerate(((70, 300, 9), (1010, 280, 6), (40, 560, 7), (1035, 640, 10), (95, 900, 6), (990, 930, 8),
+                                            (60, 1250, 8), (1020, 1300, 6), (130, 1560, 7), (950, 1580, 9), (520, 255, 5), (300, 1600, 6))):
+                o.append({"loai": "tron", "x": x, "y": y, "r": rr, "mau": "#FFFFFFb3" if not sang else "#C9C2B5"})
+        o += [
+            _sm_c("kicker", "Dòng nhỏ", "POLY STORE", 90, 270, 900, 56, 36, 800, tren, canh="giua", ff=ff_than, dien=True),
+            _sm_c("dong_tren", "Dòng trên", "iPad", 90, 330, 900, 84, 66, 800, chinh, canh="giua", ff=ff_than),
+            _sm_c("tieu_de", "Tiêu đề to", "GEN 11", 40, 405, 1000, 210, 200, 800, tieu, canh="giua", ff=ff_tieu),
+            _sm_c("phu", "Dòng phụ", "Rẻ, nhẹ, bền", 90, 615, 900, 70, 52, 500, phu, canh="giua"),
+            _sm_c("cau", "Câu chính", "Đủ cho con học online", 90, 685, 900, 86, 62, 800, chinh, canh="giua", ff=ff_than),
+            _sm_c("so1", "Thông số 1", "A16", 90, 790, 430, 100, 92, 400, chinh, canh="giua", ff="anton"),
+            _sm_c("nhan1", "Nhãn 1", "Chip mạnh", 145, 895, 320, 64, 36, 700, pc, canh="giua", nen=pn, om=True, pad=26, bo=32),
+            _sm_c("so2", "Thông số 2", "128GB", 560, 790, 430, 100, 92, 400, chinh, canh="giua", ff="anton"),
+            _sm_c("nhan2", "Nhãn 2", "Bộ nhớ", 615, 895, 320, 64, 36, 700, pc, canh="giua", nen=pn, om=True, pad=26, bo=32),
+            _sm_a("anh", "Ảnh máy", 90, 990, 900, 510, bo=24),
+            _sm_c("cuoi", "Dòng cuối", "Máy likenew, có sẵn tại POLY STORE", 60, 1512, 960, 56, 34, 700, phu, canh="giua", dien=True)]
+        mt = int(os.path.getmtime(os.path.join(goc, tid, "theme.json")))
+        out.append({"id": "ps-" + t["id"], "ten": "Theme · " + str(t.get("ten") or t["id"]), "nen": nen, "nhom": "ps", "o": o, "t": mt})
+    return out
+
+
 def story_mau_ds(may=None):
-    ds = [dict(m, san=True) for m in STORY_MAU_SAN]
+    ds = [dict(m, san=True, nhom=m.get("nhom") or ("fb" if m["id"].startswith("fb-") else "co-ban")) for m in STORY_MAU_SAN]
+    try:
+        ds += [dict(m, san=True) for m in story_mau_ps()]
+    except Exception:
+        log("story mau ps loi: " + traceback.format_exc())
     d = STORY_MAU_DIR
     for ten in sorted(os.listdir(d)) if os.path.isdir(d) else []:
         m = read_json(os.path.join(d, ten, "mau.json"), None) if not ten.startswith("_") and ten != "fonts" else None
         if isinstance(m, dict) and m.get("id") == ten:
-            ds.append(dict(m, san=False))
+            ds.append(dict(m, san=False, nhom="fen"))
     return ds
 
 
@@ -8598,7 +8739,7 @@ def story_mau_ra(m):
     ve = {"vung": m.get("vung") or None, "nen": m["nen"] if isinstance(m.get("nen"), str) and m["nen"].startswith("#") else "",
           "nen_url": "" if isinstance(m.get("nen"), str) and m["nen"].startswith("#") else tep + "nen.jpg?t=%d" % int(m.get("t") or 1),
           "o": [dict({k: v for k, v in x.items() if k != "src"}, **({"src_url": tep + x["src"]} if x.get("src") else {})) for x in m["o"]]}
-    return {"id": m["id"], "ten": m.get("ten") or m["id"], "san": m.get("san", True), "o": o, "ve": ve, "tk": bool(m.get("tk")),
+    return {"id": m["id"], "ten": m.get("ten") or m["id"], "san": m.get("san", True), "nhom": m.get("nhom") or "", "o": o, "ve": ve, "tk": bool(m.get("tk")),
             "xem": "/api/story-mau/xem/%s?t=%d" % (m["id"], int(m.get("t") or 1))}
 
 
@@ -8711,6 +8852,14 @@ def _sm_anh(im, x, anh, nho=False):
     pad = x.get("pad") or 0
     bw, bh = int(x["w"] - 2 * pad), int(x["h"] - 2 * pad)
     a = anh.convert("RGBA")
+    if x.get("mo") or x.get("toi"):          # làm mờ / tối (nền kiểu kính của theme Photoshop)
+        from PIL import ImageFilter
+        k0 = max(bw / a.width, bh / a.height) if x.get("phu") else min(bw / a.width, bh / a.height)
+        a = a.resize((max(1, round(a.width * k0)), max(1, round(a.height * k0))), Image.LANCZOS)
+        if x.get("mo"):
+            a = a.filter(ImageFilter.GaussianBlur(x["mo"]))
+        if x.get("toi"):
+            a = Image.alpha_composite(a, Image.new("RGBA", a.size, (0, 0, 0, int(255 * min(90, x["toi"]) / 100))))
     if x.get("phu"):        # phủ kín khung (cắt bớt)
         k = max(bw / a.width, bh / a.height)
         a = a.resize((max(1, round(a.width * k)), max(1, round(a.height * k))), Image.LANCZOS)
@@ -8752,6 +8901,8 @@ def story_mau_ve(m, chu=None, anh=None, nho=False):
             d.rounded_rectangle((x["x"], x["y"], x["x"] + x["w"], x["y"] + x["h"]), x.get("bo") or 0, fill=x["mau"])
         elif x["loai"] == "anh":
             a = anh.get(x["k"])
+            if a is None and x.get("nguon"):
+                a = anh.get(x["nguon"])
             if a is None and x.get("src"):
                 f = os.path.join(STORY_MAU_DIR, m["id"], os.path.basename(x["src"]))
                 try:
@@ -8853,7 +9004,7 @@ def story_mau_them(data):
 # (chu / anh / hcn / tron), ảnh trong bản vẽ tách ra file e<n>.png|jpg, nền ảnh = nen.jpg.
 SM_KIEU = {"chu": ("x", "y", "w", "h", "co", "font", "mau", "nen", "bo", "pad", "om", "canh", "gach", "dong", "giua_doc", "co_dinh", "dien", "k", "nhan", "mac",
                    "ff", "vien", "bong"),
-           "anh": ("x", "y", "w", "h", "bo", "the", "pad", "phu", "k", "nhan", "bo_qua"),
+           "anh": ("x", "y", "w", "h", "bo", "the", "pad", "phu", "k", "nhan", "bo_qua", "nguon", "mo", "toi"),
            "hcn": ("x", "y", "w", "h", "mau", "bo"), "tron": ("x", "y", "r", "mau")}
 
 
@@ -8887,7 +9038,7 @@ def story_tk_sach(o_ds, thu_muc=None):
                 v = _sm_mau_hop(v)
                 if v is None:
                     continue
-            elif k in ("k", "nhan", "canh"):
+            elif k in ("k", "nhan", "canh", "nguon"):
                 v = short(str(v), 40)
             elif k == "mac":
                 v = str(v)[:600]
