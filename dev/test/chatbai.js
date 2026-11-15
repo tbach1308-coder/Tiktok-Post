@@ -34,6 +34,13 @@ const job = async id => (await (await fetch(A + '/api/job/' + id)).json());
   check('nhờ sửa: gửi kèm "Slide 2: …", Claude sửa xong có câu trả lời, nút Gửi mở lại, không phải lượt hỏi', /Slide 2: đổi ảnh máy to hơn/.test(r3.m[0]) && /chữ cả bài to hơn/.test(r3.m[0]) && /Xong/.test(r3.m[1]) && !r3.dis && !r3.last.hoi, r3);
   const jj = await job(j.id);
   check('lịch sử lưu ở bài (sua có chat), tải lại trang vẫn thấy', (jj.job.sua || []).filter(x => x.chat).length >= 2 && await (async () => { await p.reload(); await p.waitForSelector('#fChat .fm', { timeout: 15000 }); return p.evaluate(() => document.querySelectorAll('#fChat .fm').length >= 4); })());
+  // fen 12h26 "khung chat này nhỏ lại": khung thấp, trả lời dài chỉ 3 dòng đầu + "xem hết", bỏ dòng đường dẫn file
+  await p.evaluate(() => { S.data.chat.push({ text: 'thông tin bài này đúng chưa?', chat: true, tra: 'Đã soát lại cả bài.\nSlide 4 lệch 1 chỗ, đã sửa thành “quay về công cụ trước đó”.\nChip, dung lượng, bút đều khớp nguồn.\nCaption khớp.\n\nĐường dẫn: `E:\\Social Claude\\iPad\\T11_Bai\\slide-04.png`', hoi: false, n: 9 }); veChatBai(); });
+  const r4 = await p.evaluate(() => { const b = [...document.querySelectorAll('#fChat .fm.bot')].pop(); return { t: b.innerText, h: document.querySelector('#fChat').getBoundingClientRect().height, xh: !!b.querySelector('[data-xh]') }; });
+  check('trả lời dài: 3 dòng đầu + "xem hết", không hiện dòng đường dẫn E:\\…, khung chat ≤ 210px', r4.xh && /xem hết/.test(r4.t) && !/Caption khớp/.test(r4.t) && !/E:\\/.test(r4.t) && r4.h <= 211, r4);
+  await p.click('#fChat [data-xh]'); await p.waitForTimeout(100);
+  const r5 = await p.evaluate(() => [...document.querySelectorAll('#fChat .fm.bot')].pop().innerText);
+  check('bấm "xem hết": hiện cả câu trả lời (vẫn bỏ dòng đường dẫn)', /Caption khớp/.test(r5) && !/xem hết/.test(r5) && !/E:\\/.test(r5), r5);
   await p.screenshot({ path: 'shots/chat-bai.png' });
   check('không lỗi JS', errs.length === 0, errs);
   await b.close(); console.log(`\n${ok} đạt, ${bad} lỗi`); process.exit(bad ? 1 : 0);

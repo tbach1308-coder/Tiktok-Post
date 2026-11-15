@@ -629,10 +629,13 @@ textarea.in.slfix.co{border-color:var(--y);background:rgba(255,200,60,.06)}
 .noslide{color:var(--dim);font-size:13px;padding:22px;text-align:center;border:1px dashed var(--line2);border-radius:12px}
 .fix textarea{min-height:40px;height:40px}.fix textarea:focus{min-height:58px}
 /* khung chat của bài (fen 15/11 12h17) */
-.fix .fchat{display:flex;flex-direction:column;gap:6px;max-height:340px;overflow:auto;margin:0 0 8px}.fix .fchint{color:var(--dim);font-size:12.5px;margin:0}
-.fix .fm{max-width:86%;padding:7px 10px;border-radius:10px;font-size:13px;line-height:1.45;white-space:pre-wrap;overflow-wrap:anywhere}
+.fix .fchat{display:flex;flex-direction:column;gap:5px;max-height:210px;overflow:auto;margin:0 0 6px}.fix .fchint{color:var(--dim);font-size:12px;margin:0}
+/* fen 15/11 12h26 "khung chat này nhỏ lại": khung thấp 210px, chữ 12.5px, trả lời dài chỉ hiện 3 dòng đầu + "xem hết" */
+.fix .fm{max-width:86%;padding:5px 9px;border-radius:9px;font-size:12.5px;line-height:1.4;white-space:pre-wrap;overflow-wrap:anywhere}
+.fix .fm .xh{color:var(--gl);cursor:pointer;font-size:11.5px;white-space:nowrap}
 .fix .fm.fen{align-self:flex-end;background:var(--gsoft)}.fix .fm.bot{align-self:flex-start;background:var(--panel2)}.fix .fm.dang{color:var(--dim);font-style:italic}.fix .fm.loi{color:#f2a3a3}
-.fix .fin{display:flex;gap:8px;align-items:flex-end}.fix .fin textarea{flex:1}.fix .fin #fpick{text-decoration:none;height:40px;display:inline-flex;align-items:center}.fix .fin #bFix{height:40px}
+.fix .fin{display:flex;gap:6px;align-items:flex-end}.fix .fin textarea{flex:1;min-height:34px;height:34px;padding:7px 10px;font-size:13px}.fix .fin textarea:focus{min-height:34px}
+.fix .fin #fpick{text-decoration:none;height:34px;display:inline-flex;align-items:center;padding:0 9px}.fix .fin #bFix{height:34px;padding:0 16px}
 .fix .fixhd .mlab{margin-left:auto;font-size:12px}.fix .fixhd .mlab select{font-size:12px;padding:3px 6px;height:28px}
 .fix .fixhd{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:8px}.fix .fixhd .sec{margin:0}.fix .fixhd .fixtom{margin:0;font-size:12.5px;flex:1;min-width:200px}
 .fix .fdrop{min-height:0;padding:8px;margin-top:8px}.fix .fdrop .hint{display:none}.fix .fdrop:not(:has(.th)):not(.hot){display:none}.fix .fdrop.hot .hint{display:block}
@@ -1874,14 +1877,22 @@ function renderFix(){
   }
   veChatBai();
 }
+// câu trả lời dài: bỏ dòng đường dẫn file (E:\…), chỉ hiện 3 dòng / 260 chữ đầu + "xem hết" (bấm mở cả)
+function traGon(t, i){
+  const goc = String(t || '').split('\n').filter(l => !/`?[A-Za-z]:\\[^`\n]*`?/.test(l) || l.replace(/`?[A-Za-z]:\\[^`\n]*`?/g, '').trim().length > 40).join('\n').replace(/\n{3,}/g, '\n\n').trim();
+  const k = S.data.job.id + ':' + i;
+  if ((S.xemHet || {})[k]) return hoiChu(goc);
+  let ngan = goc.split('\n').filter(l => l.trim()).slice(0, 3).join('\n'); if (ngan.length > 260) ngan = ngan.slice(0, 250).replace(/\s+\S*$/, '');
+  return ngan.length < goc.replace(/\n+/g, '\n').length - 5 ? hoiChu(ngan) + `… <span class="xh" data-xh="${i}">xem hết</span>` : hoiChu(goc);
+}
 const chatGon = t => String(t || '').replace(/Chung \((fen nhắc, ghi thành quy tắc|chỉ bài này, không ghi quy tắc)\): /g, '').replace(/ \| /g, '\n');
 function veChatBai(){
   const el = $('#fChat'); if (!el || !S.data) return;
   const ds = S.data.chat || [], live = S.data.job.status === 'dang-chay';
-  const h = ds.length ? ds.map(x => `<div class="fm fen">${esc(chatGon(x.text))}</div>` + (x.tra ? `<div class="fm bot${x.loi ? ' loi' : ''}">${hoiChu(x.tra)}</div>`
+  const h = ds.length ? ds.map((x, i) => `<div class="fm fen">${esc(chatGon(x.text))}</div>` + (x.tra ? `<div class="fm bot${x.loi ? ' loi' : ''}">${traGon(x.tra, i)}</div>`
       : x.dang ? `<div class="fm bot dang">Claude đang ${x.chat ? 'đọc bài, trả lời hoặc sửa' : 'sửa'}…</div>` : x.loi ? '<div class="fm bot loi">Lượt này dừng giữa chừng (xem Tiến độ bên phải).</div>' : '')).join('')
     : '<p class="fchint">Hỏi về bài (vd: “slide 3 đọc có rõ không?”) hoặc nhờ sửa (vd: “chữ cả bài to hơn”, “slide 2 đổi ảnh”). Muốn sửa riêng từng slide thì ghi ở ô dưới slide đó rồi bấm Gửi.</p>';
-  if (setH(el, h)) el.scrollTop = el.scrollHeight;
+  if (setH(el, h)) { el.scrollTop = el.scrollHeight; el.querySelectorAll('[data-xh]').forEach(a => a.onclick = () => { S.xemHet = S.xemHet || {}; S.xemHet[S.data.job.id + ':' + a.dataset.xh] = 1; veChatBai(); }); }
   const b = $('#bFix'); if (b && !b.dataset.busy) b.disabled = live;
   const t = $('#fixText'); if (t) t.placeholder = live ? 'Chờ Claude xong lượt này…' : 'Hỏi về bài hoặc nhờ sửa… (Enter gửi)';
 }
@@ -2815,7 +2826,7 @@ async function khoTheme(){
 // "Dùng" điền chủ đề + tên máy vào ô Kho (rồi fen bấm ✍ Viết brief). Đang quét thì 5 giây hỏi lại 1 lần.
 async function gyTai(ep){
   if (KHACH || !$('#gyKho')) return;
-  if (ep || !S.gy || Date.now() - (S.gyT || 0) > 60000 || S.gy.dang) { try { S.gy = await api('/api/goi-y'); S.gyT = Date.now(); } catch(e) { S.gy = { loi: e.message }; } }
+  if (ep || !S.gy || Date.now() - (S.gyT || 0) > 60000 || S.gy.dang) { try { S.gy = await api('/api/goi-y'); S.gyT = Date.now(); } catch(e) { S.gy = { loi: 'Chưa lấy được gợi ý (' + e.message + '), tải lại trang thử lại' }; } }
   gyVe();
   clearTimeout(S.gyHen); if (S.gy && S.gy.dang && S.view === 'new') S.gyHen = setTimeout(() => gyTai(true), 5000);
 }
