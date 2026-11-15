@@ -24,6 +24,14 @@ let ok = 0, bad = 0; const check = (n, c, x) => { c ? ok++ : bad++; console.log(
   if (jd) { await p.goto('http://127.0.0.1:8790/#bai=' + jd.id); await p.reload(); await p.waitForSelector('#bGuiTg', { timeout: 15000 }); await p.waitForTimeout(300);
     const w = await p.evaluate(() => ({ tg: Math.round(document.querySelector('#bGuiTg').getBoundingClientRect().width), pa: Math.round(document.querySelector('.post .pa2').getBoundingClientRect().width), hen: !!document.querySelector('#bHenDang') }));
     check('bài đã đăng: nút Gửi Telegram dài cả hàng (bằng nút Đăng TikTok)', !w.hen && w.tg === w.pa, w); }
+  // fen 15/11 12h15 "bấm chuyển tab không cần hỏi": bấm kênh khác ở "Kênh của bài" là đổi luôn, không hiện câu hỏi thư mục
+  const jk = js.jobs.find(x => x.status === 'xong' && x.kenh === 'ipad');
+  if (jk) { await p.goto('http://127.0.0.1:8790/#bai=' + jk.id); await p.reload(); await p.waitForSelector('#jb [data-kenh="laptop"]', { timeout: 15000 });
+    await p.click('#jb [data-kenh="laptop"]'); await p.waitForTimeout(1200);
+    const k1 = (await (await fetch('http://127.0.0.1:8790/api/job/' + jk.id)).json()).job.kenh;
+    check('bấm Laptop ở Kênh của bài: đổi luôn, không hỏi', k1 === 'laptop' && await p.evaluate(() => !document.querySelector('.kxn')), k1);
+    await p.click('#jb [data-kenh="ipad"]'); await p.waitForTimeout(1200);
+    check('bấm iPad lại: về iPad', (await (await fetch('http://127.0.0.1:8790/api/job/' + jk.id)).json()).job.kenh === 'ipad'); }
   check('không lỗi JS', errs.length === 0, errs);
   await b.close(); console.log(`\n${ok} đạt, ${bad} lỗi`); process.exit(bad ? 1 : 0);
 })().catch(e => { console.error(e); process.exit(1); });

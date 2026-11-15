@@ -1750,7 +1750,9 @@ function updateJob(){
         toast(`Đã chuyển bài sang kênh ${KENH[k].ten} (${KENH[k].handle})`); await reload(); loadJobs();
       } catch(e) { toast(e.message, true); seg && seg.querySelectorAll('button').forEach(x => x.disabled = false); }
     };
-    $('#jb').querySelectorAll('[data-kenh]').forEach(b => b.onclick = () => { if (b.dataset.kenh !== S.data.job.kenh) doiK(b.dataset.kenh); });
+    // fen 15/11 12h15 "bấm chuyển tab không cần hỏi, bài ipad nằm đúng tab ipad là dc": bấm kênh là đổi luôn (không hỏi thư mục),
+    // bài theo kênh mới nằm đúng nhóm Laptop / iPad ở cột trái
+    $('#jb').querySelectorAll('[data-kenh]').forEach(b => b.onclick = () => { if (b.dataset.kenh !== S.data.job.kenh) doiK(b.dataset.kenh, true); });
     $('#jb').querySelectorAll('[data-hq]').forEach(b => b.onclick = () => { const ch = S.chon[j.id + ':' + S.data.hoi_luot]; ch[b.dataset.hq] = +b.dataset.ho;
       b.parentNode.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); });
     $('#jb').querySelectorAll('[data-traloi]').forEach(b => b.onclick = async () => {
