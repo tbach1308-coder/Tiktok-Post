@@ -115,6 +115,28 @@ a.btn{color:var(--tx);text-decoration:none}
 .side .new .row2 .btn{padding:7px 4px}
 .side .new .thbtn{width:100%;margin-top:8px;padding:7px 4px}
 .side .new .thbtn.on{border-color:#8b5cf6;background:#241a3d;color:#e3d8ff}
+.side .new .row3 .thbtn{margin-top:0}.side .new .row3{margin-top:8px}body.khach .side .new .row3{grid-template-columns:1fr}body.khach .tkbtn{display:none}
+.side .new .tkbtn.on{border-color:var(--g);background:var(--gsoft, rgba(46,160,90,.16));color:var(--gl)}
+/* fen 15/11 10h53 "1 tab để quản lý số lượng bài đăng của từng máy": trang 📊 Số bài theo máy */
+.tkpage .tkbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.tkpage .tkbar h1{margin:0}
+.tkpage .tktong{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:14px}
+.tkpage .tkso{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.tkpage .tkso b{display:block;font-size:22px;font-weight:800;font-variant-numeric:tabular-nums}.tkpage .tkso span{font-size:12px;color:var(--mut)}
+.tkpage table{width:100%;border-collapse:collapse;font-size:13px;background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.tkpage th{font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:.05em;font-weight:700;text-align:right;padding:9px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+.tkpage td{padding:9px 10px;border-bottom:1px solid var(--line);text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.tkpage tr:last-child td{border-bottom:0}.tkpage th:first-child,.tkpage td:first-child{text-align:left}
+.tkpage td.tkten b{font-weight:700}.tkpage td.tkten small{display:block;color:var(--dim);font-size:11px;font-weight:500}
+.tkpage td .z{color:var(--dim)}
+.tkpage .tbwrap{overflow-x:auto;border-radius:12px}
+.tkpage .tkct{display:flex;align-items:center;gap:8px;justify-content:flex-end;min-width:160px}
+.tkpage .tkct .bar{flex:1;height:6px;border-radius:99px;background:var(--line2);overflow:hidden;min-width:50px}.tkpage .tkct .bar i{display:block;height:100%;background:var(--o)}
+.tkpage .tkct .bar i.du{background:var(--g)}.tkpage .tkct input.in{width:48px;height:26px;min-height:0;text-align:center;padding:2px 4px;font-size:12px;border-radius:7px}.tkpage .tkct .bar.trong{visibility:hidden}
+.tkpage .tk7{display:flex;align-items:flex-end;gap:2px;height:26px;justify-content:flex-end}.tkpage .tk7 i{width:7px;background:var(--g);border-radius:2px 2px 0 0;min-height:2px;opacity:.85}.tkpage .tk7 i.ko{background:var(--line2)}
+.tkpage .tkxem{border:0;background:none;color:var(--tx);font:inherit;cursor:pointer;padding:0;text-align:left}.tkpage .tkxem:hover b{color:var(--gl)}
+@media (max-width:1150px){.tkpage th,.tkpage td{padding:8px 7px}.tkpage .tk7{display:none}.tkpage .c7{display:none}}
+@media (max-width:900px){.tkpage .tktong{grid-template-columns:repeat(2,1fr)}}
 .thpage .pnote{max-width:860px}
 .thpage .thg{grid-template-columns:repeat(auto-fill,minmax(148px,168px));gap:10px}
 .thpage .thc{padding:6px;gap:4px;display:flex;flex-direction:column}.thpage .thc .thb{margin-top:auto}.thpage .thc small.thm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}   /* fen 13/11 10h25 "nằm lộn xộn quá": chữ 1 dòng, hàng nút luôn ở đáy thẻ */
@@ -354,9 +376,6 @@ select.in.msel option{background:var(--panel);color:var(--tx)}
 .vbli li.dg.ok{color:var(--gl)}.vbli li.dg.warn{color:var(--y)}.vbli li.dg.bad{color:var(--r)}
 .kxn{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:8px;padding:8px 10px;border:1px solid #f59e0b66;background:#f59e0b14;border-radius:10px;font-size:13px}
 .kxn span{flex:1 1 220px}
-.brrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12.5px;color:var(--mut);margin:10px 0 2px}
-.brrow .kseg button{padding:4px 12px;font-size:12.5px}
-.brrow a{color:var(--mut)}
 /* đếm bài từng kênh ở đầu tab Chờ đăng / Đã đăng (30/10) */
 .sbdem{display:flex;gap:6px;flex-wrap:wrap;padding:2px 10px 6px;font-size:12px;color:var(--mut)}
 .sbdem button{border:1px solid var(--line2);border-radius:99px;padding:1px 8px;background:var(--panel2);color:var(--mut);font:inherit;font-size:11.5px;cursor:pointer}
@@ -471,7 +490,6 @@ select.in.msel option{background:var(--panel);color:var(--tx)}
 .post .pa2:empty{display:none}
 .post .pag{display:flex;flex-direction:column;gap:5px;border-top:1px solid var(--line);padding-top:7px}
 .post .pag>span{font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:.06em;font-weight:700}
-.post .brrow{justify-content:space-between;flex-wrap:nowrap;margin:0;padding:2px 0}.post .brrow .brn i{font-style:normal;color:var(--dim);font-size:11.5px;margin-left:4px}
 .post .pst{border-top:1px solid var(--line);padding-top:7px;margin-top:8px;display:flex;flex-direction:column;gap:2px}
 .post .pnote{margin:7px 0 0;color:var(--dim);font-size:11.5px;line-height:1.4}
 .post .pnote a{color:var(--gl)}
@@ -626,7 +644,7 @@ details.brief ul{margin:0;padding-left:18px;color:var(--mut)}
 </div>
 <div class="wrap" id="wrap">
   <aside class="side">
-    <div class="new"><button class="btn pri" id="bNew">+ Bài mới</button><div class="row2"><button class="btn ghost sm" id="bCoSan" title="Mở bài đã dựng trong thư mục Laptop / iPad để gửi Telegram, đăng TikTok hoặc sửa">Mở bài có sẵn</button><button class="btn ghost sm" id="bLs" title="Brief của mọi bài đã chạy, các lần Claude viết brief và nháp đã bỏ">Lịch sử brief</button></div><button class="btn ghost sm thbtn" id="bTheme" title="Kho theme Canva: thiết kế mẫu dùng lại, chỉ thay ảnh và chữ">🎨 Kho theme</button></div>
+    <div class="new"><button class="btn pri" id="bNew">+ Bài mới</button><div class="row2"><button class="btn ghost sm" id="bCoSan" title="Mở bài đã dựng trong thư mục Laptop / iPad để gửi Telegram, đăng TikTok hoặc sửa">Mở bài có sẵn</button><button class="btn ghost sm" id="bLs" title="Brief của mọi bài đã chạy, các lần Claude viết brief và nháp đã bỏ">Lịch sử brief</button></div><div class="row2 row3"><button class="btn ghost sm thbtn" id="bTheme" title="Kho theme Canva: thiết kế mẫu dùng lại, chỉ thay ảnh và chữ">🎨 Kho theme</button><button class="btn ghost sm thbtn tkbtn" id="bThongKe" title="Số bài từng máy (máy shop + máy dùng chung): hôm nay, 7 ngày, tháng này; đặt chỉ tiêu bài đăng / ngày">📊 Số bài</button></div></div>
     <div class="sbtabs" id="sbTabs"></div>
     <div class="jobs" id="jobs"></div>
   </aside>
@@ -1131,7 +1149,7 @@ async function loadJobs(){
 }
 // có bản giao diện mới: chỉ tự tải lại khi fen không đang gõ / chưa gửi dở
 // app có bản mới mà đang dở tay (gõ chữ, ảnh chưa gửi) nên chưa tự tải lại: hiện thanh nhắc (fen 6/11 không thấy nút mới vì trang chưa tải lại)
-function taiLaiUi(){ location.hash = S.view === 'theme' ? 'theme' : S.jobId ? 'bai=' + S.jobId : 'moi'; location.reload(); }
+function taiLaiUi(){ location.hash = S.view === 'theme' ? 'theme' : S.view === 'thongke' ? 'thongke' : S.jobId ? 'bai=' + S.jobId : 'moi'; location.reload(); }
 function uiMoiBao(){
   if ($('#uiMoi')) return;
   const d = document.createElement('div'); d.id = 'uiMoi'; d.className = 'uimoi';
@@ -1179,11 +1197,13 @@ const itemNhap = x => `<button class="ji co-bia ${S.view === 'new' && x === S.fo
 S.sbLoc = store.get('poly-sbloc', '');
 function renderJobs(){
   $('#bTheme')?.classList.toggle('on', S.view === 'theme');
+  $('#bThongKe')?.classList.toggle('on', S.view === 'thongke');
   const nhom = {lam: [], cho: [], nhap: dsNhap(), dang: []};
   // fen 12/11 19h37 "app gốc quản lý và xem dc bài làm của máy khác": máy shop lọc bài theo máy
-  const dsMay = KHACH ? [] : [...new Map(S.jobs.filter(j => j.khach && j.khach.id).map(j => [j.khach.id, j.khach.ten || 'Máy khác'])).entries()];
-  if (S.sbMay && S.sbMay !== 'chu' && !dsMay.some(([id]) => id === S.sbMay)) S.sbMay = '';
-  const theoMay = j => !S.sbMay || (S.sbMay === 'chu' ? !j.khach : (j.khach || {}).id === S.sbMay);
+  // 15/11: gộp máy theo tên (1 máy vào lại dùng chung có mã mới vẫn là 1 dòng), khoá như trang 📊 Số bài
+  const dsMay = KHACH ? [] : [...new Map(S.jobs.filter(j => j.khach && j.khach.id).map(j => [mayKhoa(j.khach.ten), j.khach.ten || 'Máy khác'])).entries()];
+  if (S.sbMay && S.sbMay !== 'chu' && !dsMay.some(([k]) => k === S.sbMay)) S.sbMay = '';
+  const theoMay = j => !S.sbMay || (S.sbMay === 'chu' ? !j.khach : !!j.khach && mayKhoa(j.khach.ten) === S.sbMay);
   S.jobs.filter(theoMay).forEach(j => nhom[nhomBai(j)].push(j));
   nhom.lam.sort((a, b) => (b.status === 'dang-chay') - (a.status === 'dang-chay') || (['loi', 'dung'].includes(b.status)) - (['loi', 'dung'].includes(a.status)) || (b.created || 0) - (a.created || 0));
   nhom.cho.sort((a, b) => (b.ended || b.created || 0) - (a.ended || a.created || 0));
@@ -1927,8 +1947,6 @@ ${esc(d.caption || '')}</textarea>
     <div class="pacts">
       <div class="pa1">${KHACH && sl.length ? `<a class="btn sm pri" id="bZip" href="/api/job/${encodeURIComponent(j.id)}/zip" title="Tải ${sl.length} slide + caption, câu ghim (file .zip) về máy này để đăng">⬇ Tải slide + caption</a>` : ''}<button class="btn sm pri" id="bDang"${busy ? ' disabled' : ''}>${nut}</button></div>
       <div class="pa2">${!j.da_dang ? `<button class="btn sm ghost" id="bHenDang" title="Chọn giờ đăng: giờ này hiện sẵn trên nút ⏰ Hẹn giờ ở khung Poly trên trang TikTok">⏰ ${j.hen_dang ? 'Đổi giờ đăng' : 'Hẹn giờ đăng'}</button>` : ''}<button class="btn sm ghost" id="bGuiTg"${busy ? ' disabled' : ''} title="Gửi album slide + caption + câu ghim vào Telegram để đăng bằng app TikTok trên điện thoại">Gửi Telegram</button></div>
-      ${(() => { const b = d.brand || {bat: false, nguon: 'mac-dinh'};
-      return `<div class="brrow" title="Tiết lộ nội dung → Thương hiệu của bạn (Disclose post content → Your brand). Mặc định tắt như cài đặt gốc TikTok (fen chốt 30/10); bài nào cần thì bấm Bật."><span class="brn">Your brand <i>${b.nguon === 'fen' ? 'fen chọn' : 'mặc định'}</i></span><div class="kseg"><button data-br="0" class="${b.bat ? '' : 'on'}">Không bật</button><button data-br="1" class="${b.bat ? 'on' : ''}">Bật</button></div></div>`; })()}
       <div class="pag"><span>Caption</span><div class="pa2"><button class="btn sm ghost" id="bCopy">Chép caption</button><button class="btn sm ghost" id="bVietCap" title="Claude đọc slide, viết caption + câu ghim theo luật hashtag kênh (khoảng 1–2 phút)">${(d.caption || '').trim() ? 'Viết lại caption' : '✍ Viết caption'}</button></div></div>
       <div class="pag"><span>Thêm</span><div class="pa2">${d.canva ? `<a class="btn sm ghost" id="bCanvaMo" href="${esc(d.canva.edit_url)}" target="_blank" rel="noopener" title="Mở thiết kế của bài trên Canva để chỉnh tiếp (web hoặc app Canva)">🎨 Mở Canva</a><button class="btn sm ghost" id="bCanvaLay"${busy ? ' disabled' : ''} title="Lấy lại từ Canva: sửa trên Canva xong, Claude xuất lại các trang về thay slide trong app (slide cũ chuyển vào _to_delete), khoảng 1–3 phút">⬇ Lấy từ Canva</button>` : ''}${j.dung_bang === 'canva' && d.canva ? '' : `<button class="btn sm ghost" id="bCanva"${busy ? ' disabled' : ''} title="Claude đưa ${sl.length} slide lên Canva của fen thành 1 thiết kế (mỗi slide 1 trang), chạy trên mạng khoảng 3–5 phút">${d.canva ? '🎨 Đưa lại Canva' : '🎨 Đưa lên Canva'}</button>`}<button class="btn sm ghost" id="bDaDang" title="${j.da_dang ? 'Bỏ đánh dấu đã đăng: đưa bài về Chờ đăng' : 'Đánh dấu đã đăng: fen tự đăng ngoài tiện ích (vd app TikTok trên điện thoại) xong thì bấm'}">${j.da_dang ? '↩ Chưa đăng' : '✓ Đã đăng'}</button>${KHACH ? '<button class="btn sm ghost" id="bTienIch" title="Cài / cập nhật tiện ích Poly TikTok trên máy này (cho nút Đăng TikTok web)">🧩 Tiện ích TikTok</button>' : ''}</div></div>
     </div>
@@ -1941,11 +1959,6 @@ ${esc(d.caption || '')}</textarea>
   $('#bDang').onclick = e => dang(e.currentTarget, true);
   const bTi = $('#bTienIch'); if (bTi) bTi.onclick = () => tienIchDialog(document.documentElement.dataset.polyTiktok || '', true);
   const bTg = $('#bGuiTg'); if (bTg) bTg.onclick = e => dang(e.currentTarget, false);
-  w.querySelectorAll('[data-br]').forEach(b => b.onclick = async ev => { ev.preventDefault();
-    const v = b.dataset.br === '1';
-    if (d.brand && d.brand.bat === v) return;
-    try { await api('/api/job/' + j.id + '/brand', {bat: v ? true : null}); toast(v ? 'Your brand: bật cho bài này' : 'Your brand: không bật (mặc định)'); reload(); }
-    catch(e) { toast(e.message, true); } });
   $('#bVietCap').onclick = e => vietCap(e.currentTarget);
   const bCv = $('#bCanva'); if (bCv) bCv.onclick = async e => { const b = e.currentTarget;
     if (d.canva && !confirm('Bài đã có trên Canva. Đưa lại sẽ tạo thêm 1 thiết kế mới (bản cũ vẫn giữ). Đưa lại?')) return;
@@ -2352,7 +2365,7 @@ function mayXem(id){
   const dong = () => { clearTimeout(mayXem.t); m.remove(); };
   $('#myDong').onclick = dong; m.onclick = e => { if (e.target === m) dong(); };
   $('#myLai').onclick = () => { dong(); chungDlg(); };
-  $('#myLoc').onclick = () => { S.sbMay = id; dong(); renderJobs(); toast('Danh sách bài: chỉ bài của máy này (bấm "Tất cả" ở trên danh sách để bỏ lọc)'); };
+  $('#myLoc').onclick = () => { S.sbMay = mayKhoa(($('#myTen').textContent || '').replace(/^👤\s*/, '')); dong(); renderJobs(); toast('Danh sách bài: chỉ bài của máy này (bấm "Tất cả" ở trên danh sách để bỏ lọc)'); };
   const ngay = t => { const d = new Date(t * 1000); return String(d.getDate()).padStart(2, '0') + '/' + String(d.getMonth() + 1).padStart(2, '0'); };
   const ve = r => {
     if (!$('#myBox')) return;
@@ -2382,6 +2395,66 @@ document.querySelectorAll('#bRm [data-rb]').forEach(b => b.onclick = e => { e.st
 $('#bCoSan').onclick = coSanDialog;
 $('#bLs').onclick = lsDialog;
 $('#bTheme').onclick = () => khoTheme();
+$('#bThongKe').onclick = () => thongKe();
+// ---- 📊 Số bài theo máy (fen 15/11 10h53 "thêm 1 tab để quản lý số lượng bài đăng của từng máy", chọn "Thống kê + chỉ tiêu")
+// Mỗi máy (máy shop + máy dùng chung): bài làm, xong, đã đăng trong khoảng chọn, đang làm / chờ đăng lúc này, Laptop / iPad,
+// cột 7 ngày; chỉ tiêu bài đăng / ngày mỗi máy (config chi_tieu_may) + thanh hôm nay đủ chưa. Bấm tên máy: lọc danh sách bài theo máy.
+const TK_KHOANG = [['hom', 'Hôm nay'], ['tuan', '7 ngày'], ['thang', 'Tháng này']];
+const mayKhoa = ten => 't:' + String(ten || 'Máy khác').normalize('NFC').replace(/\u2019/g, "'").toLowerCase().replace(/\s+/g, ' ').trim();
+function tkNgay(t){ const d = new Date(t * 1000); return d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate(); }
+async function thongKe(){
+  if (KHACH) return;
+  try { history.replaceState(null, '', '#thongke'); } catch(e) {}
+  stopPoll(); S.view = 'thongke'; S.jobId = null; renderJobs();
+  S.tkKhoang = S.tkKhoang || 'hom';
+  const m = $('#main');
+  m.innerHTML = `<div class="pad tkpage"><div class="tkbar"><h1>Số bài theo máy</h1>
+    <div class="kseg segd" id="tkKhoang">${TK_KHOANG.map(([k, t]) => `<button data-k="${k}" class="${S.tkKhoang === k ? 'on' : ''}">${t}</button>`).join('')}</div></div>
+    <div id="tkBody" class="pnote">Đang tải…</div><p class="err" id="tkErr"></p></div>`;
+  let r = null;
+  const ve = () => {
+    if (S.view !== 'thongke' || !$('#tkBody') || !r) return;
+    const bay = nowS(), homNay = tkNgay(bay), dt = new Date();
+    const tu = S.tkKhoang === 'hom' ? new Date(dt.getFullYear(), dt.getMonth(), dt.getDate()) / 1000
+      : S.tkKhoang === 'tuan' ? new Date(dt.getFullYear(), dt.getMonth(), dt.getDate() - 6) / 1000 : new Date(dt.getFullYear(), dt.getMonth(), 1) / 1000;
+    const trong = t => t && t >= tu && t <= bay + 86400 * 400;
+    const ngay7 = [...Array(7)].map((_, i) => tkNgay(new Date(dt.getFullYear(), dt.getMonth(), dt.getDate() - 6 + i) / 1000));
+    const hang = r.may.map(may => {
+      const b = r.bai.filter(x => x.may === may.id);
+      const dang = b.filter(x => x.dang && x.dang <= bay + 86400 * 400);
+      return { may, lam: b.filter(x => trong(x.tao)).length, xong: b.filter(x => trong(x.xong)).length,
+        dang: dang.filter(x => trong(x.dang)).length, dangL: dang.filter(x => trong(x.dang) && x.kenh === 'laptop').length, dangI: dang.filter(x => trong(x.dang) && x.kenh === 'ipad').length,
+        chay: b.filter(x => ['dang-chay', 'hen', 'moi'].includes(x.st)).length, cho: b.filter(x => x.st === 'xong' && !x.dang).length,
+        homNay: dang.filter(x => tkNgay(x.dang) === homNay).length, ngay7: ngay7.map(n => dang.filter(x => tkNgay(x.dang) === n).length),
+        ct: r.chi_tieu[may.id] || 0 };
+    }).filter(h => h.may.con || h.lam || h.xong || h.dang || h.chay || h.cho || h.ct);
+    const tong = k => hang.reduce((a, h) => a + h[k], 0), so = n => n ? n : '<span class="z">0</span>';
+    const max7 = Math.max(1, ...hang.flatMap(h => h.ngay7));
+    const khoangTxt = (TK_KHOANG.find(x => x[0] === S.tkKhoang) || [])[1].toLowerCase();
+    setH($('#tkBody'), `<div class="tktong">
+        <div class="tkso"><b>${tong('lam')}</b><span>bài làm ${khoangTxt}</span></div><div class="tkso"><b>${tong('dang')}</b><span>bài đã đăng ${khoangTxt}</span></div>
+        <div class="tkso"><b>${tong('cho')}</b><span>đang chờ đăng</span></div><div class="tkso"><b>${tong('chay')}</b><span>đang làm / hẹn dựng</span></div></div>
+      <div class="tbwrap"><table><thead><tr><th>Máy</th><th>Làm</th><th>Xong</th><th>Đã đăng</th><th title="Laptop / iPad trong số đã đăng">💻 / 📱</th><th>Chờ đăng</th><th>Đang làm</th><th class="c7" title="Bài đăng mỗi ngày, 7 ngày gần nhất (cột phải là hôm nay)">7 ngày</th><th title="Chỉ tiêu bài đăng mỗi ngày: gõ số rồi Enter (0 = bỏ)">Hôm nay / chỉ tiêu</th></tr></thead><tbody>
+      ${hang.map(h => { const pt = h.ct ? Math.min(100, Math.round(h.homNay / h.ct * 100)) : 0;
+        return `<tr><td class="tkten"><button class="tkxem" data-loc="${esc(h.may.id)}" title="Lọc danh sách bài bên trái theo máy này"><b>${h.may.id === 'chu' ? '🏪 ' : '👤 '}${esc(h.may.ten)}</b>${h.may.con ? '' : '<small>không còn dùng chung</small>'}</button></td>
+          <td>${so(h.lam)}</td><td>${so(h.xong)}</td><td><b>${so(h.dang)}</b></td><td>${so(h.dangL)} / ${so(h.dangI)}</td><td>${so(h.cho)}</td><td>${so(h.chay)}</td>
+          <td class="c7"><div class="tk7" title="${h.ngay7.join(' · ')}">${h.ngay7.map(n => `<i class="${n ? '' : 'ko'}" style="height:${Math.max(8, Math.round(n / max7 * 100))}%"></i>`).join('')}</div></td>
+          <td><div class="tkct"><span>${h.homNay}${h.ct ? ' / ' + h.ct : ''}</span><div class="bar${h.ct ? '' : ' trong'}">${h.ct ? `<i class="${h.homNay >= h.ct ? 'du' : ''}" style="width:${pt}%"></i>` : ''}</div>
+            <input class="in" type="number" min="0" max="200" value="${h.ct || ''}" placeholder="—" data-ct="${esc(h.may.id)}" title="Chỉ tiêu bài đăng / ngày của máy này"></div></td></tr>`; }).join('')}
+      </tbody></table></div>
+      <p class="pnote">Đã đăng tính theo ngày đăng (bài Schedule tính theo giờ hẹn), gồm bài đăng bằng tiện ích và bài bấm ✓ Đã đăng. Làm = bài tạo trong khoảng chọn, Xong = dựng xong trong khoảng chọn. Chỉ tiêu: gõ số bài đăng / ngày rồi Enter, thanh xanh khi đủ.</p>`);
+    $('#tkBody').querySelectorAll('[data-loc]').forEach(b => b.onclick = () => { S.sbMay = b.dataset.loc; renderJobs(); toast('Danh sách bài bên trái: chỉ bài của ' + b.textContent.trim()); });
+    $('#tkBody').querySelectorAll('[data-ct]').forEach(i => {
+      const luu = async () => { const v = Math.max(0, parseInt(i.value || '0', 10) || 0); if (v === (r.chi_tieu[i.dataset.ct] || 0)) return;
+        try { r = await api('/api/thong-ke', { may: i.dataset.ct, so: v }); $('#tkErr').textContent = ''; ve(); toast(v ? 'Đã đặt chỉ tiêu ' + v + ' bài / ngày' : 'Đã bỏ chỉ tiêu'); } catch(e) { $('#tkErr').textContent = e.message; } };
+      i.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); luu(); } }; i.onchange = luu; });
+  };
+  $('#tkKhoang').querySelectorAll('[data-k]').forEach(b => b.onclick = () => { S.tkKhoang = b.dataset.k; $('#tkKhoang').querySelectorAll('[data-k]').forEach(x => x.classList.toggle('on', x === b)); ve(); });
+  const tai = async () => { if (S.view !== 'thongke') return;
+    try { if (!document.activeElement || !document.activeElement.dataset || !document.activeElement.dataset.ct) { r = await api('/api/thong-ke'); ve(); } } catch(e) { if ($('#tkErr')) $('#tkErr').textContent = e.message; }
+    S.timer = setTimeout(tai, 30000); };
+  tai();
+}
 // ---- kho theme Canva (fen 10/11 "thêm trong app kho canva theme"; 2 kho: Canva làm trước, Photoshop sau)
 const tenGon = t => { const x = String((t && t.ten) || '').replace(/^\s*carousel\s+tiktok\s*[:·\-]?\s*/i, ''); return x ? x.charAt(0).toUpperCase() + x.slice(1) : (t && t.ten) || ''; };   // fen 10/11 15h13: bỏ chữ "Carousel TikTok" ở chỗ hiển thị
 function doanDang(x){
@@ -2670,7 +2743,7 @@ async function khoTheme(){
   veDang();
   try { ve(await api('/api/theme-canva', {dong_bo: true})); } catch(e) { tai(); }   // mở kho là tự lấy (quá 30 phút mới lấy lại)
 }
-khoiDong().then(ok => ok && Promise.all([loadJobs(), loadNhap()])).then(v => { if (!v) return; if (location.hash === '#theme') return khoTheme(); const h = (location.hash.match(/bai=([\w-]+)/) || [])[1], moi = location.hash === '#moi'; const r = !moi && ((h && S.jobs.find(j => j.id === h)) || S.jobs.find(j => j.status === 'dang-chay')); r ? openJob(r.id) : newView(); });
+khoiDong().then(ok => ok && Promise.all([loadJobs(), loadNhap()])).then(v => { if (!v) return; if (location.hash === '#theme') return khoTheme(); if (location.hash === '#thongke' && !KHACH) return thongKe(); const h = (location.hash.match(/bai=([\w-]+)/) || [])[1], moi = location.hash === '#moi'; const r = !moi && ((h && S.jobs.find(j => j.id === h)) || S.jobs.find(j => j.status === 'dang-chay')); r ? openJob(r.id) : newView(); });
 setInterval(() => { if (duocHoi('ds')) loadJobs(); }, 5000); setInterval(() => health(), 120000);
 document.addEventListener('visibilitychange', () => { if (!document.hidden) { _hoiLuc.ds = Date.now(); loadJobs(); } });
 </script>

@@ -6905,8 +6905,8 @@ CHUNG = {"srv": None, "pid": 0, "pid_t": 0, "url": "", "loi": "", "dang": "", "m
 CHUNG_KHOA = threading.Lock()
 CHUNG_DIR = os.path.join(APP, "_cf")
 CHUNG_MA_HAN = 900
-CHUNG_CAM = {"GET": (r"/api/chung", r"/api/chung/may", r"/api/bai-co-san"),
-             "POST": (r"/api/tat", r"/api/login", r"/api/cai-claude", r"/api/chung", r"/api/tiktok-(soi|dang|nhac)", r"/api/quy-tac", r"/api/tg-lenh",
+CHUNG_CAM = {"GET": (r"/api/chung", r"/api/chung/may", r"/api/bai-co-san", r"/api/thong-ke"),
+             "POST": (r"/api/tat", r"/api/login", r"/api/thong-ke", r"/api/cai-claude", r"/api/chung", r"/api/tiktok-(soi|dang|nhac)", r"/api/quy-tac", r"/api/tg-lenh",
                       r"/api/job/[\w-]+/(mo|tiktok)", r"/api/bai-co-san")}
 CHUNG_TM = {}       # mã máy -> (lúc, [thư mục bài của máy đó]) để kiểm /file nhanh
 
@@ -7044,6 +7044,65 @@ def chung_tt():
             "dang": CHUNG["dang"], "loi": CHUNG["loi"], "ma": ma, "ma_con": max(0, int(CHUNG_MA_HAN - (now() - CHUNG["ma_luc"]))) if ma else 0,
             "may": sorted(ds, key=lambda x: x.get("t") or 0), "co_cf": os.path.isfile(cf_exe()), "app_mac": os.path.isfile(APP_MAC_ZIP),
             "app_win": os.path.isfile(APP_WIN_EXE), "nguoi": chung_nguoi(), "ep_ui": CHUNG["ep_ui"]}
+
+
+# ---------------------------------------------------------------- số bài theo máy (fen 15/11 10h53 "thêm 1 tab để quản lý số lượng
+# bài đăng của từng máy", chọn "Thống kê + chỉ tiêu"): trang 📊 Số bài theo máy đếm bài của máy shop + từng máy dùng chung theo ngày,
+# chỉ tiêu bài đăng / ngày mỗi máy lưu ở config "chi_tieu_may" {mã máy: số} (máy shop: "chu"). Chỉ máy shop xem (CHUNG_CAM).
+def may_khoa(ten):
+    """Khoá gộp máy theo tên ("t:<tên thường>"): 1 máy vào lại dùng chung (mã mới) vẫn là 1 dòng, chỉ tiêu không mất."""
+    import unicodedata
+    t = unicodedata.normalize("NFC", str(ten or "Máy khác")).replace("\u2019", "'").lower()
+    return "t:" + re.sub(r"\s+", " ", t).strip()
+
+
+def thong_ke_bai(ngay=62):
+    """Bài của `ngay` ngày gần nhất, rút gọn: máy (khoá gộp theo tên, máy shop "chu"), kênh, trạng thái, lúc tạo, lúc xong,
+    lúc đăng (giờ hẹn nếu Schedule). Kèm danh sách máy (đang dùng chung trước) và chỉ tiêu."""
+    mo, out, ten = now() - ngay * 86400, [], {}
+    for k, v in (CFG.get("chung_may") or {}).items():
+        if isinstance(v, dict):
+            ten.setdefault(may_khoa(v.get("ten")), {"ten": v.get("ten") or "Máy khác", "con": True})
+    for jid in (sorted(os.listdir(JOBS), reverse=True) if os.path.isdir(JOBS) else []):
+        try:
+            t0 = time.mktime(time.strptime(jid[:15], "%Y%m%d-%H%M%S"))
+        except ValueError:
+            continue
+        if t0 < mo - 30 * 86400:       # thư mục bài xếp theo ngày tạo: cũ hơn nhiều thì dừng (bài làm lâu rồi mới đăng vẫn tính 30 ngày)
+            break
+        j = job_nho(jid)
+        if not j or j.get("loai") in VIEC_AN or j.get("an"):
+            continue
+        dd, kh, lr = j.get("da_dang") or {}, j.get("khach") or {}, (j.get("runs") or [{}])[-1]
+        mk = may_khoa(kh.get("ten")) if kh.get("id") else "chu"
+        r = {"id": jid, "may": mk, "kenh": j.get("kenh") or "", "st": j.get("status") or "",
+             "tao": j.get("created") or t0, "xong": lr.get("ended") if j.get("status") == "xong" else None,
+             "dang": (dd.get("lich") or dd.get("t")) if dd else None}
+        if max(r["tao"] or 0, r["xong"] or 0, r["dang"] or 0) >= mo or r["st"] in ("dang-chay", "hen", "moi"):
+            out.append(r)
+            if mk != "chu":
+                ten.setdefault(mk, {"ten": kh.get("ten") or "Máy khác", "con": False})
+    ds = sorted(ten.items(), key=lambda kv: (not kv[1]["con"], kv[1]["ten"].lower()))
+    return {"bai": out, "may": [{"id": "chu", "ten": "Máy shop", "con": True}] + [dict(v, id=k) for k, v in ds],
+            "chi_tieu": {str(k): int(v) for k, v in (CFG.get("chi_tieu_may") or {}).items() if str(v).isdigit()}, "luc": now()}
+
+
+def chi_tieu_cai(data):
+    """{"may": khoá máy ("chu" / may_khoa), "so": bài/ngày (0 = bỏ chỉ tiêu)}."""
+    may, so = str(data.get("may") or ""), data.get("so")
+    if not re.fullmatch(r"chu|t:.{1,80}", may):
+        raise ValueError("Mã máy không đúng")
+    try:
+        so = max(0, min(200, int(so or 0)))
+    except (TypeError, ValueError):
+        raise ValueError("Chỉ tiêu phải là số bài")
+    ct = dict(CFG.get("chi_tieu_may") or {})
+    if so:
+        ct[may] = so
+    else:
+        ct.pop(may, None)
+    save_cfg_keys({"chi_tieu_may": ct})
+    return thong_ke_bai()
 
 
 def chung_xem_may(mid):
@@ -7606,6 +7665,8 @@ class H(BaseHTTPRequestHandler):
                 return self.send(200, quy_tac_ds())
             if u.path == "/api/nhap":
                 return self.send(200, nhap_doc())
+            if u.path == "/api/thong-ke":
+                return self.send(200, thong_ke_bai())
             if u.path == "/api/jobs":
                 # "ui": ban giao dien hien tai, trang tu tai lai khi doi (fen khoi phai dong mo app)
                 uiv = ui_ban()
@@ -7727,6 +7788,8 @@ class H(BaseHTTPRequestHandler):
                 return self.send(200, tgl_cai(data))
             if u.path == "/api/chung":
                 return self.send(200, chung_cai(data))
+            if u.path == "/api/thong-ke":
+                return self.send(200, chi_tieu_cai(data))
             if u.path == "/api/bai-co-san":
                 return self.send(200, mo_bai_co_san(data))
             m = re.fullmatch(r"/api/job/([\w-]+)/(caption|telegram|tiktok)", u.path)
