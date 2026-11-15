@@ -562,8 +562,9 @@ MODEL_VIEC = {   # khoá config: (mặc định, các model cho chọn). Fen ch�
     "model_duyet_canva": ("sonnet", ("", "opus", "sonnet")),  # agent duyệt bài Canva (fen 10/11 15h22)
     "model_quytac": ("sonnet", ("", "opus", "sonnet")),   # nút Quy tắc: ghi luật mới vào file quy tắc (30/10; 10/11 đổi Sonnet)
     "model_hoi": ("sonnet", ("", "opus", "sonnet", "haiku")),     # 💬 Hỏi app (fen 15/11 "thêm chat bot để hỏi")
+    "model_goi_y": ("sonnet", ("", "opus", "sonnet")),     # 💡 Gợi ý bài từ kho Polysto (fen 15/11)
 }
-VIEC_AN = ("brief", "quy-tac", "hoi")   # việc ẩn, không phải bài: Viết brief / Chat brief, Ghi quy tắc, 💬 Hỏi app
+VIEC_AN = ("brief", "quy-tac", "hoi", "goi-y")   # việc ẩn, không phải bài: Viết brief / Chat brief, Ghi quy tắc, 💬 Hỏi app
 
 
 def model_viec(k):
@@ -1775,7 +1776,7 @@ def start_run(job, prompt, kind, resume=None, label=None, model=None, them_dir=N
                                                             else model_cho(job, "model_duyet_canva" if job.get("dung_bang") == "canva" else "model_duyet")))
     if doi_goc():   # lệnh mẫu ghi đường dẫn máy shop (E:/Social Claude/...): đổi sang thư mục máy này (Mac / máy mới)
         prompt = mac_doi(prompt, mac_bang_cfg())
-    if job.get("khach") and kind not in ("quy-tac", "hoi"):
+    if job.get("khach") and kind not in ("quy-tac", "hoi", "goi-y"):
         prompt += KHACH_KHONG_LUAT
     with open(os.path.join(d, "prompt-%d.txt" % n), "w", encoding="utf-8") as f:
         f.write(prompt)
@@ -1802,6 +1803,8 @@ def start_run(job, prompt, kind, resume=None, label=None, model=None, them_dir=N
         args += ["--model", model]
     if kind == "hoi":       # 💬 Hỏi app: chỉ đọc (hướng dẫn app), không sửa / chạy lệnh / Canva / kho, không nạp bộ dựng bài
         args += ["--allowedTools", "Read", "Glob", "Grep", "--disallowedTools"] + HOI_CAM
+    elif kind == "goi-y":   # 💡 Gợi ý từ kho: chỉ 2 công cụ đọc kho POLY + đọc file, không sửa / chạy lệnh / Canva / ảnh máy
+        args += ["--allowedTools", "Read", "Glob", "Grep", POLY_DOC[0], POLY_DOC[1], "--disallowedTools"] + [x for x in HOI_CAM if x != "mcp__claude_ai_POLY"] + [POLY_DOC[2]]
     else:
         them = list(CFG.get("cho_phep_them") or [])
         if "mcp__claude_ai_Canva" not in them:   # config.json fen tự ghi cho_phep_them riêng: vẫn cho công cụ Canva
@@ -1810,11 +1813,11 @@ def start_run(job, prompt, kind, resume=None, label=None, model=None, them_dir=N
         args += ["--allowedTools"] + them
     if resume:
         args += ["--resume", resume]
-    pd = plugin_dir() if kind != "hoi" else ""
+    pd = plugin_dir() if kind not in ("hoi", "goi-y") else ""
     if pd:
         args += ["--plugin-dir", pd]          # chung tên plugin đã cài thì bản này thay (cùng thư mục nguồn)
     lc = os.path.join(PROMPTS, "luat-chung.md")
-    if os.path.isfile(lc) and kind != "hoi":
+    if os.path.isfile(lc) and kind not in ("hoi", "goi-y"):
         if IS_MAC:   # bản cho Mac: đường dẫn Mac + bảng đổi đường dẫn, lệnh macOS (ghi kèm lượt chạy)
             lc = mac_luat_chung(lc, os.path.join(d, "luat-chung-%d.md" % n))
         elif CFG.get("_may_moi"):
@@ -2306,6 +2309,158 @@ def hoi_ket_qua(jid, may=None):
     if j.get("status") == "dang-chay" and "exit" not in r:
         return {"tt": "dang", "giay": int(now() - (r.get("started") or now()))}
     return {"tt": "loi", "tra": j.get("loi_chay") or "Chưa trả lời được (Claude trên máy shop dừng giữa chừng). Fen hỏi lại nha."}
+
+
+# ---------------------------------------------------------------- 💡 Gợi ý bài từ hàng trong kho (fen 15/11 11h23 chọn "Gợi ý bài từ
+# hàng mới về"): 1 lượt Claude (Sonnet) đọc kho Polysto bằng 2 công cụ đọc (tim_may theo hãng / dòng của 2 kênh), gom máy còn hàng theo
+# dòng (không seri) + giá bán, so với bài 45 ngày qua, gợi ý 6–12 chủ đề. App nhớ ngày thấy mỗi dòng máy lần đầu (kho-snap.json) để đánh
+# dấu 🆕 mới về (7 ngày; lần quét đầu coi là hàng cũ). Chỉ máy shop. Bấm "🔄 Quét kho" hoặc bật tự quét mỗi sáng 7h30 (mặc định tắt).
+GOI_Y_FILE = os.path.join(APP, "goi-y-kho.json")
+KHO_SNAP = os.path.join(APP, "kho-snap.json")
+GOI_Y_LENH = """GỢI Ý BÀI TỪ HÀNG TRONG KHO POLYSTO. Việc: đọc kho Polysto (CHỈ ĐỌC) lấy các máy đang còn hàng của 2 kênh, rồi gợi ý chủ đề
+bài TikTok carousel cho những máy đáng làm bài. Hôm nay %(ngay)s.
+
+Công cụ: chỉ mcp__claude_ai_POLY__tim_may (tu_khoa = hãng / dòng; chỉ ra máy còn hàng) và, khi tim_may không có giá bán, mcp__claude_ai_POLY__du_lieu_may (seri) cho vài máy cần giá (tối đa 12 lần). Công cụ POLY nạp nền sau khi phiên mở: ToolSearch "POLY" chưa thấy thì ToolSearch lại (tối đa 6 lần), vẫn không có thì trả GOI_Y_LOI.
+- Kênh Laptop: tim_may lần lượt %(laptop)s.
+- Kênh iPad: tim_may lần lượt %(ipad)s.
+Gom theo dòng máy (bỏ seri, gộp máy giống cấu hình): tên gọn kiểu "Dell Latitude 7420 i7 16GB 512GB", số máy còn, giá bán (đúng số kho; nhiều máy thì thấp nhất–cao nhất, vd "12,9–13,5 triệu"). KHÔNG ghi seri, giá vốn, HH, ghi chú, tên / SĐT khách.
+
+Bài shop đã làm 45 ngày qua (tránh trùng chủ đề / trùng máy):
+%(bai)s
+
+Gợi ý 6–12 bài (cả 2 kênh): ưu tiên dòng máy nhiều hàng, giá tốt, CHƯA có bài 45 ngày qua. Mỗi gợi ý: kênh (laptop / ipad), máy (tên gọn như trên), giá, chủ đề bài 1 câu kiểu chủ đề fen hay gõ (vd "Dell 7420 i7: laptop văn phòng bền nhất tầm 13 triệu?", "iPad Air 5 hay Air 4 cho sinh viên?"), lý do ngắn (vd "6 máy, chưa có bài").
+
+Câu trả lời cuối cùng: đúng 1 dòng bắt đầu bằng GOI_Y_JSON rồi 1 khoảng trắng rồi JSON 1 dòng:
+{"may": [{"kenh": "laptop", "ten": "...", "so": 3, "gia": "..."}], "goi_y": [{"kenh": "laptop", "may": "...", "gia": "...", "chu_de": "...", "ly_do": "..."}]}
+Không đọc được kho: 1 dòng GOI_Y_LOI <lý do ngắn>."""
+
+
+def _goi_y_khoa(ten):
+    import unicodedata
+    t = unicodedata.normalize("NFC", str(ten or "")).lower()
+    return re.sub(r"\s+", " ", re.sub(r"[^\w\s.]", " ", t)).strip()[:120]
+
+
+def goi_y_doc():
+    d = read_json(GOI_Y_FILE, {}) or {}
+    jid = d.get("jid")
+    if jid and d.get("dang"):
+        goi_y_xong(jid)
+        d = read_json(GOI_Y_FILE, {}) or {}
+    snap = read_json(KHO_SNAP, {}) or {}
+    moi_t = now() - 7 * 86400
+    for x in (d.get("ds") or []):
+        t = snap.get(_goi_y_khoa(x.get("may")))
+        x["moi"] = bool(t and t >= moi_t)
+    for x in (d.get("may") or []):
+        t = snap.get(_goi_y_khoa(x.get("ten")))
+        x["moi"] = bool(t and t >= moi_t)
+    d["ds"] = sorted(d.get("ds") or [], key=lambda x: not x.get("moi"))
+    d["tu"] = bool(CFG.get("goi_y_tu"))
+    d["co_poly"] = True
+    return d
+
+
+def goi_y_xong(jid):
+    """Lượt quét xong: đọc dòng GOI_Y_JSON / GOI_Y_LOI ở kết quả, ghi goi-y-kho.json + ngày thấy dòng máy lần đầu."""
+    j = load_job(jid)
+    if not j:
+        return
+    r = (j.get("runs") or [{}])[-1]
+    if j.get("status") == "dang-chay" and "exit" not in r:
+        return
+    tra, f = "", os.path.join(job_dir(jid), "stream-%s.jsonl" % r.get("n", 1))
+    for line in (read_text(f).splitlines() if os.path.isfile(f) else []):
+        if '"result"' in line:
+            try:
+                o = json.loads(line)
+            except ValueError:
+                continue
+            if o.get("type") == "result":
+                tra = str(o.get("result") or "")
+    cu = read_json(GOI_Y_FILE, {}) or {}
+    m = re.search(r"GOI_Y_JSON\s+(\{.*\})\s*$", tra, re.S | re.M)
+    kq = None
+    if m:
+        try:
+            kq = json.loads(m.group(1))
+        except ValueError:
+            kq = None
+    if not isinstance(kq, dict):
+        lo = re.search(r"GOI_Y_LOI\s*(.*)", tra)
+        cu.update(dang=False, loi=short((lo.group(1) if lo else "") or "Chưa đọc được kho (Claude trên máy shop chưa nạp được POLY hoặc hết hạn mức). Thử lại sau ít phút.", 200), loi_t=now())
+        write_json(GOI_Y_FILE, cu)
+        return
+    s_ = lambda v, n=120: short(re.sub(r"\s+", " ", str(v or "")).strip(), n)
+    kenh_ok = lambda k: k if k in CFG["kenh"] else "laptop"
+    may = [{"kenh": kenh_ok(x.get("kenh")), "ten": s_(x.get("ten")), "so": x.get("so") if isinstance(x.get("so"), int) else None, "gia": s_(x.get("gia"), 40)}
+           for x in (kq.get("may") or []) if isinstance(x, dict) and x.get("ten")][:200]
+    ds = [{"kenh": kenh_ok(x.get("kenh")), "may": s_(x.get("may")), "gia": s_(x.get("gia"), 40), "chu_de": s_(x.get("chu_de"), 160), "ly_do": s_(x.get("ly_do"), 100)}
+          for x in (kq.get("goi_y") or []) if isinstance(x, dict) and x.get("chu_de")][:15]
+    snap = read_json(KHO_SNAP, {}) or {}
+    dau = not snap          # lần quét đầu: chưa biết máy nào mới về, coi hết là hàng cũ
+    for x in may + [{"ten": y["may"]} for y in ds]:
+        k = _goi_y_khoa(x.get("ten"))
+        if k and k not in snap:
+            snap[k] = 0 if dau else int(now())
+    write_json(KHO_SNAP, snap)
+    write_json(GOI_Y_FILE, {"luc": now(), "jid": jid, "dang": False, "loi": "", "may": may, "ds": ds, "lan_dau": dau})
+    log("goi y kho: %d dong may, %d goi y" % (len(may), len(ds)))
+
+
+def goi_y_quet():
+    cu = read_json(GOI_Y_FILE, {}) or {}
+    if cu.get("dang") and cu.get("jid"):
+        goi_y_xong(cu["jid"])
+        cu = read_json(GOI_Y_FILE, {}) or {}
+        if cu.get("dang") and now() - (cu.get("bat") or 0) < 900:
+            return goi_y_doc()
+    if not resolve_claude():
+        raise ValueError("Không tìm thấy Claude Code trên máy. Bấm Kiểm lại ở góc trên.")
+    if HAN_MUC.get("het"):
+        raise ValueError("Đang hết hạn mức Claude, mở lại %s" % (han_muc_gio() or "sau"))
+    bai = []
+    for jid in (sorted(os.listdir(JOBS), reverse=True)[:400] if os.path.isdir(JOBS) else []):
+        j = job_nho(jid)
+        if not j or j.get("loai") in VIEC_AN or j.get("an") or (j.get("created") or 0) < now() - 45 * 86400:
+            continue
+        bai.append("- [%s] %s" % (CFG["kenh"].get(j.get("kenh"), {}).get("ten", j.get("kenh") or ""), ten_hien(j)[0]))
+    jid = "0goi-" + time.strftime("%Y%m%d-%H%M%S-") + uuid.uuid4().hex[:4]
+    os.makedirs(job_dir(jid), exist_ok=True)
+    prompt = GOI_Y_LENH % {"ngay": time.strftime("%d/%m/%Y"), "laptop": KHO_HANG["laptop"], "ipad": KHO_HANG["ipad"], "bai": "\n".join(bai[:150]) or "(chưa có)"}
+    job = {"id": jid, "kenh": "laptop", "loai": "goi-y", "tieu_de": "Gợi ý bài từ kho", "brief": "", "created": now(), "status": "moi", "runs": []}
+    with LOCK:
+        save_job(job)
+        start_run(job, prompt, "goi-y", None, "Gợi ý từ kho", model=model_viec("model_goi_y") or "sonnet")
+    write_json(GOI_Y_FILE, dict(cu, dang=True, jid=jid, bat=now(), loi=""))
+    log("goi y kho: quet %s" % jid)
+    return goi_y_doc()
+
+
+def goi_y_cai(data):
+    """POST /api/goi-y: {quet: true} quét kho ngay; {tu: true|false} tự quét mỗi sáng 7h30."""
+    if "tu" in data:
+        save_cfg_keys({"goi_y_tu": bool(data["tu"])})
+    if data.get("quet"):
+        return goi_y_quet()
+    return goi_y_doc()
+
+
+def goi_y_lich():
+    """Mỗi phút: lượt quét đang chạy xong thì đọc kết quả; bật tự quét thì 7h30–9h chưa quét hôm nay là quét 1 lần."""
+    time.sleep(90)
+    while True:
+        try:
+            d = read_json(GOI_Y_FILE, {}) or {}
+            if d.get("dang") and d.get("jid"):
+                goi_y_xong(d["jid"])
+            lt = time.localtime()
+            if CFG.get("goi_y_tu") and (lt.tm_hour, lt.tm_min) >= (7, 30) and lt.tm_hour < 9 and not d.get("dang") \
+                    and time.strftime("%Y-%m-%d", time.localtime(d.get("bat") or d.get("luc") or 0)) != time.strftime("%Y-%m-%d", lt):
+                goi_y_quet()
+        except Exception:
+            log("goi y kho lich loi: " + traceback.format_exc())
+        time.sleep(60)
 
 
 def viet_brief(data):
@@ -7077,8 +7232,8 @@ CHUNG = {"srv": None, "pid": 0, "pid_t": 0, "url": "", "loi": "", "dang": "", "m
 CHUNG_KHOA = threading.Lock()
 CHUNG_DIR = os.path.join(APP, "_cf")
 CHUNG_MA_HAN = 900
-CHUNG_CAM = {"GET": (r"/api/chung", r"/api/chung/may", r"/api/bai-co-san", r"/api/thong-ke"),
-             "POST": (r"/api/tat", r"/api/login", r"/api/thong-ke", r"/api/cai-claude", r"/api/chung", r"/api/tiktok-(soi|dang|nhac)", r"/api/quy-tac", r"/api/tg-lenh",
+CHUNG_CAM = {"GET": (r"/api/chung", r"/api/chung/may", r"/api/bai-co-san", r"/api/thong-ke", r"/api/goi-y"),
+             "POST": (r"/api/tat", r"/api/login", r"/api/thong-ke", r"/api/goi-y", r"/api/cai-claude", r"/api/chung", r"/api/tiktok-(soi|dang|nhac)", r"/api/quy-tac", r"/api/tg-lenh",
                       r"/api/job/[\w-]+/(mo|tiktok)", r"/api/bai-co-san")}
 CHUNG_TM = {}       # mã máy -> (lúc, [thư mục bài của máy đó]) để kiểm /file nhanh
 
@@ -7907,6 +8062,8 @@ class H(BaseHTTPRequestHandler):
                 return self.send(200, nhap_doc())
             if u.path == "/api/thong-ke":
                 return self.send(200, thong_ke_bai())
+            if u.path == "/api/goi-y":
+                return self.send(200, goi_y_doc())
             m = re.fullmatch(r"/api/hoi/([\w-]+)", u.path)
             if m:
                 try:
@@ -8036,6 +8193,8 @@ class H(BaseHTTPRequestHandler):
                 return self.send(200, chung_cai(data))
             if u.path == "/api/thong-ke":
                 return self.send(200, may_tg_cai(data["tg"]) if isinstance(data.get("tg"), dict) else chi_tieu_cai(data))
+            if u.path == "/api/goi-y":
+                return self.send(200, goi_y_cai(data))
             if u.path == "/api/hoi":        # 💬 Hỏi app: máy dùng chung tự gắn máy (chỉ số liệu máy đó)
                 data.pop("_khach", None)
                 if self.khach:
@@ -8289,7 +8448,8 @@ def main():
     threading.Thread(target=dung_bu_cu, daemon=True).start()     # sổ hạn mức: ghi bù lượt cũ
     threading.Thread(target=nen_log_lich, daemon=True).start()   # fen 14/11: nén log bài cũ (10 phút sau khi mở, rồi mỗi ngày)
     threading.Thread(target=canh_mat_noi, daemon=True).start()   # fen 14/11: kiểm Claude Code mỗi 20 phút, mất nối thì báo Telegram
-    threading.Thread(target=nhac_cho_lich, daemon=True).start()  # fen 15/11: 8h sáng nhắc bài hẹn đăng hôm nay + chờ quá 1 ngày
+    threading.Thread(target=nhac_cho_lich, daemon=True).start()
+    threading.Thread(target=goi_y_lich, daemon=True).start()     # fen 15/11: 💡 gợi ý bài từ kho (tự quét 7h30 nếu bật)  # fen 15/11: 8h sáng nhắc bài hẹn đăng hôm nay + chờ quá 1 ngày
     hm =read_json(HAN_MUC_FILE, None)
     if isinstance(hm, dict) and hm.get("het") and (hm.get("reset_t") or 0) > now():   # mở lại app giữa đợt hết hạn mức: nhớ tiếp
         HAN_MUC.update({k: hm.get(k) for k in ("het", "chu", "reset", "reset_t", "t")})

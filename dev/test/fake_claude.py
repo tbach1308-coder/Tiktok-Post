@@ -21,6 +21,18 @@ def out(o, d=0.12):
         o.setdefault("modelUsage", {"claude-opus-5-5": {"costUSD": round(o["total_cost_usd"] * 0.9, 4)}, "claude-haiku-5-5": {"costUSD": round(o["total_cost_usd"] * 0.1, 4)}})
     print(json.dumps(o, ensure_ascii=False), flush=True); time.sleep(d)
 out({"type": "system", "subtype": "init", "session_id": sid, "model": "claude-opus-5-5"})
+if prompt.startswith('GỢI Ý BÀI TỪ HÀNG TRONG KHO POLYSTO'):   # 💡 Gợi ý từ kho (15/11): FAKE_KHO_LOI = báo lỗi, FAKE_KHO2 = có thêm 1 dòng máy mới về
+    time.sleep(float(open(os.path.join(HERE, 'FAKE_KHO_CHAM')).read() or 0) if os.path.exists(os.path.join(HERE, 'FAKE_KHO_CHAM')) else 0)
+    if os.path.exists(os.path.join(HERE, 'FAKE_KHO_LOI')):
+        out({"type": "result", "subtype": "success", "is_error": False, "result": "GOI_Y_LOI Chưa nạp được POLY", "session_id": sid, "duration_ms": 900, "num_turns": 3, "total_cost_usd": 0.01}); sys.exit(0)
+    may = [{"kenh": "laptop", "ten": "Dell Latitude 7420 i7 16GB 512GB", "so": 4, "gia": "12,9–13,5 triệu"}, {"kenh": "ipad", "ten": "iPad Air 5 64GB", "so": 3, "gia": "11,2 triệu"}]
+    gy = [{"kenh": "laptop", "may": "Dell Latitude 7420 i7 16GB 512GB", "gia": "12,9–13,5 triệu", "chu_de": "Dell 7420 i7: laptop văn phòng bền nhất tầm 13 triệu?", "ly_do": "4 máy, chưa có bài"},
+          {"kenh": "ipad", "may": "iPad Air 5 64GB", "gia": "11,2 triệu", "chu_de": "iPad Air 5 hay Air 4 cho sinh viên?", "ly_do": "3 máy"}]
+    if os.path.exists(os.path.join(HERE, 'FAKE_KHO2')):
+        may.append({"kenh": "laptop", "ten": "ThinkPad X1 Carbon Gen 10 i7", "so": 2, "gia": "17,9 triệu"})
+        gy.insert(0, {"kenh": "laptop", "may": "ThinkPad X1 Carbon Gen 10 i7", "gia": "17,9 triệu", "chu_de": "X1 Carbon Gen 10: doanh nhân mang đi đâu cũng được", "ly_do": "mới về"})
+    out({"type": "result", "subtype": "success", "is_error": False, "result": "Đã quét kho.\nGOI_Y_JSON " + json.dumps({"may": may, "goi_y": gy}, ensure_ascii=False), "session_id": sid, "duration_ms": 2000, "num_turns": 8, "total_cost_usd": 0.2})
+    sys.exit(0)
 if prompt.startswith('HỎI APP POLY DỰNG BÀI'):   # 💬 Hỏi app (15/11): trả lời thử = câu hỏi + vài dòng số liệu app đưa vào
     if 'HOICHAM' in prompt: time.sleep(600)
     cau = prompt.split('CÂU HỎI:')[-1].strip()

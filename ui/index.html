@@ -293,6 +293,15 @@ body:not(.kcdrive) .thkcd{display:none!important}   /* fen 12/11 21h47 "dấu c�
 .khor .lbl{margin:0;white-space:nowrap;cursor:help}
 .khor .in{flex:1;padding:7px 10px;font-size:13px}
 .khor .btn{white-space:nowrap}
+/* 💡 Gợi ý từ kho (fen 15/11 11h23 chọn "Gợi ý bài từ hàng mới về"): 1 dòng gọn, bấm Xem mới mở danh sách */
+.gyk{border:1px solid var(--line);border-radius:10px;padding:6px 10px;margin:-4px 0 12px;background:var(--panel)}.gyk:empty{display:none}
+.gyk .gyhd{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12.5px}.gyk .gyhd b{white-space:nowrap}.gyk .gyst{color:var(--mut);flex:1;min-width:160px}
+.gyk .gyst .moi{color:var(--gl);font-weight:600}.gyk .gyst.loi{color:#f2a3a3}.gyk .gyhd .btn{padding:3px 9px;font-size:12px}
+.gyk .gyds{display:flex;flex-direction:column;gap:5px;margin-top:6px}
+.gyk .gyi{display:flex;align-items:center;gap:8px;background:var(--panel2);border-radius:8px;padding:6px 8px;font-size:12.5px}
+.gyk .gyi .t{flex:1;min-width:0}.gyk .gyi .t b{font-weight:600}.gyk .gyi .t .cd{display:block;color:var(--tx)}.gyk .gyi .t i{font-style:normal;color:var(--dim);font-size:11.5px}
+.gyk .gyi .gymoi{color:var(--gl);font-weight:700;font-size:11px;margin-right:5px}.gyk .gyi .btn{padding:3px 10px;font-size:12px;flex:none}
+.gyk .gytu{display:flex;align-items:center;gap:6px;color:var(--dim);font-size:11.5px;margin-top:6px;cursor:pointer}.gyk .gytu input{margin:0}
 .vbst{font-size:12.5px;color:var(--mut);line-height:1.5;margin:0 0 12px;min-height:4px}
 .vbst a{color:var(--gl)}
 
@@ -1343,6 +1352,7 @@ function newView(){
     <div class="vb"><input class="in" id="fChuDe" placeholder="${esc(CHUDE_PH[f.kenh])}" value="${esc(f.chude || '')}"><button class="btn" id="bVietBrief">✍ Viết brief</button></div>
     <div class="vbst" id="vbSt"></div>
     <div class="khor"><span class="lbl" title="Claude đọc kho Polysto qua kết nối POLY của tài khoản Claude, chỉ lấy thông tin máy và giá bán (không lấy giá vốn, HH, ghi chú, tên khách)">📦 Kho</span><input class="in" id="fKho" autocomplete="off" placeholder="Dán link kho Polysto hoặc seri máy: Claude lấy máy + giá thật trong kho để viết brief" value="${esc(f.kho || '')}"><button class="btn sm ghost" id="bKhoCa" title="Lấy máy trong cả kho (${esc(KHO_LINK)})">Cả kho</button></div>
+    ${KHACH ? '' : '<div class="gyk" id="gyKho"></div>'}
     <span class="lbl">Brief từng slide</span>
     <textarea class="in" id="fBrief" placeholder="${esc(k.ph.brief)}">${esc(f.brief || '')}</textarea>
     <div class="chatb" id="chatB"><div class="chatl" id="chatL"></div>
@@ -1371,10 +1381,10 @@ function newView(){
       return; }
     f.kenh = k; delete f.kb; saveForm();
     document.querySelectorAll('#seg button').forEach(x => x.classList.toggle('on', x === b));
-    const p = KENH[f.kenh].ph; $('#fBrief').placeholder = p.brief; $('#fNote').placeholder = p.note; $('#fChuDe').placeholder = CHUDE_PH[f.kenh]; if (S._veDung) S._veDung(); };
+    const p = KENH[f.kenh].ph; $('#fBrief').placeholder = p.brief; $('#fNote').placeholder = p.note; $('#fChuDe').placeholder = CHUDE_PH[f.kenh]; if (S._veDung) S._veDung(); gyVe(); };
   const map = {fBrief:'brief', fNote:'note', fChuDe:'chude', fKho:'kho'};   // bỏ ô Tên bài + Ngày đăng (fen 29/10 19h08 "phần này bị thừa")
   Object.keys(map).forEach(id => $('#' + id).oninput = e => { f[map[id]] = e.target.value; saveForm(); if (id === 'fBrief') { e.target.classList.remove('bad'); gianBrief(); } });
-  gianBrief();
+  gianBrief(); gyTai();
   setupPick($('#file'), $('#pick'), f.anh, $('#drop'));
   renderThumbs($('#drop'), f.anh);
   $('#fModel').onchange = e => { f.model = e.target.value; f.nhanh = false; saveForm(); };
@@ -2782,6 +2792,33 @@ async function khoTheme(){
   $('#thDb').onclick = async () => { $('#thErr').textContent = ''; try { ve(await api('/api/theme-canva', {dong_bo: 'ep'})); } catch(err) { $('#thErr').textContent = err.message; } };
   veDang();
   try { ve(await api('/api/theme-canva', {dong_bo: true})); } catch(e) { tai(); }   // mở kho là tự lấy (quá 30 phút mới lấy lại)
+}
+// ---- 💡 Gợi ý từ kho (fen 15/11 11h23 chọn "Gợi ý bài từ hàng mới về"): dòng gọn dưới ô Kho ở Bài mới (chỉ máy shop). 🔄 Quét kho =
+// 1 lượt Claude đọc kho Polysto (tên máy + giá bán), gợi ý chủ đề cho máy chưa có bài; 🆕 = dòng máy app thấy lần đầu trong 7 ngày.
+// "Dùng" điền chủ đề + tên máy vào ô Kho (rồi fen bấm ✍ Viết brief). Đang quét thì 5 giây hỏi lại 1 lần.
+async function gyTai(ep){
+  if (KHACH || !$('#gyKho')) return;
+  if (ep || !S.gy || Date.now() - (S.gyT || 0) > 60000 || S.gy.dang) { try { S.gy = await api('/api/goi-y'); S.gyT = Date.now(); } catch(e) { S.gy = { loi: e.message }; } }
+  gyVe();
+  clearTimeout(S.gyHen); if (S.gy && S.gy.dang && S.view === 'new') S.gyHen = setTimeout(() => gyTai(true), 5000);
+}
+function gyVe(){
+  const el = $('#gyKho'); if (!el || !S.gy) return;
+  const d = S.gy, f = S.form, ds = (d.ds || []).filter(x => x.kenh === f.kenh), moi = (d.may || []).filter(x => x.moi && x.kenh === f.kenh).length;
+  const mo = !!store.get('poly-gy-mo', false);
+  const st = d.dang ? 'Đang đọc kho Polysto… (1–3 phút)' : d.loi ? '⚠ ' + esc(d.loi) : d.luc
+    ? `${ds.length} gợi ý ${esc(KENH[f.kenh].ten)}${moi ? ` · <span class="moi">🆕 ${moi} mới về</span>` : ''} · quét ${esc(henTxt(d.luc))}`
+    : 'Chưa quét: Claude đọc kho Polysto (tên máy + giá bán), gợi ý chủ đề cho máy chưa có bài';
+  setH(el, `<div class="gyhd"><b>💡 Gợi ý từ kho</b><span class="gyst${d.loi && !d.dang ? ' loi' : ''}">${st}</span>
+      ${ds.length ? `<button class="btn ghost sm" id="gyMo">${mo ? 'Ẩn' : 'Xem'}</button>` : ''}<button class="btn ghost sm" id="gyQuet"${d.dang ? ' disabled' : ''} title="1 lượt Claude (Sonnet) đọc kho, tính vào hạn mức tuần">🔄 Quét kho</button></div>
+    ${mo && ds.length ? `<div class="gyds">${ds.map((x, i) => `<div class="gyi"><div class="t">${x.moi ? '<span class="gymoi">MỚI VỀ</span>' : ''}<b>${esc(x.may)}</b>${x.gia ? ' · ' + esc(x.gia) : ''}<span class="cd">${esc(x.chu_de)}</span>${x.ly_do ? `<i>${esc(x.ly_do)}</i>` : ''}</div><button class="btn sm" data-gy="${i}" title="Điền chủ đề này + tên máy vào ô Kho">Dùng</button></div>`).join('')}
+      <label class="gytu"><input type="checkbox" id="gyTu"${d.tu ? ' checked' : ''}> Tự quét mỗi sáng 7h30</label></div>` : ''}`);
+  const q = $('#gyQuet'); if (q) q.onclick = async () => { q.disabled = true; try { S.gy = await api('/api/goi-y', { quet: true }); S.gyT = Date.now(); gyTai(); } catch(e) { toast(e.message, true); q.disabled = false; } };
+  const m = $('#gyMo'); if (m) m.onclick = () => { store.set('poly-gy-mo', !mo); gyVe(); };
+  const t = $('#gyTu'); if (t) t.onchange = async () => { try { S.gy = await api('/api/goi-y', { tu: t.checked }); toast(t.checked ? 'Mỗi sáng 7h30 app tự quét kho' : 'Đã tắt tự quét kho'); } catch(e) { toast(e.message, true); } };
+  el.querySelectorAll('[data-gy]').forEach(b => b.onclick = () => { const x = ds[+b.dataset.gy]; if (!x) return;
+    f.chude = x.chu_de; f.kho = x.may; $('#fChuDe').value = x.chu_de; $('#fKho').value = x.may; saveForm();
+    toast('Đã điền chủ đề + máy vào ô Kho: bấm ✍ Viết brief'); $('#fChuDe').focus(); });
 }
 // ---- 💬 Hỏi app (fen 15/11 11h51 "thêm chat bot để hỏi", chọn "Cách dùng app + số liệu"): hỏi cách làm, bài chờ đăng, máy nào đăng
 // mấy bài… Mỗi câu 1 lượt Claude chỉ đọc trên máy shop (POST /api/hoi → hỏi lại GET /api/hoi/<id>). Lịch sử chat nhớ trên trình duyệt này.
