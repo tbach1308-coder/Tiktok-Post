@@ -667,7 +667,8 @@ const KHACH = !/^(127\.0\.0\.1|localhost|\[::1\])$/.test(location.hostname);
 if (KHACH) document.body.classList.add('khach');
 const ST = {'dang-chay':'Đang chạy', 'xong':'Xong', 'loi':'Lỗi', 'dung':'Đã dừng', 'moi':'Mới', 'hen':'Đã hẹn'};
 const S = {view:'new', jobId:null, jobs:[], jobsH:'', since:0, events:[], data:null, timer:null, fail:0,
-           form:{kenh:'laptop', anh:[]}, drafts:{}, health:null, offset:0, feedAll:false, asked:false};
+           form:{kenh:'laptop', anh:[]}, drafts:{}, health:null, offset:0, feedAll:false, asked:false,
+           sbMay: KHACH ? '' : 'chu'};      // fen 15/11 11h13 "máy nào thì mặc định hiển thị máy đó": máy shop mở app thấy bài máy shop (máy dùng chung vốn chỉ thấy bài mình)
 const store = {get(k, d){ try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch(e) { return d; } },
                set(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch(e) {} }};
 /* nháp Bài mới: mỗi nháp 1 brief riêng (bấm qua lại không mất), lưu trên máy (nhap.json) + bản phụ trong trình duyệt */
@@ -1203,7 +1204,7 @@ function renderJobs(){
   // fen 12/11 19h37 "app gốc quản lý và xem dc bài làm của máy khác": máy shop lọc bài theo máy
   // 15/11: gộp máy theo tên (1 máy vào lại dùng chung có mã mới vẫn là 1 dòng), khoá như trang 📊 Số bài
   const dsMay = KHACH ? [] : [...new Map(S.jobs.filter(j => j.khach && j.khach.id).map(j => [mayKhoa(j.khach.ten), j.khach.ten || 'Máy khác'])).entries()];
-  if (S.sbMay && S.sbMay !== 'chu' && !dsMay.some(([k]) => k === S.sbMay)) S.sbMay = '';
+  if (S.sbMay && S.sbMay !== 'chu' && !dsMay.some(([k]) => k === S.sbMay)) S.sbMay = 'chu';
   const theoMay = j => !S.sbMay || (S.sbMay === 'chu' ? !j.khach : !!j.khach && mayKhoa(j.khach.ten) === S.sbMay);
   S.jobs.filter(theoMay).forEach(j => nhom[nhomBai(j)].push(j));
   nhom.lam.sort((a, b) => (b.status === 'dang-chay') - (a.status === 'dang-chay') || (['loi', 'dung'].includes(b.status)) - (['loi', 'dung'].includes(a.status)) || (b.created || 0) - (a.created || 0));
@@ -1239,7 +1240,7 @@ function renderJobs(){
   }
   if (!ds.length) h = `<div class="empty">${S.jobs.length ? {lam: 'Không có bài nào đang làm.', cho: 'Không có bài nào chờ đăng.', nhap: 'Chưa có bản nháp. Ở Bài mới gõ brief rồi bấm 💾 Lưu bản nháp.', dang: 'Chưa có bài nào đã đăng.'}[S.sbTab] : S.sbTab === 'nhap' ? 'Chưa có bản nháp. Ở Bài mới gõ brief rồi bấm 💾 Lưu bản nháp.' : 'Chưa có bài nào. Bấm “+ Bài mới”, dán brief rồi bấm Chạy.'}</div>`;
   // fen 13/11 15h15 "menu này chưa hợp lý" (hàng nút Máy: Tất cả · Máy shop · 👤 …, xuống 2 hàng): thành 1 ô chọn gọn 1 dòng
-  if (dsMay.length) h = `<div class="sbmay"><span>Máy</span><select id="sbMaySel" class="${S.sbMay ? 'on' : ''}" title="Chỉ hiện bài của 1 máy"><option value="">Tất cả máy</option><option value="chu"${S.sbMay === 'chu' ? ' selected' : ''}>Máy shop</option>${dsMay.map(([id, ten]) => `<option value="${esc(id)}"${S.sbMay === id ? ' selected' : ''}>👤 ${esc(ten)}</option>`).join('')}</select></div>` + h;
+  if (dsMay.length) h = `<div class="sbmay"><span>Máy</span><select id="sbMaySel" class="${S.sbMay && S.sbMay !== 'chu' ? 'on' : ''}" title="Chỉ hiện bài của 1 máy"><option value="">Tất cả máy</option><option value="chu"${S.sbMay === 'chu' ? ' selected' : ''}>Máy shop</option>${dsMay.map(([id, ten]) => `<option value="${esc(id)}"${S.sbMay === id ? ' selected' : ''}>👤 ${esc(ten)}</option>`).join('')}</select></div>` + h;
   const doiH = setH($('#jobs'), h);
   const sbm = $('#sbMaySel'); if (sbm) sbm.onchange = () => { S.sbMay = sbm.value; renderJobs(); };
   document.querySelectorAll('#jobs [data-loc]').forEach(b => b.onclick = () => { S.sbLoc = S.sbLoc === b.dataset.loc ? '' : b.dataset.loc; store.set('poly-sbloc', S.sbLoc); renderJobs(); });
@@ -1569,6 +1570,8 @@ function draft(){ const id = S.jobId; if (!S.drafts[id]) S.drafts[id] = {text:''
 async function openJob(id){
   try { history.replaceState(null, '', '#bai=' + id); } catch(e) {}
   stopPoll(); S.view = 'job'; S.jobId = id; S.since = 0; S.events = []; S.data = null; S.feedAll = false;
+  const jm = !KHACH && S.sbMay && S.jobs.find(x => x.id === id);      // bài đang mở không nằm trong máy đang lọc → chuyển sang máy của bài
+  if (jm) { const k = jm.khach ? mayKhoa(jm.khach.ten) : 'chu'; if (k !== S.sbMay) S.sbMay = k; }
   renderJobs();
   $('#main').innerHTML = `<div class="pad"><p class="lead">Đang mở…</p></div>`;
   await poll(true);
@@ -2366,7 +2369,7 @@ function mayXem(id){
   const dong = () => { clearTimeout(mayXem.t); m.remove(); };
   $('#myDong').onclick = dong; m.onclick = e => { if (e.target === m) dong(); };
   $('#myLai').onclick = () => { dong(); chungDlg(); };
-  $('#myLoc').onclick = () => { S.sbMay = mayKhoa(($('#myTen').textContent || '').replace(/^👤\s*/, '')); dong(); renderJobs(); toast('Danh sách bài: chỉ bài của máy này (bấm "Tất cả" ở trên danh sách để bỏ lọc)'); };
+  $('#myLoc').onclick = () => { S.sbMay = mayKhoa(($('#myTen').textContent || '').replace(/^👤\s*/, '')); dong(); renderJobs(); toast('Danh sách bài: chỉ bài của máy này (ô Máy trên danh sách chọn "Tất cả máy" để xem hết)'); };
   const ngay = t => { const d = new Date(t * 1000); return String(d.getDate()).padStart(2, '0') + '/' + String(d.getMonth() + 1).padStart(2, '0'); };
   const ve = r => {
     if (!$('#myBox')) return;
@@ -2404,6 +2407,7 @@ const TK_KHOANG = [['hom', 'Hôm nay'], ['tuan', '7 ngày'], ['thang', 'Tháng n
 const mayKhoa = ten => 't:' + String(ten || 'Máy khác').normalize('NFC').replace(/\u2019/g, "'").toLowerCase().replace(/\s+/g, ' ').trim();
 function tkNgay(t){ const d = new Date(t * 1000); return d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate(); }
 async function thongKe(){
+  if (KHACH) return;      // fen 15/11 11h13 "chỉ có admin xem dc": máy dùng chung không có nút, không mở trang, API chặn
   if (KHACH) return;
   try { history.replaceState(null, '', '#thongke'); } catch(e) {}
   stopPoll(); S.view = 'thongke'; S.jobId = null; renderJobs();
