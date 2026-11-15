@@ -23,16 +23,15 @@ const check = (n, c, x) => { c ? dat++ : loi++; console.log((c ? '✓ ' : '✗ '
   await p.goto(A + '/'); await p.waitForTimeout(1500); await p.click('#bTheme'); await p.waitForSelector('#thG .thc', { timeout: 10000 }); await p.waitForTimeout(800);
   const ten = async () => p.$$eval('#thG .thc b, #thKcG .thc b', x => x.map(e => e.textContent));
   let ds = await ten();
-  check('theme hết mùa ẩn khỏi lưới', !ds.includes('Mùa UI · hết mùa') && !hetDs.some(t => ds.includes(t.ten.replace(/\s*\(POLY\)\s*$/, ''))), ds);
+  // 15/11 11h09 fen "ẩn khúc này đi": bỏ dòng 🍂 Hiện / Ẩn đi; theme hết mùa nằm mục "🍂 Hết mùa" cuối lưới, thẻ mờ
+  check('không còn dòng 🍂 Hiện / Ẩn đi', !(await p.$('#thMua')) && !(await p.$('#thPsMua')));
   check('theme không mùa vẫn hiện', ds.includes('Mùa UI · cả năm'), ds);
-  const dong = await p.$eval('#thMua', e => ({ an: e.hidden, chu: e.textContent }));
-  check('dòng 🍂 báo số theme hết mùa đang ẩn', !dong.an && dong.chu.includes(hetDs.length + ' theme đang hết mùa') && dong.chu.includes('Mùa UI · hết mùa') && dong.chu.includes('Hiện'), dong);
-  await p.click('#thMuaBat'); await p.waitForTimeout(500);
-  ds = await ten();
-  check('bấm Hiện: theme hết mùa hiện lại', ds.includes('Mùa UI · hết mùa'), ds);
+  const muc = await p.$$eval('#thG .thmuah', x => x.map(e => e.textContent));
+  check('lưới chia mục mùa, mục 🍂 Hết mùa nằm cuối', muc.length >= 2 && /🍂 Hết mùa/.test(muc[muc.length - 1]) && !muc.slice(0, -1).some(x => /🍂/.test(x)), muc);
+  const cuoiMuc = await p.$$eval('#thG .thmuah', x => { const h = x[x.length - 1]; const g = h && h.nextElementSibling; return g ? [...g.querySelectorAll('.thc b')].map(e => e.textContent) : []; });
+  check('theme hết mùa nằm trong mục 🍂 cuối', cuoiMuc.includes('Mùa UI · hết mùa'), cuoiMuc);
   const the = await p.$eval(`.thc[data-id="${a.id}"]`, e => ({ mo: e.classList.contains('hetmua'), nhan: (e.querySelector('.thmua') || {}).textContent || '' }));
   check('thẻ hết mùa mờ + nhãn "Hết mùa · hiện lại dd/mm"', the.mo && /Hết mùa · hiện lại \d\d\/\d\d/.test(the.nhan), the);
-  check('dòng 🍂 đổi thành Ẩn đi', (await p.$eval('#thMua', e => e.textContent)).includes('Ẩn đi'));
   const coMua = r.ds.filter(t => t.mua && !t.ngoai_mua);
   if (coMua.length) {
     const n2 = await p.$eval(`.thc[data-id="${coMua[0].id}"] .thmua`, e => e.textContent).catch(() => '');

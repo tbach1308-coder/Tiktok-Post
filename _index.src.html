@@ -160,7 +160,6 @@ a.btn{color:var(--tx);text-decoration:none}
 .kcwarn summary{cursor:pointer;color:var(--ytext)}
 .thc .kcb{font-size:11px;color:#9cc8ff}
 .thc .thmua{font-size:11px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.thc .thmua.het{color:#f5b84a}.thpage .thc.hetmua .tha{opacity:.5}   /* fen 14/11 theme theo mùa */
-.thmuag a{margin-left:4px}
 .meta .dungc{font-size:12px;color:var(--mut);border:1px solid var(--line2);border-radius:999px;padding:1px 8px;cursor:help}.kcw{font-size:11px;color:#f5b84a;font-weight:500}
 .thc .thmore[hidden],.thc .thinfo[hidden]{display:none}
 .thc .thmore{display:flex;flex-wrap:wrap;gap:5px}.thc .thmore .btn{padding:3px 8px;font-size:12px}
@@ -2469,7 +2468,6 @@ async function khoTheme(){
     <div class="kseg segd" id="thKieu"><button data-k="cv" class="${S.thKieu === 'ps' ? '' : 'on'}">🎨 Canva</button><button data-k="ps" class="${S.thKieu === 'ps' ? 'on' : ''}" title="Theme Photoshop (phẳng / glass) dùng chung cho mọi máy: bấm ▶ Làm bài rồi viết brief, Claude dựng bằng Photoshop theo màu, font, nền của theme">🖌 Photoshop</button></div></div>
     ${choBai ? '<p class="banner thcho">Đang chọn theme cho bài đang viết: bấm <b>✓ Chọn theme này</b> ở theme muốn dùng, app quay lại bài.</p>' : ''}
     <div id="thPsWrap"${S.thKieu === 'ps' ? '' : ' hidden'}>
-    <p class="pnote thmuag" id="thPsMua" hidden></p>
     <div id="thPsG">Đang tải…</div></div>
     <div id="thCvWrap"${S.thKieu === 'ps' ? ' hidden' : ''}>
     <!-- fen 13/11 11h31 "vẫn quá nhiều": bỏ đoạn giới thiệu dài, hướng dẫn nằm ở chữ hiện khi rê chuột -->
@@ -2484,7 +2482,6 @@ async function khoTheme(){
       </div></details>
     <p class="err" id="thErr"></p>
     <div class="thed" id="thEd" hidden></div>
-    <p class="pnote thmuag" id="thMua" hidden></p>
     <div id="thG">Đang tải…</div>
     <p class="pnote thbo" id="thBo"></p>
     <h3 class="thkch" title="Máy dùng chung thấy và dùng được đúng các theme này">☁️ Kho chung <span id="thKcN"></span></h3>
@@ -2503,23 +2500,18 @@ async function khoTheme(){
     const nhom = new Map(), thu = k => k.startsWith('dang:') ? 0 : k === 'nam' ? 1 : 2;
     xs.forEach(t => { const k = t.mua ? (t.ngoai_mua ? 'het:' : 'dang:') + t.mua : 'nam'; nhom.has(k) ? nhom.get(k).push(t) : nhom.set(k, [t]); });
     return [...nhom.entries()].sort((a, b) => thu(a[0]) - thu(b[0])).map(([k, ts]) => { const t = ts[0];
-      const tieu = k === 'nam' ? '🗓 Quanh năm' : `${MUA_IC[t.mua] || '🗓'} Mùa ${esc(t.mua_ten)} <small>${t.ngoai_mua ? 'hết mùa, hiện lại ' + esc(t.mua_tu) : esc(t.mua_tu) + ' – ' + esc(t.mua_den)}</small>`;
+      const tieu = k === 'nam' ? '🗓 Quanh năm' : t.ngoai_mua ? `🍂 Hết mùa · ${esc(t.mua_ten)} <small>hiện lại ${esc(t.mua_tu)}, app không tự chọn</small>` : `${MUA_IC[t.mua] || '🗓'} Mùa ${esc(t.mua_ten)} <small>${esc(t.mua_tu)} – ${esc(t.mua_den)}</small>`;
       return `<h4 class="thmuah">${tieu}<span class="n">${ts.length}</span></h4><div class="thg">${ts.map(the1).join('')}</div>`; }).join('');
   };
   const nhanMua = t => !t.mua ? '' : t.ngoai_mua ? `<small class="thmua het" title="Theme mùa ${esc(t.mua_ten)}: ngoài mùa thì ẩn ở chỗ chọn, app không tự chọn">🍂 Hết mùa · hiện lại ${esc(t.mua_tu)}</small>`
     : `<small class="thmua" title="Theme mùa ${esc(t.mua_ten)}: qua ${esc(t.mua_den)} tự ẩn, năm sau tự hiện lại">🗓 Mùa ${esc(t.mua_ten)} · tới ${esc(t.mua_den)}</small>`;
-  const dongMua = (el, het, bat) => { el.hidden = !het.length;
-    setH(el, het.length ? `🍂 ${het.length} theme đang hết mùa ${S.thHetMua ? 'đang hiện (mờ)' : 'đang ẩn'}: ${het.map(t => esc(tenGon(t))).join(', ')}<a href="#" id="${el.id}Bat">${S.thHetMua ? 'Ẩn đi' : 'Hiện'}</a>` : '');
-    const a = el.querySelector('a'); if (a) a.onclick = ev => { ev.preventDefault(); S.thHetMua = !S.thHetMua; bat(); }; };
   // fen 12/11 21h18 theme Photoshop từng hiện cả trong mục ☁️ Kho chung tab Canva; 13/11 11h35 "hiển thị theme theo tag": chỉ còn ở tab Photoshop
   // fen 12/11 21h20 "hiển thị giống canva ở trên": thẻ y như thẻ theme Canva (1 ảnh bìa 3:4, tên, dòng nhỏ, nhãn kho chung, ▶ Làm bài)
   const thePs = t => `<div class="thc thps${t.ngoai_mua ? ' hetmua' : ''}" data-id="${t.id}"><div class="tha" title="${esc(t.mo_ta || '')}">${t.anh && t.anh[0] ? `<img src="${esc(t.anh[0])}" alt="">` : '<span>Chưa có ảnh xem trước</span>'}</div>
       <b title="${esc(t.ten)}">${esc(t.ten)}</b><small class="thm">${t.kenh ? esc(KENH[t.kenh].ten) : 'Cả 2 kênh'}</small>${nhanMua(t)}
       <div class="thb"><button class="btn sm pri" data-dungps="${t.id}" title="${choBai ? 'Dùng theme này cho bài đang viết' : 'Mở bài mới với theme này'}, làm bằng Photoshop">${nutDung}</button></div></div>`;
   const vePs = ds2 => { S.themePsDs = ds2; if (!$('#thPsG')) return;
-    dongMua($('#thPsMua'), ds2.filter(t => t.ngoai_mua), () => { vePs(ds2); if (cuoi) ve(cuoi); });
-    const hien = ds2.filter(t => S.thHetMua || !t.ngoai_mua);
-    setH($('#thPsG'), hien.length ? theoMua(hien, thePs) : '<p class="pnote">Kho chung chưa có theme Photoshop nào.</p>');
+    setH($('#thPsG'), ds2.length ? theoMua(ds2, thePs) : '<p class="pnote">Kho chung chưa có theme Photoshop nào.</p>');
     const nb = $('#thKieu [data-k=ps]'); if (nb) nb.textContent = '🖌 Photoshop' + (ds2.length ? ' · ' + ds2.length : '');
   };
   api('/api/theme-ps').then(r => vePs(r.ds || [])).catch(e => { if ($('#thPsG')) $('#thPsG').textContent = e.message; });
@@ -2553,11 +2545,10 @@ async function khoTheme(){
     // fen 12/11 19h35: mỗi máy theme riêng + kho chung; 19h42 "hiển thị template lấy từ drive như canva": kho chung là 1 lưới thẻ riêng
     const cuaMay = t => KHACH ? !!(t.may && S.khach && t.may === S.khach.id) : t.nguon !== 'kho-chung';
     // fen 13/11 11h21 "hiển thị dư rồi nè": theme đã vào kho chung chỉ hiện 1 chỗ (mục ☁️ Kho chung), lưới trên = theme chưa vào kho chung
-    // fen 14/11 12h13 "theme theo mùa": theme hết mùa (Christmas, Tết… ngoài mùa) ẩn mặc định, bấm Hiện để xem / chỉnh
+    // fen 14/11 12h13 "theme theo mùa": theme hết mùa không tự chọn, không hiện ở chỗ chọn của Bài mới; 15/11 11h09 "ẩn khúc này đi" (dòng 🍂 Hiện / Ẩn đi):
+    // bỏ dòng đó, theme hết mùa nằm mục 🍂 cuối lưới (mờ, ghi ngày hiện lại), chia mục theo mùa ở theoMua
     if (r.mua_ds) S.muaDs = r.mua_ds;
-    const hetMua = ds.filter(t => t.ngoai_mua), hienMua = !!S.thHetMua, conMua = t => hienMua || !t.ngoai_mua;
-    const dsRieng = ds.filter(t => cuaMay(t) && !(t.kc && !KHACH) && conMua(t)), dsChung = ds.filter(t => t.kc && conMua(t));
-    dongMua($('#thMua'), hetMua, () => { ve(cuoi); if (S.themePsDs) vePs(S.themePsDs); });
+    const dsRieng = ds.filter(t => cuaMay(t) && !(t.kc && !KHACH)), dsChung = ds.filter(t => t.kc);
     const the = (t, trongKc) => { const x = t.xem || {}, sx = t.sua || {}, ban = sx.tt === 'dang', kc = t.nguon === 'kho-chung';
       const rieng = cuaMay(t) && !trongKc;     // rieng = thẻ có Chỉnh / ⋯ (theme máy này sửa / bỏ được)
       const anh = t.anh ? `<img src="${esc(t.anh)}" alt="">` : `<span>${x.tt === 'dang' ? 'Đang lấy ảnh xem trước…' : x.tt === 'loi' ? 'Chưa lấy được ảnh: ' + esc(x.ghi || '') : 'Chưa có ảnh xem trước'}</span>`;
