@@ -36,5 +36,5 @@ han-muc.json
 # 📱 thư viện mẫu story: ảnh xem trước, ảnh máy dùng chung làm, mẫu fen tự thêm (dữ liệu máy shop)
 story-mau/_xem/
 story-mau/_khach/
-story-mau/f*/
+story-mau/f[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]/
 Story/
