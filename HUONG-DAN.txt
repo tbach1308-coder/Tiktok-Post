@@ -228,7 +228,10 @@ LÀM 1 BÀI
   "Poly Dựng Bài (dùng chung)" ngoài Desktop.
   App con Mac bản 13/11 tối: mở app không còn bật thêm 1 cửa sổ Chrome thường. Máy Mac đã cài bản cũ: mở link …/tai,
   bấm "Tải cho Mac", giải nén, chép đè app cũ (link + mã đã nhập vẫn giữ, không phải nhập lại).
-  Link đổi khi máy này khởi động lại / mất mạng lâu: bot Remote báo link mới trong Telegram, app Mac tự hỏi link mới.
+  Link đổi khi máy này khởi động lại / mất mạng lâu (15/11): app máy shop tự ghi link mới vào file poly-link.json trong thư mục
+  Google Drive "POLY Kho Theme" (file chia sẻ xem bằng link, đừng xoá / đổi tên); app Mac / Windows dùng chung mở link cũ không được
+  thì tự đọc link mới ở đó, không hỏi. Máy đang mở app lúc link đổi: đóng app, mở lại. App bản cũ (trước 15/11) vẫn hỏi link:
+  tải lại app 1 lần ở …/tai. Bot Remote vẫn báo link mới trong Telegram như cũ.
   Cập nhật máy con (13/11): có bản app mới thì trong hộp Dùng chung bấm "🔄 Cập nhật máy con" → máy con đang mở app tự tải
   bản mới, không phải bấm gì (máy đang gõ dở / có ảnh chưa gửi thì tự tải khi rảnh, chữ nháp vẫn giữ). Cạnh tên mỗi máy ghi
   "✓ bản mới" hoặc "⏳ bản cũ". Máy chưa mở app thì lần mở sau tự là bản mới.
@@ -245,6 +248,9 @@ LÀM 1 BÀI
   theme Photoshop ở tab Photoshop);
   sao vàng ★ = đang trong kho chung, bấm lại để thôi. Máy khác chỉ ▶ Làm bài / ⧉ Nhân bản theme kho chung.
   Mẫu Canva của kênh (Kiểm máy > Canva) cũng riêng từng máy.
+- 📅 Lịch đăng (15/11, nút cạnh 🎨 Kho theme): cả tuần thứ 2 → CN, mỗi kênh Laptop / iPad 1 hàng. ✓ đã đăng (giờ đăng),
+  ⏳ TikTok sẽ đăng (Schedule), 📌 dự kiến (giờ hẹn đăng, chưa đăng). Ngày trống ghi "Trống" + nút ＋ Bài; 1 máy có 2 bài cùng kênh
+  1 ngày thì ô viền vàng "⚠ 2 bài cùng ngày". ‹ › đổi tuần. Bấm bài để mở. Máy shop chọn xem máy nào ở ô góc phải (cùng ô Máy bên trái).
 - Nút "📱 Remote" trên cùng (30/10): ra ngoài vẫn giao việc cho app qua Telegram (chat riêng với bot, hoặc 1 nhóm có thêm người).
   DÙNG TRONG NHÓM (12/11, thêm người làm cùng): tạo nhóm Telegram có fen + người đó → app: 📱 Remote > 👥 Dùng trong nhóm
   > bấm "Thêm bot vào nhóm", chọn nhóm, bấm Thêm → cho bot làm Quản trị viên nhóm (để bot đọc được tin thường).
@@ -255,6 +261,9 @@ LÀM 1 BÀI
   BÀI GỬI RIÊNG (12/11): trong nhóm chỉ ra lệnh; bài ai bấm ▶️ Chạy thì bài xong / lỗi / 📷 xem slide / Gửi Telegram về chat
   riêng của người đó với bot. Mỗi người bấm vào @bot → Start (Bắt đầu) 1 lần mới nhận được (chưa Start thì bot nhắc trong nhóm).
   Máy dùng chung: 💻 Máy khác → ô 📩 cạnh từng máy chọn bài máy đó gửi Telegram cho ai. Bài làm trên máy shop: về nhóm nhận slide như cũ.
+  MÁY ↔ TELEGRAM (15/11): 📊 Số bài → khung "📱 Máy ↔ Telegram" dưới bảng: mỗi máy (máy shop + từng máy dùng chung) chọn 1 người.
+  Nối 2 chiều: bài máy đó xong bot gửi riêng người đó; người đó ra lệnh trong nhóm (viết brief, ▶️ Chạy) thì bài tính là của máy đó
+  (hiện ở máy đó, Số bài máy đó, dựng bằng theme Photoshop máy đó dùng gần nhất). Máy shop để "Như cũ" = gửi chat Telegram ở Cài đặt.
   Nút Tắt / Bật nằm ngay trên thanh trên cùng (bấm chữ "📱 Remote" để xem mã nối, hướng dẫn).
   Lần đầu bấm Bật app hiện mã 6 số: bấm "Mở bot trên Telegram" rồi Start (hoặc nhắn mã cho bot), là nối xong.
   Chỉ Telegram đã nhắn mã mới ra lệnh được, người khác nhắn bot thì bỏ qua. Không cần thì Tắt (hoặc nhắn /tat).

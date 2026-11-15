@@ -115,11 +115,41 @@ a.btn{color:var(--tx);text-decoration:none}
 .side .new .row2 .btn{padding:7px 4px}
 .side .new .thbtn{width:100%;margin-top:8px;padding:7px 4px}
 .side .new .thbtn.on{border-color:#8b5cf6;background:#241a3d;color:#e3d8ff}
-.side .new .row3 .thbtn{margin-top:0}.side .new .row3{margin-top:8px}body.khach .side .new .row3{grid-template-columns:1fr}body.khach .tkbtn{display:none}
+.side .new .row3 .thbtn{margin-top:0}.side .new .row3{margin-top:8px;display:flex;gap:6px}.side .new .row3 .btn{flex:1 1 auto;width:auto;padding:7px 5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;justify-content:center}
+body.khach .tkbtn{display:none}
+.side .new .lichbtn.on{border-color:var(--g);background:var(--gsoft, rgba(46,160,90,.16));color:var(--gl)}
+/* fen 15/11 11h23 chọn "Lịch đăng cả tuần": 7 ngày × kênh, ô bài nhỏ, ngày trống, trùng máy */
+.lichpage .tkbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}.lichpage .tkbar h1{margin:0}
+.lichpage .lnav{display:flex;gap:4px;align-items:center}.lichpage .lnav .btn{padding:5px 10px}.lichpage .lnav b{font-size:13px;color:var(--mut);font-weight:600;margin:0 6px}
+.lichpage #lMay{width:auto;max-width:220px;margin-left:auto}
+.lgrid{display:grid;grid-template-columns:64px repeat(7,minmax(0,1fr));gap:4px}
+.lgrid .lh{font-size:12px;color:var(--mut);text-align:center;padding:4px 0 6px;font-weight:600}.lgrid .lh b{display:block;color:var(--tx);font-size:13px}
+.lgrid .lh.nay{color:var(--gl)}.lgrid .lh.nay b{color:var(--gl)}
+.lgrid .lk{font-size:12px;font-weight:700;display:flex;align-items:flex-start;padding-top:8px}
+.lgrid .lo{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:4px;min-height:92px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.lgrid .lo.nay{border-color:rgba(46,160,90,.55)}.lgrid .lo.qua{opacity:.72}
+.lgrid .lo.trung{border-color:#b8892b}.lgrid .lo .tr{font-size:10.5px;color:#e9c46a;font-weight:600;line-height:1.25}
+.lgrid .lo .trong{margin:auto;font-size:11px;color:var(--dim);text-align:center;line-height:1.3}
+.lgrid .lo .them{border:1px dashed var(--line);background:none;color:var(--dim);border-radius:6px;font:inherit;font-size:11px;padding:2px 0;cursor:pointer;margin-top:auto}
+.lgrid .lo .them:hover{color:var(--tx);border-color:var(--mut)}
+.lgrid .lbi{display:flex;gap:5px;align-items:flex-start;background:var(--panel2);border:1px solid transparent;border-radius:7px;padding:4px;cursor:pointer;text-align:left;font:inherit;color:var(--tx);min-width:0;width:100%}
+.lgrid .lbi:hover{border-color:var(--mut)}.lgrid .lbi img,.lgrid .lbi .nb{width:22px;height:29px;border-radius:3px;object-fit:cover;flex:none;background:var(--line)}
+.lgrid .lbi .t{min-width:0;flex:1;font-size:11px;line-height:1.3}.lgrid .lbi .t b{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-weight:600}
+.lgrid .lbi .t i{font-style:normal;color:var(--dim);font-size:10.5px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lgrid .lbi.dang .t i::before{content:"✓ ";color:var(--g);font-weight:800}.lgrid .lbi.lich .t i::before{content:"⏳ "}.lgrid .lbi.du .t i::before{content:"📌 "}
+.lgrid .lbi.du{border-style:dashed;border-color:var(--line)}
+.lichpage .lchu{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--dim);margin-top:10px}
+@media (max-width:1150px){.lgrid{grid-template-columns:44px repeat(7,minmax(0,1fr))}.lgrid .lbi img,.lgrid .lbi .nb{display:none}}
 .side .new .tkbtn.on{border-color:var(--g);background:var(--gsoft, rgba(46,160,90,.16));color:var(--gl)}
 /* fen 15/11 10h53 "1 tab để quản lý số lượng bài đăng của từng máy": trang 📊 Số bài theo máy */
 .tkpage .tkbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px}
 .tkpage .tkbar h1{margin:0}
+/* fen 15/11 11h30 "quản lý máy nào link với telegram nào": khung Máy ↔ Telegram dưới bảng Số bài */
+.tkpage .tktg{margin-top:16px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.tkpage .tktg h3{margin:0 0 2px;font-size:14px}.tkpage .tktg>.pnote{margin:0 0 6px}
+.tkpage .tgr{display:flex;align-items:center;gap:10px;padding:7px 0;border-top:1px solid var(--line)}.tkpage .tgr:first-of-type{border-top:0}
+.tkpage .tgr>span{flex:1;min-width:0;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tkpage .tgr select{width:min(290px,58%);flex:none}.tkpage .tgr select.on{border-color:var(--g)}
 .tkpage .tktong{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:14px}
 .tkpage .tkso{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
 .tkpage .tkso b{display:block;font-size:22px;font-weight:800;font-variant-numeric:tabular-nums}.tkpage .tkso span{font-size:12px;color:var(--mut)}
@@ -645,7 +675,7 @@ details.brief ul{margin:0;padding-left:18px;color:var(--mut)}
 </div>
 <div class="wrap" id="wrap">
   <aside class="side">
-    <div class="new"><button class="btn pri" id="bNew">+ Bài mới</button><div class="row2"><button class="btn ghost sm" id="bCoSan" title="Mở bài đã dựng trong thư mục Laptop / iPad để gửi Telegram, đăng TikTok hoặc sửa">Mở bài có sẵn</button><button class="btn ghost sm" id="bLs" title="Brief của mọi bài đã chạy, các lần Claude viết brief và nháp đã bỏ">Lịch sử brief</button></div><div class="row2 row3"><button class="btn ghost sm thbtn" id="bTheme" title="Kho theme Canva: thiết kế mẫu dùng lại, chỉ thay ảnh và chữ">🎨 Kho theme</button><button class="btn ghost sm thbtn tkbtn" id="bThongKe" title="Số bài từng máy (máy shop + máy dùng chung): hôm nay, 7 ngày, tháng này; đặt chỉ tiêu bài đăng / ngày">📊 Số bài</button></div></div>
+    <div class="new"><button class="btn pri" id="bNew">+ Bài mới</button><div class="row2"><button class="btn ghost sm" id="bCoSan" title="Mở bài đã dựng trong thư mục Laptop / iPad để gửi Telegram, đăng TikTok hoặc sửa">Mở bài có sẵn</button><button class="btn ghost sm" id="bLs" title="Brief của mọi bài đã chạy, các lần Claude viết brief và nháp đã bỏ">Lịch sử brief</button></div><div class="row2 row3"><button class="btn ghost sm thbtn" id="bTheme" title="Kho theme Canva: thiết kế mẫu dùng lại, chỉ thay ảnh và chữ">🎨 Kho theme</button><button class="btn ghost sm thbtn lichbtn" id="bLich" title="Lịch đăng cả tuần: mỗi ngày kênh Laptop / iPad đăng gì, ngày nào trống, bài nào trùng máy">📅 Lịch đăng</button><button class="btn ghost sm thbtn tkbtn" id="bThongKe" title="Số bài từng máy (máy shop + máy dùng chung): hôm nay, 7 ngày, tháng này; đặt chỉ tiêu bài đăng / ngày">📊 Số bài</button></div></div>
     <div class="sbtabs" id="sbTabs"></div>
     <div class="jobs" id="jobs"></div>
   </aside>
@@ -1147,11 +1177,12 @@ async function loadJobs(){
     const old = new Map(S.jobs.map(x => [x.id, x.status])); S.jobs = j.jobs || [];
     S.jobs.forEach(x => { if (old.get(x.id) === 'dang-chay' && x.status !== 'dang-chay' && x.id !== S.jobId) notify(x); });
     renderJobs();
+    if (S.view === 'lich') lichVe();
   } catch(e) { if (e.status !== 401) offline(); }
 }
 // có bản giao diện mới: chỉ tự tải lại khi fen không đang gõ / chưa gửi dở
 // app có bản mới mà đang dở tay (gõ chữ, ảnh chưa gửi) nên chưa tự tải lại: hiện thanh nhắc (fen 6/11 không thấy nút mới vì trang chưa tải lại)
-function taiLaiUi(){ location.hash = S.view === 'theme' ? 'theme' : S.view === 'thongke' ? 'thongke' : S.jobId ? 'bai=' + S.jobId : 'moi'; location.reload(); }
+function taiLaiUi(){ location.hash = S.view === 'theme' ? 'theme' : S.view === 'thongke' ? 'thongke' : S.view === 'lich' ? 'lich' : S.jobId ? 'bai=' + S.jobId : 'moi'; location.reload(); }
 function uiMoiBao(){
   if ($('#uiMoi')) return;
   const d = document.createElement('div'); d.id = 'uiMoi'; d.className = 'uimoi';
@@ -1200,6 +1231,7 @@ S.sbLoc = store.get('poly-sbloc', '');
 function renderJobs(){
   $('#bTheme')?.classList.toggle('on', S.view === 'theme');
   $('#bThongKe')?.classList.toggle('on', S.view === 'thongke');
+  $('#bLich')?.classList.toggle('on', S.view === 'lich');
   const nhom = {lam: [], cho: [], nhap: dsNhap(), dang: []};
   // fen 12/11 19h37 "app gốc quản lý và xem dc bài làm của máy khác": máy shop lọc bài theo máy
   // 15/11: gộp máy theo tên (1 máy vào lại dùng chung có mã mới vẫn là 1 dòng), khoá như trang 📊 Số bài
@@ -2400,6 +2432,65 @@ $('#bCoSan').onclick = coSanDialog;
 $('#bLs').onclick = lsDialog;
 $('#bTheme').onclick = () => khoTheme();
 $('#bThongKe').onclick = () => thongKe();
+$('#bLich').onclick = () => lichDang();
+// ---- 📅 Lịch đăng cả tuần (fen 15/11 11h23 chọn "Lịch đăng cả tuần"): 7 ngày (thứ 2 → CN) × kênh Laptop / iPad. Mỗi bài nằm ở ngày
+// đăng: ✓ đã đăng (giờ đăng), ⏳ TikTok sẽ đăng (giờ Schedule), 📌 dự kiến (giờ hẹn đăng / ngày đăng ghi trong bài, chưa đăng).
+// Ngày trống: "Trống" + nút ＋ Bài (mở Bài mới đúng kênh). Trùng máy: 1 máy có 2+ bài cùng kênh 1 ngày (luật 1 bài/ngày/kênh/máy).
+// Lọc máy dùng chung ô Máy của danh sách bên trái (máy shop mặc định Máy shop). Dữ liệu = danh sách bài app đã có, không gọi thêm.
+function lichMoc(lech){ const d = new Date(); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() - ((d.getDay() + 6) % 7) + 7 * (lech || 0)); return d; }
+function lichBai(j){      // [loại, giờ (giây)] hoặc null
+  const dd = j.da_dang || null, bay = nowS();
+  if (dd && dd.lich && dd.lich > bay) return ['lich', dd.lich];
+  if (dd && (dd.lich || dd.t)) return ['dang', dd.lich || dd.t];
+  if (j.hen_dang) return ['du', j.hen_dang];
+  const n = ngayDang(j.ngay_dang || ''); if (n) { n.setHours(20, 0, 0, 0); return ['du', n / 1000, true]; }
+  return null;
+}
+function lichDang(lech){
+  try { history.replaceState(null, '', '#lich'); } catch(e) {}
+  stopPoll(); S.view = 'lich'; S.jobId = null; S.lichLech = lech == null ? (S.lichLech || 0) : lech; renderJobs();
+  $('#main').innerHTML = `<div class="pad lichpage"><div class="tkbar"><h1>Lịch đăng</h1>
+    <div class="lnav"><button class="btn ghost sm" id="lTruoc" title="Tuần trước">‹</button><button class="btn ghost sm" id="lNay">Tuần này</button><button class="btn ghost sm" id="lSau" title="Tuần sau">›</button><b id="lKhoang"></b></div>
+    ${KHACH ? '' : '<select class="in" id="lMay" title="Xem lịch của máy nào (cùng ô Máy ở danh sách bài)"></select>'}</div>
+    <div id="lBody"></div>
+    <div class="lchu"><span>✓ đã đăng</span><span>⏳ TikTok sẽ đăng (Schedule)</span><span>📌 dự kiến, chưa đăng</span><span style="color:#e9c46a">⚠ 1 máy 2 bài cùng kênh 1 ngày</span></div></div>`;
+  $('#lTruoc').onclick = () => { S.lichLech--; lichVe(); }; $('#lSau').onclick = () => { S.lichLech++; lichVe(); }; $('#lNay').onclick = () => { S.lichLech = 0; lichVe(); };
+  lichVe();
+}
+function lichVe(){
+  if (S.view !== 'lich' || !$('#lBody')) return;
+  const mo = lichMoc(S.lichLech), ngay = [...Array(7)].map((_, i) => new Date(mo.getFullYear(), mo.getMonth(), mo.getDate() + i));
+  const homNay = new Date(); homNay.setHours(0, 0, 0, 0);
+  $('#lKhoang').textContent = ddmm(ngay[0]) + ' – ' + ddmm(ngay[6]) + (S.lichLech === 0 ? ' · tuần này' : '');
+  const dsMay = KHACH ? [] : [...new Map(S.jobs.filter(j => j.khach && j.khach.id).map(j => [mayKhoa(j.khach.ten), j.khach.ten || 'Máy khác'])).entries()];
+  const lm = $('#lMay');
+  if (lm) { lm.innerHTML = `<option value="">Tất cả máy</option><option value="chu">Máy shop</option>${dsMay.map(([id, ten]) => `<option value="${esc(id)}">👤 ${esc(ten)}</option>`).join('')}`;
+    lm.value = S.sbMay || ''; lm.onchange = () => { S.sbMay = lm.value; renderJobs(); lichVe(); }; }
+  const theoMay = j => KHACH || !S.sbMay || (S.sbMay === 'chu' ? !j.khach : !!j.khach && mayKhoa(j.khach.ten) === S.sbMay);
+  const may = j => j.khach ? mayKhoa(j.khach.ten) : 'chu', tenMay = j => j.khach ? (j.khach.ten || 'Máy khác') : 'máy shop';
+  const o = {};      // "kenh|yyyy-m-d" -> [[job, loai, t]]
+  S.jobs.filter(theoMay).forEach(j => { const x = lichBai(j); if (!x) return; const d = new Date(x[1] * 1000);
+    const k = j.kenh + '|' + d.getFullYear() + '-' + d.getMonth() + '-' + d.getDate(); (o[k] = o[k] || []).push([j, x[0], x[1], x[2]]); });
+  const gio = t => { const d = new Date(t * 1000); return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); };
+  let h = '<div class="lgrid"><div></div>' + ngay.map(d => `<div class="lh${+d === +homNay ? ' nay' : ''}">${THU[d.getDay()]}<b>${ddmm(d)}</b></div>`).join('');
+  Object.entries(KENH).forEach(([kn, v]) => {
+    h += `<div class="lk"><span class="kn ${kn}">${esc(v.ten)}</span></div>`;
+    ngay.forEach(d => {
+      const ds = (o[kn + '|' + d.getFullYear() + '-' + d.getMonth() + '-' + d.getDate()] || []).sort((a, b) => a[2] - b[2]);
+      const dem = {}; ds.forEach(([j]) => { dem[may(j)] = (dem[may(j)] || 0) + 1; });
+      const trung = Object.entries(dem).filter(([, n]) => n > 1).map(([m]) => tenMay(ds.find(([j]) => may(j) === m)[0]));
+      const qua = d < homNay;
+      h += `<div class="lo${+d === +homNay ? ' nay' : ''}${qua ? ' qua' : ''}${trung.length ? ' trung' : ''}">
+        ${trung.length ? `<div class="tr" title="Luật kênh: mỗi máy 1 bài / ngày">⚠ 2 bài cùng ngày · ${esc(trung.join(', '))}</div>` : ''}
+        ${ds.map(([j, loai, t, chiNgay]) => `<button class="lbi ${loai}" data-id="${esc(j.id)}" title="${esc(j.tieu_de || '')}${j.khach ? ' · 👤 ' + esc(j.khach.ten || '') : ''}">${j.bia ? `<img src="${esc(j.bia)}" alt="" loading="lazy">` : '<span class="nb"></span>'}
+          <span class="t"><b>${esc(j.tieu_de || 'Bài')}</b><i>${loai === 'du' ? (chiNgay ? 'dự kiến' : 'hẹn ' + gio(t)) : gio(t)}${j.khach && !KHACH ? ' · ' + esc(j.khach.ten || '') : ''}</i></span></button>`).join('')}
+        ${ds.length ? '' : `<div class="trong">${qua ? 'Không có bài' : 'Trống'}</div>`}${!qua && !ds.length ? `<button class="them" data-k="${kn}" title="Bài mới kênh ${esc(v.ten)}">＋ Bài</button>` : ''}</div>`;
+    });
+  });
+  setH($('#lBody'), h + '</div>');
+  $('#lBody').querySelectorAll('.lbi[data-id]').forEach(b => b.onclick = () => openJob(b.dataset.id));
+  $('#lBody').querySelectorAll('.them[data-k]').forEach(b => b.onclick = () => { S.form.kenh = b.dataset.k; luuNhap(); newView(); });
+}
 // ---- 📊 Số bài theo máy (fen 15/11 10h53 "thêm 1 tab để quản lý số lượng bài đăng của từng máy", chọn "Thống kê + chỉ tiêu")
 // Mỗi máy (máy shop + máy dùng chung): bài làm, xong, đã đăng trong khoảng chọn, đang làm / chờ đăng lúc này, Laptop / iPad,
 // cột 7 ngày; chỉ tiêu bài đăng / ngày mỗi máy (config chi_tieu_may) + thanh hôm nay đủ chưa. Bấm tên máy: lọc danh sách bài theo máy.
@@ -2408,7 +2499,6 @@ const mayKhoa = ten => 't:' + String(ten || 'Máy khác').normalize('NFC').repla
 function tkNgay(t){ const d = new Date(t * 1000); return d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate(); }
 async function thongKe(){
   if (KHACH) return;      // fen 15/11 11h13 "chỉ có admin xem dc": máy dùng chung không có nút, không mở trang, API chặn
-  if (KHACH) return;
   try { history.replaceState(null, '', '#thongke'); } catch(e) {}
   stopPoll(); S.view = 'thongke'; S.jobId = null; renderJobs();
   S.tkKhoang = S.tkKhoang || 'hom';
@@ -2436,6 +2526,16 @@ async function thongKe(){
     const tong = k => hang.reduce((a, h) => a + h[k], 0), so = n => n ? n : '<span class="z">0</span>';
     const max7 = Math.max(1, ...hang.flatMap(h => h.ngay7));
     const khoangTxt = (TK_KHOANG.find(x => x[0] === S.tkKhoang) || [])[1].toLowerCase();
+    // Máy ↔ Telegram: máy shop + máy đang dùng chung; 1 người / máy (cả 2 chiều: nhận bài riêng + ra lệnh trong nhóm thì bài tính máy đó)
+    const tgKhung = () => {
+      const may = r.may.filter(m => m.con), ng = r.nguoi || [], ten = id => (ng.find(n => String(n.id) === String(id)) || {}).ten || '';
+      if (!r.tg_noi) return `<div class="tktg"><h3>📱 Máy ↔ Telegram</h3><p class="pnote">Chưa nối Telegram Remote (⚙ Cài đặt → Telegram) nên chưa gán được.</p></div>`;
+      return `<div class="tktg"><h3>📱 Máy ↔ Telegram</h3><p class="pnote">Mỗi máy nối 1 người: bài máy đó xong thì bot gửi riêng người đó; người đó ra lệnh trong nhóm thì bài tính là của máy đó.${r.tg_nhom ? ' Người chưa có trong danh sách: vào nhóm, bấm vào bot → Start 1 lần.' : ''}</p>
+        ${may.map(m => { const v = (r.tg || {})[m.id] || '', mat = v && !ten(v);
+          return `<div class="tgr"><span title="${esc(m.ten)}">${m.id === 'chu' ? '🏪 ' : '👤 '}${esc(m.ten)}</span><select class="in${v ? ' on' : ''}" data-tg="${esc(m.id)}" title="Người Telegram nối với máy này">
+            <option value="">${m.id === 'chu' ? 'Như cũ (chat Telegram ở Cài đặt)' : '📩 Không gửi Telegram'}</option>${mat ? `<option value="${esc(v)}" selected>Người cũ (đã rời nhóm?)</option>` : ''}
+            ${ng.map(n => `<option value="${esc(n.id)}"${String(n.id) === String(v) ? ' selected' : ''}>📩 ${esc(n.ten)}</option>`).join('')}</select></div>`; }).join('')}</div>`;
+    };
     setH($('#tkBody'), `<div class="tktong">
         <div class="tkso"><b>${tong('lam')}</b><span>bài làm ${khoangTxt}</span></div><div class="tkso"><b>${tong('dang')}</b><span>bài đã đăng ${khoangTxt}</span></div>
         <div class="tkso"><b>${tong('cho')}</b><span>đang chờ đăng</span></div><div class="tkso"><b>${tong('chay')}</b><span>đang làm / hẹn dựng</span></div></div>
@@ -2447,8 +2547,13 @@ async function thongKe(){
           <td><div class="tkct"><span>${h.homNay}${h.ct ? ' / ' + h.ct : ''}</span><div class="bar${h.ct ? '' : ' trong'}">${h.ct ? `<i class="${h.homNay >= h.ct ? 'du' : ''}" style="width:${pt}%"></i>` : ''}</div>
             <input class="in" type="number" min="0" max="200" value="${h.ct || ''}" placeholder="—" data-ct="${esc(h.may.id)}" title="Chỉ tiêu bài đăng / ngày của máy này"></div></td></tr>`; }).join('')}
       </tbody></table></div>
-      <p class="pnote">Đã đăng tính theo ngày đăng (bài Schedule tính theo giờ hẹn), gồm bài đăng bằng tiện ích và bài bấm ✓ Đã đăng. Làm = bài tạo trong khoảng chọn, Xong = dựng xong trong khoảng chọn. Chỉ tiêu: gõ số bài đăng / ngày rồi Enter, thanh xanh khi đủ.</p>`);
+      <p class="pnote">Đã đăng tính theo ngày đăng (bài Schedule tính theo giờ hẹn), gồm bài đăng bằng tiện ích và bài bấm ✓ Đã đăng. Làm = bài tạo trong khoảng chọn, Xong = dựng xong trong khoảng chọn. Chỉ tiêu: gõ số bài đăng / ngày rồi Enter, thanh xanh khi đủ.</p>
+      ${tgKhung()}`);
     $('#tkBody').querySelectorAll('[data-loc]').forEach(b => b.onclick = () => { S.sbMay = b.dataset.loc; renderJobs(); toast('Danh sách bài bên trái: chỉ bài của ' + b.textContent.trim()); });
+    $('#tkBody').querySelectorAll('select[data-tg]').forEach(sl => sl.onchange = async () => {
+      try { r = await api('/api/thong-ke', { tg: { may: sl.dataset.tg, nguoi: sl.value } }); $('#tkErr').textContent = ''; ve();
+        toast(sl.value ? 'Đã nối với Telegram ' + sl.options[sl.selectedIndex].text.replace(/^📩\s*/, '') : 'Đã bỏ nối Telegram của máy này'); }
+      catch(e) { $('#tkErr').textContent = e.message; ve(); } });
     $('#tkBody').querySelectorAll('[data-ct]').forEach(i => {
       const luu = async () => { const v = Math.max(0, parseInt(i.value || '0', 10) || 0); if (v === (r.chi_tieu[i.dataset.ct] || 0)) return;
         try { r = await api('/api/thong-ke', { may: i.dataset.ct, so: v }); $('#tkErr').textContent = ''; ve(); toast(v ? 'Đã đặt chỉ tiêu ' + v + ' bài / ngày' : 'Đã bỏ chỉ tiêu'); } catch(e) { $('#tkErr').textContent = e.message; } };
@@ -2456,7 +2561,7 @@ async function thongKe(){
   };
   $('#tkKhoang').querySelectorAll('[data-k]').forEach(b => b.onclick = () => { S.tkKhoang = b.dataset.k; $('#tkKhoang').querySelectorAll('[data-k]').forEach(x => x.classList.toggle('on', x === b)); ve(); });
   const tai = async () => { if (S.view !== 'thongke') return;
-    try { if (!document.activeElement || !document.activeElement.dataset || !document.activeElement.dataset.ct) { r = await api('/api/thong-ke'); ve(); } } catch(e) { if ($('#tkErr')) $('#tkErr').textContent = e.message; }
+    try { const ae = document.activeElement; if (!ae || !ae.dataset || !(ae.dataset.ct || ae.dataset.tg)) { r = await api('/api/thong-ke'); ve(); } } catch(e) { if ($('#tkErr')) $('#tkErr').textContent = e.message; }
     S.timer = setTimeout(tai, 30000); };
   tai();
 }
@@ -2740,7 +2845,7 @@ async function khoTheme(){
   veDang();
   try { ve(await api('/api/theme-canva', {dong_bo: true})); } catch(e) { tai(); }   // mở kho là tự lấy (quá 30 phút mới lấy lại)
 }
-khoiDong().then(ok => ok && Promise.all([loadJobs(), loadNhap()])).then(v => { if (!v) return; if (location.hash === '#theme') return khoTheme(); if (location.hash === '#thongke' && !KHACH) return thongKe(); const h = (location.hash.match(/bai=([\w-]+)/) || [])[1], moi = location.hash === '#moi'; const r = !moi && ((h && S.jobs.find(j => j.id === h)) || S.jobs.find(j => j.status === 'dang-chay')); r ? openJob(r.id) : newView(); });
+khoiDong().then(ok => ok && Promise.all([loadJobs(), loadNhap()])).then(v => { if (!v) return; if (location.hash === '#theme') return khoTheme(); if (location.hash === '#thongke' && !KHACH) return thongKe(); if (location.hash === '#lich') return lichDang(); const h = (location.hash.match(/bai=([\w-]+)/) || [])[1], moi = location.hash === '#moi'; const r = !moi && ((h && S.jobs.find(j => j.id === h)) || S.jobs.find(j => j.status === 'dang-chay')); r ? openJob(r.id) : newView(); });
 setInterval(() => { if (duocHoi('ds')) loadJobs(); }, 5000); setInterval(() => health(), 120000);
 document.addEventListener('visibilitychange', () => { if (!document.hidden) { _hoiLuc.ds = Date.now(); loadJobs(); } });
 </script>

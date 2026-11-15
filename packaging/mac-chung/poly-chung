@@ -49,6 +49,19 @@ thu() {
   "$CURL" -s -m 15 -o /dev/null -w '%{http_code}' -H "X-Poly-Khach: $TOK" "$URL/api/chung/toi"
 }
 
+# 15/11 fen "link cố định cho máy kia": máy shop khởi động lại là link đổi; máy shop tự ghi link mới vào 1 file trên Google Drive
+# của fen (chia sẻ xem bằng link). Link cũ không mở được thì đọc file đó lấy link mới, khỏi hỏi.
+TIM_LINK="${POLY_TIM_LINK:-https://drive.usercontent.google.com/download?id=11X_oAOULhg6vYOgwF8B1KIdAt8kGzFC1&export=download&confirm=t}"
+tim_link() {
+  local x
+  x=$("$CURL" -s -L -m 20 "$TIM_LINK" 2>/dev/null | tr -d '\r\n' | sed -nE 's/.*"chung_url": *"([^"]+)".*/\1/p' | head -n 1)
+  case "$x" in
+    https://*.trycloudflare.com) printf '%s' "$x" ;;
+    http://127.0.0.1:*) [ -n "$POLY_TIM_LINK" ] && printf '%s' "$x" ;;
+  esac
+}
+DA_TIM=""
+
 # app tải từ link máy shop có gắn sẵn link (Resources/link.txt): thử link đó trước, khỏi hỏi
 R="$(cd "$(dirname "$0")/../Resources" 2>/dev/null && pwd)"
 GAN=""
@@ -57,6 +70,13 @@ case "$GAN" in https://*) ;; *) GAN="" ;; esac
 if [ -z "$URL" ] && [ -n "$GAN" ]; then
   c=$("$CURL" -s -m 15 -o /dev/null -w '%{http_code}' "$GAN/api/ping")
   [ "$c" = "200" ] && URL="$GAN"
+fi
+if [ -z "$URL" ]; then     # lần đầu mà link gắn sẵn đã cũ: lấy link mới trên Drive
+  moi=$(tim_link)
+  if [ -n "$moi" ]; then
+    c=$("$CURL" -s -m 15 -o /dev/null -w '%{http_code}' "$moi/api/ping")
+    [ "$c" = "200" ] && { URL="$moi"; GAN="$moi"; }
+  fi
 fi
 
 n=0
@@ -110,6 +130,15 @@ while :; do
       bao "Máy này chưa vào hoặc đã bị fen bỏ khỏi dùng chung. Nhập mã mới fen đưa."
       ;;
     *)
+      if [ -z "$DA_TIM" ]; then
+        DA_TIM=1
+        moi=$(tim_link)
+        if [ -n "$moi" ] && [ "$moi" != "$URL" ]; then
+          URL="$moi"
+          luu
+          continue
+        fi
+      fi
       x=$(hoi "Không mở được link cũ (máy shop khởi động lại hoặc mất mạng thì link đổi). Dán link mới bot gửi trong nhóm Telegram, hoặc hỏi fen:" "") || exit 0
       URL=$(chuan "$x")
       luu

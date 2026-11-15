@@ -4569,11 +4569,39 @@ def tg_nguoi_cua(job):
     if isinstance(n, dict) and n.get("id"):
         return n
     k = ((job or {}).get("khach") or {}).get("id")
-    if k:
-        uid = ((CFG.get("chung_may") or {}).get(k) or {}).get("tg")
-        if uid:
-            return {"id": uid, "ten": (CFG.get("tg_rieng") or {}).get(str(uid)) or ""}
+    uid = ((CFG.get("chung_may") or {}).get(k) or {}).get("tg") if k else (CFG.get("tg_may_chu") if job else None)
+    if uid:
+        return {"id": uid, "ten": (CFG.get("tg_rieng") or {}).get(str(uid)) or ""}
     return None
+
+
+def theme_ps_may(kh, kenh):
+    """Theme Photoshop máy dùng chung dùng gần nhất (ưu tiên cùng kênh; gộp máy theo tên), còn trong kho; không có: ""."""
+    k, hop, khac = may_khoa((kh or {}).get("ten")), "", ""
+    for jid in (sorted(os.listdir(JOBS), reverse=True)[:400] if os.path.isdir(JOBS) else []):
+        j = read_json(os.path.join(JOBS, jid, "job.json"))
+        if not j or not (j.get("khach") or {}).get("id") or may_khoa(j["khach"].get("ten")) != k or not (j.get("theme_ps") or {}).get("id"):
+            continue
+        if not theme_ps_tim(j["theme_ps"]["id"]):
+            continue
+        if j.get("kenh") == kenh:
+            return j["theme_ps"]["id"]
+        khac = khac or j["theme_ps"]["id"]
+    return hop or khac
+
+
+def tgl_khach_cua(fr):
+    """fen 15/11 11h30 "quản lý máy nào link với telegram nào", chọn "Cả 2 chiều": người Telegram được gán cho 1 máy dùng chung
+    ra lệnh (viết brief / Chạy) thì bài tính là của máy đó ({"id", "ten"} như bài máy đó tạo). Người gán cho máy shop, hoặc chưa gán
+    máy nào: bài máy shop như cũ. 1 người gán nhiều máy: máy dùng gần nhất."""
+    uid = str((fr or {}).get("id") or "")
+    if not uid or uid == str(CFG.get("tg_may_chu") or ""):
+        return None
+    ds = [(k, v) for k, v in (CFG.get("chung_may") or {}).items() if isinstance(v, dict) and str(v.get("tg") or "") == uid]
+    if not ds:
+        return None
+    k, v = max(ds, key=lambda kv: (CHUNG["lan"].get(kv[0]) or 0, kv[1].get("t") or 0))
+    return {"id": k, "ten": v.get("ten") or "Máy khác"}
 
 
 def tg_rieng_loi(uid, ten, e):
@@ -4972,9 +5000,10 @@ def tgl_tin(m):
     if len(chu_de) < 3:
         return tgl_gui("Gõ chủ đề bài, vd: laptop cho dân kiến trúc")
     kenh = tgl_doan_kenh(chu_de)
+    kh = tgl_khach_cua(fr)
     if kenh:
-        return tgl_bat_brief(kenh, chu_de)
-    k = tgl_cho_them({"loai": "brief", "text": chu_de})
+        return tgl_bat_brief(kenh, chu_de, {"_khach": kh} if kh else None)
+    k = tgl_cho_them({"loai": "brief", "text": chu_de, "kh": kh})
     tgl_gui("✍ Kênh nào? “%s”" % short(chu_de, 200),
             [[{"text": "💻 Laptop", "callback_data": "br:%s:laptop" % k}, {"text": "📱 iPad", "callback_data": "br:%s:ipad" % k}],
              [{"text": "✖ Bỏ", "callback_data": "huy:%s" % k}]])
@@ -5047,7 +5076,8 @@ def tgl_bam(q):
         tra()
         bo_nut()
         if loai == "br" and gt in CFG["kenh"]:
-            return tgl_bat_brief(gt, p["text"])
+            kh = tgl_khach_cua(fr) or p.get("kh")
+            return tgl_bat_brief(gt, p["text"], {"_khach": kh} if kh else None)
         if loai == "qt" and gt in QT_PHAM_VI:
             return tgl_bat_qt(p, gt)
         if loai == "gy":
@@ -5168,8 +5198,12 @@ def tgl_chay(jid, tra, bo_nut, canva=False, fr=None):
     try:
         nguoi = ({"id": fr["id"], "ten": " ".join(y for y in (fr.get("first_name"), fr.get("last_name")) if y).strip() or fr.get("username") or ""}
                  if tgl_nhom() and fr and fr.get("id") else None)     # nhóm: bài xong gửi riêng người bấm Chạy
+        kh = tgl_khach_cua(fr) or j.get("khach")       # người gán máy dùng chung: bài của máy đó (fen 15/11 "cả 2 chiều")
+        tps = theme_ps_may(kh, j.get("kenh")) if kh and not canva else ""     # máy dùng chung phải có theme: theme máy đó dùng gần nhất
+        if kh and not canva and not tps:
+            raise ValueError("Máy %s chưa dùng theme Photoshop nào: mở app trên máy đó chọn theme cho 1 bài, hoặc bấm 🎨 Dựng Canva" % (kh.get("ten") or ""))
         job = create_job({"kenh": j.get("kenh"), "brief": bv, "tu_tg": True, "dung_bang": "canva" if canva else "",
-                          "theme_canva": th["id"] if th else "", "_tg_nguoi": nguoi})
+                          "theme_canva": th["id"] if th else "", "_tg_nguoi": nguoi, **({"_khach": kh, "theme_ps": tps} if kh else {})})
     except ValueError as e:
         tgl_gan(jid, {"chay": None})
         return tgl_gui("⚠️ Chưa chạy được: " + str(e).split("|")[-1])
@@ -6901,7 +6935,7 @@ def mac_chuan_bi():
 # nhập gì. Máy khác làm được mọi việc như máy shop, trừ CHUNG_CAM: việc mở cửa sổ / thư mục / Chrome trên chính máy shop
 # (máy kia không thấy), tắt app, quản lý dùng chung (tránh tự khoá mình). Mọi việc chạy trên máy này bằng tài khoản Claude của fen.
 CHUNG = {"srv": None, "pid": 0, "pid_t": 0, "url": "", "loi": "", "dang": "", "ma": "", "ma_luc": 0, "sai": 0, "thu": [],
-         "khoi": 0, "kiem": 0, "rot": 0, "lan": {}, "ui": {}, "ep_ui": 0}
+         "khoi": 0, "kiem": 0, "rot": 0, "lan": {}, "ui": {}, "ep_ui": 0, "drive": "", "drive_t": 0}
 CHUNG_KHOA = threading.Lock()
 CHUNG_DIR = os.path.join(APP, "_cf")
 CHUNG_MA_HAN = 900
@@ -7043,7 +7077,7 @@ def chung_tt():
     return {"bat": bool(CFG.get("chung_bat")), "url": CHUNG["url"] if song else "", "chay": song and bool(CHUNG["url"]),
             "dang": CHUNG["dang"], "loi": CHUNG["loi"], "ma": ma, "ma_con": max(0, int(CHUNG_MA_HAN - (now() - CHUNG["ma_luc"]))) if ma else 0,
             "may": sorted(ds, key=lambda x: x.get("t") or 0), "co_cf": os.path.isfile(cf_exe()), "app_mac": os.path.isfile(APP_MAC_ZIP),
-            "app_win": os.path.isfile(APP_WIN_EXE), "nguoi": chung_nguoi(), "ep_ui": CHUNG["ep_ui"]}
+            "app_win": os.path.isfile(APP_WIN_EXE), "nguoi": chung_nguoi(), "ep_ui": CHUNG["ep_ui"], "drive": CHUNG["drive"]}
 
 
 # ---------------------------------------------------------------- số bài theo máy (fen 15/11 10h53 "thêm 1 tab để quản lý số lượng
@@ -7084,7 +7118,36 @@ def thong_ke_bai(ngay=62):
                 ten.setdefault(mk, {"ten": kh.get("ten") or "Máy khác", "con": False})
     ds = sorted(ten.items(), key=lambda kv: (not kv[1]["con"], kv[1]["ten"].lower()))
     return {"bai": out, "may": [{"id": "chu", "ten": "Máy shop", "con": True}] + [dict(v, id=k) for k, v in ds],
-            "chi_tieu": {str(k): int(v) for k, v in (CFG.get("chi_tieu_may") or {}).items() if str(v).isdigit()}, "luc": now()}
+            "chi_tieu": {str(k): int(v) for k, v in (CFG.get("chi_tieu_may") or {}).items() if str(v).isdigit()}, "luc": now(),
+            **may_tg_ds()}
+
+
+def may_tg_ds():
+    """Máy ↔ Telegram (fen 15/11 11h30): {"tg": {khoá máy: mã người}, "nguoi": [người chọn được], "tg_noi", "tg_nhom"}.
+    Máy dùng chung gộp theo tên như bảng Số bài (các mã của cùng 1 tên gán cùng người)."""
+    tg = {"chu": str(CFG.get("tg_may_chu") or "")} if CFG.get("tg_may_chu") else {}
+    for k, v in (CFG.get("chung_may") or {}).items():
+        if isinstance(v, dict) and v.get("tg"):
+            tg.setdefault(may_khoa(v.get("ten")), str(v["tg"]))
+    return {"tg": tg, "nguoi": chung_nguoi() if tgl_noi() else [], "tg_noi": bool(tgl_noi()), "tg_nhom": bool(tgl_nhom())}
+
+
+def may_tg_cai(data):
+    """{"may": "chu" | khoá máy, "nguoi": mã người Telegram | "" (bỏ gán)}."""
+    may, uid = str(data.get("may") or ""), str(data.get("nguoi") or "")
+    if uid and uid not in {str(x["id"]) for x in chung_nguoi()}:
+        raise ValueError("Người này chưa bấm Start bot (chưa nhận được tin riêng)")
+    if may == "chu":
+        save_cfg_keys({"tg_may_chu": int(uid) if uid.lstrip("-").isdigit() else None})
+        return thong_ke_bai()
+    ds, co = dict(CFG.get("chung_may") or {}), False
+    for k, v in ds.items():
+        if isinstance(v, dict) and may_khoa(v.get("ten")) == may:
+            ds[k], co = dict(v, tg=int(uid) if uid.lstrip("-").isdigit() else None), True
+    if not co:
+        raise ValueError("Máy này không còn trong dùng chung (đã bỏ), không gán Telegram được")
+    save_cfg_keys({"chung_may": ds})
+    return thong_ke_bai()
 
 
 def chi_tieu_cai(data):
@@ -7299,6 +7362,7 @@ def _cf_chay():
     cu = read_json(os.path.join(CHUNG_DIR, "cf.json"), {}) or {}
     if cu.get("pid") and cu.get("url") and pid_alive(cu["pid"], cu.get("t") or None):
         CHUNG.update(pid=cu["pid"], pid_t=cu.get("t") or 0, url=cu["url"], dang="", loi="")
+        chung_link_drive()
         return
     if not os.path.isfile(cf_exe()):
         _cf_tai()
@@ -7331,11 +7395,47 @@ def _cf_chay():
     CHUNG.update(url=url, dang="", loi="", rot=0, kiem=now())
     _cf_luu()
     log("dung chung: duong noi moi")
+    chung_link_drive()
     if cu.get("url") != url and tgl_noi():
         try:
             tgl_gui("🔗 Link app dùng chung đổi: %s\nMáy Mac mở app Poly Dựng Bài (dùng chung), app hỏi link thì dán link này." % url)
         except Exception:
             pass
+
+
+# ---- Link cố định cho máy dùng chung (fen 15/11 11h23 chọn "Link cố định cho máy kia" + "Bật chia sẻ file link"): máy shop khởi động
+# lại là đường nối Cloudflare tạm đổi link, máy kia (Phú) hỏng ("Không mở được link cũ"). Máy shop ghi link hiện tại vào file
+# poly-link.json trong thư mục Drive "POLY Kho Theme" (Drive for Desktop; file fen chia sẻ "ai có link xem được", mã file cố định
+# CHUNG_LINK_DRIVE ghi sẵn trong app Mac / Windows dùng chung). App máy kia mở link cũ không được thì tải file đó lấy link mới.
+# Chỉ ghi đè file có sẵn (ghi đè tại chỗ Drive giữ mã file); chưa thấy file (Drive chưa tải về) thì 5 phút sau thử lại, không tạo mới
+# (tạo mới là file khác mã, máy kia không đọc được).
+CHUNG_LINK_TEN = "poly-link.json"
+CHUNG_LINK_DRIVE = "https://drive.usercontent.google.com/download?id=11X_oAOULhg6vYOgwF8B1KIdAt8kGzFC1&export=download&confirm=t"
+
+
+def chung_link_drive():
+    url = CHUNG.get("url") or ""
+    CHUNG["drive_t"] = now()
+    if not CFG.get("kho_chung_chu") or not re.fullmatch(r"https://[a-z0-9-]+\.trycloudflare\.com", url):
+        return
+    try:
+        d = kho_chung_dir()
+        f = os.path.join(d, CHUNG_LINK_TEN) if d else ""
+        if not f or not os.path.isfile(f):
+            if CHUNG.get("drive") != "chua-co":
+                log("dung chung: chua thay %s trong thu muc Drive, chua ghi link" % CHUNG_LINK_TEN)
+            CHUNG["drive"] = "chua-co"
+            return
+        if (read_json(f, {}) or {}).get("chung_url") == url:
+            CHUNG["drive"] = "ok"
+            return
+        with open(f, "w", encoding="utf-8") as fh:
+            json.dump({"chung_url": url, "t": int(now()), "ghi": "Link app Poly Dung Bai (dung chung) cua may shop. App may shop tu ghi lai khi link doi."}, fh)
+        CHUNG["drive"] = "ok"
+        log("dung chung: ghi link moi len Drive (%s)" % CHUNG_LINK_TEN)
+    except Exception as e:
+        CHUNG["drive"] = "loi"
+        log("dung chung: ghi link Drive loi: %s" % e)
 
 
 def chung_srv():
@@ -7389,6 +7489,8 @@ def chung_canh():
         if now() - CHUNG["khoi"] > 60:
             threading.Thread(target=chung_khoi, daemon=True).start()
         return
+    if CHUNG["url"] and now() - CHUNG["drive_t"] > 300:      # Drive mở chậm sau khởi động / file vừa tải về: thử ghi lại
+        chung_link_drive()
     if CHUNG["url"] and now() - CHUNG["kiem"] > 600:
         CHUNG["kiem"] = now()
         try:
@@ -7789,7 +7891,7 @@ class H(BaseHTTPRequestHandler):
             if u.path == "/api/chung":
                 return self.send(200, chung_cai(data))
             if u.path == "/api/thong-ke":
-                return self.send(200, chi_tieu_cai(data))
+                return self.send(200, may_tg_cai(data["tg"]) if isinstance(data.get("tg"), dict) else chi_tieu_cai(data))
             if u.path == "/api/bai-co-san":
                 return self.send(200, mo_bai_co_san(data))
             m = re.fullmatch(r"/api/job/([\w-]+)/(caption|telegram|tiktok)", u.path)

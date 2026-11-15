@@ -1,7 +1,7 @@
 /* Poly Dung Bai (dung chung) cho Windows - fen 12/11/2026 "có làm link tải exe dc không cho tiện".
    Mo app Poly Dung Bai cua MAY SHOP (may chu) qua link Cloudflare. May nay khong can dang nhap gi:
    lan dau nhap ma 6 so (may shop: "May khac" -> Them may) + ten may, sau do bam la mo.
-   Link may shop doi thi hoi link moi (khong hoi lai ma). File tai tu link cua may shop co gan san link (cuoi file).
+   Link may shop doi thi tu doc link moi tren Google Drive cua fen, khong co moi hoi (khong hoi lai ma). File tai tu link cua may shop co gan san link (cuoi file).
    Chi dung thu vien co san cua Windows (WinHTTP, hop thoai Win32). Build: packaging/win-chung/build.sh */
 #ifndef UNICODE
 #define UNICODE
@@ -22,6 +22,8 @@
 
 #define TIEU_DE L"Poly Dựng Bài"
 #define TEN_LOI_TAT L"Poly Dựng Bài (dùng chung).lnk"
+/* 15/11 fen "link co dinh cho may kia": may shop tu ghi link moi vao file nay tren Google Drive cua fen (chia se xem bang link) */
+#define TIM_LINK L"https://drive.usercontent.google.com/download?id=11X_oAOULhg6vYOgwF8B1KIdAt8kGzFC1&export=download&confirm=t"
 
 static wchar_t THU_MUC[MAX_PATH], FILE_MAY[MAX_PATH], EXE[MAX_PATH];
 static wchar_t URL[600], TOK[160];
@@ -120,7 +122,7 @@ static int hoi(const wchar_t *cau, const wchar_t *mac_dinh, wchar_t *ra, int n) 
 /* ------------------------------------------------------------ goi may chu (WinHTTP). Tra ma HTTP, 0 = khong mo duoc */
 static int http(const wchar_t *phuong_thuc, const wchar_t *url, const char *than, const wchar_t *them, char *ra, int n) {
   URL_COMPONENTS u;
-  wchar_t host[300], duong[1200];
+  wchar_t host[300], duong[1200], them_q[1200];
   HINTERNET s = NULL, k = NULL, r = NULL;
   DWORD ma = 0, sz = sizeof ma, doc = 0;
   int tong = 0;
@@ -129,7 +131,10 @@ static int http(const wchar_t *phuong_thuc, const wchar_t *url, const char *than
   u.dwStructSize = sizeof u;
   u.lpszHostName = host; u.dwHostNameLength = 300;
   u.lpszUrlPath = duong; u.dwUrlPathLength = 1200;
+  u.lpszExtraInfo = them_q; u.dwExtraInfoLength = 1200;      /* ?id=... (link Drive): ghep lai vao duong dan */
   if (!WinHttpCrackUrl(url, 0, 0, &u)) return 0;
+  duong[u.dwUrlPathLength] = 0; them_q[u.dwExtraInfoLength] = 0;
+  if (them_q[0] && wcslen(duong) + wcslen(them_q) < 1200) wcscat(duong, them_q);
   s = WinHttpOpen(L"PolyDungBaiChung/1.0", WINHTTP_ACCESS_TYPE_DEFAULT_PROXY, WINHTTP_NO_PROXY_NAME, WINHTTP_NO_PROXY_BYPASS, 0);
   if (!s) return 0;
   WinHttpSetTimeouts(s, 15000, 15000, 20000, 20000);
@@ -225,6 +230,24 @@ static int link_hop_le(const wchar_t *s) {
   return THU && !wcsncmp(s, L"http://127.0.0.1", 16);
 }
 
+/* doc link moi may shop ghi tren Drive: 1 = co link (trong o) */
+static int tim_link(wchar_t *o, int n) {
+  static char kq[8192];
+  char u8[600];
+  wchar_t tl[700];
+  size_t l;
+  o[0] = 0;
+  if (!(THU && GetEnvironmentVariableW(L"POLY_TIM_LINK", tl, 700))) lstrcpynW(tl, TIM_LINK, 700);
+  if (http(L"GET", tl, NULL, NULL, kq, sizeof kq) != 200 || !lay_json(kq, "chung_url", u8, sizeof u8)) return 0;
+  u8_w(u8, o, n);
+  chuan(o);
+  l = wcslen(o);
+  if (!wcsncmp(o, L"https://", 8) && l > 26 && !wcscmp(o + l - 18, L".trycloudflare.com")) return 1;
+  if (THU && !wcsncmp(o, L"http://127.0.0.1", 16)) return 1;
+  o[0] = 0;
+  return 0;
+}
+
 static int thu_vao(void) {   /* 200 = vao duoc, 401 = may bi bo / chua vao, khac = link chet */
   wchar_t u[700], h[260];
   swprintf(u, 700, L"%ls/api/chung/toi", URL);
@@ -285,7 +308,7 @@ static void cai_loi_tat(void) {
 int WINAPI wWinMain(HINSTANCE hi, HINSTANCE hp, PWSTR cmd, int show) {
   wchar_t x[600], ma[64], ten[120], may[120], gan[600], u[700];
   char than[600], kq[4096], loi[1024], tok8[200], ten8[400], ma8[16];
-  int n = 0, c, moi = 0, i, j;
+  int n = 0, c, moi = 0, i, j, da_tim = 0;
   DWORD sz = 120;
   (void)hi; (void)hp; (void)cmd; (void)show;
   InitCommonControls();
@@ -300,6 +323,10 @@ int WINAPI wWinMain(HINSTANCE hi, HINSTANCE hp, PWSTR cmd, int show) {
   if (!URL[0] && gan[0]) {    /* file tai tu link may shop: thu link gan san truoc, khoi hoi */
     swprintf(u, 700, L"%ls/api/ping", gan);
     if (http(L"GET", u, NULL, NULL, NULL, 0) == 200) lstrcpynW(URL, gan, 600);
+  }
+  if (!URL[0] && tim_link(x, 600)) {    /* link gan san da cu: lay link moi tren Drive */
+    swprintf(u, 700, L"%ls/api/ping", x);
+    if (http(L"GET", u, NULL, NULL, NULL, 0) == 200) { lstrcpynW(URL, x, 600); lstrcpynW(gan, x, 600); }
   }
   for (;;) {
     if (++n > 8) { bao(L"Chưa vào được app của máy shop. Kiểm tra mạng, hỏi fen máy shop có đang bật “Máy khác” không, rồi mở lại."); return 1; }
@@ -329,6 +356,7 @@ int WINAPI wWinMain(HINSTANCE hi, HINSTANCE hp, PWSTR cmd, int show) {
     if (c != 200 && c != 401) { Sleep(3000); c = thu_vao(); }
     if (c == 200) break;
     if (c == 401) { TOK[0] = 0; luu_may(); bao(L"Máy này chưa vào hoặc đã bị fen bỏ khỏi dùng chung. Nhập mã mới fen đưa."); continue; }
+    if (!da_tim) { da_tim = 1; if (tim_link(x, 600) && wcscmp(x, URL)) { lstrcpynW(URL, x, 600); luu_may(); continue; } }
     if (!hoi(L"Không mở được link cũ (máy shop khởi động lại hoặc mất mạng thì link đổi). Dán link mới bot gửi trong nhóm Telegram, hoặc hỏi fen:", L"", x, 600)) return 0;
     chuan(x);
     if (link_hop_le(x)) { lstrcpynW(URL, x, 600); luu_may(); }
