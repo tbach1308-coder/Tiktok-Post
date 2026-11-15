@@ -620,7 +620,10 @@ textarea.in.slfix.co{border-color:var(--y);background:rgba(255,200,60,.06)}
 .sl.wait{cursor:default;display:grid;place-items:center;color:var(--dim);font-size:12px;background:var(--input);border-style:dashed}
 .sl.wait b{color:var(--dim)}
 .noslide{color:var(--dim);font-size:13px;padding:22px;text-align:center;border:1px dashed var(--line2);border-radius:12px}
-.fix textarea{min-height:90px}
+.fix textarea{min-height:54px;height:54px}.fix textarea:focus{min-height:76px}
+.fix .fixhd{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:8px}.fix .fixhd .sec{margin:0}.fix .fixhd .fixtom{margin:0;font-size:12.5px;flex:1;min-width:200px}
+.fix .fdrop{min-height:0;padding:8px;margin-top:8px}.fix .fdrop .hint{display:none}.fix .fdrop:not(:has(.th)):not(.hot){display:none}.fix .fdrop.hot .hint{display:block}
+.fix .fixbar{display:flex;align-items:center;gap:10px;margin-top:10px;flex-wrap:wrap}.fix .fixbar #fpick{text-decoration:none}
 .fix.wait{color:var(--mut);font-size:13px}
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px;align-items:center}
 
@@ -1836,15 +1839,15 @@ function renderFix(){
   if (w.dataset.mode === 'on' && w.dataset.key === key) return;
   w.dataset.mode = 'on'; w.dataset.key = key;
   const df = draft();
+  // fen 15/11 11h51 "làm gọn lại": bỏ đoạn hướng dẫn dài + nhãn ô sửa chung (ý đưa vào chữ mờ trong ô), ô 2 dòng, khung ảnh to
+  // thành nút 📎 Ảnh (kéo thả / dán ảnh vẫn được; khung ảnh chỉ hiện khi có ảnh hoặc đang kéo ảnh vào)
   w.innerHTML = `<div class="card mt fix" id="fixCard">
-    <div class="sec">Sửa bài</div>
-    <p class="fixtom" id="fixTom"></p>
-    <span class="lbl">${KHACH ? 'Sửa chung <i>(chỉ bài này; quy tắc chỉ máy shop đổi được)</i>' : 'Sửa chung / nhắc quy tắc <i>(Claude sửa bài này và ghi vào file quy tắc cho bài sau)</i>'}</span>
-    <textarea class="in" id="fixText" placeholder="Sửa cả bài hoặc nhắc thêm quy tắc, vd: chữ cả bài to hơn; bìa luôn dùng ảnh máy tách nền đặt to, không đóng khung…">${esc(df.text)}</textarea>
-    <div class="drop mt" id="fdrop" style="min-height:60px"><div class="hint">Ảnh mới (nếu có): kéo thả, dán, hoặc <a href="#" id="fpick">chọn file</a>.</div></div>
+    <div class="fixhd"><div class="sec">Sửa bài</div><p class="fixtom" id="fixTom"></p></div>
+    <textarea class="in" id="fixText" rows="2" placeholder="${KHACH ? 'Sửa chung cả bài, vd: chữ cả bài to hơn (quy tắc chỉ máy shop đổi được)' : 'Sửa chung cả bài / nhắc quy tắc cho bài sau, vd: chữ cả bài to hơn; bìa luôn dùng ảnh máy tách nền…'}">${esc(df.text)}</textarea>
+    <div class="drop fdrop" id="fdrop"><div class="hint">Thả ảnh vào đây</div></div>
     <input type="file" id="ffile" accept="image/*" multiple hidden>
     <div class="err" id="fixErr"></div>
-    <div style="display:flex;align-items:center;gap:14px;margin-top:12px;flex-wrap:wrap"><button class="btn pri" id="bFix">Sửa một lượt</button><label class="mlab" title="Model cho lượt sửa này và các lượt sửa sau của bài (không đổi model đã dựng). Theo cài đặt = Kiểm máy > Model > Sửa bài">Model ${chonModel('fixModel', ['', 'sonnet', 'opus'], j.model_sua || '', 'Theo cài đặt')}</label><span style="color:var(--mut);font-size:13px">${j.session_id ? 'Claude nhớ cả bài, chỉ dựng lại slide cần sửa.' : ''}</span></div>
+    <div class="fixbar"><button class="btn pri" id="bFix" title="${j.session_id ? 'Claude nhớ cả bài, chỉ dựng lại slide cần sửa' : 'Claude sửa rồi dựng lại'}">Sửa một lượt</button><a href="#" class="btn ghost sm" id="fpick" title="Thêm ảnh mới cho lượt sửa (kéo thả hoặc dán ảnh vào trang cũng được)">📎 Ảnh</a><label class="mlab" title="Model cho lượt sửa này và các lượt sửa sau của bài (không đổi model đã dựng). Theo cài đặt = Kiểm máy > Model > Sửa bài">Model ${chonModel('fixModel', ['', 'sonnet', 'opus'], j.model_sua || '', 'Theo cài đặt')}</label></div>
   </div>`;
   $('#fixText').oninput = e => { df.text = e.target.value; e.target.classList.remove('bad'); veTomSua(); };
   veTomSua();
@@ -1870,8 +1873,8 @@ function veAnhSlide(n){
 }
 function veTomSua(){
   const df = draft(), ds = suaGhi(df), chung = (df.text || '').trim(), el = $('#fixTom'), b = $('#bFix');
-  if (el) el.innerHTML = ds.length ? 'Đã ghi sửa: <b>slide ' + ds.join(', ') + '</b>' + (chung ? ' + sửa chung' : '') + '. Bấm "Sửa một lượt" là Claude sửa hết rồi dựng lại 1 lần.'
-    : (chung ? 'Sửa chung cả bài + ghi quy tắc.' : 'Ghi cần sửa vào ô dưới từng slide ở trên (ghi bao nhiêu slide cũng được), hoặc ô sửa chung / nhắc quy tắc dưới đây, rồi bấm Sửa một lượt.');
+  if (el) el.innerHTML = ds.length ? 'Đã ghi sửa: <b>slide ' + ds.join(', ') + '</b>' + (chung ? ' + sửa chung' : '') + ', bấm Sửa một lượt.'
+    : (chung ? (KHACH ? 'Sửa chung cả bài.' : 'Sửa chung cả bài + ghi quy tắc.') : 'Ghi ở ô dưới từng slide, hoặc ô sửa chung dưới đây.');
   if (b && !b.dataset.busy) b.textContent = ds.length > 1 ? 'Sửa một lượt (' + ds.length + ' slide)' : 'Sửa một lượt';
 }
 function goFix(n){
