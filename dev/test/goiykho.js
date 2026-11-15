@@ -1,6 +1,6 @@
 // 💡 Gợi ý bài từ kho (fen 15/11 11h23 chọn "Gợi ý bài từ hàng mới về"): dòng gọn dưới ô Kho ở Bài mới (máy shop cập nhật, máy con xem — fen 13h31), 🔄 Quét kho = 1 lượt
 // Claude chỉ đọc kho (tim_may / du_lieu_may; cấm Bash / Write / Edit / Canva / anh_may; không bộ dựng bài), kết quả dòng GOI_Y_JSON; lần
-// quét đầu coi hết là hàng cũ, lần sau dòng máy mới thấy = 🆕; "Dùng" điền chủ đề + tên máy vào ô Kho; tự quét 7h30 bật / tắt; máy dùng
+// quét đầu coi hết là hàng cũ, lần sau dòng máy mới thấy = 🆕; "Dùng" điền chủ đề + tên máy vào ô Kho; 🔗 Link kho lưu từng kênh, chỉ đọc kho khi bấm Cập nhật kho (13h41); máy dùng
 // chung không thấy, API chặn. Claude giả (FAKE_KHO2 = thêm 1 dòng máy mới, FAKE_KHO_LOI = báo lỗi).
 const { chromium } = require('playwright');
 const fs = require('fs');
@@ -12,7 +12,7 @@ const cho = async () => { for (let i = 0; i < 40; i++) { const r = await j(A + '
 (async () => {
   [T + '/goi-y-kho.json', T + '/kho-snap.json', T + '/FAKE_KHO2', T + '/FAKE_KHO_LOI'].forEach(rm);
   let r = await j(A + '/api/goi-y');
-  check('chưa quét: không có gợi ý, tự quét tắt', r.s === 200 && !(r.b.ds || []).length && r.b.tu === false, r.b);
+  check('chưa quét: không có gợi ý, link kho mặc định Laptop = kho-may, iPad trống', r.s === 200 && !(r.b.ds || []).length && r.b.link.laptop === 'https://app.polystorevn.com/kho-may' && r.b.link.ipad === '' && !('tu' in r.b), r.b);
   // --- giao diện trước khi quét
   const b = await chromium.launch({ args: ['--host-resolver-rules=MAP poly-thu.example 127.0.0.1:8791'] }); const errs = [];
   const p = await b.newPage({ viewport: { width: 1386, height: 900 } }); p.on('pageerror', e => errs.push(e.message));
@@ -54,17 +54,25 @@ const cho = async () => { for (let i = 0; i < 40; i++) { const r = await j(A + '
   await j(A + '/api/goi-y', { quet: true }); d = await cho();
   check('đọc kho lỗi: báo lỗi, giữ gợi ý cũ', /POLY/.test(d.loi || '') && d.ds.length === 3, d);
   rm(T + '/FAKE_KHO_LOI');
-  // --- tự quét
-  r = await j(A + '/api/goi-y', { tu: true });
-  check('bật tự quét mỗi sáng 7h30: lưu cài đặt', r.b.tu === true && JSON.parse(fs.readFileSync(T + '/config.json')).goi_y_tu === true, r.b.tu);
-  await j(A + '/api/goi-y', { tu: false });
+  // --- 🔗 Link kho (fen 13h41 "kho cho nhập link vô lưu lại rồi có nút update mình bấm mới truy cập kho")
+  r = await j(A + '/api/goi-y', { link: { laptop: 'https://evil.example/kho', ipad: '' } });
+  check('link kho chỉ nhận link Polysto', r.s === 400 && /Polysto/.test(r.b.err), r);
+  rm(T + '/FAKE_KHO_LOI');
+  await p.goto(A + '/#moi'); await p.waitForSelector('#gyLink'); await p.click('#gyLink'); await p.waitForSelector('#klLap');
+  check('🔗 Link kho: hộp 2 ô Laptop / iPad điền sẵn link đã lưu, không còn ô Tự cập nhật', await p.evaluate(() => $('#klLap').value === 'https://app.polystorevn.com/kho-may' && $('#klIpad').value === '' && !document.querySelector('#gyTu')));
+  await p.fill('#klLap', 'https://app.polystorevn.com/kho-may?loai=laptop'); await p.fill('#klIpad', ' https://app.polystorevn.com/kho-may?loai=ipad ');
+  await p.click('#klCn'); await p.waitForFunction(() => !document.querySelector('#klLap'), null, { timeout: 10000 }); d = await cho(); await p.waitForTimeout(300);
+  const cf = JSON.parse(fs.readFileSync(T + '/config.json')).kho_link, pr2 = fs.readFileSync(T + '/last-prompt.txt', 'utf8');
+  check('Lưu & cập nhật kho: lưu link 2 kênh (config kho_link), lượt đọc kho dùng đúng link', cf.laptop === 'https://app.polystorevn.com/kho-may?loai=laptop' && cf.ipad === 'https://app.polystorevn.com/kho-may?loai=ipad' && /LINK KHO FEN LƯU/.test(pr2) && pr2.includes('Link kho iPad fen lưu: https://app.polystorevn.com/kho-may?loai=ipad') && d && d.luc, { cf, p: pr2.slice(pr2.indexOf('LINK KHO') - 5, pr2.indexOf('LINK KHO') + 400) });
+  await p.click('#seg [data-k="ipad"]'); await p.waitForTimeout(300); await p.click('#bKhoCa');
+  check('ô 📦 Kho "Cả kho" điền link kho đã lưu của kênh đang chọn (iPad)', await p.evaluate(() => $('#fKho').value === 'https://app.polystorevn.com/kho-may?loai=ipad'));
   // --- máy dùng chung
   await j(A + '/api/chung', { bat: true }); await new Promise(x => setTimeout(x, 1500));
   const ma = (await j(A + '/api/chung', { ma_moi: true })).b.ma;
   const v = (await j(K + '/api/chung/vao', { ma, ten: 'Máy con gợi ý kho' }, H)).b;
   const HK = Object.assign({ 'X-Poly-Khach': v.token }, H);
   const g1 = await j(K + '/api/goi-y', null, HK), g2 = await j(K + '/api/goi-y', { quet: true }, HK);
-  check('máy dùng chung: xem được bản kho máy shop (máy + gợi ý, không mã lượt), không cập nhật / tự cập nhật được', g1.s === 200 && g1.b.khach && g1.b.may.length >= 2 && g1.b.ds.length >= 2 && !('jid' in g1.b) && !('tu' in g1.b) && [g2.s, (await j(K + '/api/goi-y', { tu: true }, HK)).s].every(s => s === 403 || s === 404), [g1.s, g2.s, Object.keys(g1.b)]);
+  check('máy dùng chung: xem được bản kho máy shop (máy + gợi ý + link kho cho nút Cả kho, không mã lượt), không cập nhật / đổi link được', g1.s === 200 && g1.b.khach && g1.b.may.length >= 2 && g1.b.ds.length >= 2 && !('jid' in g1.b) && g1.b.link.ipad && [g2.s, (await j(K + '/api/goi-y', { link: { laptop: '' } }, HK)).s].every(s => s === 403 || s === 404), [g1.s, g2.s, Object.keys(g1.b)]);
   const g = await b.newPage({ viewport: { width: 1280, height: 800 } }); g.on('pageerror', e => errs.push('con: ' + e.message));
   await g.goto('http://poly-thu.example/#vao=' + v.token); await g.waitForSelector('#khc:not([hidden])', { timeout: 20000 }).catch(() => {}); await g.waitForTimeout(1500);
   await g.waitForSelector('#gyKho .gyhd', { timeout: 10000 }).catch(() => {});
@@ -73,7 +81,7 @@ const cho = async () => { for (let i = 0; i < 40; i++) { const r = await j(A + '
   await g.click('#gyMo'); await g.waitForTimeout(150);
   const gm = await g.evaluate(() => ({ m: document.querySelectorAll('#gyKho [data-gm]').length, tu: !!document.querySelector('#gyTu') }));
   await g.click('#gyKho [data-gm="0"]'); await g.waitForTimeout(150);
-  check('máy dùng chung: Xem thấy máy trong kho, bấm 1 máy điền ô Kho, không có tự cập nhật', gm.m >= 1 && !gm.tu && await g.evaluate(() => !!$('#fKho').value), gm);
+  check('máy dùng chung: Xem thấy máy trong kho, bấm 1 máy điền ô Kho, không có 🔗 Link kho', gm.m >= 1 && !gm.tu && await g.evaluate(() => !!$('#fKho').value && !$('#gyLink')), gm);
   await p.screenshot({ path: 'shots/goi-y-kho.png' });
   check('không lỗi JS', errs.length === 0, errs);
   rm(T + '/FAKE_KHO2'); await b.close(); await j(A + '/api/chung', { bat: false });

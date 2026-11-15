@@ -2323,6 +2323,7 @@ bài TikTok carousel cho những máy đáng làm bài. Hôm nay %(ngay)s.
 Công cụ: chỉ mcp__claude_ai_POLY__tim_may (tu_khoa = hãng / dòng; chỉ ra máy còn hàng) và, khi tim_may không có giá bán, mcp__claude_ai_POLY__du_lieu_may (seri) cho vài máy cần giá (tối đa 12 lần). Công cụ POLY nạp nền sau khi phiên mở: ToolSearch "POLY" chưa thấy thì ToolSearch lại (tối đa 6 lần), vẫn không có thì trả GOI_Y_LOI.
 - Kênh Laptop: tim_may lần lượt %(laptop)s.
 - Kênh iPad: tim_may lần lượt %(ipad)s.
+%(link)s
 Gom theo dòng máy (bỏ seri, gộp máy giống cấu hình): tên gọn kiểu "Dell Latitude 7420 i7 16GB 512GB", số máy còn, giá bán (đúng số kho; nhiều máy thì thấp nhất–cao nhất, vd "12,9–13,5 triệu"). KHÔNG ghi seri, giá vốn, HH, ghi chú, tên / SĐT khách.
 
 Bài shop đã làm 45 ngày qua (tránh trùng chủ đề / trùng máy):
@@ -2356,7 +2357,7 @@ def goi_y_doc():
         t = snap.get(_goi_y_khoa(x.get("ten")))
         x["moi"] = bool(t and t >= moi_t)
     d["ds"] = sorted(d.get("ds") or [], key=lambda x: not x.get("moi"))
-    d["tu"] = bool(CFG.get("goi_y_tu"))
+    d["link"] = kho_link_ds()
     d["co_poly"] = True
     return d
 
@@ -2367,7 +2368,8 @@ def goi_y_khach():
     d = goi_y_doc()
     return {"luc": d.get("luc"), "dang": bool(d.get("dang")), "loi": "Máy shop chưa cập nhật được kho" if d.get("loi") and not d.get("may") else "",   # lỗi lần sau: máy con vẫn xem bản cũ
             "may": [{k: x.get(k) for k in ("kenh", "ten", "so", "gia", "moi")} for x in d.get("may") or []],
-            "ds": [{k: x.get(k) for k in ("kenh", "may", "gia", "chu_de", "ly_do", "moi")} for x in d.get("ds") or []], "khach": True}
+            "ds": [{k: x.get(k) for k in ("kenh", "may", "gia", "chu_de", "ly_do", "moi")} for x in d.get("ds") or []], "khach": True,
+            "link": d.get("link") or {}}
 
 
 def goi_y_xong(jid):
@@ -2440,7 +2442,13 @@ def goi_y_quet():
         bai.append("- [%s] %s" % (CFG["kenh"].get(j.get("kenh"), {}).get("ten", j.get("kenh") or ""), ten_hien(j)[0]))
     jid = "0goi-" + time.strftime("%Y%m%d-%H%M%S-") + uuid.uuid4().hex[:4]
     os.makedirs(job_dir(jid), exist_ok=True)
-    prompt = GOI_Y_LENH % {"ngay": time.strftime("%d/%m/%Y"), "laptop": KHO_HANG["laptop"], "ipad": KHO_HANG["ipad"], "bai": "\n".join(bai[:150]) or "(chưa có)"}
+    lk = kho_link_ds()
+    link = "\n".join("- Link kho %s fen lưu: %s" % (CFG["kenh"].get(k, {}).get("ten", k), v) for k, v in lk.items() if v)
+    link = ("LINK KHO FEN LƯU (trang web Polysto cần đăng nhập, KHÔNG mở được: chỉ đọc tham số lọc trong link nếu có, vd loại máy / "
+            "trạng thái / từ khoá, rồi gọi tim_may theo đúng phạm vi đó; link không có tham số = cả kho kênh đó, quét theo hãng như trên):\n"
+            + link) if link else ""
+    prompt = GOI_Y_LENH % {"ngay": time.strftime("%d/%m/%Y"), "laptop": KHO_HANG["laptop"], "ipad": KHO_HANG["ipad"], "bai": "\n".join(bai[:150]) or "(chưa có)",
+                           "link": link}
     job = {"id": jid, "kenh": "laptop", "loai": "goi-y", "tieu_de": "Gợi ý bài từ kho", "brief": "", "created": now(), "status": "moi", "runs": []}
     with LOCK:
         save_job(job)
@@ -2450,27 +2458,36 @@ def goi_y_quet():
     return goi_y_doc()
 
 
+def kho_link_ds():
+    """Link kho Polysto fen lưu cho từng kênh (fen 15/11 13h41 "kho cho nhập link vô lưu lại rồi có nút update mình bấm mới truy cập kho")."""
+    lk = CFG.get("kho_link") if isinstance(CFG.get("kho_link"), dict) else {}
+    return {k: str(lk.get(k) if k in lk else (KHO_LINK if k == "laptop" else "") or "") for k in ("laptop", "ipad")}
+
+
 def goi_y_cai(data):
-    """POST /api/goi-y: {quet: true} quét kho ngay; {tu: true|false} tự quét mỗi sáng 7h30."""
-    if "tu" in data:
-        save_cfg_keys({"goi_y_tu": bool(data["tu"])})
+    """POST /api/goi-y: {quet: true} cập nhật kho ngay (chỉ khi fen bấm); {link: {laptop, ipad}} lưu link kho từng kênh."""
+    if isinstance(data.get("link"), dict):
+        lk = {}
+        for k in ("laptop", "ipad"):
+            v = re.sub(r"\s+", "", str(data["link"].get(k) or ""))[:500]
+            if v and not re.match(r"https://([\w-]+\.)*polystorevn\.com(/|$)", v):
+                raise ValueError("Link kho %s phải là link Polysto (https://app.polystorevn.com/…)" % CFG["kenh"].get(k, {}).get("ten", k))
+            lk[k] = v
+        save_cfg_keys({"kho_link": lk})
+        log("kho link luu: %s" % ", ".join("%s=%s" % (k, short(v, 80)) for k, v in lk.items()))
     if data.get("quet"):
         return goi_y_quet()
     return goi_y_doc()
 
 
 def goi_y_lich():
-    """Mỗi phút: lượt quét đang chạy xong thì đọc kết quả; bật tự quét thì 7h30–9h chưa quét hôm nay là quét 1 lần."""
+    """Mỗi phút: lượt quét đang chạy xong thì đọc kết quả. Không tự quét (fen 15/11 13h41: chỉ đọc kho khi fen bấm Cập nhật kho)."""
     time.sleep(90)
     while True:
         try:
             d = read_json(GOI_Y_FILE, {}) or {}
             if d.get("dang") and d.get("jid"):
                 goi_y_xong(d["jid"])
-            lt = time.localtime()
-            if CFG.get("goi_y_tu") and (lt.tm_hour, lt.tm_min) >= (7, 30) and lt.tm_hour < 9 and not d.get("dang") \
-                    and time.strftime("%Y-%m-%d", time.localtime(d.get("bat") or d.get("luc") or 0)) != time.strftime("%Y-%m-%d", lt):
-                goi_y_quet()
         except Exception:
             log("goi y kho lich loi: " + traceback.format_exc())
         time.sleep(60)

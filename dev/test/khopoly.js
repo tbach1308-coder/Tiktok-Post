@@ -1,7 +1,7 @@
 // Chip "Kho Poly" trên thanh trên cùng (fen 15/11 13h10 "thêm trạng thái để biết kho poly đã được kết nối chưa") + thứ tự thanh trên cùng
 // Chạy: rm -f tgl/poly-tt.json && bash reset.sh && node khopoly.js (trạng thái kho nhớ lúc app khởi động)
 // (13h09 "sắp xếp thứ tự nút bấm cho hợp lý"): kết nối Canva · Kho Poly · Telegram · Remote · Máy khác | Quy tắc · Claude | Hỏi app.
-// Kiểm = 1 lượt Claude haiku ngắn (Claude giả: FAKE_POLY_CHUA = chưa nối); quét 💡 Gợi ý từ kho thành công cũng là "đã nối". Máy dùng chung không có.
+// Kiểm (chỉ khi fen bấm, 13h41) = 1 lượt Claude haiku ngắn (Claude giả: FAKE_POLY_CHUA = chưa nối); quét 💡 Gợi ý từ kho thành công cũng là "đã nối". Máy dùng chung không có.
 const { chromium } = require('playwright');
 const fs = require('fs');
 const A = 'http://127.0.0.1:8790', K = 'http://127.0.0.1:8791', H = { Host: 'poly-thu.example' }, T = '/home/claude/bug3/tgl';
@@ -16,7 +16,12 @@ const cho = async () => { for (let i = 0; i < 40; i++) { const r = await j(A + '
   await p.goto(A + '/#moi'); await p.waitForTimeout(800);
   const thu = await p.evaluate(() => [...document.querySelectorAll('.top .chip')].filter(e => !e.hidden).map(e => e.id));
   check('thanh trên cùng theo nhóm: Canva · Kho Poly · Telegram · Remote · Máy khác | Quy tắc · Claude | Hỏi app', thu.join(',') === 'bCv,bPoly,bTg,bRm,bChung,bQt,hc,hoiNut', thu);
-  check('chưa biết trạng thái: mở app tự kiểm 1 lần, ra "Kho Poly" chấm xanh', await p.waitForFunction(() => S.pl && S.pl.tt === 'noi' && /ok/.test($('#bPoly .dot').className) && $('#bPoly').innerText.trim() === 'Kho Poly', null, { timeout: 15000 }).then(() => true).catch(() => false));
+  const pr0 = fs.existsSync(T + '/last-prompt.txt') ? fs.statSync(T + '/last-prompt.txt').mtimeMs : 0;
+  await p.waitForTimeout(1500);
+  check('mở app KHÔNG tự kiểm kho (fen 13h41 "có nút update mình bấm mới truy cập kho"): chip "chưa kiểm", không chạy Claude', await p.evaluate(() => S.pl && S.pl.tt === 'chua-kiem') && (fs.existsSync(T + '/last-prompt.txt') ? fs.statSync(T + '/last-prompt.txt').mtimeMs : 0) === pr0);
+  await p.click('#bPoly'); await p.waitForSelector('#plKiem'); await p.click('#plKiem');
+  check('bấm chip → Kiểm lại: "Kho Poly" chấm xanh', await p.waitForFunction(() => S.pl && S.pl.tt === 'noi' && /ok/.test($('#bPoly .dot').className) && $('#bPoly').innerText.trim() === 'Kho Poly', null, { timeout: 15000 }).then(() => true).catch(() => false));
+  await p.evaluate(() => document.querySelectorAll('.modal').forEach(m => m.remove()));
   const pr = fs.readFileSync(T + '/last-prompt.txt', 'utf8'), ar = JSON.parse(fs.readFileSync(T + '/last-args.json'));
   check('lượt kiểm: haiku, chỉ cho tim_may, lệnh dặn không chép số liệu kho', /^Kiểm kết nối kho Polysto/.test(pr) && /KHÔNG chép số liệu kho/.test(pr) && ar[ar.indexOf('--model') + 1] === 'haiku' && ar.includes('mcp__claude_ai_POLY__tim_may') && !ar.includes('mcp__claude_ai_POLY__du_lieu_may'), ar);
   fs.writeFileSync(T + '/FAKE_POLY_CHUA', '1');

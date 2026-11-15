@@ -126,13 +126,16 @@ LẤY MÁY + GIÁ TỪ KHO POLYSTO (Ô KHO, 9/11)
 - Claude đọc kho qua kết nối POLY của tài khoản Claude (claude.ai > Customize > Connectors > POLY). Báo "Chưa đọc
   được kho" thì vào đó bấm Connect lại.
   Chip "Kho Poly" trên thanh trên cùng (15/11): chấm xanh = đã nối, đỏ = chưa nối; bấm chip → Kiểm lại (1 lượt Claude rất ngắn).
+  Hộp ghi tài khoản Claude của máy: POLY phải nối ở đúng tài khoản đó. App KHÔNG tự đọc kho: chỉ khi fen bấm Kiểm lại / Cập nhật kho.
 - Chỉ lấy thông tin máy và giá bán (fen 9/11). Không lấy giá vốn, HH, ghi chú, tên khách; không ghi, không sửa gì
   trong Polysto (app chỉ cho Claude 2 lệnh đọc: tìm máy, số liệu 1 máy). Seri không ghi vào bài.
 - 💡 Gợi ý từ kho (15/11, dòng dưới ô Kho): máy shop bấm "🔄 Cập nhật kho" → Claude (Sonnet, 1–3 phút, tính hạn mức tuần) đọc
   kho cả 2 kênh (chỉ tên máy + giá bán), so với bài 45 ngày qua, gợi ý 6–12 chủ đề cho máy chưa có bài. Dòng ghi "N gợi ý <kênh> ·
   K dòng máy · 🆕 M mới về" (dòng máy app thấy lần đầu trong 7 ngày; lần đầu coi hết là hàng cũ). Bấm "Xem" mở danh sách: "Dùng" điền
   chủ đề + tên máy vào ô Kho, rồi bấm ✍ Viết brief; dưới có "📦 Máy trong kho" (tên · số máy · giá bán), bấm 1 máy = điền vào ô Kho.
-  Tick "Tự cập nhật mỗi sáng 7h30" để app tự cập nhật mỗi ngày (mặc định tắt).
+  "🔗 Link kho" (máy shop): dán link trang kho Polysto từng kênh (Laptop / iPad; lọc sẵn loại máy trên web rồi chép link càng tốt),
+  "Lưu" hoặc "Lưu & cập nhật kho". Claude đọc kho qua POLY theo phạm vi link (trang web cần đăng nhập nên Claude không mở link).
+  Nút "Cả kho" ở ô 📦 Kho điền link đã lưu của kênh đang chọn. Không còn tự cập nhật mỗi sáng: chỉ đọc kho khi fen bấm.
   Máy con (máy dùng chung): chỉ máy shop cần nối POLY; máy con thấy bản kho máy shop cập nhật gần nhất (ghi "(máy shop)"), không có nút
   Cập nhật kho. Ô 📦 Kho khi viết bài trên máy con cũng chạy bằng Claude máy shop nên không phải đăng nhập gì.
 
