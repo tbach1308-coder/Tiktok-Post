@@ -33,3 +33,8 @@ _cf/
 nhap-*.json
 mat-noi.json
 han-muc.json
+# 📱 thư viện mẫu story: ảnh xem trước, ảnh máy dùng chung làm, mẫu fen tự thêm (dữ liệu máy shop)
+story-mau/_xem/
+story-mau/_khach/
+story-mau/f*/
+Story/

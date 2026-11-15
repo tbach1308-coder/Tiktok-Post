@@ -8138,6 +8138,411 @@ def story_tg(jid):
     return {"ok": True, "n": len(ds)}
 
 
+# ---------------------------------------------------------------- 📱 Thư viện mẫu story (fen 15/11 13h07 "phần này cho thư viện template tạo
+# riêng, để gắn ảnh vô chạy, cho điền text"; chọn "App tự vẽ, mẫu có sẵn" + "Có: ảnh nền + chọn bố cục"): mẫu = nền (màu / ảnh) + các ô
+# (ảnh, chữ, hình trang trí). Fen chọn mẫu, gắn ảnh, điền chữ → app vẽ bằng Pillow ảnh 1080×1920 (vài giây, không tốn Claude).
+# Mẫu có sẵn ở STORY_MAU_SAN; mẫu fen thêm (ảnh nền 9:16 + bố cục STORY_BO_CUC) ở story-mau/<id>/mau.json + nen.jpg.
+# Ảnh làm ra: máy shop "<thư mục làm việc>/Story/<năm-tháng>/", máy dùng chung "story-mau/_khach/<máy>/" (không lẫn).
+# Chữ: Be Vietnam Pro 500 / 700 / 800 (story-mau/fonts). Vùng chữ / ảnh nằm trong khoảng y 250–1580 (chừa chỗ chữ, nút của app).
+STORY_MAU_DIR = os.path.join(APP, "story-mau")
+STORY_FONT = {500: "BeVietnamPro-500.ttf", 700: "BeVietnamPro-700.ttf", 800: "BeVietnamPro-800.ttf"}
+_SM_FONT = {}
+
+
+def _sm_font(nang, co):
+    k = (nang, co)
+    if k not in _SM_FONT:
+        from PIL import ImageFont
+        f = os.path.join(STORY_MAU_DIR, "fonts", STORY_FONT.get(nang) or STORY_FONT[700])
+        cands = [f] + ([os.path.join(os.environ.get("WINDIR", "C:\\Windows"), "Fonts", "segoeuib.ttf")] if IS_WIN else []) + \
+            ["/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"]
+        for c in cands:
+            if os.path.isfile(c):
+                _SM_FONT[k] = ImageFont.truetype(c, co)
+                break
+        else:
+            _SM_FONT[k] = ImageFont.load_default(co)
+    return _SM_FONT[k]
+
+
+def _sm_c(o, nhan, mac, x, y, w, h, co, nang=800, mau="#ffffff", **k):
+    return dict({"k": o, "loai": "chu", "nhan": nhan, "mac": mac, "x": x, "y": y, "w": w, "h": h, "co": co, "font": nang, "mau": mau}, **k)
+
+
+def _sm_a(o, nhan, x, y, w, h, **k):
+    return dict({"k": o, "loai": "anh", "nhan": nhan, "x": x, "y": y, "w": w, "h": h}, **k)
+
+
+STORY_MAU_SAN = [
+    {"id": "may-moi-ve", "ten": "Máy mới về", "nen": "#0f2a1d", "o": [
+        {"loai": "tron", "x": 960, "y": 300, "r": 260, "mau": "#14402a"},
+        _sm_c("nhan", "Nhãn", "MÁY MỚI VỀ", 90, 270, 900, 70, 36, 800, "#10251a", nen="#f5c542", bo=35, pad=26, om=True, dien=True),
+        _sm_a("anh", "Ảnh máy", 90, 380, 900, 720, bo=32, the="#ffffff", pad=36),
+        _sm_c("ten", "Tên máy", "iPad Air 5 64GB", 90, 1130, 900, 170, 80, 800, dong=2),
+        _sm_c("mo_ta", "Mô tả", "Máy đẹp 99%, pin 90%, bảo hành 6 tháng", 90, 1305, 900, 110, 40, 500, "#bfe3cc", dong=2),
+        _sm_c("gia", "Giá", "11.200.000đ", 90, 1440, 900, 104, 64, 800, "#10251a", nen="#f5c542", bo=22, pad=30, om=True)]},
+    {"id": "gia-soc", "ten": "Giá sốc", "nen": "#a61e1e", "o": [
+        {"loai": "hcn", "x": 0, "y": 250, "w": 1080, "h": 16, "mau": "#f5c542"},
+        _sm_c("nhan", "Nhãn", "GIÁ SỐC HÔM NAY", 90, 300, 900, 120, 92, 800, "#ffffff", canh="giua", dien=True),
+        _sm_a("anh", "Ảnh máy", 140, 450, 800, 640, bo=30, the="#ffffff", pad=30),
+        _sm_c("ten", "Tên máy", "MacBook Air M2 13 inch", 90, 1120, 900, 140, 66, 800, canh="giua", dong=2),
+        _sm_c("gia_cu", "Giá cũ (gạch)", "18.990.000đ", 90, 1270, 900, 70, 44, 500, "#f3c6c6", canh="giua", gach=True),
+        _sm_c("gia", "Giá mới", "16.490.000đ", 190, 1350, 700, 130, 84, 800, "#7a0f0f", nen="#f5c542", bo=26, canh="giua", pad=34, om=True),
+        _sm_c("ghi", "Ghi chú", "Chỉ 3 máy · Hết là thôi", 90, 1500, 900, 64, 36, 700, "#ffffff", canh="giua")]},
+    {"id": "so-sanh", "ten": "So sánh 2 máy", "nen": "#13151c", "o": [
+        _sm_c("tieu_de", "Câu hỏi", "Bạn chọn máy nào?", 90, 270, 900, 150, 80, 800, canh="giua", dong=2, dien=True),
+        _sm_a("anh1", "Ảnh máy trái", 70, 470, 450, 600, bo=26, the="#ffffff", pad=24),
+        _sm_a("anh2", "Ảnh máy phải", 560, 470, 450, 600, bo=26, the="#ffffff", pad=24),
+        {"loai": "tron", "x": 540, "y": 770, "r": 64, "mau": "#f5c542"},
+        _sm_c("vs", "Chữ giữa", "VS", 476, 730, 128, 80, 48, 800, "#13151c", canh="giua", co_dinh=True),
+        _sm_c("ten1", "Tên máy trái", "iPad Air 5", 70, 1100, 450, 130, 52, 800, canh="giua", dong=2),
+        _sm_c("ten2", "Tên máy phải", "iPad Gen 10", 560, 1100, 450, 130, 52, 800, canh="giua", dong=2),
+        _sm_c("gia1", "Giá máy trái", "11.200.000đ", 70, 1240, 450, 70, 40, 700, "#f5c542", canh="giua"),
+        _sm_c("gia2", "Giá máy phải", "8.490.000đ", 560, 1240, 450, 70, 40, 700, "#f5c542", canh="giua"),
+        _sm_c("cuoi", "Dòng cuối", "Comment máy bạn chọn nhé", 90, 1420, 900, 80, 44, 700, "#c9ccd6", canh="giua", dien=True)]},
+    {"id": "feedback", "ten": "Feedback khách", "nen": "#f3ede2", "o": [
+        _sm_c("nhan", "Nhãn", "KHÁCH NÓI GÌ VỀ POLY", 90, 270, 900, 64, 36, 800, "#ffffff", nen="#1f6b46", bo=32, pad=26, om=True, dien=True),
+        _sm_a("anh", "Ảnh khách / máy", 90, 380, 900, 700, bo=34, phu=True),
+        _sm_c("ngoac", "Dấu ngoặc", "“", 90, 1080, 200, 160, 160, 800, "#1f6b46", co_dinh=True),
+        _sm_c("loi", "Lời khách", "Chép đúng lời khách nhắn / bình luận", 90, 1200, 900, 230, 50, 700, "#1d2420", dong=4),
+        _sm_c("ten", "Tên khách", "— Tên khách · máy đã mua", 90, 1450, 900, 64, 36, 500, "#5d6b62")]},
+    {"id": "thong-bao", "ten": "Thông báo", "nen": "#101a33", "o": [
+        {"loai": "hcn", "x": 90, "y": 270, "w": 120, "h": 12, "mau": "#f5c542"},
+        _sm_c("nhan", "Nhãn", "THÔNG BÁO", 90, 300, 900, 70, 44, 800, "#f5c542", dien=True),
+        _sm_c("tieu_de", "Tiêu đề", "Poly mở cửa xuyên Tết", 90, 390, 900, 330, 104, 800, dong=3),
+        _sm_c("noi_dung", "Nội dung", "Từ 25 tháng Chạp đến mùng 6 Tết, mở cửa 9h–21h mỗi ngày. Ghé shop xem máy, nhận lì xì đầu năm.", 90, 760, 900, 480, 50, 500, "#c8d2ee", dong=7),
+        _sm_a("anh", "Ảnh (không bắt buộc)", 90, 1270, 900, 290, bo=26, phu=True, bo_qua=True),
+        _sm_c("cuoi", "Dòng cuối", "Poly Store · Hẹn gặp bạn tại shop", 90, 1270, 900, 60, 34, 500, "#8e9bc4", chi_khi_trong="anh", dien=True)]},
+    {"id": "noel", "ten": "Noel", "nen": "#8e1b1f", "o": [
+        {"loai": "tron", "x": 60, "y": 300, "r": 10, "mau": "#f7e3c6"}, {"loai": "tron", "x": 1020, "y": 270, "r": 7, "mau": "#f7e3c6"},
+        {"loai": "tron", "x": 100, "y": 660, "r": 8, "mau": "#f7e3c6"}, {"loai": "tron", "x": 990, "y": 600, "r": 11, "mau": "#f7e3c6"},
+        {"loai": "tron", "x": 60, "y": 1080, "r": 7, "mau": "#f7e3c6"}, {"loai": "tron", "x": 1025, "y": 1020, "r": 9, "mau": "#f7e3c6"},
+        {"loai": "tron", "x": 110, "y": 1470, "r": 6, "mau": "#f7e3c6"}, {"loai": "tron", "x": 975, "y": 1440, "r": 8, "mau": "#f7e3c6"},
+        {"loai": "hcn", "x": 0, "y": 1560, "w": 1080, "h": 360, "mau": "#f7f2ea"},
+        _sm_c("nhan", "Nhãn", "MERRY CHRISTMAS", 90, 280, 900, 80, 52, 800, "#f7e3c6", canh="giua", dien=True),
+        _sm_c("tieu_de", "Tiêu đề", "Ưu đãi Giáng Sinh", 90, 370, 900, 130, 88, 800, "#ffffff", canh="giua", dien=True),
+        _sm_a("anh", "Ảnh máy", 150, 530, 780, 640, bo=30, the="#ffffff", pad=30),
+        _sm_c("ten", "Tên máy", "iPad Pro M1 11 inch", 90, 1200, 900, 110, 64, 800, canh="giua"),
+        _sm_c("gia", "Giá", "13.990.000đ", 240, 1320, 600, 110, 64, 800, "#8e1b1f", nen="#ffffff", bo=24, canh="giua", pad=30, om=True),
+        _sm_c("ghi", "Ghi chú", "Tặng kèm bút + ốp đến 25/12", 90, 1460, 900, 60, 36, 700, "#f7e3c6", canh="giua")]},
+]
+# bố cục cho mẫu fen tự thêm (ảnh nền của fen, chữ trắng / đen): giữ ô của mẫu có sẵn, bỏ nền + trang trí
+STORY_BO_CUC = [("anh-giua", "Ảnh giữa + tên + giá", "may-moi-ve"), ("so-sanh", "So sánh 2 ảnh", "so-sanh"),
+                ("anh-loi", "Ảnh + lời khách", "feedback"), ("chi-chu", "Chỉ chữ (tiêu đề + nội dung)", "thong-bao")]
+
+
+def _sm_mau_bo_cuc(bc, chu):
+    goc = next((m for m in STORY_MAU_SAN if m["id"] == dict((a, c) for a, _, c in STORY_BO_CUC).get(bc)), STORY_MAU_SAN[0])
+    sang = chu != "den"
+    o = []
+    for x in goc["o"]:
+        if x["loai"] in ("tron", "hcn"):
+            continue
+        x = dict(x)
+        if x["loai"] == "chu":
+            if x.get("nen"):
+                x["nen"], x["mau"] = ("#ffffff", "#111111") if sang else ("#111111", "#ffffff")
+            else:
+                x["mau"] = "#ffffff" if sang else "#111111"
+        if x["loai"] == "anh" and x.get("the"):
+            x["the"] = None
+        o.append(x)
+    return o
+
+
+def story_mau_ds(may=None):
+    ds = [dict(m, san=True) for m in STORY_MAU_SAN]
+    d = STORY_MAU_DIR
+    for ten in sorted(os.listdir(d)) if os.path.isdir(d) else []:
+        m = read_json(os.path.join(d, ten, "mau.json"), None) if not ten.startswith("_") and ten != "fonts" else None
+        if isinstance(m, dict) and m.get("id") == ten:
+            ds.append(dict(m, san=False))
+    return ds
+
+
+def story_mau_tim(mid):
+    return next((m for m in story_mau_ds() if m["id"] == mid), None)
+
+
+def story_mau_ra(m):
+    """Mẫu gửi cho trang: tên, các ô điền (ảnh / chữ) + chữ mẫu, đường ảnh xem trước."""
+    o = [{"k": x["k"], "loai": x["loai"], "nhan": x.get("nhan") or x["k"], "mac": x.get("mac") or "", "dong": x.get("dong") or 1,
+          "bo_qua": bool(x.get("bo_qua")), "dien": bool(x.get("dien"))} for x in m["o"]
+         if x.get("k") and x["loai"] in ("anh", "chu") and not x.get("co_dinh")]
+    return {"id": m["id"], "ten": m.get("ten") or m["id"], "san": m.get("san", True), "o": o, "xem": "/api/story-mau/xem/%s?t=%d" % (m["id"], int(m.get("t") or 1))}
+
+
+def _sm_anh_data(v):
+    from PIL import Image
+    if not v:
+        return None
+    try:
+        if isinstance(v, str) and v.startswith("data:"):
+            raw = base64.b64decode(v.split(",", 1)[1])
+            if len(raw) > 25 * 1024 * 1024:
+                return None
+            im = Image.open(io.BytesIO(raw))
+            im.load()
+            return im
+    except Exception:
+        return None
+    return None
+
+
+def _sm_bo_goc(im, r):
+    """Bo góc ảnh RGBA."""
+    from PIL import Image, ImageDraw
+    if not r:
+        return im
+    mk = Image.new("L", im.size, 0)
+    ImageDraw.Draw(mk).rounded_rectangle((0, 0, im.width - 1, im.height - 1), r, fill=255)
+    a = im.getchannel("A") if im.mode == "RGBA" else Image.new("L", im.size, 255)
+    from PIL import ImageChops
+    im = im.convert("RGBA")
+    im.putalpha(ImageChops.multiply(a, mk))
+    return im
+
+
+def _sm_xuong_dong(d, chu, font, w):
+    out = []
+    for doan in str(chu).split("\n"):
+        tu, dong = doan.split(" "), ""
+        for t in tu:
+            thu = (dong + " " + t).strip()
+            if d.textlength(thu, font=font) <= w or not dong:
+                dong = thu
+            else:
+                out.append(dong)
+                dong = t
+        out.append(dong)
+    return out
+
+
+def _sm_chu(im, d, x, chu):
+    """Vẽ 1 ô chữ: xuống dòng trong khung, tự thu nhỏ tới khi vừa (tối đa x["dong"] dòng), canh trái / giữa / phải, nền bo góc."""
+    chu = str(chu or "").strip()
+    if not chu:
+        return
+    pad = x.get("pad") or 0
+    w, h = x["w"] - 2 * pad, x["h"]
+    co, toi_da = x["co"], max(1, int(x.get("dong") or 1))
+    while True:
+        f = _sm_font(x.get("font") or 700, co)
+        ls = _sm_xuong_dong(d, chu, f, w)
+        cao = co * 1.22
+        if (len(ls) <= toi_da and len(ls) * cao <= h + 2 and max(d.textlength(l, font=f) for l in ls) <= w) or co <= max(14, x["co"] * 0.45):
+            break
+        co -= 2
+    ls = ls[:toi_da]
+    rong = max(d.textlength(l, font=f) for l in ls)
+    tong = len(ls) * cao
+    canh = x.get("canh") or "trai"
+    if x.get("nen"):
+        bw = (rong + 2 * pad) if x.get("om") else x["w"]
+        bh = max(tong + pad * 0.9, co * 1.5) if x.get("om") else h
+        bx = x["x"] + ((x["w"] - bw) / 2 if canh == "giua" and x.get("om") else (x["w"] - bw if canh == "phai" and x.get("om") else 0))
+        by = x["y"] + (h - bh) / 2 if not x.get("om") else x["y"]
+        d.rounded_rectangle((bx, by, bx + bw, by + bh), x.get("bo") or 0, fill=x["nen"])
+        y0 = by + (bh - tong) / 2
+        lx0, lw = bx + pad, bw - 2 * pad
+    else:
+        y0 = x["y"] + ((h - tong) / 2 if x.get("giua_doc") else 0)
+        lx0, lw = x["x"] + pad, w
+    for i, l in enumerate(ls):
+        tw = d.textlength(l, font=f)
+        lx = lx0 + ((lw - tw) / 2 if canh == "giua" else (lw - tw if canh == "phai" else 0))
+        ly = y0 + i * cao + (cao - co * 1.1) / 2
+        d.text((lx, ly), l, font=f, fill=x.get("mau") or "#ffffff")
+        if x.get("gach"):
+            gy = ly + co * 0.62
+            d.line((lx - 4, gy, lx + tw + 4, gy), fill=x.get("mau") or "#ffffff", width=max(2, co // 12))
+
+
+def _sm_anh(im, x, anh, nho=False):
+    from PIL import Image, ImageDraw
+    if anh is None and (x.get("bo_qua") or not nho):
+        return
+    d = ImageDraw.Draw(im)
+    if x.get("the"):
+        d.rounded_rectangle((x["x"], x["y"], x["x"] + x["w"], x["y"] + x["h"]), x.get("bo") or 0, fill=x["the"])
+    if anh is None:
+        if not x.get("the"):
+            lop = Image.new("RGBA", im.size, (0, 0, 0, 0))
+            ImageDraw.Draw(lop).rounded_rectangle((x["x"], x["y"], x["x"] + x["w"], x["y"] + x["h"]), x.get("bo") or 0, fill=(0, 0, 0, 70))
+            im.alpha_composite(lop)
+            d = ImageDraw.Draw(im)
+        f = _sm_font(500, 34)
+        t = "Ảnh: " + (x.get("nhan") or "")
+        d.text((x["x"] + (x["w"] - d.textlength(t, font=f)) / 2, x["y"] + x["h"] / 2 - 20), t, font=f, fill="#8a8a8a")
+        return
+    pad = x.get("pad") or 0
+    bw, bh = int(x["w"] - 2 * pad), int(x["h"] - 2 * pad)
+    a = anh.convert("RGBA")
+    if x.get("phu"):        # phủ kín khung (cắt bớt)
+        k = max(bw / a.width, bh / a.height)
+        a = a.resize((max(1, round(a.width * k)), max(1, round(a.height * k))), Image.LANCZOS)
+        l, t = (a.width - bw) // 2, (a.height - bh) // 2
+        a = a.crop((l, t, l + bw, t + bh))
+    else:                   # vừa trong khung (giữ nguyên ảnh)
+        k = min(bw / a.width, bh / a.height)
+        a = a.resize((max(1, round(a.width * k)), max(1, round(a.height * k))), Image.LANCZOS)
+    a = _sm_bo_goc(a, max(0, (x.get("bo") or 0) - pad // 2) if x.get("phu") or not x.get("the") else 0)
+    im.alpha_composite(a, (int(x["x"] + pad + (bw - a.width) // 2), int(x["y"] + pad + (bh - a.height) // 2)))
+
+
+def story_mau_ve(m, chu=None, anh=None, nho=False):
+    """Vẽ 1 mẫu. chu = {ô: chữ} (thiếu thì chữ mẫu khi nho=True, không thì để trống), anh = {ô: PIL Image}."""
+    from PIL import Image, ImageDraw
+    chu, anh = chu or {}, anh or {}
+    nen = m.get("nen")
+    if isinstance(nen, str) and nen.startswith("#"):
+        im = Image.new("RGBA", (STORY_W, STORY_H), nen)
+    else:
+        f = os.path.join(STORY_MAU_DIR, m["id"], "nen.jpg")
+        im = Image.open(f).convert("RGBA") if os.path.isfile(f) else Image.new("RGBA", (STORY_W, STORY_H), "#222222")
+        if im.size != (STORY_W, STORY_H):
+            im = im.resize((STORY_W, STORY_H))
+    d = ImageDraw.Draw(im)
+    for x in m["o"]:
+        if x["loai"] == "tron":
+            d.ellipse((x["x"] - x["r"], x["y"] - x["r"], x["x"] + x["r"], x["y"] + x["r"]), fill=x["mau"])
+        elif x["loai"] == "hcn":
+            d.rectangle((x["x"], x["y"], x["x"] + x["w"], x["y"] + x["h"]), fill=x["mau"])
+        elif x["loai"] == "anh":
+            _sm_anh(im, x, anh.get(x["k"]), nho)
+            d = ImageDraw.Draw(im)
+        elif x["loai"] == "chu":
+            if x.get("chi_khi_trong") and anh.get(x["chi_khi_trong"]) is not None:
+                continue
+            v = chu.get(x["k"])
+            _sm_chu(im, d, x, x.get("mac") if (not v and (nho or x.get("co_dinh"))) else v)
+    return im.convert("RGB")
+
+
+def story_mau_xem(mid):
+    """Ảnh xem trước nhỏ (chữ mẫu), nhớ ở story-mau/_xem/."""
+    m = story_mau_tim(mid)
+    if not m:
+        raise ValueError("Không thấy mẫu")
+    d = os.path.join(STORY_MAU_DIR, "_xem")
+    f = os.path.join(d, "%s-%d.jpg" % (mid, int(m.get("t") or 1)))
+    if not os.path.isfile(f):
+        os.makedirs(d, exist_ok=True)
+        im = story_mau_ve(m, nho=True)
+        im.thumbnail((360, 640))
+        im.save(f, "JPEG", quality=84)
+    with open(f, "rb") as fh:
+        return fh.read()
+
+
+def _sm_thu_muc(may):
+    if may:
+        return os.path.join(STORY_MAU_DIR, "_khach", re.sub(r"[^\w-]", "", str(may))[:40])
+    return os.path.join(CFG.get("thu_muc_lam_viec") or APP, "Story", time.strftime("%Y-%m"))
+
+
+def story_mau_lam(data, may=None):
+    try:
+        from PIL import Image  # noqa
+    except ImportError:
+        raise ValueError("Máy này chưa có Pillow (thư viện ảnh của Python) nên chưa làm được ảnh story")
+    m = story_mau_tim(str(data.get("id") or ""))
+    if not m:
+        raise ValueError("Không thấy mẫu này")
+    bo_emoji = re.compile("[\U0001F000-\U0001FAFF\u2600-\u27BF\uFE0F\u200D]")      # font không có emoji: bỏ, khỏi ra ô vuông
+    chu = {str(k): bo_emoji.sub("", str(v)).strip()[:600] for k, v in (data.get("chu") or {}).items()}
+    anh = {}
+    for k, v in (data.get("anh") or {}).items():
+        a = _sm_anh_data(v)
+        if v and a is None:
+            raise ValueError("Ảnh ở ô %s không đọc được (gửi ảnh JPG / PNG dưới 25MB)" % k)
+        anh[str(k)] = a
+    for x in m["o"]:
+        if x["loai"] == "anh" and not x.get("bo_qua") and anh.get(x["k"]) is None:
+            raise ValueError("Gắn ảnh vào ô \"%s\" trước" % (x.get("nhan") or x["k"]))
+    im = story_mau_ve(m, chu, anh)
+    d = _sm_thu_muc(may)
+    os.makedirs(d, exist_ok=True)
+    ten = "story-%s-%s.jpg" % (time.strftime("%Y%m%d-%H%M%S"), m["id"])
+    f = os.path.join(d, ten)
+    im.save(f, "JPEG", quality=92, optimize=True)
+    log("story mau %s -> %s" % (m["id"], f))
+    b = io.BytesIO()
+    im.save(b, "JPEG", quality=88)
+    return {"ten": ten, "anh": "data:image/jpeg;base64," + base64.b64encode(b.getvalue()).decode("ascii"), "thu_muc": "" if may else d}
+
+
+def story_mau_them(data):
+    """Fen thêm mẫu: {ten, nen: ảnh (data URL), bo_cuc, chu: "trang" | "den"}. Ảnh nền cắt vừa 9:16 1080×1920."""
+    from PIL import Image
+    ten = short(str(data.get("ten") or "").strip(), 40)
+    if not ten:
+        raise ValueError("Đặt tên cho mẫu")
+    bc = data.get("bo_cuc") if data.get("bo_cuc") in [a for a, _, _ in STORY_BO_CUC] else "anh-giua"
+    a = _sm_anh_data(data.get("nen"))
+    if a is None:
+        raise ValueError("Chọn ảnh nền (JPG / PNG, nên dọc 9:16)")
+    a = a.convert("RGB")
+    k = max(STORY_W / a.width, STORY_H / a.height)
+    a = a.resize((max(STORY_W, round(a.width * k)), max(STORY_H, round(a.height * k))), Image.LANCZOS)
+    l, t = (a.width - STORY_W) // 2, (a.height - STORY_H) // 2
+    a = a.crop((l, t, l + STORY_W, t + STORY_H))
+    mid = "f" + uuid.uuid4().hex[:8]
+    d = os.path.join(STORY_MAU_DIR, mid)
+    os.makedirs(d, exist_ok=True)
+    a.save(os.path.join(d, "nen.jpg"), "JPEG", quality=92)
+    m = {"id": mid, "ten": ten, "nen": "anh", "bo_cuc": bc, "chu": "den" if data.get("chu") == "den" else "trang",
+         "o": _sm_mau_bo_cuc(bc, data.get("chu")), "t": int(now())}
+    write_json(os.path.join(d, "mau.json"), m)
+    log("story mau them %s (%s, %s)" % (mid, ten, bc))
+    return story_mau_ra(dict(m, san=False))
+
+
+def story_mau_cai(data, may=None):
+    """POST /api/story-mau: {lam: {...}} vẽ ảnh; {them: {...}} thêm mẫu (máy shop); {bo: id} bỏ mẫu fen thêm (dời _to_delete);
+    {tg: tên ảnh} gửi Telegram; {mo: true} mở thư mục ảnh story (máy shop)."""
+    if isinstance(data.get("lam"), dict):
+        return story_mau_lam(data["lam"], may)
+    if isinstance(data.get("them"), dict):
+        if may:
+            raise ValueError("Thêm mẫu làm trên máy shop")
+        return story_mau_them(data["them"])
+    if data.get("bo"):
+        if may:
+            raise ValueError("Bỏ mẫu làm trên máy shop")
+        mid = str(data["bo"])
+        if not re.fullmatch(r"f[0-9a-f]{8}", mid) or not os.path.isdir(os.path.join(STORY_MAU_DIR, mid)):
+            raise ValueError("Chỉ bỏ được mẫu fen tự thêm")
+        dst = os.path.join(APP, "_to_delete", "story-mau")
+        os.makedirs(dst, exist_ok=True)
+        shutil.move(os.path.join(STORY_MAU_DIR, mid), os.path.join(dst, "%s-%d" % (mid, int(now()))))
+        return {"ds": [story_mau_ra(m) for m in story_mau_ds()]}
+    if data.get("tg"):
+        ten = os.path.basename(str(data["tg"]))
+        f = os.path.join(_sm_thu_muc(may), ten)
+        if not re.fullmatch(r"story-[\w-]+\.jpg", ten) or not os.path.isfile(f):
+            raise ValueError("Không thấy ảnh này (làm lại rồi gửi)")
+        ng = tg_nguoi_cua({"khach": {"id": may}} if may else {"_": 1})
+        if may and not ng:
+            raise ValueError("Máy này chưa gán Telegram nhận bài (máy shop: 📊 Số bài → Máy ↔ Telegram)")
+        if not (CFG.get("telegram_token") and (ng or CFG.get("telegram_chat"))):
+            raise ValueError("CAI_TELEGRAM")
+        with open(f, "rb") as fh:
+            tg_call("sendPhoto", {"chat_id": ng["id"] if ng else CFG["telegram_chat"]}, {"photo": (ten, fh.read())}, timeout=120)
+        return {"ok": True}
+    if data.get("mo"):
+        if may:
+            raise ValueError("Mở thư mục làm trên máy shop")
+        d = _sm_thu_muc(None)
+        os.makedirs(d, exist_ok=True)
+        if IS_WIN:
+            os.startfile(d)  # noqa
+        elif IS_MAC:
+            subprocess.Popen(["open", d], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        return {"ok": True, "thu_muc": d}
+    return {"ds": [story_mau_ra(m) for m in story_mau_ds()], "bo_cuc": [{"id": a, "ten": b} for a, b, _ in STORY_BO_CUC]}
+
+
 def _chung_cookie(h, tok):
     an = "https" in (h.headers.get("X-Forwarded-Proto") or "") + (h.headers.get("Cf-Visitor") or "")
     return "pdb_k=%s; Path=/; Max-Age=31536000; HttpOnly; SameSite=Lax%s" % (tok, "; Secure" if an else "")
@@ -8308,6 +8713,11 @@ class H(BaseHTTPRequestHandler):
                 return self.send(200, thong_ke_bai())
             if u.path == "/api/goi-y":
                 return self.send(200, goi_y_doc())
+            if u.path == "/api/story-mau":
+                return self.send(200, story_mau_cai({}, self.may()))
+            m = re.fullmatch(r"/api/story-mau/xem/([\w-]+)", u.path)
+            if m:
+                return self.send(200, story_mau_xem(m.group(1)), "image/jpeg", {"Cache-Control": "max-age=86400"})
             m = re.fullmatch(r"/api/job/([\w-]+)/story(\.zip)?", u.path)
             if m:
                 if m.group(2):
@@ -8450,6 +8860,8 @@ class H(BaseHTTPRequestHandler):
                 return self.send(200, may_tg_cai(data["tg"]) if isinstance(data.get("tg"), dict) else chi_tieu_cai(data))
             if u.path == "/api/goi-y":
                 return self.send(200, goi_y_cai(data))
+            if u.path == "/api/story-mau":       # 📱 thư viện mẫu story (fen 15/11 13h07)
+                return self.send(200, story_mau_cai(data, self.may()))
             m = re.fullmatch(r"/api/job/([\w-]+)/story(-tg)?", u.path)
             if m:            # 📱 ảnh story / reel (fen 15/11)
                 return self.send(200, story_tg(m.group(1)) if m.group(2) else story_lam(m.group(1), data))

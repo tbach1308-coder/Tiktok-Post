@@ -130,6 +130,22 @@ a.btn{color:var(--tx);text-decoration:none}
 .stgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px;max-height:52vh;overflow:auto;min-height:40px}
 .stgrid a{display:block;border-radius:7px;overflow:hidden;border:1px solid var(--line);background:var(--panel2)}.stgrid a:hover{border-color:var(--g)}
 .stgrid img{width:100%;aspect-ratio:9/16;object-fit:cover;display:block}
+.stpage .tkbar #stTab{align-self:center}
+.stpick.mpick button{flex-basis:92px}.stpick.mpick img,.stpick.mpick .nb{aspect-ratio:9/16}
+.stpick.mpick .nb{display:flex;align-items:center;justify-content:center;font-size:30px;color:var(--mut)}
+.mauw{display:grid;grid-template-columns:minmax(280px,440px) minmax(220px,1fr);gap:22px;align-items:start}
+@media (max-width:760px){.mauw{grid-template-columns:1fr}}
+.mauf{display:flex;flex-direction:column;gap:4px}.mauf .stbar{margin:0 0 4px}
+.mfl{display:block;font-size:12px;font-weight:600;color:var(--mut);margin-top:8px;margin-bottom:3px}
+.mauf input[type=text],.mauf textarea{width:100%;box-sizing:border-box;background:var(--panel2);border:1px solid var(--line);border-radius:8px;color:var(--tx);font:inherit;font-size:13.5px;padding:7px 10px;resize:vertical}
+.mauf input[type=text]:focus,.mauf textarea:focus{outline:none;border-color:var(--g)}
+.manh{display:flex;align-items:center;gap:8px}
+.mpic{display:flex;align-items:center;gap:8px;cursor:pointer;background:var(--panel2);border:1px dashed var(--line);border-radius:8px;padding:5px 10px;font-size:13px;flex:1;min-height:34px}
+.mpic:hover{border-color:var(--g)}.mpic img{width:40px;height:40px;object-fit:cover;border-radius:5px}
+.maukq{display:flex;flex-direction:column;gap:8px;align-items:flex-start}
+.maukq img{width:min(320px,100%);aspect-ratio:9/16;object-fit:cover;border-radius:12px;border:1px solid var(--line);display:block}
+.maukq .acts{display:flex;gap:8px;flex-wrap:wrap}
+.mauw [hidden],.manh [hidden]{display:none!important}
 .side .new .thbtn{width:100%;margin-top:8px;padding:7px 4px}
 .side .new .thbtn.on{border-color:#8b5cf6;background:#241a3d;color:#e3d8ff}
 .side .new .row3 .thbtn{margin-top:0}.side .new .row3{margin-top:8px}body.khach .side .new .row3{grid-template-columns:1fr}body.khach .tkbtn{display:none}
@@ -1221,7 +1237,7 @@ async function loadJobs(){
 }
 // có bản giao diện mới: chỉ tự tải lại khi fen không đang gõ / chưa gửi dở
 // app có bản mới mà đang dở tay (gõ chữ, ảnh chưa gửi) nên chưa tự tải lại: hiện thanh nhắc (fen 6/11 không thấy nút mới vì trang chưa tải lại)
-function taiLaiUi(){ location.hash = S.view === 'theme' ? 'theme' : S.view === 'thongke' ? 'thongke' : S.view === 'story' ? 'story' + (S.stId ? '=' + S.stId : '') : S.jobId ? 'bai=' + S.jobId : 'moi'; location.reload(); }
+function taiLaiUi(){ location.hash = S.view === 'theme' ? 'theme' : S.view === 'thongke' ? 'thongke' : S.view === 'story' ? (S.stTab === 'mau' ? 'storymau' + (S.mauId ? '=' + S.mauId : '') : 'story' + (S.stId ? '=' + S.stId : '')) : S.jobId ? 'bai=' + S.jobId : 'moi'; location.reload(); }
 function uiMoiBao(){
   if ($('#uiMoi')) return;
   const d = document.createElement('div'); d.id = 'uiMoi'; d.className = 'uimoi';
@@ -2916,6 +2932,7 @@ function gyVe(){
 // Ảnh 1080×1920 làm trên máy shop bằng Pillow (vài giây, không tốn Claude).
 function storyDialog(){
   const j = S.view === 'job' && S.data && S.data.job;
+  if (!(j && (S.data.slides || []).length) && store.get('poly-st-tab', 'bai') === 'mau') return storyMau(S.mauId || '');
   storyTrang(j && (S.data.slides || []).length ? j.id : (S.stId || ''));
 }
 async function storyTrang(id){
@@ -2926,9 +2943,11 @@ async function storyTrang(id){
   if (!id || !S.jobs.some(x => x.id === id)) id = (ds[0] || {}).id || '';
   S.stId = id;
   const m = $('#main');
-  m.innerHTML = `<div class="pad stpage"><div class="tkbar"><h1>📱 Story / reel</h1><span class="pnote" style="margin:0">Ảnh dọc 9:16 (1080×1920) từ slide bài đã làm: slide nằm giữa, chừa trên / dưới cho chữ và nút của TikTok, Facebook, Instagram. Vài giây, không tốn Claude.</span></div>
+  S.stTab = 'bai';
+  m.innerHTML = `<div class="pad stpage"><div class="tkbar"><h1>📱 Story / reel</h1>${stTabH('bai')}<span class="pnote" style="margin:0">Ảnh dọc 9:16 (1080×1920) từ slide bài đã làm: slide nằm giữa, chừa trên / dưới cho chữ và nút của TikTok, Facebook, Instagram. Vài giây, không tốn Claude.</span></div>
     <div class="stpick" id="stPick">${ds.length ? ds.map(x => `<button data-st="${esc(x.id)}" class="${x.id === id ? 'on' : ''}" title="${esc(x.tieu_de || '')}">${x.bia ? `<img src="${esc(x.bia)}" alt="" loading="lazy">` : '<span class="nb"></span>'}<b>${esc(x.tieu_de || 'Bài')}</b><span class="kn ${x.kenh}">${esc((KENH[x.kenh] || {}).ten || '')}</span></button>`).join('') : '<p class="pnote">Chưa có bài nào làm xong.</p>'}</div>
     <div id="stWork"></div></div>`;
+  stTabNoi();
   m.querySelectorAll('#stPick [data-st]').forEach(b => b.onclick = () => storyTrang(b.dataset.st));
   const sel = m.querySelector('#stPick .on'); if (sel) sel.scrollIntoView({ block: 'nearest', inline: 'center' });
   if (!id) return;
@@ -2957,6 +2976,103 @@ async function storyTrang(id){
   const mo = $('#stMo'); if (mo) mo.onclick = () => api('/api/job/' + id + '/mo', {}).catch(e => toast(e.message, true));
   try { r = await api('/api/job/' + id + '/story'); nen = r.nen || 'mau'; } catch(e) { if ($('#stG')) setH($('#stG'), `<p class="err">${esc(e.message)}</p>`); return; }
   ve();
+}
+// ---- 📱 Thư viện mẫu story (fen 15/11 13h07 "phần này cho thư viện template tạo riêng, để gắn ảnh vô chạy, cho điền text"; chọn
+// "App tự vẽ, mẫu có sẵn" + "Có: ảnh nền + chọn bố cục"). Tab thứ 2 của trang Story / reel (#storymau=<mẫu>): hàng mẫu (ảnh xem trước),
+// chọn 1 mẫu → bên trái ô gắn ảnh + ô chữ (chữ nhớ theo mẫu trên trình duyệt này), bấm Làm ảnh → bên phải ảnh 9:16 + Tải / Telegram / Mở thư mục.
+// Máy shop: "＋ Thêm mẫu của fen" = ảnh nền 9:16 của fen + chọn bố cục + chữ trắng / đen; mẫu fen thêm có nút Bỏ mẫu (dời _to_delete).
+const MAU = { ds: null, bc: [], anh: {}, kq: {} };
+function stTabH(on){ return `<div class="kseg segd" id="stTab"><button data-tab="bai" class="${on === 'bai' ? 'on' : ''}">Từ bài đã làm</button><button data-tab="mau" class="${on === 'mau' ? 'on' : ''}">Thư viện mẫu</button></div>`; }
+function stTabNoi(){ document.querySelectorAll('#stTab [data-tab]').forEach(b => b.onclick = () => { store.set('poly-st-tab', b.dataset.tab); b.dataset.tab === 'mau' ? storyMau(S.mauId || '') : storyTrang(S.stId || ''); }); }
+function anhGon(file, max = 1600){       // thu ảnh trước khi gửi (ảnh điện thoại 4000px → 1600px), PNG giữ nền trong
+  return new Promise((ok, loi) => { const u = URL.createObjectURL(file), im = new Image();
+    im.onload = () => { const k = Math.min(1, max / Math.max(im.width, im.height)), c = document.createElement('canvas');
+      c.width = Math.max(1, Math.round(im.width * k)); c.height = Math.max(1, Math.round(im.height * k));
+      c.getContext('2d').drawImage(im, 0, 0, c.width, c.height); URL.revokeObjectURL(u);
+      ok(c.toDataURL(/png|webp|gif/.test(file.type) ? 'image/png' : 'image/jpeg', .9)); };
+    im.onerror = () => { URL.revokeObjectURL(u); loi(new Error('Không đọc được ảnh này (chọn JPG / PNG)')); }; im.src = u; });
+}
+async function storyMau(id){
+  try { history.replaceState(null, '', '#storymau' + (id ? '=' + id : '')); } catch(e) {}
+  stopPoll(); S.view = 'story'; S.stTab = 'mau'; S.jobId = null; renderJobs();
+  const m = $('#main');
+  if (!MAU.ds) {
+    m.innerHTML = '<div class="pad stpage"><p class="pnote">Đang tải mẫu…</p></div>';
+    try { const r = await api('/api/story-mau'); MAU.ds = r.ds || []; MAU.bc = r.bo_cuc || []; }
+    catch(e) { if (S.view === 'story' && S.stTab === 'mau') m.innerHTML = `<div class="pad stpage"><p class="err">${esc(e.message)}</p></div>`; return; }
+    if (S.view !== 'story' || S.stTab !== 'mau') return;
+  }
+  const ds = MAU.ds;
+  if (!ds.some(x => x.id === id)) id = (ds[0] || {}).id || '';
+  S.mauId = id;
+  try { history.replaceState(null, '', '#storymau' + (id ? '=' + id : '')); } catch(e) {}
+  m.innerHTML = `<div class="pad stpage"><div class="tkbar"><h1>📱 Story / reel</h1>${stTabH('mau')}<span class="pnote" style="margin:0">Chọn mẫu, gắn ảnh, điền chữ → app vẽ ảnh dọc 9:16 (1080×1920), chừa trên / dưới cho chữ và nút của TikTok, Facebook, Instagram. Vài giây, không tốn Claude.</span></div>
+    <div class="stpick mpick" id="mPick">${ds.map(x => `<button data-m="${esc(x.id)}" class="${x.id === id ? 'on' : ''}" title="${esc(x.ten)}"><img src="${esc(x.xem)}" alt="" loading="lazy"><b>${esc(x.ten)}</b>${x.san ? '' : '<span class="kn">của fen</span>'}</button>`).join('')}${KHACH ? '' : '<button id="mThem" title="Thêm mẫu bằng ảnh nền của fen"><span class="nb">＋</span><b>Thêm mẫu của fen</b></button>'}</div>
+    <div id="mWork"></div></div>`;
+  stTabNoi();
+  m.querySelectorAll('#mPick [data-m]').forEach(b => b.onclick = () => storyMau(b.dataset.m));
+  const th = $('#mThem'); if (th) th.onclick = mauThem;
+  const sel = m.querySelector('#mPick .on'); if (sel) sel.scrollIntoView({ block: 'nearest', inline: 'center' });
+  const mau = ds.find(x => x.id === id); if (!mau) return;
+  const luu = store.get('poly-mau-chu', {}) || {}, cu = luu[id] || {}, anh = MAU.anh[id] = MAU.anh[id] || {};
+  const giaTri = o => cu[o.k] !== undefined ? cu[o.k] : (o.dien ? o.mac : '');
+  const w = $('#mWork');
+  w.innerHTML = `<div class="mauw"><div class="mauf">
+      <div class="stbar"><b class="stten" title="${esc(mau.ten)}">${esc(mau.ten)}</b>${!mau.san && !KHACH ? '<button class="btn ghost sm" id="mBo">🗑 Bỏ mẫu</button>' : ''}</div>
+      ${mau.o.map(o => o.loai === 'anh'
+        ? `<span class="mfl">${esc(o.nhan)}</span><div class="manh"><label class="mpic" data-a="${esc(o.k)}"><img alt="" hidden><span>📎 Chọn ảnh</span><input type="file" accept="image/*" hidden></label><button class="btn ghost sm" data-xa="${esc(o.k)}" hidden>Bỏ</button></div>`
+        : `<label class="mfl" for="mc-${esc(o.k)}">${esc(o.nhan)}</label>${o.dong > 1
+          ? `<textarea id="mc-${esc(o.k)}" data-c="${esc(o.k)}" rows="${Math.min(o.dong, 4)}" placeholder="${esc(o.mac)}">${esc(giaTri(o))}</textarea>`
+          : `<input type="text" id="mc-${esc(o.k)}" data-c="${esc(o.k)}" placeholder="${esc(o.mac)}" value="${esc(giaTri(o))}">`}`).join('')}
+      <div class="stbar" style="margin-top:10px"><button class="btn pri" id="mLam">Làm ảnh</button><span class="pnote" id="mSt" style="margin:0">Ô trống thì bỏ trống trên ảnh; chữ mờ trong ô là gợi ý.</span></div>
+    </div><div class="maukq" id="mKq"></div></div>`;
+  const veAnh = () => w.querySelectorAll('[data-a]').forEach(l => { const k = l.dataset.a, v = anh[k], im = l.querySelector('img');
+    im.hidden = !v; if (v) im.src = v; l.querySelector('span').textContent = v ? 'Đổi ảnh' : '📎 Chọn ảnh';
+    const x = w.querySelector(`[data-xa="${k}"]`); if (x) x.hidden = !v; });
+  w.querySelectorAll('[data-a] input').forEach(inp => inp.onchange = async () => { const f = inp.files[0], k = inp.closest('[data-a]').dataset.a; inp.value = '';
+    if (!f) return; try { anh[k] = await anhGon(f); } catch(e) { toast(e.message, true); } veAnh(); });
+  w.querySelectorAll('[data-xa]').forEach(b => b.onclick = () => { delete anh[b.dataset.xa]; veAnh(); });
+  w.querySelectorAll('[data-c]').forEach(i => i.oninput = () => { const l = store.get('poly-mau-chu', {}) || {};
+    (l[id] = l[id] || {})[i.dataset.c] = i.value; store.set('poly-mau-chu', l); });
+  const veKq = () => { const r = MAU.kq[id], k = $('#mKq'); if (!k) return;
+    k.innerHTML = r ? `<img src="${r.anh}" alt="Ảnh story"><div class="acts"><a class="btn sm" id="mTai" href="${r.anh}" download="${esc(r.ten)}">⬇ Tải ảnh</a><button class="btn ghost sm" id="mTg">📨 Gửi Telegram</button>${KHACH ? '' : '<button class="btn ghost sm" id="mMo">📂 Mở thư mục</button>'}</div><span class="pnote" style="margin:0">${esc(r.ten)}</span>`
+      : `<img src="${esc(mau.xem)}" alt="Ảnh mẫu" style="opacity:.75"><span class="pnote" style="margin:0">Ảnh mẫu: gắn ảnh, điền chữ rồi bấm Làm ảnh.</span>`;
+    const tg = $('#mTg'); if (tg) tg.onclick = async () => { tg.disabled = true; tg.textContent = 'Đang gửi…';
+      try { await api('/api/story-mau', { tg: r.ten }); toast('Đã gửi ảnh story qua Telegram'); }
+      catch(e) { if (e.message.startsWith('CAI_TELEGRAM')) tgDialog(e.message.split('|')[1]); else toast(e.message, true); }
+      tg.textContent = '📨 Gửi Telegram'; tg.disabled = false; };
+    const mo = $('#mMo'); if (mo) mo.onclick = () => api('/api/story-mau', { mo: true }).catch(e => toast(e.message, true)); };
+  $('#mLam').onclick = async () => { const b = $('#mLam'), st = $('#mSt'); b.disabled = true; st.textContent = 'Đang làm…';
+    const chu = {}; w.querySelectorAll('[data-c]').forEach(i => chu[i.dataset.c] = i.value);
+    try { MAU.kq[id] = await api('/api/story-mau', { lam: { id, chu, anh } }); if ($('#mSt')) $('#mSt').textContent = 'Xong'; veKq(); }
+    catch(e) { if ($('#mSt')) $('#mSt').textContent = ''; toast(e.message, true); }
+    b.disabled = false; };
+  const bo = $('#mBo'); if (bo) bo.onclick = async () => { if (!confirm('Bỏ mẫu "' + mau.ten + '"? Mẫu dời vào _to_delete, ảnh đã làm vẫn giữ.')) return;
+    try { const r = await api('/api/story-mau', { bo: id }); MAU.ds = r.ds; delete MAU.kq[id]; storyMau(''); } catch(e) { toast(e.message, true); } };
+  veAnh(); veKq();
+}
+function mauThem(){
+  const m = document.createElement('div'); m.className = 'modal on'; let nen = '', chu = 'trang';
+  m.innerHTML = `<div class="mbox"><h3>Thêm mẫu của fen</h3>
+    <p class="pnote">Ảnh nền của fen (nên dọc 9:16, ví dụ làm trên Canva 1080×1920; ảnh khác cỡ thì app cắt giữa cho vừa) + chọn bố cục ô ảnh / chữ. Lần sau chọn mẫu này, gắn ảnh, điền chữ là xong.</p>
+    <label class="mfl" for="mtTen">Tên mẫu</label><input type="text" id="mtTen" class="in" placeholder="Ví dụ: Nền Tết 2027" maxlength="40">
+    <span class="mfl">Ảnh nền</span><div class="manh"><label class="mpic" id="mtNen"><img alt="" hidden><span>📎 Chọn ảnh nền</span><input type="file" accept="image/*" hidden></label></div>
+    <label class="mfl" for="mtBc">Bố cục</label><select id="mtBc" class="in">${MAU.bc.map(b => `<option value="${esc(b.id)}">${esc(b.ten)}</option>`).join('')}</select>
+    <span class="mfl">Màu chữ</span><div class="kseg segd" id="mtChu"><button data-chu="trang" class="on">Trắng (nền tối)</button><button data-chu="den">Đen (nền sáng)</button></div>
+    <div class="acts"><button class="btn" id="mtHuy">Huỷ</button><button class="btn pri" id="mtLuu">Lưu mẫu</button></div></div>`;
+  document.body.appendChild(m);
+  const dong = () => m.remove();
+  $('#mtHuy').onclick = dong; m.onclick = e => { if (e.target === m) dong(); };
+  m.querySelectorAll('#mtChu [data-chu]').forEach(b => b.onclick = () => { chu = b.dataset.chu; m.querySelectorAll('#mtChu [data-chu]').forEach(x => x.classList.toggle('on', x === b)); });
+  m.querySelector('#mtNen input').onchange = async e => { const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+    try { nen = await anhGon(f, 2200); const im = m.querySelector('#mtNen img'); im.src = nen; im.hidden = false; m.querySelector('#mtNen span').textContent = 'Đổi ảnh nền'; }
+    catch(err) { toast(err.message, true); } };
+  $('#mtLuu').onclick = async () => { const ten = $('#mtTen').value.trim(), b = $('#mtLuu');
+    if (!ten) return toast('Đặt tên cho mẫu', true); if (!nen) return toast('Chọn ảnh nền', true);
+    b.disabled = true; b.textContent = 'Đang lưu…';
+    try { const x = await api('/api/story-mau', { them: { ten, nen, bo_cuc: $('#mtBc').value, chu } }); MAU.ds = null; dong(); toast('Đã thêm mẫu ' + x.ten); storyMau(x.id); }
+    catch(e) { toast(e.message, true); b.disabled = false; b.textContent = 'Lưu mẫu'; } };
+  setTimeout(() => $('#mtTen') && $('#mtTen').focus(), 30);
 }
 // ---- 💬 Hỏi app (fen 15/11 11h51 "thêm chat bot để hỏi", chọn "Cách dùng app + số liệu"): hỏi cách làm, bài chờ đăng, máy nào đăng
 // mấy bài… Mỗi câu 1 lượt Claude chỉ đọc trên máy shop (POST /api/hoi → hỏi lại GET /api/hoi/<id>). Lịch sử chat nhớ trên trình duyệt này.
@@ -3006,7 +3122,7 @@ $('#hoiGui').onclick = () => { const t = $('#hoiTxt'); const v = t.value; t.valu
 $('#hoiTxt').onkeydown = e => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); $('#hoiGui').click(); } };
 addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#hoiBox').hidden && !document.querySelector('.lb.on, dialog[open]')) hoiMo(false); });
 hoiVe(); hoiDoi();
-khoiDong().then(ok => ok && Promise.all([loadJobs(), loadNhap()])).then(v => { if (!v) return; if (location.hash === '#theme') return khoTheme(); if (location.hash === '#thongke' && !KHACH) return thongKe(); const hs = location.hash.match(/^#story(?:=([\w-]+))?$/); if (hs) return storyTrang(hs[1] || ''); const h = (location.hash.match(/bai=([\w-]+)/) || [])[1], moi = location.hash === '#moi'; const r = !moi && ((h && S.jobs.find(j => j.id === h)) || S.jobs.find(j => j.status === 'dang-chay')); r ? openJob(r.id) : newView(); });
+khoiDong().then(ok => ok && Promise.all([loadJobs(), loadNhap()])).then(v => { if (!v) return; if (location.hash === '#theme') return khoTheme(); if (location.hash === '#thongke' && !KHACH) return thongKe(); const hm = location.hash.match(/^#storymau(?:=([\w-]+))?$/); if (hm) return storyMau(hm[1] || ''); const hs = location.hash.match(/^#story(?:=([\w-]+))?$/); if (hs) return storyTrang(hs[1] || ''); const h = (location.hash.match(/bai=([\w-]+)/) || [])[1], moi = location.hash === '#moi'; const r = !moi && ((h && S.jobs.find(j => j.id === h)) || S.jobs.find(j => j.status === 'dang-chay')); r ? openJob(r.id) : newView(); });
 setInterval(() => { if (duocHoi('ds')) loadJobs(); }, 5000); setInterval(() => health(), 120000);
 document.addEventListener('visibilitychange', () => { if (!document.hidden) { _hoiLuc.ds = Date.now(); loadJobs(); } });
 </script>

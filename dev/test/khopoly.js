@@ -1,4 +1,5 @@
 // Chip "Kho Poly" trên thanh trên cùng (fen 15/11 13h10 "thêm trạng thái để biết kho poly đã được kết nối chưa") + thứ tự thanh trên cùng
+// Chạy: rm -f tgl/poly-tt.json && bash reset.sh && node khopoly.js (trạng thái kho nhớ lúc app khởi động)
 // (13h09 "sắp xếp thứ tự nút bấm cho hợp lý"): kết nối Canva · Kho Poly · Telegram · Remote · Máy khác | Quy tắc · Claude | Hỏi app.
 // Kiểm = 1 lượt Claude haiku ngắn (Claude giả: FAKE_POLY_CHUA = chưa nối); quét 💡 Gợi ý từ kho thành công cũng là "đã nối". Máy dùng chung không có.
 const { chromium } = require('playwright');
