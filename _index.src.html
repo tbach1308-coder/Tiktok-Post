@@ -3162,7 +3162,8 @@ function tkLui(sau){ const tu = sau ? TK.fut : TK.hist, ve = sau ? TK.hist : TK.
 function tkMo(mau){
   TK.mau = mau; TK.sel = -1; TK.kq = null;
   const cu = (store.get('poly-tk', {}) || {})[mau.id];
-  TK.d = cu && cu.d && cu.d.o ? cu.d : tkTuMau(mau);
+  // bản nhớ trống (lúc trang mới mà app chưa khởi động lại, mẫu chưa có bản vẽ) thì lấy lại mẫu gốc (fen 14h15 khung trống)
+  TK.d = cu && cu.d && cu.d.o && cu.d.o.length ? cu.d : tkTuMau(mau);
   TK.hist = [JSON.stringify(TK.d)]; TK.fut = [];
   const w = $('#mWork');
   w.innerHTML = `<div class="tkw"><div class="tkl">
@@ -3174,7 +3175,7 @@ function tkMo(mau){
     </div><div class="tkc">
       <div class="tkst" id="tkSt"><canvas id="tkCv" width="1080" height="1920" tabindex="0" aria-label="Khung design 9:16"></canvas></div>
       <div class="tkkq" id="tkKq"></div>
-    </div></div><input type="file" id="tkFile" accept="image/*" hidden>`;
+    </div></div><input type="file" id="tkFile" accept="image/*" hidden>${mau.ve ? '' : '<p class="err">App trên máy shop chưa khởi động lại bản mới nên mẫu chưa có bản vẽ: khởi động lại app rồi mở lại trang này.</p>'}`;
   const bo = $('#mBo'); if (bo) bo.onclick = async () => { if (!confirm('Bỏ mẫu "' + mau.ten + '"? Mẫu dời vào _to_delete, ảnh đã làm vẫn giữ.')) return;
     try { const r = await api('/api/story-mau', { bo: mau.id }); MAU.ds = r.ds; storyMau(''); } catch(e) { toast(e.message, true); } };
   w.querySelectorAll('[data-them]').forEach(b => b.onclick = () => tkThem(b.dataset.them));
@@ -3244,8 +3245,7 @@ function tkBang(){
   const lop = `<div class="tkcc"><button class="btn ghost sm" data-lop="doi" title="Ctrl+D">⧉ Nhân đôi</button><button class="btn ghost sm" data-lop="len">⬆ Lên lớp</button><button class="btn ghost sm" data-lop="xuong">⬇ Xuống lớp</button><button class="btn ghost sm" data-lop="xoa" title="Delete">🗑 Xoá</button></div>`;
   let h;
   if (!x) h = `<b class="tkh">Nền</b>${mau('tkpNen', TK.d.nen, 'Màu nền')}
-      <div class="tkcc"><button class="btn ghost sm" id="tkpNenAnh">🖼 Ảnh nền…</button>${TK.d.nenImg ? '<button class="btn ghost sm" id="tkpNenBo">Bỏ ảnh nền</button>' : ''}</div>
-      <p class="pnote">Bấm vào chữ / ảnh / khối trên khung để chọn, kéo để di chuyển (dính đường giữa), kéo ô vuông xanh góc dưới phải để đổi cỡ. Phím mũi tên nhích, Delete xoá, Ctrl+Z hoàn tác. Vạch mờ trên / dưới: vùng chữ và nút của TikTok.</p>`;
+      <div class="tkcc"><button class="btn ghost sm" id="tkpNenAnh">🖼 Ảnh nền…</button>${TK.d.nenImg ? '<button class="btn ghost sm" id="tkpNenBo">Bỏ ảnh nền</button>' : ''}</div>`;      // fen 15/11 14h15 "bỏ chú thích này đi": bỏ dòng hướng dẫn kéo thả ở bảng Nền
   else if (x.loai === 'chu') h = `<b class="tkh">Chữ${x.nhan && x.nhan !== 'Chữ' ? ' · ' + esc(x.nhan) : ''}</b>
       <textarea id="tkpText" rows="2" class="tkin">${esc(x.text || '')}</textarea>
       ${so('tkpCo', x.co, 'Cỡ chữ', 16, 240)}
