@@ -248,9 +248,6 @@ LÀM 1 BÀI
   theme Photoshop ở tab Photoshop);
   sao vàng ★ = đang trong kho chung, bấm lại để thôi. Máy khác chỉ ▶ Làm bài / ⧉ Nhân bản theme kho chung.
   Mẫu Canva của kênh (Kiểm máy > Canva) cũng riêng từng máy.
-- 📅 Lịch đăng (15/11, nút cạnh 🎨 Kho theme): cả tuần thứ 2 → CN, mỗi kênh Laptop / iPad 1 hàng. ✓ đã đăng (giờ đăng),
-  ⏳ TikTok sẽ đăng (Schedule), 📌 dự kiến (giờ hẹn đăng, chưa đăng). Ngày trống ghi "Trống" + nút ＋ Bài; 1 máy có 2 bài cùng kênh
-  1 ngày thì ô viền vàng "⚠ 2 bài cùng ngày". ‹ › đổi tuần. Bấm bài để mở. Máy shop chọn xem máy nào ở ô góc phải (cùng ô Máy bên trái).
 - Nút "📱 Remote" trên cùng (30/10): ra ngoài vẫn giao việc cho app qua Telegram (chat riêng với bot, hoặc 1 nhóm có thêm người).
   DÙNG TRONG NHÓM (12/11, thêm người làm cùng): tạo nhóm Telegram có fen + người đó → app: 📱 Remote > 👥 Dùng trong nhóm
   > bấm "Thêm bot vào nhóm", chọn nhóm, bấm Thêm → cho bot làm Quản trị viên nhóm (để bot đọc được tin thường).
