@@ -182,11 +182,12 @@ LÀM 1 BÀI
 5. Xong bài: dòng "Đã đổi so với brief" cho biết Claude đổi gì so với brief của fen.
    Ô "Claude hỏi fen" (nếu có): bấm chọn rồi bấm Gửi trả lời. Lựa chọn đầu là cách Claude đang làm;
    chọn khác thì Claude chạy tiếp và chỉ sửa đúng slide đó.
-6. Muốn sửa (29/10 tối): dưới MỖI slide có ô "Sửa slide N…", ghi cần sửa vào ô của từng slide (bao nhiêu slide cũng
-   được; dán Ctrl+V hoặc kéo ảnh vào ô / vào slide là ảnh cho đúng slide đó). Ô "Sửa chung / nhắc quy tắc" ở thẻ
-   Sửa bài: sửa cả bài, hoặc nhắc thêm quy tắc (Claude sửa bài này và ghi vào file quy tắc cho bài sau). Rồi bấm "Sửa một lượt". Claude sửa hết các slide đó trong
-   1 lượt, dựng lại 1 lần, duyệt 1 lần. Xem to slide rồi bấm "Sửa slide này" là nhảy tới ô của slide đó. Claude nhớ cả
-   bài và ghi luật vào E:\Social Claude\POLY-quy-tac-lam-content.md cho bài sau.
+6. Hỏi / sửa bài (15/11: khung chat "💬 Hỏi / sửa bài" dưới các slide, thay ô Sửa bài cũ): gõ câu hỏi về bài (vd "slide 3 đọc
+   có rõ không?") → Claude chỉ trả lời, không sửa gì; hoặc nhờ sửa (vd "chữ cả bài to hơn") → Claude sửa, dựng lại 1 lần, trả lời
+   đã sửa gì. Enter gửi, Shift+Enter xuống dòng, 📎 gắn ảnh. Sửa riêng từng slide: ghi vào ô "Sửa slide N…" dưới slide đó (dán /
+   kéo ảnh vào ô cũng được) rồi bấm Gửi, mọi ô gửi kèm 1 lượt. Lịch sử hỏi / sửa của bài giữ trong khung. Muốn thành quy tắc cho
+   bài sau thì nói rõ ("từ giờ…", "lần sau…", "luôn…"), không thì chỉ sửa bài này. Xem to slide rồi bấm "Sửa slide này" là
+   nhảy tới ô của slide đó. Đang chạy 1 lượt thì nút Gửi khoá tới khi xong.
 7. Đăng bài (ô "Đăng bài" bên phải, khi bài xong): caption Claude viết sẵn, sửa thẳng trong ô.
    Bài xong có 2 nút iPad | Laptop ở đầu trang: bấm để đổi kênh của bài, nút đăng đổi theo.
    Bài nằm trong thư mục Laptop mà bấm iPad (hay ngược lại) thì app hỏi lại trước, không đổi liền.
@@ -252,7 +253,7 @@ LÀM 1 BÀI
   theme Photoshop ở tab Photoshop);
   sao vàng ★ = đang trong kho chung, bấm lại để thôi. Máy khác chỉ ▶ Làm bài / ⧉ Nhân bản theme kho chung.
   Mẫu Canva của kênh (Kiểm máy > Canva) cũng riêng từng máy.
-- 💬 Hỏi app (15/11, nút tròn góc dưới phải, máy nào cũng có): hỏi cách dùng app ("cách đăng TikTok trên máy Phú?") hoặc số liệu
+- 💬 Hỏi app (15/11, chip xanh "💬 Hỏi app" đầu thanh trên cùng, máy nào cũng có): hỏi cách dùng app ("cách đăng TikTok trên máy Phú?") hoặc số liệu
   ("hôm nay mỗi máy đăng mấy bài?", "bài nào đang chờ đăng?"). Mỗi câu Claude trên máy shop trả lời trong 10–40 giây (tính vào hạn mức
   tuần, model Sonnet), chỉ đọc hướng dẫn + số liệu app, KHÔNG làm thay (muốn làm thì bấm nút như bot chỉ). Enter gửi, Shift+Enter xuống
   dòng, "Xoá" xoá cuộc chat trên máy đó, Esc đóng. Máy dùng chung chỉ hỏi được số liệu của máy đó.

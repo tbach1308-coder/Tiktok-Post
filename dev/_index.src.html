@@ -109,9 +109,10 @@ a.btn{color:var(--tx);text-decoration:none}
 .side .new .row3 .thbtn{margin-top:0}.side .new .row3{margin-top:8px}body.khach .side .new .row3{grid-template-columns:1fr}body.khach .tkbtn{display:none}
 .side .new .tkbtn.on{border-color:var(--g);background:var(--gsoft, rgba(46,160,90,.16));color:var(--gl)}
 /* 💬 Hỏi app (fen 15/11 11h51 "thêm chat bot để hỏi"): nút tròn góc dưới phải + khung chat */
-#hoiNut{position:fixed;right:18px;bottom:18px;z-index:45;width:46px;height:46px;border-radius:50%;border:1px solid var(--line2, var(--line));background:var(--panel2);color:var(--tx);font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center}
-#hoiNut:hover,#hoiNut.on{border-color:var(--g)}#hoiNut.cho::after{content:"";position:absolute;top:3px;right:3px;width:9px;height:9px;border-radius:50%;background:var(--y)}
-#hoiBox{position:fixed;right:18px;bottom:74px;z-index:45;width:min(380px,calc(100vw - 36px));height:min(540px,calc(100vh - 110px));display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--line2, var(--line));border-radius:14px;overflow:hidden}
+/* fen 15/11 12h17 "chat box đâu" (nút tròn góc dưới bị khuất): thành chip xanh "💬 Hỏi app" đầu thanh trên cùng, khung mở ngay dưới */
+#hoiNut{position:relative;cursor:pointer;color:var(--gl);border-color:var(--g);background:var(--gnote);font-weight:600}
+#hoiNut:hover,#hoiNut.on{background:var(--gsoft);color:#fff}#hoiNut.cho::after{content:"";position:absolute;top:-2px;right:-2px;width:9px;height:9px;border-radius:50%;background:var(--y)}
+#hoiBox{position:fixed;right:18px;top:62px;z-index:45;width:min(380px,calc(100vw - 36px));height:min(540px,calc(100vh - 80px));display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--line2, var(--line));border-radius:14px;overflow:hidden}
 #hoiBox[hidden]{display:none}
 #hoiBox .hoihd{display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid var(--line);font-weight:700;font-size:14px}
 #hoiBox .hoihd small{font-weight:400;color:var(--dim);font-size:11.5px}#hoiBox .hoihd .sp{flex:1}
@@ -540,6 +541,7 @@ body.vaoing .top .chip{display:none!important}
 .brand{flex-shrink:0}
 @media (max-width:1439px){#bChung .lb{display:none}}
 @media (max-width:1365px){#bQt .lb{display:none}}
+@media (max-width:1180px){#hoiNut .chl{display:none}}   /* lớp .lb là khung xem ảnh: nhãn chip dùng .chl */
 .vao{max-width:420px;width:calc(100% - 32px);box-sizing:border-box;margin:12vh auto;padding:22px;border:1px solid var(--line2);border-radius:14px;background:var(--panel)}
 .vao h2{margin:0 0 6px;font-size:19px}.vao .in{width:100%;margin-top:8px}.vao .vaoma{font-size:24px;letter-spacing:6px;text-align:center}
 .vao .acts{margin-top:14px}
@@ -625,7 +627,13 @@ textarea.in.slfix.co{border-color:var(--y);background:rgba(255,200,60,.06)}
 .sl.wait{cursor:default;display:grid;place-items:center;color:var(--dim);font-size:12px;background:var(--input);border-style:dashed}
 .sl.wait b{color:var(--dim)}
 .noslide{color:var(--dim);font-size:13px;padding:22px;text-align:center;border:1px dashed var(--line2);border-radius:12px}
-.fix textarea{min-height:54px;height:54px}.fix textarea:focus{min-height:76px}
+.fix textarea{min-height:40px;height:40px}.fix textarea:focus{min-height:58px}
+/* khung chat của bài (fen 15/11 12h17) */
+.fix .fchat{display:flex;flex-direction:column;gap:6px;max-height:340px;overflow:auto;margin:0 0 8px}.fix .fchint{color:var(--dim);font-size:12.5px;margin:0}
+.fix .fm{max-width:86%;padding:7px 10px;border-radius:10px;font-size:13px;line-height:1.45;white-space:pre-wrap;overflow-wrap:anywhere}
+.fix .fm.fen{align-self:flex-end;background:var(--gsoft)}.fix .fm.bot{align-self:flex-start;background:var(--panel2)}.fix .fm.dang{color:var(--dim);font-style:italic}.fix .fm.loi{color:#f2a3a3}
+.fix .fin{display:flex;gap:8px;align-items:flex-end}.fix .fin textarea{flex:1}.fix .fin #fpick{text-decoration:none;height:40px;display:inline-flex;align-items:center}.fix .fin #bFix{height:40px}
+.fix .fixhd .mlab{margin-left:auto;font-size:12px}.fix .fixhd .mlab select{font-size:12px;padding:3px 6px;height:28px}
 .fix .fixhd{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:8px}.fix .fixhd .sec{margin:0}.fix .fixhd .fixtom{margin:0;font-size:12.5px;flex:1;min-width:200px}
 .fix .fdrop{min-height:0;padding:8px;margin-top:8px}.fix .fdrop .hint{display:none}.fix .fdrop:not(:has(.th)):not(.hot){display:none}.fix .fdrop.hot .hint{display:block}
 .fix .fixbar{display:flex;align-items:center;gap:10px;margin-top:10px;flex-wrap:wrap}.fix .fixbar #fpick{text-decoration:none}
@@ -664,6 +672,7 @@ details.brief ul{margin:0;padding-left:18px;color:var(--mut)}
 <div class="top">
   <div class="brand"><div class="logo">P</div><div>POLY DỰNG BÀI<small>CAROUSEL TIKTOK</small></div></div>
   <div class="sp"></div>
+  <button class="chip hoic" id="hoiNut" title="Hỏi app: cách dùng, bài chờ đăng, máy nào đăng mấy bài… (bot chỉ trả lời, không làm thay)"><span>💬<span class="chl"> Hỏi app</span></span></button>
   <span class="chip rmc" id="bRm" title="Remote: nhắn việc cho app từ Telegram (viết brief, bấm Chạy, ghi quy tắc, hỏi tình hình). Chỉ nghe khi bật. Bấm chữ Remote để xem mã nối, hướng dẫn."><span class="dot"></span><span class="rml" role="button">📱 Remote</span><span class="kseg rmsw"><button data-rb="0">Tắt</button><button data-rb="1">Bật</button></span></span>
   <button class="chip tgc" id="bChung" title="Dùng chung: máy khác (MacBook…) mở app này qua mạng, không cần đăng nhập Claude"><span class="dot"></span><span>💻<span class="lb"> Máy khác</span></span></button>
   <span class="chip khc" id="khc" hidden title="App chạy trên máy shop (máy chủ), bằng tài khoản Claude của fen. Máy này không cần đăng nhập gì."></span>
@@ -1837,29 +1846,44 @@ function renderFeed(){
 function renderFix(){
   const d = S.data, j = d.job, sl = d.slides || [], live = j.status === 'dang-chay', w = $('#fixWrap');
   if (j.status === 'hen') { setH(w, ''); return; }
-  let mode = live ? 'wait' : (sl.length ? 'on' : 'none');
-  if (w.dataset.mode === mode && mode !== 'on') return;
-  if (mode === 'none') { w.dataset.mode = mode; w.innerHTML = ''; return; }
-  if (mode === 'wait') { w.dataset.mode = mode; w.innerHTML = `<div class="card mt fix wait">Chờ Claude làm xong lượt này rồi mới sửa được.</div>`; return; }
+  // fen 15/11 12h17 "cho chỗ này thành chat box hỏi với sửa bài đi": khung Sửa bài thành khung chat của bài (hỏi hoặc nhờ sửa);
+  // đang chạy lượt sửa / trả lời thì khung vẫn hiện (lịch sử + "Claude đang…"), chỉ khoá nút Gửi
+  const mode = sl.length ? 'on' : (live ? 'wait' : 'none');
+  if (mode !== 'on') {
+    if (w.dataset.mode !== mode) { w.dataset.mode = mode; w.innerHTML = mode === 'wait' ? `<div class="card mt fix wait">Chờ Claude làm xong lượt này rồi mới hỏi / sửa được.</div>` : ''; }
+    return;
+  }
   const key = sl.map(s => s.n).join(',');
-  if (w.dataset.mode === 'on' && w.dataset.key === key) return;
-  w.dataset.mode = 'on'; w.dataset.key = key;
-  const df = draft();
-  // fen 15/11 11h51 "làm gọn lại": bỏ đoạn hướng dẫn dài + nhãn ô sửa chung (ý đưa vào chữ mờ trong ô), ô 2 dòng, khung ảnh to
-  // thành nút 📎 Ảnh (kéo thả / dán ảnh vẫn được; khung ảnh chỉ hiện khi có ảnh hoặc đang kéo ảnh vào)
-  w.innerHTML = `<div class="card mt fix" id="fixCard">
-    <div class="fixhd"><div class="sec">Sửa bài</div><p class="fixtom" id="fixTom"></p></div>
-    <textarea class="in" id="fixText" rows="2" placeholder="${KHACH ? 'Sửa chung cả bài, vd: chữ cả bài to hơn (quy tắc chỉ máy shop đổi được)' : 'Sửa chung cả bài / nhắc quy tắc cho bài sau, vd: chữ cả bài to hơn; bìa luôn dùng ảnh máy tách nền…'}">${esc(df.text)}</textarea>
-    <div class="drop fdrop" id="fdrop"><div class="hint">Thả ảnh vào đây</div></div>
-    <input type="file" id="ffile" accept="image/*" multiple hidden>
-    <div class="err" id="fixErr"></div>
-    <div class="fixbar"><button class="btn pri" id="bFix" title="${j.session_id ? 'Claude nhớ cả bài, chỉ dựng lại slide cần sửa' : 'Claude sửa rồi dựng lại'}">Sửa một lượt</button><a href="#" class="btn ghost sm" id="fpick" title="Thêm ảnh mới cho lượt sửa (kéo thả hoặc dán ảnh vào trang cũng được)">📎 Ảnh</a><label class="mlab" title="Model cho lượt sửa này và các lượt sửa sau của bài (không đổi model đã dựng). Theo cài đặt = Kiểm máy > Model > Sửa bài">Model ${chonModel('fixModel', ['', 'sonnet', 'opus'], j.model_sua || '', 'Theo cài đặt')}</label></div>
-  </div>`;
-  $('#fixText').oninput = e => { df.text = e.target.value; e.target.classList.remove('bad'); veTomSua(); };
-  veTomSua();
-  setupPick($('#ffile'), $('#fpick'), df.anh, $('#fdrop'));
-  renderThumbs($('#fdrop'), df.anh);
-  $('#bFix').onclick = doFix;
+  if (!(w.dataset.mode === 'on' && w.dataset.key === key && $('#fixCard'))) {
+    w.dataset.mode = 'on'; w.dataset.key = key;
+    const df = draft();
+    w.innerHTML = `<div class="card mt fix" id="fixCard">
+      <div class="fixhd"><div class="sec">💬 Hỏi / sửa bài</div><p class="fixtom" id="fixTom"></p><label class="mlab" title="Model cho lượt hỏi / sửa này và các lượt sau của bài (không đổi model đã dựng). Theo cài đặt = Kiểm máy > Model > Sửa bài">Model ${chonModel('fixModel', ['', 'sonnet', 'opus'], j.model_sua || '', 'Theo cài đặt')}</label></div>
+      <div class="fchat" id="fChat"></div>
+      <div class="drop fdrop" id="fdrop"><div class="hint">Thả ảnh vào đây</div></div>
+      <input type="file" id="ffile" accept="image/*" multiple hidden>
+      <div class="fin"><textarea class="in" id="fixText" rows="1" placeholder="">${esc(df.text)}</textarea><a href="#" class="btn ghost sm" id="fpick" title="Gắn ảnh mới (kéo thả hoặc dán ảnh vào trang cũng được)">📎</a><button class="btn pri" id="bFix" title="${j.session_id ? 'Claude nhớ cả bài: câu hỏi thì trả lời, nhờ sửa thì chỉ dựng lại slide cần sửa' : 'Claude trả lời hoặc sửa rồi dựng lại'}">Gửi</button></div>
+      <div class="err" id="fixErr"></div>
+    </div>`;
+    $('#fixText').oninput = e => { df.text = e.target.value; e.target.classList.remove('bad'); veTomSua(); };
+    $('#fixText').onkeydown = e => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); if (!$('#bFix').disabled) doFix(); } };
+    veTomSua();
+    setupPick($('#ffile'), $('#fpick'), df.anh, $('#fdrop'));
+    renderThumbs($('#fdrop'), df.anh);
+    $('#bFix').onclick = doFix;
+  }
+  veChatBai();
+}
+const chatGon = t => String(t || '').replace(/Chung \((fen nhắc, ghi thành quy tắc|chỉ bài này, không ghi quy tắc)\): /g, '').replace(/ \| /g, '\n');
+function veChatBai(){
+  const el = $('#fChat'); if (!el || !S.data) return;
+  const ds = S.data.chat || [], live = S.data.job.status === 'dang-chay';
+  const h = ds.length ? ds.map(x => `<div class="fm fen">${esc(chatGon(x.text))}</div>` + (x.tra ? `<div class="fm bot${x.loi ? ' loi' : ''}">${hoiChu(x.tra)}</div>`
+      : x.dang ? `<div class="fm bot dang">Claude đang ${x.chat ? 'đọc bài, trả lời hoặc sửa' : 'sửa'}…</div>` : x.loi ? '<div class="fm bot loi">Lượt này dừng giữa chừng (xem Tiến độ bên phải).</div>' : '')).join('')
+    : '<p class="fchint">Hỏi về bài (vd: “slide 3 đọc có rõ không?”) hoặc nhờ sửa (vd: “chữ cả bài to hơn”, “slide 2 đổi ảnh”). Muốn sửa riêng từng slide thì ghi ở ô dưới slide đó rồi bấm Gửi.</p>';
+  if (setH(el, h)) el.scrollTop = el.scrollHeight;
+  const b = $('#bFix'); if (b && !b.dataset.busy) b.disabled = live;
+  const t = $('#fixText'); if (t) t.placeholder = live ? 'Chờ Claude xong lượt này…' : 'Hỏi về bài hoặc nhờ sửa… (Enter gửi)';
 }
 function suaGhi(df){   // các slide đã ghi sửa (chữ hoặc ảnh)
   const ks = new Set(Object.keys(df.per || {}).concat(Object.keys(df.perAnh || {})));
@@ -1879,9 +1903,8 @@ function veAnhSlide(n){
 }
 function veTomSua(){
   const df = draft(), ds = suaGhi(df), chung = (df.text || '').trim(), el = $('#fixTom'), b = $('#bFix');
-  if (el) el.innerHTML = ds.length ? 'Đã ghi sửa: <b>slide ' + ds.join(', ') + '</b>' + (chung ? ' + sửa chung' : '') + ', bấm Sửa một lượt.'
-    : (chung ? (KHACH ? 'Sửa chung cả bài.' : 'Sửa chung cả bài + ghi quy tắc.') : 'Ghi ở ô dưới từng slide, hoặc ô sửa chung dưới đây.');
-  if (b && !b.dataset.busy) b.textContent = ds.length > 1 ? 'Sửa một lượt (' + ds.length + ' slide)' : 'Sửa một lượt';
+  if (el) el.innerHTML = ds.length ? 'Kèm ghi sửa ở <b>slide ' + ds.join(', ') + '</b>' : '';
+  if (b && !b.dataset.busy) b.textContent = ds.length ? 'Gửi (kèm ' + ds.length + ' slide)' : 'Gửi';
 }
 function goFix(n){
   const o = n && document.querySelector('.slfix[data-fn="' + n + '"]');
@@ -1897,14 +1920,15 @@ async function doFix(){
   const anh = [];
   const txt = ds.map(n => { const a = (df.perAnh[n] || []).map((x, k) => { const ext = ((x.name || '').match(/\.\w+$/) || ['.png'])[0]; anh.push({name: 'slide' + n + '-' + (k + 1) + ext, data: x.data}); return 'slide' + n + '-' + (k + 1) + ext; });
       return 'Slide ' + n + ': ' + (mot(df.per[n] || '') || 'dùng ảnh fen gửi') + (a.length ? ' (ảnh fen gửi cho slide này: ' + a.join(', ') + ')' : ''); })
-    .concat(chung ? [(KHACH ? 'Chung (chỉ bài này, không ghi quy tắc): ' : 'Chung (fen nhắc, ghi thành quy tắc): ') + mot(chung)] : []).join(' | ');
+    .concat(chung ? [ds.length ? mot(chung) : chung] : []).join(' | ');      // khung chat của bài (15/11): tin fen gửi nguyên văn
   df.anh.forEach(x => anh.push(x));
-  if (!txt) { const o = document.querySelector('.slfix'); (o || $('#fixText')).classList.add('bad'); (o || $('#fixText')).focus(); $('#fixErr').textContent = 'Ghi cần sửa vào ô dưới slide (vd: slide 3 đổi ảnh) hoặc ô sửa chung.'; return; }
+  if (!txt) { $('#fixText').classList.add('bad'); $('#fixText').focus(); $('#fixErr').textContent = 'Gõ câu hỏi hoặc điều cần sửa (hoặc ghi ở ô dưới slide).'; return; }
   const b = $('#bFix'); b.disabled = true; b.dataset.busy = 1; b.textContent = 'Đang gửi…';
   try {
-    await api('/api/job/' + j.id + '/sua', {text: txt, slides: ds, anh, model: ($('#fixModel') || {}).value || ''});
+    await api('/api/job/' + j.id + '/sua', {text: txt, slides: ds, anh, chat: true, model: ($('#fixModel') || {}).value || ''});
     delete S.drafts[j.id]; document.querySelectorAll('.slfix').forEach(o => { o.value = ''; o.classList.remove('co'); });
-    toast(ds.length > 1 ? 'Đã giao sửa ' + ds.length + ' slide một lượt' : 'Đã giao sửa');
+    const t = $('#fixText'); if (t) t.value = ''; delete b.dataset.busy;
+    toast('Đã gửi: Claude đọc bài rồi trả lời hoặc sửa');
     await reload();
   } catch(e) { $('#fixErr').textContent = e.message; b.disabled = false; delete b.dataset.busy; veTomSua(); }
 }
@@ -2852,8 +2876,7 @@ function hoiMo(mo){
   const bx = $('#hoiBox'); bx.hidden = mo == null ? !bx.hidden : !mo; $('#hoiNut').classList.toggle('on', !bx.hidden);
   hoiVe(); if (!bx.hidden) setTimeout(() => $('#hoiTxt')?.focus(), 50);
 }
-document.body.insertAdjacentHTML('beforeend', `<button id="hoiNut" title="Hỏi app: cách dùng, bài chờ đăng, máy nào đăng mấy bài…">💬</button>
-  <div id="hoiBox" hidden><div class="hoihd">💬 Hỏi app <small>chỉ trả lời, không làm thay</small><span class="sp"></span><button id="hoiXoa" title="Xoá cuộc chat trên máy này">Xoá</button><button id="hoiDong" title="Đóng">✕</button></div>
+document.body.insertAdjacentHTML('beforeend', `<div id="hoiBox" hidden><div class="hoihd">💬 Hỏi app <small>chỉ trả lời, không làm thay</small><span class="sp"></span><button id="hoiXoa" title="Xoá cuộc chat trên máy này">Xoá</button><button id="hoiDong" title="Đóng">✕</button></div>
   <div class="hoids" id="hoiDs"></div>
   <div class="hoinhap"><textarea class="in" id="hoiTxt" rows="1" placeholder="Hỏi gì đó… (Enter gửi, Shift+Enter xuống dòng)"></textarea><button class="btn pri sm" id="hoiGui">Gửi</button></div></div>`);
 $('#hoiNut').onclick = () => hoiMo(); $('#hoiDong').onclick = () => hoiMo(false);

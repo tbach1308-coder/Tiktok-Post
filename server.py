@@ -2758,6 +2758,17 @@ def quy_tac_ds():
     return {"viec": viec, "lich_su": _lich_su_quy_tac(), "file": ((CFG.get("quy_tac") or [""])[0]).replace("\\", "/"), "now": now()}
 
 
+# fen 15/11 12h17 "cho chỗ này thành chat box hỏi với sửa bài đi": khung Sửa bài thành khung chat của bài. Tin fen gõ có thể là câu hỏi
+# (Claude chỉ trả lời, không sửa, không dựng lại, cuối câu trả lời có dòng CHI_TRA_LOI) hoặc yêu cầu sửa (sửa như cũ). Quy tắc cho bài
+# sau chỉ ghi khi fen nói rõ "lần sau / từ giờ / luôn / quy tắc" (trước đây ô sửa chung luôn ghi thành quy tắc).
+CHAT_SUA = """
+
+KHUNG CHAT CỦA BÀI (fen 15/11): tin trên là fen gõ trong khung chat của bài này (kèm các ô "Slide N: …" fen ghi dưới từng slide nếu có).
+- Tin là CÂU HỎI / hỏi ý kiến / hỏi vì sao (không bảo sửa, đổi, thêm, bỏ gì): chỉ trả lời ngắn gọn bằng tiếng Việt (gọi fen, xưng mình) dựa trên bài, brief, slide; KHÔNG sửa file, KHÔNG dựng lại, KHÔNG ghi quy tắc. Dòng cuối cùng của câu trả lời ghi đúng chữ CHI_TRA_LOI.
+- Tin là YÊU CẦU SỬA: sửa như bình thường (làm hết, dựng lại 1 lần), câu trả lời cuối tóm tắt ngắn đã sửa gì. Chỉ ghi vào file quy tắc cho bài sau khi fen nói rõ là quy tắc chung (vd "lần sau", "từ giờ", "luôn luôn", "quy tắc").
+- Vừa hỏi vừa nhờ sửa: sửa, rồi trả lời câu hỏi trong câu trả lời cuối."""
+
+
 def fix_job(jid, data):
     with LOCK:
         return _fix_job(jid, data)
@@ -2778,10 +2789,29 @@ def _fix_job(jid, data):
     resumed = bool(sid) and data.get("moi") is not True
     if "model" in data and (data.get("model") or "") in MODEL_VIEC["model_sua"][1]:
         job["model_sua"] = data.get("model") or ""      # fen đổi model ở ô Sửa bài: giữ cho các lượt sửa sau của bài (không đổi model dựng)
-    job.setdefault("sua", []).append({"t": now(), "text": text, "slides": slides, "anh": anh})
-    lab = "Sửa" + (" slide " + ", ".join(str(x) for x in slides) if slides else "") + ": " + short(text, 50)
-    start_run(job, build_prompt_sua(job, text, slides, anh, resumed), "sua", sid if resumed else None, lab)
+    chat = bool(data.get("chat"))
+    job.setdefault("sua", []).append(dict({"t": now(), "text": text, "slides": slides, "anh": anh}, **({"chat": True} if chat else {})))
+    lab = ("Chat" if chat else "Sửa") + (" slide " + ", ".join(str(x) for x in slides) if slides else "") + ": " + short(text, 50)
+    start_run(job, build_prompt_sua(job, text, slides, anh, resumed) + (CHAT_SUA if chat else ""), "sua", sid if resumed else None, lab)
     return job
+
+
+def chat_bai(job, results):
+    """Lịch sử khung chat của bài: mỗi lần fen gửi (job["sua"], cả lượt sửa cũ) + câu trả lời cuối của lượt sửa tương ứng."""
+    res = {r["run"]: r for r in results}
+    runs = [r for r in (job.get("runs") or []) if r.get("kind") == "sua"]
+    out = []
+    for i, x in enumerate(job.get("sua") or []):
+        r = runs[i] if i < len(runs) else None
+        rr = res.get(r["n"]) if r else None
+        tra = re.sub(r"^\s*THU_MUC_BAI\s*=.*$", "", (rr or {}).get("text") or "", flags=re.M).strip()
+        chi = "CHI_TRA_LOI" in tra
+        tra = re.sub(r"\n?\s*CHI_TRA_LOI\s*$", "", tra).replace("CHI_TRA_LOI", "").strip()
+        out.append({"t": x.get("t"), "text": x.get("text") or "", "chat": bool(x.get("chat")), "n": r and r["n"],
+                    "tra": tra[:2500], "ok": bool(rr and rr.get("ok")), "hoi": chi,
+                    "dang": bool(r and not rr and r.get("ket_qua") is None and job.get("status") == "dang-chay"),
+                    "loi": bool(r and r.get("ket_qua") in ("loi", "dung"))})
+    return out[-30:]
 
 
 def tra_loi_job(jid, data):
@@ -4707,6 +4737,8 @@ def _bao_mot_bai(jid):
     if not _danh_dau_run(jid, run["n"], "da_bao"):
         return
     v = job_view(jid) or {}
+    if kq == "xong" and run.get("kind") == "sua" and (v.get("chat") or [{}])[-1].get("hoi"):
+        return              # khung chat của bài: lượt chỉ trả lời câu hỏi, không báo "Xong" lên Telegram
     phut = max(1, round(((run.get("ended") or now()) - run.get("started", now())) / 60))
     if kq == "xong":
         sl = v.get("slides") or []
@@ -6517,7 +6549,7 @@ def job_view(jid, since=0):
         "dung_tuan": _dung_tuan_gon(),
         "idle": round(now() - st.get("last_new", now())),
         "events": ev, "next": since + len(ev), "tasks": tasks, "gen": st.get("gen"),
-        "final": final, "hoi": hoi, "hoi_luot": run_hoi, "slides": list_slides(job.get("thu_muc_bai")),
+        "final": final, "hoi": hoi, "hoi_luot": run_hoi, "slides": list_slides(job.get("thu_muc_bai")), "chat": chat_bai(job, results),
         "caption": read_caption(job), "da_gui": job.get("da_gui") or [], "brand": brand_bai(job), "canva": canva_doc(jid),
         "telegram": bool(CFG.get("telegram_token") and CFG.get("telegram_chat")), "telegram_ten": CFG.get("telegram_ten") or "",
         "loai": job.get("loai") or "", "brief_viet": read_text(os.path.join(job_dir(jid), "brief-viet.txt")).replace("\ufeff", "").strip() if job.get("loai") == "brief" else "",

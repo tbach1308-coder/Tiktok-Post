@@ -21,6 +21,10 @@ def out(o, d=0.12):
         o.setdefault("modelUsage", {"claude-opus-5-5": {"costUSD": round(o["total_cost_usd"] * 0.9, 4)}, "claude-haiku-5-5": {"costUSD": round(o["total_cost_usd"] * 0.1, 4)}})
     print(json.dumps(o, ensure_ascii=False), flush=True); time.sleep(d)
 out({"type": "system", "subtype": "init", "session_id": sid, "model": "claude-opus-5-5"})
+if 'KHUNG CHAT CỦA BÀI' in prompt and prompt.split('KHUNG CHAT CỦA BÀI')[0].split('\n')[0].rstrip().endswith('?'):   # khung chat của bài (15/11): câu hỏi → chỉ trả lời
+    out({"type": "assistant", "message": {"content": [{"type": "text", "text": "Đọc bài…"}]}})
+    out({"type": "result", "subtype": "success", "is_error": False, "result": "Slide 3 đọc rõ rồi fen, chữ 64px trên nền tối.\nCHI_TRA_LOI", "session_id": sid, "duration_ms": 1500, "num_turns": 3, "total_cost_usd": 0.05})
+    sys.exit(0)
 if prompt.startswith('GỢI Ý BÀI TỪ HÀNG TRONG KHO POLYSTO'):   # 💡 Gợi ý từ kho (15/11): FAKE_KHO_LOI = báo lỗi, FAKE_KHO2 = có thêm 1 dòng máy mới về
     time.sleep(float(open(os.path.join(HERE, 'FAKE_KHO_CHAM')).read() or 0) if os.path.exists(os.path.join(HERE, 'FAKE_KHO_CHAM')) else 0)
     if os.path.exists(os.path.join(HERE, 'FAKE_KHO_LOI')):
@@ -82,7 +86,7 @@ if os.path.exists(os.path.join(HERE, 'FAKE_HAN_MUC')):   # hết hạn mức tu�
     out({"type": "assistant", "message": {"content": [{"type": "text", "text": "You've hit your weekly limit · resets 6am (Asia/Bangkok)"}]}})
     out({"type": "result", "subtype": "success", "is_error": False, "result": open(os.path.join(HERE, 'FAKE_HAN_MUC')).read().strip() or "You've hit your weekly limit · resets 6am (Asia/Bangkok)", "session_id": sid, "duration_ms": 700, "num_turns": 1, "total_cost_usd": 0})
     sys.exit(1)
-if 'LOI' in prompt.replace('LOI_ICH', '').replace('CANVA_LOI', ''):
+if 'LOI' in prompt.replace('LOI_ICH', '').replace('CANVA_LOI', '').replace('CHI_TRA_LOI', '').replace('GOI_Y_LOI', ''):
     out({"type": "assistant", "message": {"content": [{"type": "text", "text": "Mình dựng bài kênh iPad."}]}})
     sys.stderr.write("Not logged in · Please run /login\n"); sys.exit(1)
 if 'GHI QUY TẮC MỚI' in prompt:   # nút Quy tắc
