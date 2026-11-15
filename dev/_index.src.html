@@ -106,7 +106,13 @@ a.btn{color:var(--tx);text-decoration:none}
 .side .new .row2 .btn{padding:7px 4px}
 .lshd{display:flex;align-items:center;gap:10px}.lshd .btn{margin-left:auto;font-size:12px;font-weight:600}
 /* 📱 Story / reel (fen 15/11 12h36): hộp chọn bài + ảnh dọc 9:16 */
-.stpick{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:8px;max-height:56vh;overflow:auto}
+.stpage .tkbar{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:12px}.stpage .tkbar h1{margin:0}
+.side .new #bStory.on{border-color:var(--g);background:var(--gsoft);color:var(--gl)}
+.stpick{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;margin-bottom:12px}
+.stpick button{flex:0 0 104px}.stpick button.on{border-color:var(--g);box-shadow:inset 0 0 0 1px var(--g)}
+.stbar .stten{max-width:340px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px;margin-right:4px}
+.stpage .stgrid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));max-height:none;gap:10px}
+.stgrid a{position:relative}.stgrid a span{position:absolute;left:6px;bottom:6px;background:rgba(0,0,0,.6);color:#fff;font-size:11px;font-weight:700;border-radius:5px;padding:1px 6px}
 .stpick button{background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:5px;cursor:pointer;text-align:left;color:var(--tx);font:inherit;font-size:11.5px;line-height:1.3}
 .stpick button:hover{border-color:var(--g)}.stpick img,.stpick .nb{width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:6px;display:block;background:var(--line);margin-bottom:4px}
 .stpick b{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-weight:600}
@@ -1202,7 +1208,7 @@ async function loadJobs(){
 }
 // có bản giao diện mới: chỉ tự tải lại khi fen không đang gõ / chưa gửi dở
 // app có bản mới mà đang dở tay (gõ chữ, ảnh chưa gửi) nên chưa tự tải lại: hiện thanh nhắc (fen 6/11 không thấy nút mới vì trang chưa tải lại)
-function taiLaiUi(){ location.hash = S.view === 'theme' ? 'theme' : S.view === 'thongke' ? 'thongke' : S.jobId ? 'bai=' + S.jobId : 'moi'; location.reload(); }
+function taiLaiUi(){ location.hash = S.view === 'theme' ? 'theme' : S.view === 'thongke' ? 'thongke' : S.view === 'story' ? 'story' + (S.stId ? '=' + S.stId : '') : S.jobId ? 'bai=' + S.jobId : 'moi'; location.reload(); }
 function uiMoiBao(){
   if ($('#uiMoi')) return;
   const d = document.createElement('div'); d.id = 'uiMoi'; d.className = 'uimoi';
@@ -1251,6 +1257,7 @@ S.sbLoc = store.get('poly-sbloc', '');
 function renderJobs(){
   $('#bTheme')?.classList.toggle('on', S.view === 'theme');
   $('#bThongKe')?.classList.toggle('on', S.view === 'thongke');
+  $('#bStory')?.classList.toggle('on', S.view === 'story');
   const nhom = {lam: [], cho: [], nhap: dsNhap(), dang: []};
   // fen 12/11 19h37 "app gốc quản lý và xem dc bài làm của máy khác": máy shop lọc bài theo máy
   // 15/11: gộp máy theo tên (1 máy vào lại dùng chung có mã mới vẫn là 1 dòng), khoá như trang 📊 Số bài
@@ -2860,49 +2867,52 @@ function gyVe(){
     f.chude = x.chu_de; f.kho = x.may; $('#fChuDe').value = x.chu_de; $('#fKho').value = x.may; saveForm();
     toast('Đã điền chủ đề + máy vào ô Kho: bấm ✍ Viết brief'); $('#fChuDe').focus(); });
 }
-// ---- 📱 Story / reel (fen 15/11 12h36 "thay ô này thành ô chức năng làm ảnh story reel", chọn "Từ bài đã làm"): đang mở 1 bài đã xong thì
-// làm cho bài đó, không thì chọn bài (bài xong gần nhất, theo ô Máy đang lọc). Ảnh 9:16 1080×1920 làm trên máy shop bằng Pillow (vài giây):
-// slide nằm giữa, chừa trên / dưới cho chữ và nút của app; nền màu viền slide hoặc nền mờ. Tải .zip / gửi Telegram / mở thư mục (máy shop).
+// ---- 📱 Story / reel (fen 15/11 12h36 "thay ô này thành ô chức năng làm ảnh story reel", chọn "Từ bài đã làm"; 12h50 "cho tab riêng để
+// làm luôn"): trang riêng #story (như Kho theme / Số bài). Hàng trên: bài đã làm xong (theo ô Máy đang lọc), bài đang chọn viền xanh; dưới:
+// nền Màu slide / Mờ, Làm ảnh story, ảnh 9:16 to, Tải tất cả / Gửi Telegram / Mở thư mục. Đang mở 1 bài xong thì trang chọn sẵn bài đó.
+// Ảnh 1080×1920 làm trên máy shop bằng Pillow (vài giây, không tốn Claude).
 function storyDialog(){
   const j = S.view === 'job' && S.data && S.data.job;
-  if (j && (S.data.slides || []).length) return storyBai(j.id, j.tieu_de);
-  const may = x => KHACH || !S.sbMay || (S.sbMay === 'chu' ? !x.khach : !!x.khach && mayKhoa(x.khach.ten) === S.sbMay);
-  const ds = S.jobs.filter(x => x.status === 'xong' && may(x)).slice(0, 24);
-  const m = document.createElement('div'); m.className = 'modal on';
-  m.innerHTML = `<div class="mbox wide"><h3>📱 Ảnh story / reel</h3><p class="pnote">Chọn 1 bài đã làm: app làm ảnh dọc 9:16 (1080×1920) từ các slide để đăng Story / Reel.</p>
-    <div class="stpick">${ds.length ? ds.map(x => `<button data-st="${esc(x.id)}" title="${esc(x.tieu_de || '')}">${x.bia ? `<img src="${esc(x.bia)}" alt="" loading="lazy">` : '<span class="nb"></span>'}<b>${esc(x.tieu_de || 'Bài')}</b><span class="kn ${x.kenh}">${esc((KENH[x.kenh] || {}).ten || '')}</span></button>`).join('') : '<p class="pnote">Chưa có bài nào làm xong.</p>'}</div>
-    <div class="acts"><button class="btn" id="stDong">Đóng</button></div></div>`;
-  document.body.appendChild(m);
-  $('#stDong').onclick = () => m.remove(); m.onclick = e => { if (e.target === m) m.remove(); };
-  m.querySelectorAll('[data-st]').forEach(b => b.onclick = () => { m.remove(); storyBai(b.dataset.st, (S.jobs.find(x => x.id === b.dataset.st) || {}).tieu_de); });
+  storyTrang(j && (S.data.slides || []).length ? j.id : (S.stId || ''));
 }
-async function storyBai(id, ten){
-  const m = document.createElement('div'); m.className = 'modal on';
-  m.innerHTML = `<div class="mbox wide" id="stBox"><h3>📱 Story / reel · ${esc(ten || 'Bài')}</h3>
-    <p class="pnote">Ảnh dọc 9:16 (1080×1920) từ slide: slide nằm giữa, chừa trên / dưới cho chữ và nút của TikTok, Facebook, Instagram.</p>
-    <div class="stbar"><span class="lbl" style="margin:0">Nền</span><div class="kseg segd" id="stNen"><button data-nen="mau">Màu slide</button><button data-nen="mo">Mờ</button></div>
-      <button class="btn pri sm" id="stLam">Làm ảnh story</button><span class="pnote" id="stSt" style="margin:0"></span></div>
-    <div class="stgrid" id="stG"><p class="pnote">Đang tải…</p></div>
-    <div class="acts"><a class="btn ghost" id="stZip" download>⬇ Tải tất cả</a><button class="btn ghost" id="stTg">📨 Gửi Telegram</button>${KHACH ? '' : '<button class="btn ghost" id="stMo">📂 Mở thư mục</button>'}<span style="flex:1"></span><button class="btn" id="stDong">Đóng</button></div></div>`;
-  document.body.appendChild(m);
-  $('#stDong').onclick = () => m.remove(); m.onclick = e => { if (e.target === m) m.remove(); };
+async function storyTrang(id){
+  try { history.replaceState(null, '', '#story' + (id ? '=' + id : '')); } catch(e) {}
+  stopPoll(); S.view = 'story'; S.jobId = null; renderJobs();
+  const may = x => KHACH || !S.sbMay || (S.sbMay === 'chu' ? !x.khach : !!x.khach && mayKhoa(x.khach.ten) === S.sbMay);
+  const ds = S.jobs.filter(x => x.status === 'xong' && may(x)).slice(0, 40);
+  if (!id || !S.jobs.some(x => x.id === id)) id = (ds[0] || {}).id || '';
+  S.stId = id;
+  const m = $('#main');
+  m.innerHTML = `<div class="pad stpage"><div class="tkbar"><h1>📱 Story / reel</h1><span class="pnote" style="margin:0">Ảnh dọc 9:16 (1080×1920) từ slide bài đã làm: slide nằm giữa, chừa trên / dưới cho chữ và nút của TikTok, Facebook, Instagram. Vài giây, không tốn Claude.</span></div>
+    <div class="stpick" id="stPick">${ds.length ? ds.map(x => `<button data-st="${esc(x.id)}" class="${x.id === id ? 'on' : ''}" title="${esc(x.tieu_de || '')}">${x.bia ? `<img src="${esc(x.bia)}" alt="" loading="lazy">` : '<span class="nb"></span>'}<b>${esc(x.tieu_de || 'Bài')}</b><span class="kn ${x.kenh}">${esc((KENH[x.kenh] || {}).ten || '')}</span></button>`).join('') : '<p class="pnote">Chưa có bài nào làm xong.</p>'}</div>
+    <div id="stWork"></div></div>`;
+  m.querySelectorAll('#stPick [data-st]').forEach(b => b.onclick = () => storyTrang(b.dataset.st));
+  const sel = m.querySelector('#stPick .on'); if (sel) sel.scrollIntoView({ block: 'nearest', inline: 'center' });
+  if (!id) return;
+  const ten = (S.jobs.find(x => x.id === id) || {}).tieu_de || 'Bài';
+  const w = $('#stWork');
+  w.innerHTML = `<div class="stbar"><b class="stten" title="${esc(ten)}">${esc(ten)}</b><span class="lbl" style="margin:0">Nền</span><div class="kseg segd" id="stNen"><button data-nen="mau">Màu slide</button><button data-nen="mo">Mờ</button></div>
+      <button class="btn pri sm" id="stLam">Làm ảnh story</button><span class="pnote" id="stSt" style="margin:0"></span><span style="flex:1"></span>
+      <a class="btn ghost sm" id="stZip" download>⬇ Tải tất cả</a><button class="btn ghost sm" id="stTg">📨 Gửi Telegram</button>${KHACH ? '' : '<button class="btn ghost sm" id="stMo">📂 Mở thư mục</button>'}</div>
+    <div class="stgrid" id="stG"><p class="pnote">Đang tải…</p></div>`;
   let r = { story: [], nen: 'mau' }, nen = 'mau';
   const ve = () => {
-    m.querySelectorAll('#stNen [data-nen]').forEach(b => b.classList.toggle('on', b.dataset.nen === nen));
-    setH($('#stG'), r.story.length ? r.story.map(x => `<a href="${esc(x.url)}" target="_blank" title="Mở ảnh to ${esc(x.name)}"><img src="${esc(x.url)}" alt="${esc(x.name)}" loading="lazy"></a>`).join('') : `<p class="pnote">Chưa có ảnh story: chọn nền rồi bấm Làm ảnh story (${r.slides || 0} slide).</p>`);
+    if (S.view !== 'story' || S.stId !== id || !$('#stG')) return;
+    w.querySelectorAll('#stNen [data-nen]').forEach(b => b.classList.toggle('on', b.dataset.nen === nen));
+    setH($('#stG'), r.story.length ? r.story.map(x => `<a href="${esc(x.url)}" target="_blank" title="Mở ảnh to ${esc(x.name)}"><img src="${esc(x.url)}" alt="${esc(x.name)}" loading="lazy"><span>${x.n}</span></a>`).join('') : `<p class="pnote">Chưa có ảnh story cho bài này: chọn nền rồi bấm Làm ảnh story (${r.slides || 0} slide).</p>`);
     const z = $('#stZip'); z.href = r.story.length ? '/api/job/' + id + '/story.zip' : '#'; z.style.pointerEvents = r.story.length ? '' : 'none'; z.style.opacity = r.story.length ? '' : '.5';
     $('#stTg').disabled = !r.story.length; $('#stLam').textContent = r.story.length ? 'Làm lại' : 'Làm ảnh story';
   };
-  m.querySelectorAll('#stNen [data-nen]').forEach(b => b.onclick = () => { nen = b.dataset.nen; ve(); });
+  w.querySelectorAll('#stNen [data-nen]').forEach(b => b.onclick = () => { nen = b.dataset.nen; ve(); });
   $('#stLam').onclick = async () => { const b = $('#stLam'); b.disabled = true; $('#stSt').textContent = 'Đang làm…';
-    try { r = await api('/api/job/' + id + '/story', { nen }); $('#stSt').textContent = 'Xong ' + r.story.length + ' ảnh'; } catch(e) { $('#stSt').textContent = ''; toast(e.message, true); }
+    try { r = await api('/api/job/' + id + '/story', { nen }); if ($('#stSt')) $('#stSt').textContent = 'Xong ' + r.story.length + ' ảnh'; } catch(e) { if ($('#stSt')) $('#stSt').textContent = ''; toast(e.message, true); }
     b.disabled = false; ve(); };
   $('#stTg').onclick = async () => { const b = $('#stTg'); b.disabled = true; b.textContent = 'Đang gửi…';
     try { const x = await api('/api/job/' + id + '/story-tg', {}); toast('Đã gửi ' + x.n + ' ảnh story qua Telegram'); }
-    catch(e) { if (e.message.startsWith('CAI_TELEGRAM')) { m.remove(); tgDialog(e.message.split('|')[1]); } else toast(e.message, true); }
+    catch(e) { if (e.message.startsWith('CAI_TELEGRAM')) tgDialog(e.message.split('|')[1]); else toast(e.message, true); }
     b.textContent = '📨 Gửi Telegram'; b.disabled = false; };
   const mo = $('#stMo'); if (mo) mo.onclick = () => api('/api/job/' + id + '/mo', {}).catch(e => toast(e.message, true));
-  try { r = await api('/api/job/' + id + '/story'); nen = r.nen || 'mau'; } catch(e) { setH($('#stG'), `<p class="err">${esc(e.message)}</p>`); return; }
+  try { r = await api('/api/job/' + id + '/story'); nen = r.nen || 'mau'; } catch(e) { if ($('#stG')) setH($('#stG'), `<p class="err">${esc(e.message)}</p>`); return; }
   ve();
 }
 // ---- 💬 Hỏi app (fen 15/11 11h51 "thêm chat bot để hỏi", chọn "Cách dùng app + số liệu"): hỏi cách làm, bài chờ đăng, máy nào đăng
@@ -2953,7 +2963,7 @@ $('#hoiGui').onclick = () => { const t = $('#hoiTxt'); const v = t.value; t.valu
 $('#hoiTxt').onkeydown = e => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); $('#hoiGui').click(); } };
 addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#hoiBox').hidden && !document.querySelector('.lb.on, dialog[open]')) hoiMo(false); });
 hoiVe(); hoiDoi();
-khoiDong().then(ok => ok && Promise.all([loadJobs(), loadNhap()])).then(v => { if (!v) return; if (location.hash === '#theme') return khoTheme(); if (location.hash === '#thongke' && !KHACH) return thongKe(); const h = (location.hash.match(/bai=([\w-]+)/) || [])[1], moi = location.hash === '#moi'; const r = !moi && ((h && S.jobs.find(j => j.id === h)) || S.jobs.find(j => j.status === 'dang-chay')); r ? openJob(r.id) : newView(); });
+khoiDong().then(ok => ok && Promise.all([loadJobs(), loadNhap()])).then(v => { if (!v) return; if (location.hash === '#theme') return khoTheme(); if (location.hash === '#thongke' && !KHACH) return thongKe(); const hs = location.hash.match(/^#story(?:=([\w-]+))?$/); if (hs) return storyTrang(hs[1] || ''); const h = (location.hash.match(/bai=([\w-]+)/) || [])[1], moi = location.hash === '#moi'; const r = !moi && ((h && S.jobs.find(j => j.id === h)) || S.jobs.find(j => j.status === 'dang-chay')); r ? openJob(r.id) : newView(); });
 setInterval(() => { if (duocHoi('ds')) loadJobs(); }, 5000); setInterval(() => health(), 120000);
 document.addEventListener('visibilitychange', () => { if (!document.hidden) { _hoiLuc.ds = Date.now(); loadJobs(); } });
 </script>

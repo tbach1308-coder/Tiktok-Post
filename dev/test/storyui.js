@@ -20,10 +20,11 @@ const pil = (f, xy) => JSON.parse(execFileSync('python3', ['-c', `import json,sy
   await p.click('#bLs'); await p.waitForSelector('#lsCoSan'); await p.click('#lsCoSan'); await p.waitForTimeout(400);
   check('hộp Lịch sử brief có nút "📂 Mở bài có sẵn", bấm mở đúng hộp cũ', await p.evaluate(() => [...document.querySelectorAll('.modal.on h3')].some(h => /Mở bài có sẵn/.test(h.textContent))));
   await p.evaluate(() => document.querySelectorAll('.modal').forEach(m => m.remove()));
-  await p.click('#bStory'); await p.waitForSelector('.stpick');
-  check('đang ở Bài mới: bấm Story / reel ra hộp chọn bài đã làm (ảnh bìa + tên)', await p.evaluate(() => document.querySelectorAll('.stpick [data-st]').length > 0));
-  await p.click(`.stpick [data-st="${jb.id}"]`); await p.waitForSelector('#stBox'); await p.waitForFunction(() => !/Đang tải/.test($('#stG').innerText), null, { timeout: 10000 });
-  check('chọn bài: hộp Story / reel, chưa có ảnh thì ghi số slide', await p.evaluate(() => /Chưa có ảnh story/.test($('#stG').innerText) && $('#stTg').disabled));
+  await p.click('#bStory'); await p.waitForSelector('.stpage .stpick');
+  const tr = await p.evaluate(() => ({ view: S.view, hash: location.hash, on: $('#bStory').classList.contains('on'), n: document.querySelectorAll('.stpick [data-st]').length, chon: document.querySelectorAll('.stpick .on').length, modal: !!document.querySelector('.modal.on') }));
+  check('bấm Story / reel: mở trang riêng #story (fen 12h50 "cho tab riêng"), nút sáng, hàng bài đã làm, chọn sẵn bài mới nhất, không hộp nổi', tr.view === 'story' && /^#story/.test(tr.hash) && tr.on && tr.n > 0 && tr.chon === 1 && !tr.modal, tr);
+  await p.click(`.stpick [data-st="${jb.id}"]`); await p.waitForSelector('#stG'); await p.waitForFunction(() => !/Đang tải/.test($('#stG').innerText), null, { timeout: 10000 });
+  check('chọn bài: bài đó viền xanh, tên bài trên thanh, chưa có ảnh thì ghi số slide', await p.evaluate(id => /Chưa có ảnh story/.test($('#stG').innerText) && $('#stTg').disabled && document.querySelector('.stpick .on').dataset.st === id && location.hash === '#story=' + id, jb.id));
   await p.click('#stNen [data-nen="mau"]'); await p.click('#stLam'); await p.waitForFunction(() => document.querySelectorAll('#stG img').length > 0, null, { timeout: 20000 });
   const n = await p.evaluate(() => document.querySelectorAll('#stG img').length);
   const f1 = jb.thu + '/story/story-' + String(jb.slides[0].n).padStart(2, '0') + '.jpg';
@@ -36,11 +37,12 @@ const pil = (f, xy) => JSON.parse(execFileSync('python3', ['-c', `import json,sy
   check('Nền Mờ: làm lại, vùng trên khác nền màu phẳng, nhớ lựa chọn', JSON.stringify(a2[1]) !== JSON.stringify(a1[1]) && (await j(A + '/api/job/' + jb.id + '/story')).b.nen === 'mo', [a1[1], a2[1]]);
   const tg = await j(A + '/api/job/' + jb.id + '/story-tg', {});
   check('📨 Gửi Telegram: gửi đủ ảnh (hoặc báo cần cài Telegram)', (tg.s === 200 && tg.b.n === n) || /CAI_TELEGRAM/.test(tg.b.err || ''), tg);
-  await p.evaluate(() => document.querySelectorAll('.modal').forEach(m => m.remove()));
-  // đang mở 1 bài: bấm Story / reel làm luôn cho bài đó
+  await p.reload(); await p.waitForSelector('#stG img', { timeout: 15000 });
+  check('tải lại trang (#story=…): vẫn ở trang Story, đúng bài, thấy ảnh', await p.evaluate(id => S.view === 'story' && S.stId === id, jb.id));
+  // đang mở 1 bài: bấm Story / reel chọn sẵn bài đó
   await p.goto(A + '/#bai=' + jb.id); await p.reload(); await p.waitForSelector('#fixCard', { timeout: 15000 });
-  await p.click('#bStory'); await p.waitForSelector('#stBox'); await p.waitForFunction(() => !/Đang tải/.test($('#stG').innerText), null, { timeout: 10000 });
-  check('đang mở 1 bài xong: bấm Story / reel mở thẳng hộp của bài đó, thấy ảnh đã làm', await p.evaluate(() => document.querySelectorAll('#stG img').length > 0 && !document.querySelector('.stpick')));
+  await p.click('#bStory'); await p.waitForSelector('#stG'); await p.waitForFunction(() => !/Đang tải/.test($('#stG').innerText), null, { timeout: 10000 });
+  check('đang mở 1 bài xong: bấm Story / reel chọn sẵn bài đó, thấy ảnh đã làm', await p.evaluate(id => document.querySelectorAll('#stG img').length > 0 && S.stId === id, jb.id));
   await p.screenshot({ path: 'shots/story.png' });
   // máy dùng chung
   await j(A + '/api/chung', { bat: true }); await new Promise(x => setTimeout(x, 1500));

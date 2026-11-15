@@ -253,7 +253,8 @@ LÀM 1 BÀI
   theme Photoshop ở tab Photoshop);
   sao vàng ★ = đang trong kho chung, bấm lại để thôi. Máy khác chỉ ▶ Làm bài / ⧉ Nhân bản theme kho chung.
   Mẫu Canva của kênh (Kiểm máy > Canva) cũng riêng từng máy.
-- 📱 Story / reel (15/11, nút ở cột trái, chỗ "Mở bài có sẵn" cũ): đang mở 1 bài đã xong thì làm cho bài đó, không thì chọn bài.
+- 📱 Story / reel (15/11, nút ở cột trái, chỗ "Mở bài có sẵn" cũ): mở trang riêng (như Kho theme / Số bài). Hàng trên là các bài
+  đã làm xong, bấm 1 bài để chọn (đang mở 1 bài thì trang chọn sẵn bài đó).
   App làm ảnh dọc 9:16 (1080×1920) từ mọi slide: slide nằm giữa, chừa trên / dưới cho chữ + nút của TikTok / Facebook / Instagram,
   nền "Màu slide" (phẳng, màu viền slide) hoặc "Mờ". Vài giây, không tốn Claude. Ảnh ở thư mục bài\story\story-NN.jpg; "⬇ Tải tất cả"
   (.zip), "📨 Gửi Telegram" (album, cùng nơi nhận như Gửi Telegram), "📂 Mở thư mục". Làm lại thì ảnh cũ thay bằng ảnh mới.
