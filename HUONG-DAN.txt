@@ -283,7 +283,10 @@ LÀM 1 BÀI
   (trang 📱 Story chỉ còn thư viện mẫu) và nút nhóm "Tất cả" (luôn xem 1 nhóm, mặc định 🎄 Noel).
   10 mẫu có sẵn: Máy mới về, Giá sốc, So sánh 2 máy, Feedback khách, Thông báo, Noel + 4 mẫu reel Facebook (15/11 14h19: Reel FB ·
   Máy mới về / Top 3 máy / Flash sale / Review khách; chữ và ảnh nằm trong vùng Facebook không che: trên 270, dưới 1250, chừa cột nút
-  bên phải; khung design vẽ vạch đúng vùng Facebook) + 13 mẫu "Theme · …" theo kho theme Photoshop (15/11 14h43: màu, font gần giống,
+  bên phải; khung design vẽ vạch đúng vùng Facebook) + 13 mẫu theo kho theme Photoshop (16/11: dựng lại đúng trang bìa từng theme —
+  Glass có tên máy rất to + máy xoè quạt, Ảnh thật chữ nghiêng / chữ vàng / đáy tối / nền sáng / chú thích tay, Bảng xanh giấy xé,
+  Tính năng có số to mờ + máy nghiêng, Tiệm vẽ tay, Tối giản; gắn ảnh máy / ảnh thật vào ô ảnh, sửa chữ là xong. Trước 16/11 là
+  mẫu "Theme · …" chung (15/11 14h43: màu, font gần giống,
   bố cục như trang bìa bộ dựng: POLY STORE · dòng trên · TIÊU ĐỀ to · dòng phụ · 2 thông số + nhãn · ảnh máy · dòng cuối; theme kính /
   ảnh thật: nền là ảnh máy làm mờ + tối, muốn nền khác thì gắn vào ô "Ảnh nền"). Hàng nút nhóm: Tất cả / Cơ bản / Reel Facebook /
   🎄 Noel / Theme Photoshop / Của fen. Ảnh trong khung chỉnh thêm "Làm mờ" và "Tối lại %".

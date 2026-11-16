@@ -1,0 +1,115 @@
+{
+ "dy": 206,
+ "tieu": {
+  "t1": {
+   "x": 64,
+   "tren": 294,
+   "co": 84
+  },
+  "t2": {
+   "x": 64,
+   "tren": 363,
+   "co": 84
+  }
+ },
+ "nhan": [
+  {
+   "k": "ct1",
+   "can": "phai",
+   "x": 855,
+   "w": 179,
+   "tren": 302,
+   "co": 46,
+   "chu": "Tím · 64GB",
+   "gia": "giá: 9tr490",
+   "gia_tren": 358
+  },
+  {
+   "k": "ct2",
+   "can": "trai",
+   "x": 64,
+   "w": 183,
+   "tren": 524,
+   "co": 42,
+   "chu": "Xanh dương",
+   "gia": "giá: 12tr990",
+   "gia_tren": 575
+  },
+  {
+   "k": "ct3",
+   "can": "phai",
+   "x": 904,
+   "w": 160,
+   "tren": 1522,
+   "co": 40,
+   "chu": "Xám",
+   "gia": "giá: 9tr290",
+   "gia_tren": 1571
+  }
+ ],
+ "png": [
+  {
+   "k": "gach_t2",
+   "ten": "ct-gach-tieu.png",
+   "x": 52,
+   "y": 431,
+   "w": 466,
+   "h": 19,
+   "nhom": "tieu"
+  },
+  {
+   "k": "gach_ct1",
+   "ten": "ct-gach-1.png",
+   "x": 913,
+   "y": 389,
+   "w": 132,
+   "h": 30,
+   "nhom": "ct1"
+  },
+  {
+   "k": "mui_ct1",
+   "ten": "ct-mui-1.png",
+   "x": 885,
+   "y": 431,
+   "w": 71,
+   "h": 262,
+   "nhom": "ct1"
+  },
+  {
+   "k": "gach_ct2",
+   "ten": "ct-gach-2.png",
+   "x": 116,
+   "y": 602,
+   "w": 142,
+   "h": 31,
+   "nhom": "ct2"
+  },
+  {
+   "k": "mui_ct2",
+   "ten": "ct-mui-2.png",
+   "x": 212,
+   "y": 645,
+   "w": 65,
+   "h": 208,
+   "nhom": "ct2"
+  },
+  {
+   "k": "gach_ct3",
+   "ten": "ct-gach-3.png",
+   "x": 953,
+   "y": 1598,
+   "w": 122,
+   "h": 31,
+   "nhom": "ct3"
+  },
+  {
+   "k": "mui_ct3",
+   "ten": "ct-mui-3.png",
+   "x": 971,
+   "y": 1417,
+   "w": 51,
+   "h": 93,
+   "nhom": "ct3"
+  }
+ ]
+}

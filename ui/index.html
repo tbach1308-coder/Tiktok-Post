@@ -3234,6 +3234,8 @@ function tkChu(c, x){
   const dong = ls.map((l, i) => { const tw = rongDong(l), lx = lx0 + (canh === 'giua' ? (lw - tw) / 2 : canh === 'phai' ? lw - tw : 0), ly = y0 + i * cao + (cao - co * 1.1) / 2 + co * 0.06;
     const ps = tkDoan(l, st, nhan); if (nhan) st = (st + (l.split('*').length - 1)) % 2; return { l, tw, lx, ly, yb: ly - co * 0.06 + asc, ps }; });
   const chay = (cc, d, f) => { let px = d.lx; d.ps.forEach(([t, a]) => { f(cc, t, px, a); px += cc.measureText(t).width; }); };
+  if (x.to) { const cap = c.measureText('H').actualBoundingBoxAscent || co * 0.7; c.fillStyle = x.to; dong.forEach(d => c.fillRect(d.lx - 12, d.yb - cap * 0.5, d.tw + 24, cap * 0.5 + 8)); }   // vạch tô nửa dưới dòng (bìa Ảnh thật · Nền sáng)
+  if (x.vien2) { c.save(); c.lineJoin = 'round'; c.lineWidth = (x.vien2_co || co * 0.2) * 2; c.strokeStyle = x.vien2; dong.forEach(d => chay(c, d, (cc, t, px) => cc.strokeText(t, px, d.yb))); c.restore(); }   // viền ngoài (chữ tròn 2 lớp viền, bìa Tiệm vẽ tay)
   if (x.vien) { c.save(); c.lineJoin = 'round'; c.lineWidth = x.vien_co ? x.vien_co * 2 : Math.max(3, co * 0.12); c.strokeStyle = x.vien; dong.forEach(d => chay(c, d, (cc, t, px) => cc.strokeText(t, px, d.yb))); c.restore(); }
   if (x.bong && x.lech) { c.save(); c.fillStyle = x.bong; dong.forEach(d => chay(c, d, (cc, t, px) => cc.fillText(t, px + x.lech, d.yb + x.lech))); c.restore(); }
   let cc = c;
@@ -3279,7 +3281,12 @@ function tkAnh(c, x, xuat){
   const dx = x.x + pad + (bw - dw) / 2, dy = x.y + pad + (x.rong ? 0 : x.day ? bh - dh : (bh - dh) / 2);
   c.save(); if (x.xoay) { const cx = x.x + x.w / 2, cy = x.y + x.h / 2; c.translate(cx, cy); c.rotate(x.xoay * Math.PI / 180); c.translate(-cx, -cy); }
   tkRR(c, dx, dy, dw, dh, r); c.clip(); if (x.mo) c.filter = `blur(${x.mo}px)`;
-  c.drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh); c.filter = 'none';
+  if (x.mo_vien && dw > 4 * x.mo_vien && dh > 4 * x.mo_vien) {      // mép ảnh mờ dần vào nền (ảnh món đồ bìa Chú thích tay)
+    const m = x.mo_vien, oc = document.createElement('canvas'); oc.width = Math.ceil(dw); oc.height = Math.ceil(dh); const o2 = oc.getContext('2d');
+    o2.drawImage(img, sx, sy, sw, sh, 0, 0, dw, dh); o2.globalCompositeOperation = 'destination-in'; o2.filter = `blur(${m / 2}px)`; o2.fillStyle = '#000';
+    o2.fillRect(m, m, dw - 2 * m, dh - 2 * m); c.drawImage(oc, dx, dy);
+  } else c.drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh);
+  c.filter = 'none';
   if (x.toi) { c.fillStyle = `rgba(0,0,0,${Math.min(90, x.toi) / 100})`; c.fillRect(dx, dy, dw, dh); }
   c.restore();
 }
