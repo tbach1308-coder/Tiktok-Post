@@ -2329,11 +2329,21 @@ Gom theo dòng máy (bỏ seri, gộp máy giống cấu hình): tên gọn ki�
 Bài shop đã làm 45 ngày qua (tránh trùng chủ đề / trùng máy):
 %(bai)s
 
-Gợi ý 6–12 bài (cả 2 kênh): ưu tiên dòng máy nhiều hàng, giá tốt, CHƯA có bài 45 ngày qua. Mỗi gợi ý: kênh (laptop / ipad), máy (tên gọn như trên), giá, chủ đề bài 1 câu kiểu chủ đề fen hay gõ (vd "Dell 7420 i7: laptop văn phòng bền nhất tầm 13 triệu?", "iPad Air 5 hay Air 4 cho sinh viên?"), lý do ngắn (vd "6 máy, chưa có bài").
+Gợi ý 8–14 bài: ưu tiên dòng máy nhiều hàng, giá tốt, CHƯA có bài 45 ngày qua. Mỗi gợi ý: kênh (laptop / ipad), máy (tên gọn như trên), giá, chủ đề bài 1 câu kiểu chủ đề fen hay gõ (vd "Dell 7420 i7: laptop văn phòng bền nhất tầm 13 triệu?", "iPad Air 5 hay Air 4 cho sinh viên?"), lý do ngắn (vd "6 máy, chưa có bài").
+%(mua)s
 
 Câu trả lời cuối cùng: đúng 1 dòng bắt đầu bằng GOI_Y_JSON rồi 1 khoảng trắng rồi JSON 1 dòng:
 {"may": [{"kenh": "laptop", "ten": "...", "so": 3, "gia": "..."}], "goi_y": [{"kenh": "laptop", "may": "...", "gia": "...", "chu_de": "...", "ly_do": "..."}]}
 Không đọc được kho: 1 dòng GOI_Y_LOI <lý do ngắn>."""
+
+
+# 💡 Ngày nào cũng có gợi ý (fen 16/11 11h45 "ngày nào cũng có gợi ý", chọn "Kho trống thì gợi ý chủ đề theo mùa"): kênh nào kho không có
+# máy / máy đều đã có bài thì Claude vẫn đưa chủ đề theo mùa / chủ đề chung (không gắn máy kho, "loai": "mua"), mỗi kênh ít nhất 4.
+GOI_Y_MUA = """MỖI KÊNH (Laptop, iPad) ÍT NHẤT 4 GỢI Ý, kể cả khi kho kênh đó trống hoặc máy đều đã có bài: bù bằng chủ đề theo mùa / chủ đề
+chung hợp kênh, KHÔNG gắn máy kho ("may": "", "gia": "", "loai": "mua", lý do kiểu "Kho chưa có iPad · mùa Noel"). Chủ đề theo mùa: dịp sắp
+tới tính từ hôm nay (Black Friday cuối tháng 11, Noel 24–25/12, Tết dương / Tết âm, mùa thi, nhập học / back to school, nghỉ hè), nhu cầu
+người xem của kênh (học sinh / sinh viên, văn phòng, đồ hoạ, gaming, quà tặng), so sánh đời máy, mẹo dùng / giữ pin, chọn máy theo tầm
+tiền; không trùng bài 45 ngày qua. Kho kênh nào có máy thì gợi ý theo máy trước, theo mùa sau."""
 
 
 def _goi_y_khoa(ten):
@@ -2352,7 +2362,7 @@ def goi_y_doc():
     snap = read_json(KHO_SNAP, {}) or {}
     moi_t = now() - 7 * 86400
     for x in (d.get("ds") or []):
-        t = snap.get(_goi_y_khoa(x.get("may")))
+        t = snap.get(_goi_y_khoa(x.get("may"))) if x.get("may") else None
         x["moi"] = bool(t and t >= moi_t)
     for x in (d.get("may") or []):
         t = snap.get(_goi_y_khoa(x.get("ten")))
@@ -2369,6 +2379,9 @@ def goi_y_doc():
     except Exception:
         d["ho_so"] = []
     d["co_poly"] = True
+    d["tu_sang"] = CFG.get("kho_tu_sang") is not False
+    tu = read_json(GOI_Y_TU, {}) or {}
+    d["tu_luc"] = tu.get("luc") or 0
     return d
 
 
@@ -2378,7 +2391,7 @@ def goi_y_khach():
     d = goi_y_doc()
     return {"luc": d.get("luc"), "dang": bool(d.get("dang")), "loi": "Máy shop chưa cập nhật được kho" if d.get("loi") and not d.get("may") else "",   # lỗi lần sau: máy con vẫn xem bản cũ
             "may": [{k: x.get(k) for k in ("kenh", "ten", "so", "gia", "moi")} for x in d.get("may") or []],
-            "ds": [{k: x.get(k) for k in ("kenh", "may", "gia", "chu_de", "ly_do", "moi")} for x in d.get("ds") or []], "khach": True,
+            "ds": [{k: x.get(k) for k in ("kenh", "may", "gia", "chu_de", "ly_do", "moi", "mua")} for x in d.get("ds") or []], "khach": True,
             "link": d.get("link") or {}}      # (không gửi hồ sơ Chrome máy shop cho máy con)
 
 
@@ -2420,11 +2433,15 @@ def goi_y_xong(jid):
            for x in (kq.get("may") or []) if isinstance(x, dict) and x.get("ten")][:200]
     if cu.get("web_may"):           # đọc kho qua Chrome: danh sách máy do app gom từ bảng kho (đúng số, đúng giá), Claude chỉ gợi ý
         may = cu["web_may"][:300]
-    ds = [{"kenh": kenh_ok(x.get("kenh")), "may": s_(x.get("may")), "gia": s_(x.get("gia"), 40), "chu_de": s_(x.get("chu_de"), 160), "ly_do": s_(x.get("ly_do"), 100)}
-          for x in (kq.get("goi_y") or []) if isinstance(x, dict) and x.get("chu_de")][:15]
+    ds = [{"kenh": kenh_ok(x.get("kenh")), "may": s_(x.get("may")), "gia": s_(x.get("gia"), 40), "chu_de": s_(x.get("chu_de"), 160), "ly_do": s_(x.get("ly_do"), 100),
+           "mua": x.get("loai") == "mua" or not s_(x.get("may"))}
+          for x in (kq.get("goi_y") or []) if isinstance(x, dict) and x.get("chu_de")][:24]
+    for x in ds:
+        if x["mua"]:
+            x["may"] = x["gia"] = ""
     snap = read_json(KHO_SNAP, {}) or {}
     dau = not snap          # lần quét đầu: chưa biết máy nào mới về, coi hết là hàng cũ
-    for x in may + [{"ten": y["may"]} for y in ds]:
+    for x in may + [{"ten": y["may"]} for y in ds if y["may"]]:
         k = _goi_y_khoa(x.get("ten"))
         if k and k not in snap:
             snap[k] = 0 if dau else int(now())
@@ -2691,11 +2708,11 @@ Máy còn trong kho kênh iPad (tên · số máy · giá bán):
 Bài shop đã làm 45 ngày qua (tránh trùng chủ đề / trùng máy):
 %(bai)s
 
-Gợi ý 6–12 bài (cả 2 kênh): ưu tiên dòng máy nhiều hàng, giá tốt, CHƯA có bài 45 ngày qua. Mỗi gợi ý: kênh (laptop / ipad), máy (đúng tên trong danh sách, có thể rút gọn), giá (đúng như danh sách), chủ đề bài 1 câu kiểu chủ đề fen hay gõ (vd "Dell 7420 i7: laptop văn phòng bền nhất tầm 13 triệu?", "iPad Air 5 hay Air 4 cho sinh viên?"), lý do ngắn (vd "6 máy, chưa có bài"). KHÔNG ghi seri, giá vốn, tên khách.
+Gợi ý 8–14 bài: ưu tiên dòng máy nhiều hàng, giá tốt, CHƯA có bài 45 ngày qua. Mỗi gợi ý: kênh (laptop / ipad), máy (đúng tên trong danh sách, có thể rút gọn), giá (đúng như danh sách), chủ đề bài 1 câu kiểu chủ đề fen hay gõ (vd "Dell 7420 i7: laptop văn phòng bền nhất tầm 13 triệu?", "iPad Air 5 hay Air 4 cho sinh viên?"), lý do ngắn (vd "6 máy, chưa có bài"). KHÔNG ghi seri, giá vốn, tên khách.
+%(mua)s
 
 Câu trả lời cuối cùng: đúng 1 dòng bắt đầu bằng GOI_Y_JSON rồi 1 khoảng trắng rồi JSON 1 dòng:
-{"goi_y": [{"kenh": "laptop", "may": "...", "gia": "...", "chu_de": "...", "ly_do": "..."}]}
-Danh sách trống hết: 1 dòng GOI_Y_LOI <lý do ngắn>."""
+{"goi_y": [{"kenh": "laptop", "may": "...", "gia": "...", "chu_de": "...", "ly_do": "..."}, {"kenh": "ipad", "may": "", "gia": "", "chu_de": "...", "ly_do": "...", "loai": "mua"}]}"""
 
 
 def goi_y_quet(web=False):
@@ -2730,12 +2747,12 @@ def goi_y_quet(web=False):
             "trạng thái / từ khoá, rồi gọi tim_may theo đúng phạm vi đó; link không có tham số = cả kho kênh đó, quét theo hãng như trên):\n"
             + link) if link else ""
     prompt = GOI_Y_LENH % {"ngay": time.strftime("%d/%m/%Y"), "laptop": KHO_HANG["laptop"], "ipad": KHO_HANG["ipad"], "bai": "\n".join(bai[:150]) or "(chưa có)",
-                           "link": link}
+                           "link": link, "mua": GOI_Y_MUA}
     if web:
         luc, lap = kho_web_ds("laptop")
         _, ipad = kho_web_ds("ipad")
         prompt = GOI_Y_WEB_LENH % {"ngay": time.strftime("%d/%m/%Y"), "luc": time.strftime("%H:%M %d/%m", time.localtime(luc or now())),
-                                   "laptop": lap or "(không có)", "ipad": ipad or "(không có)", "bai": "\n".join(bai[:150]) or "(chưa có)"}
+                                   "laptop": lap or "(không có)", "ipad": ipad or "(không có)", "bai": "\n".join(bai[:150]) or "(chưa có)", "mua": GOI_Y_MUA}
     job = {"id": jid, "kenh": "laptop", "loai": "goi-y", "tieu_de": "Gợi ý bài từ kho", "brief": "", "created": now(), "status": "moi", "runs": []}
     with LOCK:
         save_job(job)
@@ -2767,6 +2784,8 @@ def goi_y_cai(data):
         if hs and hs not in [x["dir"] for x in chrome_ho_so()]:
             raise ValueError("Không thấy hồ sơ Chrome này")
         save_cfg_keys({"kho_hs": hs})
+    if "tu_sang" in data:       # 🌅 mỗi sáng tự cập nhật kho
+        save_cfg_keys({"kho_tu_sang": bool(data["tu_sang"])})
     if data.get("cach") in ("web", "poly"):        # cách đọc kho: web = Chrome đã đăng nhập mở link kho (mặc định, fen 15/11 13h49); poly = connector POLY
         save_cfg_keys({"kho_cach": data["cach"]})
     if data.get("quet"):
@@ -2774,14 +2793,48 @@ def goi_y_cai(data):
     return goi_y_doc()
 
 
+GOI_Y_TU = os.path.join(APP, "goi-y-tu.json")
+KHO_TU_GIO = 8          # mỗi sáng 8h
+
+
+def goi_y_tu_sang():
+    """🌅 Mỗi sáng tự cập nhật kho (fen 16/11 11h45 "ngày nào cũng có gợi ý", chọn "Mỗi sáng tự cập nhật kho"; trước đó 15/11 13h41 chỉ
+    đọc kho khi fen bấm): từ 8h, hôm nay chưa cập nhật lần nào (fen bấm hoặc tự) thì cập nhật 1 lần như bấm 🔄 Cập nhật kho; máy shop mở
+    app sau 8h thì cập nhật lúc mở. Mỗi ngày thử đúng 1 lần (lỗi không thử lại, fen bấm tay). Tắt ở 🔗 Link kho (config kho_tu_sang)."""
+    if CFG.get("kho_tu_sang") is False:
+        return False
+    t = time.localtime()
+    if t.tm_hour < KHO_TU_GIO:
+        return False
+    hom = time.strftime("%Y-%m-%d", t)
+    tu = read_json(GOI_Y_TU, {}) or {}
+    if tu.get("ngay") == hom:
+        return False
+    moc = time.mktime(time.strptime(hom + " %02d:00" % KHO_TU_GIO, "%Y-%m-%d %H:%M"))
+    d = read_json(GOI_Y_FILE, {}) or {}
+    if (d.get("luc") or 0) >= moc or d.get("dang"):       # hôm nay đã cập nhật / đang cập nhật
+        return False
+    write_json(GOI_Y_TU, {"ngay": hom, "luc": now()})
+    try:
+        goi_y_quet()
+        log("goi y kho: tu cap nhat sang %s" % hom)
+    except Exception as e:
+        log("goi y kho: tu cap nhat sang loi: %s" % e)
+        cu = read_json(GOI_Y_FILE, {}) or {}
+        cu.update(loi=short("Tự cập nhật sáng nay chưa được: %s" % str(e).split("|")[-1], 200), loi_t=now())
+        write_json(GOI_Y_FILE, cu)
+    return True
+
+
 def goi_y_lich():
-    """Mỗi phút: lượt quét đang chạy xong thì đọc kết quả. Không tự quét (fen 15/11 13h41: chỉ đọc kho khi fen bấm Cập nhật kho)."""
+    """Mỗi phút: lượt quét đang chạy xong thì đọc kết quả; từ 8h sáng tự cập nhật kho 1 lần / ngày (goi_y_tu_sang)."""
     time.sleep(90)
     while True:
         try:
             d = read_json(GOI_Y_FILE, {}) or {}
             if d.get("dang") and d.get("jid"):
                 goi_y_xong(d["jid"])
+            goi_y_tu_sang()
         except Exception:
             log("goi y kho lich loi: " + traceback.format_exc())
         time.sleep(60)

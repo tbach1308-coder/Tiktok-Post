@@ -44,10 +44,10 @@ im=Image.new('RGBA',(1000,800),(0,0,0,0));d=ImageDraw.Draw(im);d.rounded_rectang
 
   const b = await chromium.launch(); const errs = [];
   const p = await b.newPage({ viewport: { width: 1386, height: 950 } }); p.on('pageerror', e => errs.push(e.message + ' @ ' + (e.stack || '').split('\n').slice(0, 3).join(' | ')));
-  await p.goto(A + '/#story'); await p.waitForSelector('#stTab');
+  await p.goto(A + '/#story'); await p.waitForSelector('#mPick [data-m]');
   await p.evaluate(() => { localStorage.removeItem('poly-st-tab'); localStorage.setItem('poly-mau-nhom', JSON.stringify(''));
     localStorage.setItem('poly-tk', JSON.stringify({ 'ps-noel-dem-xanh': { t: Date.now(), d: { nen: '#000000', o: [{ loai: 'chu', k: 'cu', text: 'BẢN CŨ', x: 0, y: 0, w: 500, h: 100, co: 60 }] } } })); });
-  await p.click('#stTab [data-tab="mau"]'); await p.waitForSelector('#mPick [data-m]');
+  await p.reload(); await p.waitForSelector('#mPick [data-m]');
   const nh = await p.evaluate(() => [...document.querySelectorAll('#mNhom [data-nh]')].map(b => b.textContent.trim()));
   await p.click('#mNhom [data-nh="noel"]'); await p.waitForSelector('#tkCv');
   const n5 = await p.evaluate(() => [...document.querySelectorAll('#mPick [data-m]')].map(b => b.dataset.m));

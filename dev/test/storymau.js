@@ -25,12 +25,12 @@ n=Image.new('RGB',(1200,2000),'#f4e6c8');ImageDraw.Draw(n).rectangle((0,0,1200,3
   check('ảnh xem trước mẫu (JPG nhỏ)', xem.status === 200 && /jpeg/.test(xem.headers.get('content-type')), xem.status);
   const b = await chromium.launch({ args: ['--host-resolver-rules=MAP poly-thu.example 127.0.0.1:8791'] }); const errs = [];
   const p = await b.newPage({ viewport: { width: 1386, height: 950 }, acceptDownloads: true }); p.on('pageerror', e => errs.push(e.message + ' @ ' + (e.stack || '').split('\n').slice(0, 3).join(' | ')));
-  await p.goto(A + '/#story'); await p.waitForSelector('#stTab');
+  await p.goto(A + '/#story'); await p.waitForSelector('#mPick [data-m]');
   await p.evaluate(() => { localStorage.removeItem('poly-tk'); localStorage.removeItem('poly-st-tab'); });
-  await p.click('#stTab [data-tab="mau"]'); await p.waitForSelector('#mPick [data-m]');
-  const t1 = await p.evaluate(() => ({ hash: location.hash, n: document.querySelectorAll('#mPick [data-m]').length, them: !!$('#mThem'), chon: document.querySelector('#mPick .on').dataset.m }));
-  check('tab "Thư viện mẫu": 28 mẫu (Tất cả), nút Thêm mẫu của fen, chọn sẵn mẫu đầu (mùa Noel: mẫu Noel lên đầu), #storymau=…', t1.n === 28 && t1.them && t1.chon === 'ps-noel-anh-that' && t1.hash === '#storymau=ps-noel-anh-that', t1);
-  await p.click('#mPick [data-m="gia-soc"]'); await p.waitForSelector('#tkCv'); await p.waitForTimeout(800);
+  await p.reload(); await p.waitForSelector('#mPick [data-m]');
+  const t1 = await p.evaluate(() => ({ hash: location.hash, n: document.querySelectorAll('#mPick [data-m]').length, them: !!$('#mThem'), chon: document.querySelector('#mPick .on').dataset.m, tab: !!$('#stTab'), tatca: !!document.querySelector('#mNhom [data-nh=""]') }));
+  check('📱 Story chỉ còn thư viện mẫu (fen 16/11 bỏ tab "Từ bài đã làm" + nút "Tất cả"): mở nhóm đầu 🎄 Noel (5 mẫu), nút Thêm mẫu của fen, chọn sẵn mẫu đầu, #storymau=…', t1.n === 5 && !t1.tab && !t1.tatca && t1.them && t1.chon === 'ps-noel-anh-that' && t1.hash === '#storymau=ps-noel-anh-that', t1);
+  await p.click('#mNhom [data-nh="co-ban"]'); await p.waitForSelector('#tkCv'); await p.click('#mPick [data-m="gia-soc"]'); await p.waitForSelector('#tkCv'); await p.waitForTimeout(800);
   const px = (x, y) => p.evaluate(([x, y]) => [...$('#tkCv').getContext('2d').getImageData(x, y, 1, 1).data].slice(0, 3), [x, y]);
   const e0 = await p.evaluate(() => ({ cv: !!$('#tkCv'), nd: [...document.querySelectorAll('#tkNd [data-nd]')].map(t => t.value), n: TK.d.o.length }));
   check('chọn Giá sốc: khung design 9:16 + "Nội dung" điền sẵn chữ mẫu (Nhãn GIÁ SỐC HÔM NAY …)', e0.cv && e0.nd[0] === 'GIÁ SỐC HÔM NAY' && e0.nd.includes('16.490.000đ'), e0);
@@ -62,7 +62,7 @@ n=Image.new('RGB',(1200,2000),'#f4e6c8');ImageDraw.Draw(n).rectangle((0,0,1200,3
   await p.focus('#tkCv'); await p.keyboard.press('Delete'); await p.waitForTimeout(150);
   check('phím Delete: xoá ô đang chọn', await p.evaluate(n => TK.d.o.length === n && TK.sel === -1, nTruoc));
   // khung design mẫu reel FB vẽ vạch vùng Facebook
-  await p.click('#mPick [data-m="fb-moi-ve"]'); await p.waitForSelector('#tkCv'); await p.waitForTimeout(500);
+  await p.click('#mNhom [data-nh="fb"]'); await p.waitForSelector('#tkCv'); await p.click('#mPick [data-m="fb-moi-ve"]'); await p.waitForSelector('#tkCv'); await p.waitForTimeout(500);
   const vfb = await p.evaluate(() => { const c = $('#tkCv').getContext('2d'); return [...c.getImageData(10, 1250, 1, 1).data].slice(0, 3).concat([...c.getImageData(940, 1262, 1, 1).data].slice(0, 3)); });
   check('mẫu reel FB trong khung design: vạch vùng Facebook (dưới 1250, cột nút bên phải 940)', vfb[0] > 60 && vfb[3] > 60, vfb);
   // nhóm Theme Photoshop + nền kính làm mờ
@@ -75,7 +75,7 @@ n=Image.new('RGB',(1200,2000),'#f4e6c8');ImageDraw.Draw(n).rectangle((0,0,1200,3
   await p.waitForFunction(i => /^img:/.test(TK.d.o[i].img || ''), iMay); await p.waitForTimeout(700);
   const g1 = await p.evaluate(() => [...$('#tkCv').getContext('2d').getImageData(20, 1800, 1, 1).data].slice(0, 3));
   check('nhóm "Theme Photoshop" lọc 13 mẫu; mẫu Glass: gắn ảnh máy là nền thành ảnh đó làm mờ + tối (góc dưới đổi màu)', nps === 13 && JSON.stringify(g0) !== JSON.stringify(g1), { nps, g0, g1 });
-  await p.click('#mNhom [data-nh=""]'); await p.waitForSelector('#tkCv');
+  await p.click('#mNhom [data-nh="co-ban"]'); await p.waitForSelector('#tkCv');
   await p.click('#mPick [data-m="gia-soc"]'); await p.waitForSelector('#tkCv'); await p.waitForTimeout(400);
   // 🔤 thư viện chữ (fen 14h18 "cho thư viện chữ đẹp đi, font phù hợp nhiều mùa, chủ đề")
   await p.evaluate(() => { TK.sel = TK.d.o.findIndex(x => x.k === 'nhan'); tkBang(); });
@@ -152,7 +152,7 @@ n=Image.new('RGB',(1200,2000),'#f4e6c8');ImageDraw.Draw(n).rectangle((0,0,1200,3
   check('máy dùng chung: thấy thư viện, lưu ảnh được (riêng story-mau/_khach/<máy>, không lộ thư mục máy shop), không lưu mẫu', kds.s === 200 && kds.b.ds.length >= 28 && kluu.s === 200 && kf && kluu.b.thu_muc === '' && kthem.s === 400, { k: kds.s, kluu: kluu.s, kf, kthem: kthem.s });
   const g = await b.newPage({ viewport: { width: 1280, height: 860 } }); g.on('pageerror', e => errs.push('con: ' + e.message));
   await g.goto('http://poly-thu.example/#vao=' + v.token); await g.waitForSelector('#khc:not([hidden])', { timeout: 20000 }).catch(() => {}); await g.waitForTimeout(1000);
-  await g.click('#bStory'); await g.waitForSelector('#stTab'); await g.click('#stTab [data-tab="mau"]'); await g.waitForSelector('#tkCv');
+  await g.click('#bStory'); await g.waitForSelector('#tkCv');
   check('máy dùng chung: có khung design + Lưu ảnh / Tải về máy, không có Thêm mẫu / Lưu thành mẫu / Bỏ mẫu', await g.evaluate(() => !$('#mThem') && !$('#tkMau') && !$('#mBo') && !!$('#tkLuu') && !!$('#tkTai')));
   check('không lỗi JS', errs.length === 0, errs);
   await b.close(); await j(A + '/api/chung', { bat: false });

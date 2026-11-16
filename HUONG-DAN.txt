@@ -133,6 +133,10 @@ LẤY MÁY + GIÁ TỪ KHO POLYSTO (Ô KHO, 9/11)
   kho cả 2 kênh (chỉ tên máy + giá bán), so với bài 45 ngày qua, gợi ý 6–12 chủ đề cho máy chưa có bài. Dòng ghi "N gợi ý <kênh> ·
   K dòng máy · 🆕 M mới về" (dòng máy app thấy lần đầu trong 7 ngày; lần đầu coi hết là hàng cũ). Bấm "Xem" mở danh sách: "Dùng" điền
   chủ đề + tên máy vào ô Kho, rồi bấm ✍ Viết brief; dưới có "📦 Máy trong kho" (tên · số máy · giá bán), bấm 1 máy = điền vào ô Kho.
+  Ngày nào cũng có gợi ý (16/11): mỗi kênh ít nhất 4 gợi ý; kho kênh nào không có máy (hoặc máy đều đã có bài) thì Claude gợi ý
+  chủ đề theo mùa / chủ đề chung (tag "🎄 Theo mùa", Dùng chỉ điền chủ đề). 🌅 Mỗi sáng 8h app tự cập nhật kho 1 lần (máy shop mở
+  app sau 8h thì cập nhật lúc mở; hôm đó fen đã bấm thì thôi; tắt ở 🔗 Link kho). Kho iPad: link …/kho-may?loai=IPAD. Lỡ dán link
+  kho vào ô 📦 Kho của bài thì bấm nút "💾 Lưu làm link kho <kênh>" hiện ở dòng 💡.
   "🔗 Link kho" (máy shop): dán link trang kho Polysto từng kênh (Laptop / iPad; lọc sẵn loại máy trên web rồi chép link càng tốt),
   "Lưu" hoặc "Lưu & cập nhật kho". Ô "Đọc kho bằng" (15/11 14h): mặc định "Chrome máy shop đã đăng nhập POLY": bấm Cập nhật kho thì
   Chrome (hồ sơ đăng TikTok iPad) mở link kho, tiện ích Poly TikTok đợi bảng hiện, chỉ chép tên máy · cấu hình · tình trạng · giá bán
@@ -275,7 +279,8 @@ LÀM 1 BÀI
   nền "Màu slide" (phẳng, màu viền slide) hoặc "Mờ". Vài giây, không tốn Claude. Ảnh ở thư mục bài\story\story-NN.jpg; "⬇ Tải tất cả"
   (.zip), "📨 Gửi Telegram" (album, cùng nơi nhận như Gửi Telegram), "📂 Mở thư mục". Làm lại thì ảnh cũ thay bằng ảnh mới.
   "Mở bài có sẵn" (bài làm ngoài app trong thư mục Laptop / iPad) giờ ở nút "📂 Mở bài có sẵn" góc trên hộp Lịch sử brief.
-  Tab "Thư viện mẫu" (cạnh "Từ bài đã làm", 15/11): làm ảnh story không cần bài, design kéo thả như Canva (15/11 14h).
+  Tab "Thư viện mẫu" (15/11): làm ảnh story không cần bài, design kéo thả như Canva (15/11 14h). 16/11: bỏ tab "Từ bài đã làm"
+  (trang 📱 Story chỉ còn thư viện mẫu) và nút nhóm "Tất cả" (luôn xem 1 nhóm, mặc định 🎄 Noel).
   10 mẫu có sẵn: Máy mới về, Giá sốc, So sánh 2 máy, Feedback khách, Thông báo, Noel + 4 mẫu reel Facebook (15/11 14h19: Reel FB ·
   Máy mới về / Top 3 máy / Flash sale / Review khách; chữ và ảnh nằm trong vùng Facebook không che: trên 270, dưới 1250, chừa cột nút
   bên phải; khung design vẽ vạch đúng vùng Facebook) + 13 mẫu "Theme · …" theo kho theme Photoshop (15/11 14h43: màu, font gần giống,
