@@ -97,13 +97,12 @@ function t7() {
   var d = newDoc("Kien truc - 07 cuoi");
   placeAt(TN + "bg-7.png", 0, 0, "Nền");
   text("POLY STORE", F.B, 22, C.WHITE, 100, 150, { track: 200, name: "Thương hiệu" });
-  glass(98, 250, 982, 650, 36, "Thẻ câu hỏi");
+  // luật 16h [Laptop] 30/10 15h22: chỉ 1 thẻ kính câu hỏi giữa slide, không Follow dưới mọi dạng
+  glass(98, 520, 982, 920, 36, "Thẻ câu hỏi");
   var L1 = text("BẠN VẼ CAD, REVIT", FS.I, 60, C.WHITE, 540, 0, { align: Justification.CENTER, maxW: 860, name: "Dòng 1" });
-  centerText(L1, 540, 390); fxGlow(L1, { shadow: { op: 75, dist: 3, blur: 8 } });
+  centerText(L1, 540, 664); fxGlow(L1, { shadow: { op: 75, dist: 3, blur: 8 } });
   var L2 = text("HAY RENDER LUMION?", FS.T, 66, YEL, 540, 0, { align: Justification.CENTER, maxW: 860, name: "Dòng 2" });
-  centerText(L2, 540, 500); fxGlow(L2, { glow: { hex: YEL, op: 40, size: 26 }, shadow: { op: 60, dist: 5, blur: 12 } });
-  glass(98, 760, 982, 1160, 36, "Thẻ follow");
-  khoiFollow("@polystorelaptop", "Follow để chọn laptop đúng nghề", 960);
+  centerText(L2, 540, 776); fxGlow(L2, { glow: { hex: YEL, op: 40, size: 26 }, shadow: { op: 60, dist: 5, blur: 12 } });
   LOG += "s7 dong2 " + bb(L2).join(",") + "\n";
   save5(d, 7);
 }

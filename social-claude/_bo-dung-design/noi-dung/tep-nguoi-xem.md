@@ -38,10 +38,10 @@ File số liệu, không phải luật: lệch luật thì theo `E:\Social Claud
 - Mỗi máy ghi: tên, cấu hình, "Hợp với …" theo việc học, vẽ, ghi chú, dạy online (giá chỉ khi fen cần giá).
 - Gợi ý combo iPad + Pencil, vì một nửa người mua lấy kèm bút.
 - Bài lấy niềm tin: "Mua iPad cũ coi chừng 3 thứ (iCloud, MDM, linh kiện thay)", kết bằng máy đã kiểm ở Poly.
-- Câu hỏi cuối: 1 câu hỏi chọn ngắn (vd "Bạn chọn Pro M2 hay Air M2?", "Bạn học ngành gì?"); hỏi thêm tầm tiền để ở comment ghim, không gộp 2–3 câu hỏi trên slide (luật 16h; fen đã bắt rút câu "Bạn học ngành gì, có tầm bao nhiêu…" 29/10).
+- Câu hỏi kéo comment: 1 câu hỏi chọn ngắn (vd "Bạn chọn Pro M2 hay Air M2?", "Bạn học ngành gì?") + tầm tiền, để ở caption / comment ghim, không để trên slide; slide cuối là câu Follow (luật 16h, fen đổi 03/11).
 - Ngân sách trọng tâm 9–16 triệu, kèm 1 máy rẻ hơn cho người ít tiền.
 
 **Laptop**
 - Viết cho người đi làm trước: theo nghề (kỹ thuật, kiến trúc, kế toán, IT, dựng video).
 - Máy trạm, đồ họa là món chốt. MacBook tối đa 1 bài/tuần.
-- Câu hỏi cuối: 1 câu hỏi chọn ngắn (vd "Bạn chọn máy trạm hay gaming?", "Bạn vẽ CAD, Revit hay render Lumion?"); nghề, phần mềm, ngân sách để ở comment ghim (luật 16h).
+- Câu hỏi kéo comment: 1 câu hỏi chọn ngắn (vd "Bạn chọn máy trạm hay gaming?", "Bạn vẽ CAD, Revit hay render Lumion?") + nghề, phần mềm, ngân sách, để ở caption / comment ghim, không để trên slide; slide cuối là câu Follow (luật 16h, fen đổi 03/11).

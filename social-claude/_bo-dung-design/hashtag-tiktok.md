@@ -5,7 +5,7 @@ File này là gốc cho caption, hashtag, comment ghim, Your brand; luật nội
 
 ## Luật caption (chốt)
 - Tối đa **90 ký tự** cả hashtag, emoji tính 2 ký tự.
-- Gồm 1 câu như người bán nói, có từ khoá (vd "Có 8 củ thì lấy con nào anh em?"), rồi 3–4 hashtag cụ thể. Hoặc dùng luôn câu hỏi của slide cuối.
+- Gồm 1 câu như người bán nói, có từ khoá (vd "Có 8 củ thì lấy con nào anh em?"), rồi 3–4 hashtag cụ thể. Câu hỏi kéo comment để ở caption / comment ghim (slide cuối là câu Follow, luật 16h, fen đổi 03/11).
 - Hashtag thương hiệu theo kênh (luật 1e, fen chốt 30/10 17h39): **iPad luôn có #polystore**, **Laptop luôn có #polystorelaptop** (Laptop không dùng #polystore). **Không dùng #xuhuong.** Emoji 1–2 cái.
 - Đủ 90 ký tự mà thiếu chỗ cho hashtag thương hiệu thì bỏ hashtag rộng nhất (vd #congnghe), giữ 3–4 hashtag.
 - Không văn mẫu AI ("Khám phá", "siêu phẩm", "đừng bỏ lỡ"…), không gạch ngang dài.

@@ -13,13 +13,13 @@ Mọi bài phải làm được 2 việc: khiến người xem comment, và khi�
 |---|---|---|
 | Đang thắng | Phân khúc giá, gaming, máy trạm, bài cho sinh viên | So sánh A hay B, bảng giá tháng |
 | Đang yếu | Mẹo chung chung, phím tắt | Mẹo vặt, bài lặp đời máy |
-- Không trộn nội dung 2 kênh. Định vị: shop máy likenew có thợ thật, vừa bán, vừa tư vấn chọn máy, vừa sửa và nâng cấp (thay pin, thay màn, ép kính, nâng RAM/SSD).
+- Không trộn nội dung 2 kênh. Định vị: shop máy likenew có thợ thật, vừa bán, vừa tư vấn chọn máy, vừa sửa và nâng cấp (thay pin, thay màn, nâng RAM/SSD). [iPad] shop chỉ thay màn, không ép kính (luật 1g).
 - Góc riêng: thợ mở máy thật, máy likenew đã kiểm, bán cả Mac lẫn Windows, tư vấn theo đúng ngân sách người xem.
 - Giọng: người bán hàng thật. Ngắn, vào thẳng vấn đề, không dẫn dắt.
 
 ## 2. Chống trùng
-- **Trùng thì không làm (fen chốt 29/10):** chủ đề đã có bài (cùng câu hỏi chính, cùng cặp máy so sánh, cùng bộ mẹo), đăng bao lâu rồi cũng vậy, thì không viết. Báo bài trùng + gợi ý 2–3 chủ đề chưa làm. Chỉ làm lại khi fen ghi rõ "làm lại". Bài định kỳ (bảng giá tháng) mỗi kỳ là chủ đề mới.
-- Ý slide đã dùng ở bài trước không dùng lại (luật 1b).
+- **Tự check trùng, trùng thì làm cái khác (luật 1b, fen đổi 03/11):** chủ đề đã có bài (cùng câu hỏi chính, cùng cặp máy so sánh, cùng bộ mẹo), đăng bao lâu rồi cũng vậy, thì tự chọn chủ đề chưa có bài gần ý fen nhất rồi làm luôn, không dừng hỏi; cuối bài nói đã đổi vì trùng bài nào. Chỉ làm lại khi fen ghi rõ "làm lại". Bài định kỳ (bảng giá tháng) mỗi kỳ là chủ đề mới. Bấm Viết brief không giữ lại chủ đề đã làm, tìm cái mới (fen 05/11).
+- Ý slide đã dùng ở bài trước không dùng lại (luật 1b). Trong cùng 1 bài 2 slide không trùng nội dung / ý, trùng thì viết lại slide sau sang ý khác (luật 1b, fen 13/11). Ngoại lệ (luật 1h, fen 13/11): fen nêu chủ đề / ý cụ thể thì viết đúng, không tự đổi, trùng chỉ báo cuối bài; 1b chỉ áp khi Claude tự chọn chủ đề.
 - Một đời máy không quá 2 bài/tuần. MacBook tối đa 1 bài/tuần (laptop).
 
 ## 3. Format theo thứ tự ưu tiên
@@ -31,6 +31,7 @@ Mọi bài phải làm được 2 việc: khiến người xem comment, và khi�
 6. Lên đời: "Đang dùng X, lên Y được gì".
 7. Mẹo chỉ làm khi gắn với dịch vụ shop (pin, SSD, RAM, vệ sinh) và có ảnh chụp màn hình máy thật. Mẹo chung chung chỉ được 41–45 view.
 - Không làm: bài chỉ liệt kê cấu hình không có góc nhìn.
+- Tự tìm chủ đề: trước tiên xem hôm đó có gì hot, xu hướng tìm kiếm máy gì (luật 1f, fen 03/11), rồi chọn format hợp trong danh sách trên; tìm không ra gì rõ mới theo thứ tự ưu tiên.
 
 ## 3b. Thông tin có ích, có giá trị (fen chốt 30/10, luật 1c file quy tắc)
 - Người xem lướt xong phải mang về được điều dùng được ngay, hoặc điều giúp quyết định mua / sửa máy.
@@ -44,7 +45,7 @@ Mọi bài phải làm được 2 việc: khiến người xem comment, và khi�
 - Dùng thời điểm thật: Apple tăng giá, mùa thi, tựu trường, máy mới sắp ra (ghi rõ "tin đồn"). [iPad] tin hot (máy mới ra, iPadOS mới): bìa vẫn là câu hỏi chọn máy / nhu cầu (vd "MINI 7 CÒN ĐÁNG MUA?"), không bìa kiểu bản tin; tin dẫn về nhu cầu mua / sửa ở shop (luật 1d).
 - Không tạo khan hiếm giả, không hù dọa sai sự thật.
 
-## 5. Câu hỏi comment (bắt buộc ở slide cuối)
+## 5. Câu hỏi comment (để ở caption / comment ghim; slide cuối là câu Follow, luật 16h, fen đổi 03/11)
 Câu hỏi phải bắt người xem kể nhu cầu của chính họ. Không hỏi kiểu "bạn thấy sao".
 Chỉ ghi câu hỏi ngắn, người xem tự trả lời ở comment. Không thêm dòng kêu gọi kiểu "Comment kèm ngân sách, Poly chọn máy 👇" / "Comment, Poly tư vấn 👇" (fen bỏ 30/10). Hỏi thêm ngân sách, ngành để ở comment ghim.
 1. Chọn phe (mạnh nhất): "Bạn chọn Pro M2 hay Air M2?", "Bạn vẽ CAD, Revit hay render Lumion?".
@@ -53,9 +54,10 @@ Chỉ ghi câu hỏi ngắn, người xem tự trả lời ở comment. Không t
 
 ## 6. Cấu trúc 1 bài
 - 6–7 slide. Mỗi slide 1 ý, tối đa 3 dòng, đọc trong 2–3 giây.
-- Bìa (thumbnail) luôn ngắn gọn, gây tò mò, vào thẳng vấn đề (17b, 30/10): chữ đầu là đúng chủ đề, để hở 1 điều cho slide trong trả lời; tiêu đề tối đa 6 chữ (1–2 dòng), giật tít; dòng phụ tối đa 6 chữ gợi tò mò hoặc bỏ; không câu giải thích, ý dài để slide 2 (luật 17b file quy tắc, 29/10).
+- Bìa (thumbnail) luôn ngắn gọn, gây tò mò, vào thẳng vấn đề (17b, 30/10): chữ đầu là đúng chủ đề, để hở 1 điều cho slide trong trả lời; đọc 1 lần là hiểu, dùng chữ người xem hay nói ("mẹo", không "trick"; fen 03/11); tiêu đề tối đa 6 chữ (1–2 dòng), giật tít; dòng phụ tối đa 6 chữ gợi tò mò hoặc bỏ; không câu giải thích, ý dài để slide 2 (luật 17b file quy tắc, 29/10).
+- Title dễ hiểu, ngắn gọn (17b, fen 03/11): tiêu đề bìa và slide giữa đọc 1 lần là hiểu, từ khách hay nói, không thuật ngữ / chơi chữ phải đoán. Siết 06/11: 1 câu trọn nghĩa như khách nói, không ghép 2 vế cụt bằng dấu phẩy / hai chấm, không ẩn dụ, tiếng lóng; dễ hiểu thắng tò mò. Các ý này cho tiêu đề Claude tự viết; tiêu đề fen viết trong brief giữ đúng chữ, không tự ý đổi (17d, fen 06/11).
 - Slide giữa: câu móc ở đáy, khớp đúng slide kế tiếp. Bài so sánh có tỉ số cuối mỗi slide.
-- Slide cuối (30/10, luật 16h): câu hỏi ngắn theo mục 5 (không dòng "Comment …, Poly … 👇"). Cả 2 kênh không khối Follow, chỉ câu hỏi; brief không có dòng "Follow:" ([iPad] fen chốt 30/10 12h30, [Laptop] fen bỏ 30/10 15h22). Không ghi địa chỉ shop.
+- Slide cuối (luật 16h, fen đổi 03/11, cả 2 kênh): 1 câu kêu gọi Follow ngắn nêu lợi ích đúng sự thật (vd "Follow Poly để cập nhật giá mỗi tháng"), không nút, không mũi tên, không dòng "Comment …, Poly … 👇". Câu hỏi theo mục 5 để ở caption / comment ghim. Không ghi địa chỉ shop.
 
 ## 7. Giống người làm, không giống máy viết
 - Viết như nói: câu ngắn, có thể cụt. Xưng "mình" hoặc "shop", gọi "bạn" hoặc "anh em".
@@ -69,7 +71,7 @@ Chỉ ghi câu hỏi ngắn, người xem tự trả lời ở comment. Không t
 - Không giải thích kiểu sách giáo khoa. Không chêm tiếng Anh khi đã có từ Việt quen.
 
 ## 9. Đúng sự thật
-- Thông tin đúng mới đưa vào bài (luật 4c, fen 30/10): ý nào chưa kiểm chứng được ở nguồn chính hãng / tin cậy thì bỏ, không viết né "có thể".
+- Thông tin đúng mới đưa vào bài (luật 4c, fen 30/10): ý nào chưa kiểm chứng được ở nguồn chính hãng / tin cậy thì bỏ, không viết né "có thể". 15/11: luôn kiểm tra thông tin mọi lượt có chữ mới (kể cả sửa nhỏ), không dựa trí nhớ.
 - Thông số: trang hãng. Không dùng con số không nguồn (kiểu "90% làm sai").
 - Giá Poly, bảo hành, % pin, máy có sẵn: không tự bịa. Giá chỉ ghi khi fen đưa (luật 5). Không ghi "còn x máy".
 - Tin đồn sản phẩm mới: ghi rõ "tin đồn".
