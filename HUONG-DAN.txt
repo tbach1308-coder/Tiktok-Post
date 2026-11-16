@@ -278,17 +278,26 @@ LÀM 1 BÀI
   Tab "Thư viện mẫu" (cạnh "Từ bài đã làm", 15/11): làm ảnh story không cần bài, design kéo thả như Canva (15/11 14h).
   10 mẫu có sẵn: Máy mới về, Giá sốc, So sánh 2 máy, Feedback khách, Thông báo, Noel + 4 mẫu reel Facebook (15/11 14h19: Reel FB ·
   Máy mới về / Top 3 máy / Flash sale / Review khách; chữ và ảnh nằm trong vùng Facebook không che: trên 270, dưới 1250, chừa cột nút
-  bên phải; khung design vẽ vạch đúng vùng Facebook) + 18 mẫu "Theme · …" theo kho theme Photoshop (15/11 14h43: màu, font gần giống,
+  bên phải; khung design vẽ vạch đúng vùng Facebook) + 13 mẫu "Theme · …" theo kho theme Photoshop (15/11 14h43: màu, font gần giống,
   bố cục như trang bìa bộ dựng: POLY STORE · dòng trên · TIÊU ĐỀ to · dòng phụ · 2 thông số + nhãn · ảnh máy · dòng cuối; theme kính /
   ảnh thật: nền là ảnh máy làm mờ + tối, muốn nền khác thì gắn vào ô "Ảnh nền"). Hàng nút nhóm: Tất cả / Cơ bản / Reel Facebook /
-  Theme Photoshop / Của fen. Ảnh trong khung chỉnh thêm "Làm mờ" và "Tối lại %". Bấm 1 mẫu → khung 9:16 bên phải là ẢNH THẬT,
+  🎄 Noel / Theme Photoshop / Của fen. Ảnh trong khung chỉnh thêm "Làm mờ" và "Tối lại %".
+  🎄 Nhóm "Noel" (16/11, mùa Noel nên đứng đầu): 5 mẫu y như 5 theme Noel của kho Photoshop: Noel · Ảnh thật / Đêm xanh / Đỏ nhung /
+  Poly Christmas / Trắng tuyết. Giống trang bìa Photoshop: nền lá thông (đỏ nhung, đêm xanh, trắng tuyết) vẽ lại khổ dọc, tiêu đề
+  2 dòng chữ to sọc kẹo + bóng, dòng đậm có *chữ đỏ* (gõ chữ trong dấu sao, vd NOEL *LÊN ĐỜI*), dòng ưu đãi vàng có vạch kẻ,
+  2 phiếu ưu đãi (giấy viền thư máy bay, chữ viết tay, 200K / 300K, tem HSSV, dấu bưu điện NOEL + năm), châu, kẹo gậy, dây đèn,
+  tuyết đáy, ảnh máy (nền trong) đứng trên tuyết, địa chỉ / hotline. Ảnh thật: gắn ảnh thật phủ kín, đáy tối dần, chữ xếp phía dưới.
+  · Kéo 1 chữ của phiếu là cả phiếu đi theo (như nhóm lớp Photoshop); Delete / Nhân đôi cũng cả phiếu. Châu + dây treo cũng 1 nhóm.
+  · Tuyết đáy không che ảnh máy (bấm chỗ chồng nhau là chọn ảnh máy). Bảng chữ có thêm "Chữ *nhấn*" (màu chữ trong dấu sao) và
+    "Sọc kẹo"; ảnh có thêm "Xoay"; khối có "Mờ dần lên trên". Font mới "Alfa Slab One" (tiêu đề Noel, gần UTM Alberta Heavy).
+  Bấm 1 mẫu → khung 9:16 bên phải là ẢNH THẬT,
   sửa gì thấy ngay (xem trước trực tiếp):
   · Bấm vào chữ / ảnh / khối trên khung để chọn (viền xanh), kéo để di chuyển (gần giữa thì tự dính giữa), kéo ô vuông xanh góc dưới
     phải để đổi cỡ. Phím mũi tên nhích (Shift nhích xa), Delete xoá, Ctrl+Z hoàn tác, Ctrl+Y làm lại, Ctrl+D nhân đôi.
   · Bảng bên trái: chữ (nội dung, cỡ, độ đậm, màu, nền chữ + ôm chữ, bo góc, canh trái / giữa / phải, số dòng, gạch ngang giá cũ);
     ảnh (chọn / đổi ảnh, Vừa khung / Phủ kín, khung màu, bo góc); khối / tròn (màu, bo góc); bấm chỗ trống = chỉnh nền (màu / ảnh nền).
   · "＋ Chữ", "＋ Ảnh", "▭ Khối", "◯ Tròn" thêm vào khung; "⧉ Nhân đôi", "⬆ Lên lớp", "⬇ Xuống lớp", "🗑 Xoá"; "↺ Mẫu gốc" bỏ hết chỉnh sửa.
-  · 🔤 Font (bảng chữ, 15/11 14h18): bấm ô Font mở bảng 15 font có tiếng Việt: Hiện đại (Be Vietnam Pro, Montserrat, Lexend),
+  · 🔤 Font (bảng chữ, 15/11 14h18): bấm ô Font mở bảng 16 font có tiếng Việt (16/11 thêm Alfa Slab One cho tiêu đề Noel): Hiện đại (Be Vietnam Pro, Montserrat, Lexend),
     Sale / giá sốc (Anton, Oswald, Bungee, Paytone One), Sang trọng (Playfair), Tết (Lobster, Charm), Noel / Valentine (Dancing Script),
     Hè (Pacifico), Dễ thương (Baloo 2), Viết tay (Pangolin, Patrick Hand). Thêm "Viền chữ" và "Bóng" (màu tuỳ chọn).
   · "🔤 Kiểu chữ có sẵn": 14 kiểu theo mùa / chủ đề (Tết, Noel, Sale, Black Friday, Sang trọng, Hè, Back to school, Viết tay).

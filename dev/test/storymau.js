@@ -16,12 +16,12 @@ n=Image.new('RGB',(1200,2000),'#f4e6c8');ImageDraw.Draw(n).rectangle((0,0,1200,3
 (async () => {
   for (const d of fs.readdirSync(APP + '/story-mau')) if (/^f[0-9a-f]{8}$/.test(d)) fs.renameSync(APP + '/story-mau/' + d, '/tmp/_bo_mau_' + Date.now() + '_' + d);   // mẫu fen của lần thử trước
   const api = await j(A + '/api/story-mau');
-  check('API: 10 mẫu có sẵn (6 mẫu + 4 mẫu reel Facebook, kèm bản vẽ đầy đủ) + 4 bố cục', api.b.ds.filter(x => x.san).map(x => x.id).slice(0, 10).join() === 'may-moi-ve,gia-soc,so-sanh,feedback,thong-bao,noel,fb-moi-ve,fb-top3,fb-sale,fb-review' && api.b.bo_cuc.length === 4 && api.b.ds[1].ve.nen === '#a61e1e' && api.b.ds[1].ve.o.length >= 7, api.b.ds.map(x => x.id));
+  check('API: 10 mẫu có sẵn (6 mẫu + 4 mẫu reel Facebook, kèm bản vẽ đầy đủ) + 4 bố cục', api.b.ds.filter(x => x.san && !/^ps-/.test(x.id)).map(x => x.id).slice(0, 10).join() === 'may-moi-ve,gia-soc,so-sanh,feedback,thong-bao,noel,fb-moi-ve,fb-top3,fb-sale,fb-review' && api.b.bo_cuc.length === 4 && api.b.ds.find(x => x.id === 'gia-soc').ve.nen === '#a61e1e' && api.b.ds.find(x => x.id === 'gia-soc').ve.o.length >= 7, api.b.ds.map(x => x.id));
   const ps = api.b.ds.filter(x => x.nhom === 'ps'), glass = ps.find(x => x.id === 'ps-glass-tim-hong');
-  check('mẫu theo kho theme Photoshop (fen 14h43 "cho theme giống style kho photoshop"): 1 mẫu / theme (18), màu + font theo theme (Glass tím hồng: nền 110C26, tiêu đề cam FB923C), nền kính = ảnh máy làm mờ + tối', ps.length === 18 && glass.ve.nen === '#110C26' && glass.ve.o.find(x => x.k === 'tieu_de').mau === '#FB923C' && glass.ve.o.some(x => x.k === 'nen_anh' && x.nguon === 'anh' && x.mo > 0 && x.toi > 0), { n: ps.length, g: glass && glass.ve.o.slice(0, 3) });
+  check('mẫu theo kho theme Photoshop (fen 14h43 "cho theme giống style kho photoshop"): 1 mẫu / theme (13 + 5 theme Noel ở nhóm 🎄 Noel), màu + font theo theme (Glass tím hồng: nền 110C26, tiêu đề cam FB923C), nền kính = ảnh máy làm mờ + tối', ps.length === 13 && api.b.ds.filter(x => x.nhom === 'noel').length === 5 && glass.ve.nen === '#110C26' && glass.ve.o.find(x => x.k === 'tieu_de').mau === '#FB923C' && glass.ve.o.some(x => x.k === 'nen_anh' && x.nguon === 'anh' && x.mo > 0 && x.toi > 0), { n: ps.length, g: glass && glass.ve.o.slice(0, 3) });
   const fb = api.b.ds.find(x => x.id === 'fb-top3');
   check('mẫu reel Facebook (fen 14h19 "clone theme reel facebook"): có vùng Facebook che (trên 270, dưới 1250, phải 940), chữ / ảnh nằm trong vùng an toàn', fb.ve.vung && fb.ve.vung.duoi === 1250 && fb.ve.vung.phai === 940 && api.b.ds.filter(x => /^fb-/.test(x.id)).every(m => m.ve.o.filter(x => x.loai === 'chu').every(x => x.y >= 270 && x.y + x.h <= 1250 && x.x + x.w <= 940)), fb.ve.vung);
-  const xem = await fetch(A + api.b.ds[1].xem);
+  const xem = await fetch(A + api.b.ds.find(x => x.id === 'gia-soc').xem);
   check('ảnh xem trước mẫu (JPG nhỏ)', xem.status === 200 && /jpeg/.test(xem.headers.get('content-type')), xem.status);
   const b = await chromium.launch({ args: ['--host-resolver-rules=MAP poly-thu.example 127.0.0.1:8791'] }); const errs = [];
   const p = await b.newPage({ viewport: { width: 1386, height: 950 }, acceptDownloads: true }); p.on('pageerror', e => errs.push(e.message + ' @ ' + (e.stack || '').split('\n').slice(0, 3).join(' | ')));
@@ -29,7 +29,7 @@ n=Image.new('RGB',(1200,2000),'#f4e6c8');ImageDraw.Draw(n).rectangle((0,0,1200,3
   await p.evaluate(() => { localStorage.removeItem('poly-tk'); localStorage.removeItem('poly-st-tab'); });
   await p.click('#stTab [data-tab="mau"]'); await p.waitForSelector('#mPick [data-m]');
   const t1 = await p.evaluate(() => ({ hash: location.hash, n: document.querySelectorAll('#mPick [data-m]').length, them: !!$('#mThem'), chon: document.querySelector('#mPick .on').dataset.m }));
-  check('tab "Thư viện mẫu": 28 mẫu (Tất cả), nút Thêm mẫu của fen, chọn sẵn mẫu đầu, #storymau=…', t1.n === 28 && t1.them && t1.chon === 'may-moi-ve' && t1.hash === '#storymau=may-moi-ve', t1);
+  check('tab "Thư viện mẫu": 28 mẫu (Tất cả), nút Thêm mẫu của fen, chọn sẵn mẫu đầu (mùa Noel: mẫu Noel lên đầu), #storymau=…', t1.n === 28 && t1.them && t1.chon === 'ps-noel-anh-that' && t1.hash === '#storymau=ps-noel-anh-that', t1);
   await p.click('#mPick [data-m="gia-soc"]'); await p.waitForSelector('#tkCv'); await p.waitForTimeout(800);
   const px = (x, y) => p.evaluate(([x, y]) => [...$('#tkCv').getContext('2d').getImageData(x, y, 1, 1).data].slice(0, 3), [x, y]);
   const e0 = await p.evaluate(() => ({ cv: !!$('#tkCv'), nd: [...document.querySelectorAll('#tkNd [data-nd]')].map(t => t.value), n: TK.d.o.length }));
@@ -74,7 +74,7 @@ n=Image.new('RGB',(1200,2000),'#f4e6c8');ImageDraw.Draw(n).rectangle((0,0,1200,3
   const [fcg] = await Promise.all([p.waitForEvent('filechooser'), p.click(`#tkNd [data-anh="${iMay}"]`)]); await fcg.setFiles('/tmp/sm-may.png');
   await p.waitForFunction(i => /^img:/.test(TK.d.o[i].img || ''), iMay); await p.waitForTimeout(700);
   const g1 = await p.evaluate(() => [...$('#tkCv').getContext('2d').getImageData(20, 1800, 1, 1).data].slice(0, 3));
-  check('nhóm "Theme Photoshop" lọc 18 mẫu; mẫu Glass: gắn ảnh máy là nền thành ảnh đó làm mờ + tối (góc dưới đổi màu)', nps === 18 && JSON.stringify(g0) !== JSON.stringify(g1), { nps, g0, g1 });
+  check('nhóm "Theme Photoshop" lọc 13 mẫu; mẫu Glass: gắn ảnh máy là nền thành ảnh đó làm mờ + tối (góc dưới đổi màu)', nps === 13 && JSON.stringify(g0) !== JSON.stringify(g1), { nps, g0, g1 });
   await p.click('#mNhom [data-nh=""]'); await p.waitForSelector('#tkCv');
   await p.click('#mPick [data-m="gia-soc"]'); await p.waitForSelector('#tkCv'); await p.waitForTimeout(400);
   // 🔤 thư viện chữ (fen 14h18 "cho thư viện chữ đẹp đi, font phù hợp nhiều mùa, chủ đề")
@@ -82,7 +82,7 @@ n=Image.new('RGB',(1200,2000),'#f4e6c8');ImageDraw.Draw(n).rectangle((0,0,1200,3
   await p.click('#tkpFf'); await p.waitForSelector('#tkpFg:not([hidden])');
   const nf = await p.evaluate(() => document.querySelectorAll('#tkpFg [data-ff]').length);
   await p.click('#tkpFg [data-ff="lobster"]'); await p.waitForTimeout(600);
-  check('Font: bảng 15 font (hiện đại, sale, sang trọng, Tết, Noel, viết tay…) chọn là đổi ngay, font tải về dùng được', nf === 15 && await p.evaluate(() => TK.d.o.find(x => x.k === 'nhan').ff === 'lobster' && document.fonts.check('400 40px "tv-lobster"', 'Ưu đãi')), nf);
+  check('Font: bảng 16 font (hiện đại, sale, sang trọng, Tết, Noel, viết tay…) chọn là đổi ngay, font tải về dùng được', nf === 16 && await p.evaluate(() => TK.d.o.find(x => x.k === 'nhan').ff === 'lobster' && document.fonts.check('400 40px "tv-lobster"', 'Ưu đãi')), nf);
   const nk0 = await p.evaluate(() => TK.d.o.length);
   await p.click('[data-kieu="5"]'); await p.waitForTimeout(300);
   check('Kiểu chữ có sẵn: đang chọn chữ thì đổi kiểu (GIÁ SỐC: Anton vàng viền đen), không thêm ô', await p.evaluate(n => { const x = TK.d.o.find(x => x.k === 'nhan'); return TK.d.o.length === n && x.ff === 'anton' && x.mau === '#ffe600' && x.vien === '#111111' && x.text === 'GIÁ SỐC HÔM NAY'; }, nk0));

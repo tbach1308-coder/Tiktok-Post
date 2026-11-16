@@ -30,6 +30,8 @@
 @font-face{font-family:'tv-bungee';font-style:normal;font-weight:400;font-display:swap;src:url(/ui/fonts/tv/bungee-vietnamese.woff2) format('woff2');unicode-range:U+0102-0103,U+0110-0111,U+0128-0129,U+0168-0169,U+01A0-01A1,U+01AF-01B0,U+0300-0301,U+0303-0304,U+0308-0309,U+0323,U+0329,U+1EA0-1EF9,U+20AB}
 @font-face{font-family:'tv-paytone';font-style:normal;font-weight:400;font-display:swap;src:url(/ui/fonts/tv/paytone-latin.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
 @font-face{font-family:'tv-paytone';font-style:normal;font-weight:400;font-display:swap;src:url(/ui/fonts/tv/paytone-vietnamese.woff2) format('woff2');unicode-range:U+0102-0103,U+0110-0111,U+0128-0129,U+0168-0169,U+01A0-01A1,U+01AF-01B0,U+0300-0301,U+0303-0304,U+0308-0309,U+0323,U+0329,U+1EA0-1EF9,U+20AB}
+@font-face{font-family:'tv-alfa';font-style:normal;font-weight:400;font-display:swap;src:url(/ui/fonts/tv/alfa-latin.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:'tv-alfa';font-style:normal;font-weight:400;font-display:swap;src:url(/ui/fonts/tv/alfa-vietnamese.woff2) format('woff2');unicode-range:U+0102-0103,U+0110-0111,U+0128-0129,U+0168-0169,U+01A0-01A1,U+01AF-01B0,U+0300-0301,U+0303-0304,U+0308-0309,U+0323,U+0329,U+1EA0-1EF9,U+20AB}
 @font-face{font-family:'tv-playfair';font-style:normal;font-weight:800;font-display:swap;src:url(/ui/fonts/tv/playfair-latin.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
 @font-face{font-family:'tv-playfair';font-style:normal;font-weight:800;font-display:swap;src:url(/ui/fonts/tv/playfair-vietnamese.woff2) format('woff2');unicode-range:U+0102-0103,U+0110-0111,U+0128-0129,U+0168-0169,U+01A0-01A1,U+01AF-01B0,U+0300-0301,U+0303-0304,U+0308-0309,U+0323,U+0329,U+1EA0-1EF9,U+20AB}
 @font-face{font-family:'tv-lobster';font-style:normal;font-weight:400;font-display:swap;src:url(/ui/fonts/tv/lobster-latin.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
@@ -3102,7 +3104,7 @@ async function storyMau(id){
     if (S.view !== 'story' || S.stTab !== 'mau') return;
   }
   // nhóm mẫu (fen 15/11 14h43 thêm mẫu theo kho theme Photoshop → nhiều mẫu, lọc theo nhóm)
-  const NHOM = [['', 'Tất cả'], ['co-ban', 'Cơ bản'], ['fb', 'Reel Facebook'], ['ps', 'Theme Photoshop'], ['fen', 'Của fen']];
+  const NHOM = [['', 'Tất cả'], ['co-ban', 'Cơ bản'], ['fb', 'Reel Facebook'], ['noel', '🎄 Noel'], ['ps', 'Theme Photoshop'], ['fen', 'Của fen']];
   let nhom = store.get('poly-mau-nhom', '') || '';
   if (id && MAU.ds.some(x => x.id === id && nhom && x.nhom !== nhom)) nhom = '';
   const ds = MAU.ds.filter(x => !nhom || x.nhom === nhom);
@@ -3136,7 +3138,7 @@ const TK_FONTS = [['', 'Be Vietnam Pro', 'Hiện đại'], ['montserrat', 'Monts
   ['anton', 'Anton', 'Sale · giá sốc', 400], ['oswald', 'Oswald', 'Sale · giá sốc', 700], ['bungee', 'Bungee', 'Sale · giá sốc', 400], ['paytone', 'Paytone One', 'Sale · giá sốc', 400],
   ['playfair', 'Playfair Display', 'Sang trọng', 800], ['lobster', 'Lobster', 'Tết · cổ điển', 400], ['charm', 'Charm', 'Tết · cổ điển', 700],
   ['dancing', 'Dancing Script', 'Noel · Valentine', 700], ['pacifico', 'Pacifico', 'Hè · vui tươi', 400], ['baloo', 'Baloo 2', 'Dễ thương', 800],
-  ['pangolin', 'Pangolin', 'Viết tay', 400], ['patrick', 'Patrick Hand', 'Viết tay', 400]];
+  ['pangolin', 'Pangolin', 'Viết tay', 400], ['patrick', 'Patrick Hand', 'Viết tay', 400], ['alfa', 'Alfa Slab One', 'Noel · tiêu đề to', 400]];
 const TK_KIEU = [
   { ten: 'Chúc Mừng Năm Mới', nhom: 'Tết', ff: 'lobster', mau: '#ffd166', vien: '#8b0a14', co: 110, bg: '#b3121f' },
   { ten: 'Xuân an khang', nhom: 'Tết', ff: 'charm', mau: '#ffe9a8', bong: '#5c0008', co: 100, bg: '#b3121f' },
@@ -3174,22 +3176,34 @@ function tkHinh(src){             // ảnh theo khoá ("img:3" = ảnh vừa g�
   return o.complete && o.naturalWidth ? o : null;
 }
 function tkRR(c, x, y, w, h, r){ r = Math.max(0, Math.min(r || 0, w / 2, h / 2)); c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
-function tkDong(c, txt, w){
-  const out = [];
+function tkDong(c, txt, w, sach){
+  const do_ = t => c.measureText(sach ? sach(t) : t).width, out = [];
   for (const doan of String(txt).split('\n')) { let d = '';
-    for (const t of doan.split(' ')) { const thu = (d + ' ' + t).trim(); if (c.measureText(thu).width <= w || !d) d = thu; else { out.push(d); d = t; } }
+    for (const t of doan.split(' ')) { const thu = (d + ' ' + t).trim(); if (do_(thu) <= w || !d) d = thu; else { out.push(d); d = t; } }
     out.push(d); }
   return out;
 }
+// 🎄 Noel (fen 16/11 11h23 "tạo theme christmas", mẫu theo kho theme Photoshop): mau2 = màu chữ trong *dấu sao* ("NOEL *LÊN ĐỜI*"),
+// soc = sọc kẹo chéo trên chữ (màu sọc, như soc-*.png của theme), lech = bóng cứng lệch (px, màu bong), vach = 3 tia cạnh dòng đầu,
+// ke = vạch kẻ ngang nối sau dòng cuối (dòng ưu đãi). Cùng cách vẽ với server (_sm_chu) để ảnh xem trước giống.
+function tkDoan(l, st, nhan){ if (!nhan) return [[l, 0]]; const out = []; l.split('*').forEach((p, j) => { if (j) st ^= 1; if (p) out.push([p, st]); }); return out; }
+function tkSoc(c, x0, y0, w, h, mau, hk){
+  const k = Math.max((w + 60) / 1200, (hk + 40) / 300, 0.35), b = 26 * k, kh = 58 * k;
+  c.fillStyle = mau; c.beginPath();
+  for (let xx = x0 - h - kh; xx < x0 + w + kh; xx += kh) { c.moveTo(xx, y0 + h); c.lineTo(xx + b, y0 + h); c.lineTo(xx + b + h, y0); c.lineTo(xx + h, y0); c.closePath(); }
+  c.fill();
+}
 function tkChu(c, x){
   const txt = String(x.text || '').trim(); if (!txt) return;
+  const nhan = !!x.mau2, sach = nhan ? (t => t.replace(/\*/g, '')) : null;
   const pad = x.pad || 0, w = x.w - 2 * pad, h = x.h, toi = Math.max(1, x.dong || 1), min = Math.max(14, x.co * 0.45);
   let co = x.co, ls, cao;
   tkNap(x.ff);
-  for (;;) { c.font = tkFont(x, co); ls = tkDong(c, txt, w); cao = co * 1.22;
-    if ((ls.length <= toi && ls.length * cao <= h + 2 && Math.max(...ls.map(l => c.measureText(l).width)) <= w) || co <= min) break; co -= 2; }
+  const rongDong = l => c.measureText(sach ? sach(l) : l).width;
+  for (;;) { c.font = tkFont(x, co); ls = tkDong(c, txt, w, sach); cao = co * 1.22;
+    if ((ls.length <= toi && ls.length * cao <= h + 2 && Math.max(...ls.map(rongDong)) <= w) || co <= min) break; co -= 2; }
   ls = ls.slice(0, toi);
-  const rong = Math.max(...ls.map(l => c.measureText(l).width)), tong = ls.length * cao, canh = x.canh || 'trai';
+  const rong = Math.max(...ls.map(rongDong)), tong = ls.length * cao, canh = x.canh || 'trai';
   let lx0, lw, y0;
   if (x.nen) {
     const bw = x.om ? rong + 2 * pad : x.w, bh = x.om ? Math.max(tong + pad * 0.9, co * 1.5) : h;
@@ -3197,12 +3211,30 @@ function tkChu(c, x){
     c.fillStyle = x.nen; tkRR(c, bx, by, bw, bh, x.bo || 0); c.fill();
     y0 = by + (bh - tong) / 2; lx0 = bx + pad; lw = bw - 2 * pad;
   } else { y0 = x.y + (x.giua_doc ? (h - tong) / 2 : 0); lx0 = x.x + pad; lw = w; }
-  c.fillStyle = x.mau || '#ffffff'; c.textBaseline = 'top';
-  ls.forEach((l, i) => { const tw = c.measureText(l).width, lx = lx0 + (canh === 'giua' ? (lw - tw) / 2 : canh === 'phai' ? lw - tw : 0), ly = y0 + i * cao + (cao - co * 1.1) / 2;
-    if (x.vien) { c.save(); c.lineJoin = 'round'; c.lineWidth = Math.max(3, co * 0.12); c.strokeStyle = x.vien; c.strokeText(l, lx, ly + co * 0.06); c.restore(); }
-    if (x.bong) { c.save(); c.shadowColor = x.bong; c.shadowBlur = co * 0.18; c.shadowOffsetY = co * 0.06; c.fillText(l, lx, ly + co * 0.06); c.restore(); }
-    else c.fillText(l, lx, ly + co * 0.06);
-    if (x.gach) { c.fillRect(lx - 4, ly + co * 0.62, tw + 8, Math.max(2, co / 12)); } });
+  c.textBaseline = 'top';
+  let st = 0;
+  const dong = ls.map((l, i) => { const tw = rongDong(l), lx = lx0 + (canh === 'giua' ? (lw - tw) / 2 : canh === 'phai' ? lw - tw : 0), ly = y0 + i * cao + (cao - co * 1.1) / 2 + co * 0.06;
+    const ps = tkDoan(l, st, nhan); if (nhan) st = (st + (l.split('*').length - 1)) % 2; return { l, tw, lx, ly, ps }; });
+  const chay = (cc, d, f) => { let px = d.lx; d.ps.forEach(([t, a]) => { f(cc, t, px, a); px += cc.measureText(t).width; }); };
+  if (x.vien) { c.save(); c.lineJoin = 'round'; c.lineWidth = Math.max(3, co * 0.12); c.strokeStyle = x.vien; dong.forEach(d => chay(c, d, (cc, t, px) => cc.strokeText(t, px, d.ly))); c.restore(); }
+  if (x.bong && x.lech) { c.save(); c.fillStyle = x.bong; dong.forEach(d => chay(c, d, (cc, t, px) => cc.fillText(t, px + x.lech, d.ly + x.lech))); c.restore(); }
+  let cc = c;
+  if (x.soc) { if (!TK.oc) { TK.oc = document.createElement('canvas'); TK.oc.width = 1080; TK.oc.height = 1920; }
+    cc = TK.oc.getContext('2d'); cc.setTransform(1, 0, 0, 1, 0, 0); cc.clearRect(0, 0, 1080, 1920); cc.font = c.font; cc.textBaseline = 'top'; }
+  cc.save();
+  if (x.bong && !x.lech) { cc.shadowColor = x.bong; cc.shadowBlur = co * 0.18; cc.shadowOffsetY = co * 0.06; }
+  dong.forEach(d => chay(cc, d, (k, t, px, a) => { k.fillStyle = a ? x.mau2 : (x.mau || '#ffffff'); k.fillText(t, px, d.ly); }));
+  cc.restore();
+  if (x.soc) { cc.save(); cc.globalCompositeOperation = 'source-atop';
+    const bx = Math.min(...dong.map(d => d.lx)), bw = Math.max(...dong.map(d => d.lx + d.tw)) - bx; tkSoc(cc, bx - 10, y0, bw + 20, tong, x.soc, co * 0.75); cc.restore(); c.drawImage(TK.oc, 0, 0); }
+  c.fillStyle = x.mau || '#ffffff';
+  dong.forEach(d => { if (x.gach) c.fillRect(d.lx - 4, d.ly + co * 0.56, d.tw + 8, Math.max(2, co / 12)); });
+  const tam = d => d.ly + co * 0.5;
+  if (x.vach && dong[0]) { const d = dong[0], k = co / 150, x1 = d.lx + d.tw + 30 * k; c.save(); c.strokeStyle = x.vach; c.lineWidth = 7 * k; c.lineCap = 'butt';
+    for (let i = -1; i <= 1; i++) { const g = i * 26 * Math.PI / 180, y1 = tam(d) + i * 16 * k; c.beginPath(); c.moveTo(x1, y1); c.lineTo(x1 + Math.cos(g) * 38 * k, y1 + Math.sin(g) * 38 * k); c.stroke(); }
+    c.restore(); }
+  if (x.ke && dong.length) { const d = dong[dong.length - 1], a = d.lx + d.tw + co * 0.7, b = Math.min(x.x + x.w, a + co * 7), t = Math.max(2, Math.round(co * 0.1));
+    if (b > a + 10) { c.fillStyle = x.ke; c.fillRect(a, tam(d) - t / 2, b - a, t); } }
 }
 function tkAnh(c, x, xuat){
   // nguon: ô này trống thì dùng ảnh của ô khác (nền kính theme Photoshop = ảnh máy làm mờ); mo: làm mờ; toi: tối lại (%)
@@ -3219,8 +3251,10 @@ function tkAnh(c, x, xuat){
   let sx = 0, sy = 0, sw = img.naturalWidth, sh = img.naturalHeight, dw, dh;
   if (x.phu) { const k = Math.max(bw / sw, bh / sh); dw = bw; dh = bh; const cw = bw / k, ch = bh / k; sx = (sw - cw) / 2; sy = (sh - ch) / 2; sw = cw; sh = ch; }
   else { const k = Math.min(bw / sw, bh / sh); dw = sw * k; dh = sh * k; }
-  const dx = x.x + pad + (bw - dw) / 2, dy = x.y + pad + (bh - dh) / 2;
-  c.save(); tkRR(c, dx, dy, dw, dh, r); c.clip(); if (x.mo) c.filter = `blur(${x.mo}px)`;
+  // day: sát đáy khung (ảnh máy đứng trên tuyết); xoay: độ, quanh tâm khung (kẹo gậy, dây đèn mẫu Noel)
+  const dx = x.x + pad + (bw - dw) / 2, dy = x.y + pad + (x.day ? bh - dh : (bh - dh) / 2);
+  c.save(); if (x.xoay) { const cx = x.x + x.w / 2, cy = x.y + x.h / 2; c.translate(cx, cy); c.rotate(x.xoay * Math.PI / 180); c.translate(-cx, -cy); }
+  tkRR(c, dx, dy, dw, dh, r); c.clip(); if (x.mo) c.filter = `blur(${x.mo}px)`;
   c.drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh); c.filter = 'none';
   if (x.toi) { c.fillStyle = `rgba(0,0,0,${Math.min(90, x.toi) / 100})`; c.fillRect(dx, dy, dw, dh); }
   c.restore();
@@ -3232,7 +3266,10 @@ function tkVeLen(c, d, xuat){
   if (nen) { const k = Math.max(1080 / nen.naturalWidth, 1920 / nen.naturalHeight), w = nen.naturalWidth * k, h = nen.naturalHeight * k; c.drawImage(nen, (1080 - w) / 2, (1920 - h) / 2, w, h); }
   for (const x of d.o) {
     if (x.loai === 'tron') { c.fillStyle = x.mau || '#ffffff'; c.beginPath(); c.arc(x.x, x.y, Math.max(1, x.r), 0, Math.PI * 2); c.fill(); }
-    else if (x.loai === 'hcn') { c.fillStyle = x.mau || '#ffffff'; tkRR(c, x.x, x.y, x.w, x.h, x.bo || 0); c.fill(); }
+    else if (x.loai === 'hcn') { let f = x.mau || '#ffffff';
+      if (x.mo_dan) { const g = c.createLinearGradient(0, x.y, 0, x.y + x.h), m = tkHex(f, '#000000'), a = /^#[0-9a-f]{8}$/i.test(f) ? parseInt(f.slice(7), 16) / 255 : 1;
+        const rgb = `${parseInt(m.slice(1, 3), 16)},${parseInt(m.slice(3, 5), 16)},${parseInt(m.slice(5, 7), 16)}`; g.addColorStop(0, `rgba(${rgb},0)`); g.addColorStop(1, `rgba(${rgb},${a})`); f = g; }
+      c.fillStyle = f; tkRR(c, x.x, x.y, x.w, x.h, x.bo || 0); c.fill(); }
     else if (x.loai === 'anh') tkAnh(c, x, xuat);
     else if (x.loai === 'chu') { if (x.chi_khi_trong && d.o.some(y => y.k === x.chi_khi_trong && tkHinh(y.img))) continue; tkChu(c, x); }
   }
@@ -3249,15 +3286,18 @@ function tkVe(){
     if (vg.ten) { c.setLineDash([]); c.font = `600 30px ${TK_F}`; c.fillStyle = 'rgba(255,255,255,.55)'; c.textBaseline = 'top'; c.fillText(vg.ten, 24, vg.duoi + 14); }
     c.restore();
     if (TK.dinh) { c.save(); c.strokeStyle = '#ec4899'; c.lineWidth = 3; c.beginPath(); c.moveTo(540, 0); c.lineTo(540, 1920); c.stroke(); c.restore(); }
-    const x = TK.d.o[TK.sel];
+    const x = TK.d.o[TK.sel], nh = tkNhom(TK.sel);
+    if (nh.length > 1) { const bs = nh.map(j => tkGoc(TK.d.o[j])), l = Math.min(...bs.map(q => q[0])), t = Math.min(...bs.map(q => q[1])),
+        r = Math.max(...bs.map(q => q[0] + q[2])), b = Math.max(...bs.map(q => q[1] + q[3]));
+      c.save(); c.strokeStyle = 'rgba(34,197,94,.55)'; c.lineWidth = 3; c.setLineDash([6, 8]); c.strokeRect(l - 8, t - 8, r - l + 16, b - t + 16); c.restore(); }
     if (x) { const [gx, gy, gw, gh] = tkGoc(x); c.save(); c.strokeStyle = '#22c55e'; c.lineWidth = 5; c.setLineDash([16, 10]); c.strokeRect(gx, gy, gw, gh);
       c.setLineDash([]); c.fillStyle = '#22c55e'; c.fillRect(gx + gw - 22, gy + gh - 22, 44, 44); c.restore(); }
   });
 }
 function tkLuuMay(){        // nhớ bản đang sửa theo đúng mẫu lúc gọi (đổi mẫu nhanh không ghi nhầm sang mẫu khác)
-  clearTimeout(TK.tLuu); if (!TK.mau || !TK.d) return; const id = TK.mau.id, d = TK.d;
+  clearTimeout(TK.tLuu); if (!TK.mau || !TK.d) return; const id = TK.mau.id, v = TK.mau.v || 0, d = TK.d;
   TK.luuCho = () => { TK.luuCho = null; const all = store.get('poly-tk', {}) || {};
-    all[id] = { t: Date.now(), d: JSON.parse(JSON.stringify(d, (k, v) => (k === 'img' || k === 'nenImg') && /^img:/.test(v || '') ? '' : v)) };
+    all[id] = { t: Date.now(), v, d: JSON.parse(JSON.stringify(d, (k, v) => (k === 'img' || k === 'nenImg') && /^img:/.test(v || '') ? '' : v)) };
     const ks = Object.keys(all).sort((a, b) => all[b].t - all[a].t); ks.slice(20).forEach(k => delete all[k]); store.set('poly-tk', all); };
   TK.tLuu = setTimeout(() => TK.luuCho && TK.luuCho(), 500); }
 function tkXong(){           // rời mẫu: ghi ngay chỉnh sửa còn chờ
@@ -3273,7 +3313,8 @@ function tkMo(mau){
   TK.mau = mau; TK.sel = -1; TK.kq = null;
   const cu = (store.get('poly-tk', {}) || {})[mau.id];
   // bản nhớ trống (lúc trang mới mà app chưa khởi động lại, mẫu chưa có bản vẽ) thì lấy lại mẫu gốc (fen 14h15 khung trống)
-  TK.d = cu && cu.d && cu.d.o && cu.d.o.length ? cu.d : tkTuMau(mau);
+  // mẫu đã đổi bố cục (v khác, vd mẫu Noel 16/11 thay mẫu "Theme · Noel" cũ) thì bỏ bản nhớ cũ
+  TK.d = cu && (cu.v || 0) === (mau.v || 0) && cu.d && cu.d.o && cu.d.o.length ? cu.d : tkTuMau(mau);
   TK.hist = [JSON.stringify(TK.d)]; TK.fut = [];
   const w = $('#mWork');
   w.innerHTML = `<div class="tkw"><div class="tkl">
@@ -3321,21 +3362,23 @@ function tkCanvas(){
   const cv = $('#tkCv'); let keo = null;
   const diem = e => { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left) * 1080 / r.width, (e.clientY - r.top) * 1920 / r.height]; };
   cv.onpointerdown = e => {
-    const [px, py] = diem(e); cv.focus();
+    const [px, py] = diem(e); cv.focus({ preventScroll: true });   // không cuộn trang khi bấm phần dưới khung (kéo bị lệch)
     const s = TK.d.o[TK.sel];
     if (s) { const [gx, gy, gw, gh] = tkGoc(s); if (Math.abs(px - (gx + gw)) < 44 && Math.abs(py - (gy + gh)) < 44) { keo = { kieu: 'co', px, py, o: JSON.parse(JSON.stringify(s)) }; cv.setPointerCapture(e.pointerId); return; } }
-    let i = TK.d.o.length - 1;
-    for (; i >= 0; i--) { const [gx, gy, gw, gh] = tkGoc(TK.d.o[i]); if (px >= gx && px <= gx + gw && py >= gy && py <= gy + gh) break; }
+    // lớp khoá (tuyết đáy, lớp tối mẫu Noel): chỉ chọn khi bấm chỗ không có lớp nào khác
+    const trung = TK.d.o.map((x, j) => j).filter(j => { const [gx, gy, gw, gh] = tkGoc(TK.d.o[j]); return px >= gx && px <= gx + gw && py >= gy && py <= gy + gh; });
+    const mo = trung.filter(j => !TK.d.o[j].khoa), i = mo.length ? mo[mo.length - 1] : trung.length ? trung[trung.length - 1] : -1;
     TK.sel = i; tkBang(); tkNoiDungChon(); tkVe();
-    if (i >= 0) { keo = { kieu: 'dich', px, py, o: JSON.parse(JSON.stringify(TK.d.o[i])) }; cv.setPointerCapture(e.pointerId); }
+    if (i >= 0) { keo = { kieu: 'dich', px, py, o: JSON.parse(JSON.stringify(TK.d.o[i])), nhom: tkNhom(i).map(j => [j, TK.d.o[j].x, TK.d.o[j].y]) }; cv.setPointerCapture(e.pointerId); }
   };
   cv.onpointermove = e => {
     if (!keo || TK.sel < 0) { const [px, py] = diem(e), s = TK.d.o[TK.sel]; if (s) { const [gx, gy, gw, gh] = tkGoc(s); cv.style.cursor = Math.abs(px - (gx + gw)) < 44 && Math.abs(py - (gy + gh)) < 44 ? 'nwse-resize' : ''; } return; }
     const [px, py] = diem(e), dx = px - keo.px, dy = py - keo.py, x = TK.d.o[TK.sel], o = keo.o; keo.doi = true;
     if (keo.kieu === 'dich') {
       x.x = Math.round(o.x + dx); x.y = Math.round(o.y + dy);
-      const tam = x.loai === 'tron' ? x.x : x.x + x.w / 2; TK.dinh = Math.abs(tam - 540) < 14;
+      const tam = x.loai === 'tron' ? x.x : x.x + x.w / 2; TK.dinh = !keo.nhom.length && Math.abs(tam - 540) < 14;
       if (TK.dinh) x.x = x.loai === 'tron' ? 540 : Math.round(540 - x.w / 2);
+      keo.nhom.forEach(([j, gx, gy]) => { if (TK.d.o[j] && j !== TK.sel) { TK.d.o[j].x = Math.round(gx + dx); TK.d.o[j].y = Math.round(gy + dy); } });
     } else if (x.loai === 'tron') x.r = Math.max(8, Math.round(o.r + Math.max(dx, dy) / 2));
     else { x.w = Math.max(40, Math.round(o.w + dx)); x.h = Math.max(30, Math.round(o.h + dy)); }
     tkVe();
@@ -3349,12 +3392,19 @@ function tkCanvas(){
     if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); return tkLop('xoa'); }
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'd') { e.preventDefault(); return tkLop('doi'); }
     const b = e.shiftKey ? 20 : 4, m = { ArrowLeft: [-b, 0], ArrowRight: [b, 0], ArrowUp: [0, -b], ArrowDown: [0, b] }[e.key];
-    if (m) { e.preventDefault(); x.x += m[0]; x.y += m[1]; tkVe(); clearTimeout(TK.tNhich); TK.tNhich = setTimeout(() => { TK.tNhich = 0; tkGhi(); }, 400); }
+    if (m) { e.preventDefault(); (tkNhom(TK.sel).length ? tkNhom(TK.sel) : [TK.sel]).forEach(j => { TK.d.o[j].x += m[0]; TK.d.o[j].y += m[1]; }); tkVe(); clearTimeout(TK.tNhich); TK.tNhich = setTimeout(() => { TK.tNhich = 0; tkGhi(); }, 400); }
   };
 }
+// nhóm (phiếu ưu đãi, châu + dây treo của mẫu Noel): kéo / mũi tên / xoá / nhân đôi đi cả nhóm, như nhóm lớp trong Photoshop
+function tkNhom(i){ const x = TK.d.o[i]; return x && x.nhom ? TK.d.o.map((y, j) => j).filter(j => TK.d.o[j].nhom === x.nhom) : []; }
 function tkLop(viec){
   const o = TK.d.o, i = TK.sel; if (i < 0 || !o[i]) return;
-  if (viec === 'xoa') { o.splice(i, 1); TK.sel = -1; }
+  const nh = tkNhom(i);
+  if (viec === 'xoa' && nh.length) { TK.d.o = o.filter((y, j) => !nh.includes(j)); TK.sel = -1; }
+  else if (viec === 'doi' && nh.length) { const moi = 'n' + Date.now().toString(36), cuoi = nh[nh.length - 1], h = Date.now().toString(36).slice(-3);
+    const ys = nh.map(j => { const y = JSON.parse(JSON.stringify(o[j])); y.x += 30; y.y += 30; y.nhom = moi; if (y.k) y.k = y.k + 'b' + h; return y; });
+    o.splice(cuoi + 1, 0, ...ys); TK.sel = cuoi + 1 + nh.indexOf(i); }
+  else if (viec === 'xoa') { o.splice(i, 1); TK.sel = -1; }
   else if (viec === 'doi') { const y = JSON.parse(JSON.stringify(o[i])); y.x += 30; y.y += 30; if (y.k) y.k = y.k + 'b' + Date.now().toString(36).slice(-3); o.splice(i + 1, 0, y); TK.sel = i + 1; }
   else if (viec === 'len' && i < o.length - 1) { [o[i], o[i + 1]] = [o[i + 1], o[i]]; TK.sel = i + 1; }
   else if (viec === 'xuong' && i > 0) { [o[i], o[i - 1]] = [o[i - 1], o[i]]; TK.sel = i - 1; }
@@ -3377,6 +3427,7 @@ function tkBang(){
       ${mau('tkpMau', x.mau, 'Màu chữ')}
       <label class="tkf"><span>Nền chữ</span><input type="checkbox" id="tkpNenCo"${x.nen ? ' checked' : ''}><input type="color" id="tkpNenChu" value="${tkHex(x.nen, '#f5c542')}"><label class="tkmini"><input type="checkbox" id="tkpOm"${x.om ? ' checked' : ''}> ôm chữ</label></label>
       <label class="tkf"><span>Viền chữ</span><input type="checkbox" id="tkpVienCo"${x.vien ? ' checked' : ''}><input type="color" id="tkpVien" value="${tkHex(x.vien, '#000000')}"><span class="tkmini">Bóng</span><input type="checkbox" id="tkpBongCo"${x.bong ? ' checked' : ''}><input type="color" id="tkpBong" value="${tkHex(x.bong, '#000000')}"></label>
+      <label class="tkf" title="Chữ đặt trong *dấu sao* đổi sang màu này, ví dụ NOEL *LÊN ĐỜI*"><span>Chữ *nhấn*</span><input type="checkbox" id="tkpM2Co"${x.mau2 ? ' checked' : ''}><input type="color" id="tkpM2" value="${tkHex(x.mau2, '#e23b32')}"><span class="tkmini">Sọc kẹo</span><input type="checkbox" id="tkpSocCo"${x.soc ? ' checked' : ''}><input type="color" id="tkpSoc" value="${tkHex(x.soc, '#ffffff')}"></label>
       ${so('tkpBo', x.bo, 'Bo góc nền', 0, 90)}
       <label class="tkf"><span>Canh</span><div class="kseg segd" id="tkpCanh">${[['trai', 'Trái'], ['giua', 'Giữa'], ['phai', 'Phải']].map(([v, t]) => `<button data-c="${v}" class="${(x.canh || 'trai') === v ? 'on' : ''}">${t}</button>`).join('')}</div></label>
       <label class="tkf"><span>Số dòng tối đa</span><input type="number" id="tkpDong" class="tkin" min="1" max="12" value="${x.dong || 1}" style="width:64px"><label class="tkmini"><input type="checkbox" id="tkpGach"${x.gach ? ' checked' : ''}> gạch ngang (giá cũ)</label></label>${lop}`;
@@ -3384,8 +3435,8 @@ function tkBang(){
       <div class="tkcc"><button class="btn sm" id="tkpChon">📎 ${x.img ? 'Đổi ảnh' : 'Chọn ảnh'}</button>${x.img ? '<button class="btn ghost sm" id="tkpBoAnh">Bỏ ảnh</button>' : ''}</div>
       <label class="tkf"><span>Kiểu</span><div class="kseg segd" id="tkpPhu"><button data-p="0" class="${x.phu ? '' : 'on'}">Vừa khung</button><button data-p="1" class="${x.phu ? 'on' : ''}">Phủ kín</button></div></label>
       <label class="tkf"><span>Khung</span><input type="checkbox" id="tkpTheCo"${x.the ? ' checked' : ''}><input type="color" id="tkpThe" value="${tkHex(x.the, '#ffffff')}"></label>
-      ${so('tkpBo', x.bo, 'Bo góc', 0, 120)}${so('tkpPad', x.pad, 'Lề trong khung', 0, 80)}${so('tkpMo', x.mo, 'Làm mờ', 0, 60)}${so('tkpToi', x.toi, 'Tối lại %', 0, 80)}${lop}`;
-  else h = `<b class="tkh">${x.loai === 'tron' ? 'Hình tròn' : 'Khối'}</b>${mau('tkpMau', x.mau, 'Màu')}${x.loai === 'hcn' ? so('tkpBo', x.bo, 'Bo góc', 0, 200) : ''}${lop}`;
+      ${so('tkpBo', x.bo, 'Bo góc', 0, 120)}${so('tkpPad', x.pad, 'Lề trong khung', 0, 80)}${so('tkpMo', x.mo, 'Làm mờ', 0, 60)}${so('tkpToi', x.toi, 'Tối lại %', 0, 80)}${so('tkpXoay', x.xoay, 'Xoay', -180, 180)}${lop}`;
+  else h = `<b class="tkh">${x.loai === 'tron' ? 'Hình tròn' : 'Khối'}</b>${mau('tkpMau', x.mau, 'Màu')}${x.loai === 'hcn' ? so('tkpBo', x.bo, 'Bo góc', 0, 200) + `<label class="tkf"><span>Mờ dần lên trên</span><input type="checkbox" id="tkpMoDan"${x.mo_dan ? ' checked' : ''}></label>` : ''}${lop}`;
   el.innerHTML = h;
   const doi = (f, ghi) => { f(); tkVe(); if (ghi) tkGhi(); else { clearTimeout(TK.tG); TK.tG = setTimeout(() => { TK.tG = 0; tkGhi(); }, 600); } };
   const on = (id, ev, f) => { const n = $('#' + id); if (n) n[ev] = f; };
@@ -3408,18 +3459,24 @@ function tkBang(){
   on('tkpBongCo', 'onchange', e => doi(() => { x.bong = e.target.checked ? $('#tkpBong').value + '99' : ''; }, true));
   on('tkpBong', 'oninput', e => doi(() => { x.bong = e.target.value + '99'; $('#tkpBongCo').checked = true; }));
   on('tkpGach', 'onchange', e => doi(() => { x.gach = e.target.checked; }, true));
+  const giuA = (moi, cu) => moi + (/^#[0-9a-f]{8}$/i.test(cu || '') ? cu.slice(7) : '');
+  on('tkpM2Co', 'onchange', e => doi(() => { if (e.target.checked) x.mau2 = $('#tkpM2').value; else delete x.mau2; }, true));
+  on('tkpM2', 'oninput', e => doi(() => { x.mau2 = e.target.value; $('#tkpM2Co').checked = true; }));
+  on('tkpSocCo', 'onchange', e => doi(() => { if (e.target.checked) x.soc = $('#tkpSoc').value + '5f'; else delete x.soc; }, true));
+  on('tkpSoc', 'oninput', e => doi(() => { x.soc = giuA(e.target.value, x.soc || '#ffffff5f'); $('#tkpSocCo').checked = true; }));
+  on('tkpMoDan', 'onchange', e => doi(() => { x.mo_dan = e.target.checked; }, true));
   on('tkpDong', 'oninput', e => doi(() => { x.dong = Math.max(1, Math.min(12, +e.target.value || 1)); }));
   on('tkpTheCo', 'onchange', e => doi(() => { x.the = e.target.checked ? $('#tkpThe').value : ''; if (x.the && !x.pad) x.pad = 24; }, true));
   on('tkpThe', 'oninput', e => doi(() => { x.the = e.target.value; $('#tkpTheCo').checked = true; if (!x.pad) x.pad = 24; }));
   on('tkpChon', 'onclick', () => tkChonFile(k => { x.img = k; tkGhi(); tkVe(); tkBang(); tkNoiDung(); }));
   on('tkpBoAnh', 'onclick', () => { x.img = ''; tkGhi(); tkVe(); tkBang(); tkNoiDung(); });
-  [['tkpCo', 'co'], ['tkpBo', 'bo'], ['tkpPad', 'pad'], ['tkpMo', 'mo'], ['tkpToi', 'toi']].forEach(([id, k]) => on(id, 'oninput', e => doi(() => { x[k] = +e.target.value; const v = $('#' + id + 'V'); if (v) v.textContent = e.target.value; })));
+  [['tkpCo', 'co'], ['tkpBo', 'bo'], ['tkpPad', 'pad'], ['tkpMo', 'mo'], ['tkpToi', 'toi'], ['tkpXoay', 'xoay']].forEach(([id, k]) => on(id, 'oninput', e => doi(() => { x[k] = +e.target.value; const v = $('#' + id + 'V'); if (v) v.textContent = e.target.value; })));
   el.querySelectorAll('#tkpCanh [data-c]').forEach(b => b.onclick = () => doi(() => { x.canh = b.dataset.c; el.querySelectorAll('#tkpCanh [data-c]').forEach(y => y.classList.toggle('on', y === b)); }, true));
   el.querySelectorAll('#tkpPhu [data-p]').forEach(b => b.onclick = () => doi(() => { x.phu = b.dataset.p === '1'; el.querySelectorAll('#tkpPhu [data-p]').forEach(y => y.classList.toggle('on', y === b)); }, true));
 }
 function tkNoiDung(){
   const el = $('#tkNd'); if (!el) return;
-  const ds = TK.d.o.map((x, i) => [x, i]).filter(([x]) => (x.loai === 'chu' && !x.co_dinh) || x.loai === 'anh');
+  const ds = TK.d.o.map((x, i) => [x, i]).filter(([x]) => (x.loai === 'chu' && !x.co_dinh) || (x.loai === 'anh' && !x.trang_tri));
   el.innerHTML = ds.length ? ds.map(([x, i]) => x.loai === 'anh'
     ? `<div class="tkndr${i === TK.sel ? ' on' : ''}" data-i="${i}"><span class="mfl">${esc(x.nhan || 'Ảnh')}</span><button class="btn ghost sm" data-anh="${i}">📎 ${tkHinh(x.img) || x.img ? 'Đổi ảnh' : 'Chọn ảnh'}</button></div>`
     : `<div class="tkndr${i === TK.sel ? ' on' : ''}" data-i="${i}"><span class="mfl">${esc(x.nhan || 'Chữ')}</span><textarea class="tkin" rows="${(x.dong || 1) > 1 ? 2 : 1}" data-nd="${i}">${esc(x.text || '')}</textarea></div>`).join('')

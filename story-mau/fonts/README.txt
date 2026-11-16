@@ -3,3 +3,4 @@ ghép 2 phần latin + vietnamese (woff2) thành TTF cho Pillow vẽ mẫu story
 tv-*.ttf (15/11 14h18, thư viện chữ khung design): Montserrat, Lexend, Anton, Oswald, Bungee, Paytone One, Playfair Display, Lobster,
 Charm, Dancing Script, Pacifico, Baloo 2, Pangolin, Patrick Hand — Google Fonts qua Fontsource (npm @fontsource/*), SIL OFL 1.1,
 ghép latin + vietnamese thành TTF cho Pillow; bản web ở ui/fonts/tv/<khoá>-latin|vietnamese.woff2.
+tv-alfa.ttf (16/11, mẫu story Noel): Alfa Slab One — Google Fonts qua Fontsource (npm @fontsource/alfa-slab-one), SIL OFL 1.1, ghép latin + vietnamese; bản web ui/fonts/tv/alfa-*.woff2.
