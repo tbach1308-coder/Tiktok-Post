@@ -4,3 +4,4 @@ tv-*.ttf (15/11 14h18, thư viện chữ khung design): Montserrat, Lexend, Anto
 Charm, Dancing Script, Pacifico, Baloo 2, Pangolin, Patrick Hand — Google Fonts qua Fontsource (npm @fontsource/*), SIL OFL 1.1,
 ghép latin + vietnamese thành TTF cho Pillow; bản web ở ui/fonts/tv/<khoá>-latin|vietnamese.woff2.
 tv-alfa.ttf (16/11, mẫu story Noel): Alfa Slab One — Google Fonts qua Fontsource (npm @fontsource/alfa-slab-one), SIL OFL 1.1, ghép latin + vietnamese; bản web ui/fonts/tv/alfa-*.woff2.
+tv-spartan.ttf (League Spartan 900, gần UTM Futura Extra) + tv-nghieng.ttf (Noto Serif Italic 400, gần UTM Times Italic) (16/11, mẫu story theo theme Photoshop): Fontsource, SIL OFL 1.1, ghép latin + vietnamese.

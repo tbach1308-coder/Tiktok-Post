@@ -8549,7 +8549,7 @@ STORY_FONT = {500: "BeVietnamPro-500.ttf", 700: "BeVietnamPro-700.ttf", 800: "Be
 # 🔤 thư viện chữ (fen 15/11 14h18 "cho thư viện chữ đẹp đi, font phù hợp nhiều mùa, chủ đề"): font Google (OFL, có tiếng Việt),
 # trình duyệt dùng ui/fonts/tv/<khoá>-latin|vietnamese.woff2 (family 'tv-<khoá>'), Pillow dùng story-mau/fonts/tv-<khoá>.ttf (ghép 2 phần)
 STORY_FONT_TV = ("montserrat", "lexend", "anton", "oswald", "bungee", "paytone", "playfair", "lobster", "charm", "dancing", "pacifico",
-                 "baloo", "pangolin", "patrick", "alfa")
+                 "baloo", "pangolin", "patrick", "alfa", "spartan", "nghieng")
 _SM_FONT = {}
 
 
@@ -8693,7 +8693,7 @@ def _sm_mau_bo_cuc(bc, chu):
 # trong thư viện chữ (Impact / Bebas → Anton, Times nghiêng → Playfair, Cookies → Baloo, Alberta → Paytone, Ink Free → Patrick Hand, còn lại Montserrat).
 def _ps_ff(ds):
     n = " ".join(ds or []).lower() if isinstance(ds, list) else str(ds or "").lower()
-    for k, ff in (("alberta", "alfa"), ("cooper", "alfa"), ("erie", "alfa"), ("script", "dancing"), ("impact", "anton"), ("bebas", "anton"), ("condensed", "anton"), ("swiss", "anton"), ("times", "playfair"), ("italic", "playfair"),
+    for k, ff in (("alberta", "alfa"), ("cooper", "alfa"), ("erie", "alfa"), ("script", "dancing"), ("futura", "spartan"), ("impact", "anton"), ("bebas", "anton"), ("condensed", "anton"), ("swiss", "anton"), ("times", "playfair"), ("italic", "playfair"),
                   ("cookies", "baloo"), ("alberta", "paytone"), ("inkfree", "patrick"), ("ink free", "patrick"), ("neo", "montserrat"),
                   ("avo", "montserrat"), ("helve", "montserrat")):
         if k in n:
@@ -8854,6 +8854,108 @@ def story_mau_noel(t, tid):
     return m
 
 
+# ---- 🎨 Mẫu story theo trang bìa từng theme Photoshop (fen 16/11 12h05 "theme glass nữa đi", 12h07 "theme pts story xóa làm lại cái mới"):
+# thay mẫu "Theme · …" chung 15/11 bằng mẫu dựng lại đúng trang bìa của theme (cùng hàm bìa trong _dong-co.jsx), khổ 1080x1920: phần trên
+# 250 / dưới 1580 chừa cho TikTok, chữ đặt theo đỉnh / chân chữ như Photoshop (đo bằng font thật), ảnh nền tĩnh vẽ sẵn bằng
+# story-mau/ps/tao-nen-ps.py. PS_BAN đổi -> trình duyệt bỏ bản đang sửa cũ.
+PS_BAN = 2
+_SM_DINH = {}
+
+
+def _sm_dinh(ff, nang=800):
+    """(đỉnh chữ hoa, chân chữ) / cỡ chữ của font (Pillow vẽ ở y + 0.06·cỡ trong ô)."""
+    k = (ff or "", nang)
+    if k not in _SM_DINH:
+        try:
+            b = _sm_font(nang, 100, ff or None).getbbox("H")
+            _SM_DINH[k] = (b[1] / 100, b[3] / 100)
+        except Exception:
+            _SM_DINH[k] = (0.27, 0.97)
+    return _SM_DINH[k]
+
+
+def _ps_cao(ff, co, nang=800, chu=None):
+    """Cao chữ từ đỉnh chữ hoa tới đáy nét (có chữ mẫu thì tính cả dấu / chân chữ g, ẹ như bb() của Photoshop)."""
+    a, b = _sm_dinh(ff, nang)
+    if chu:
+        try:
+            b = max(b, _sm_font(nang, 100, ff or None).getbbox(str(chu))[3] / 100)
+        except Exception:
+            pass
+    return round((b - a) * co)
+
+
+def _ps_chu(k, nhan, mac, x, w, co, ff, mau, tren=None, chan=None, nang=800, h=None, dong=1, **kw):
+    """Ô chữ đặt như THEME_TEXT0 của Photoshop: theo đỉnh chữ hoa (tren) hoặc chân chữ dòng đầu (chan)."""
+    a, b = _sm_dinh(ff, nang)
+    y = (tren - (0.06 + a) * co) if tren is not None else (chan - (0.06 + b) * co)
+    return _sm_c(k, nhan, mac, round(x), round(y), round(w), round(h or co * 1.22 * dong + 6), co, nang, mau, dong=dong, **dict({"ff": ff} if ff else {}, **kw))
+
+
+def _ps_tep(tid, ten):
+    return os.path.isfile(os.path.join(STORY_MAU_DIR, "ps", tid, ten))
+
+
+def story_mau_glass(t, tid):
+    """Bìa kiểu quảng cáo sản phẩm (biaSanPham, theme Glass): POLY STORE, dòng máy, TÊN MÁY rất to màu bia_mau, 2 dòng slogan, 2 thông số
+    (số to + nhãn viền trắng), 1–3 máy xoè quạt giữa trang + bóng mờ dưới máy, dòng nhỏ cuối. Nền: nền theme + đốm màu loang; gắn ảnh
+    nền thì ảnh làm mờ + lớp màu theme + đốm (như bgPhoto của theme kính)."""
+    W, H, cx = STORY_W, STORY_H, STORY_W // 2
+    b = (t.get("xem") or {}).get("bia_sp") or {}
+    mau = _ps_hex(t.get("bia_mau"), _ps_hex(t.get("vang"), "#FDE047"))
+    tf, fb, trang = _ps_ff(t.get("font_bia") or t.get("font_tieu_de")), "montserrat", "#FFFFFF"
+    o = [_sm_a("nen_anh", "Ảnh nền (trống = nền theme)", 0, 0, W, H, phu=True, bo_qua=True, mo=int(t.get("anh_mo") or 14),
+               toi=int(min(60, (t.get("anh_toi") or 58) * 0.6)))]
+    if _ps_tep(tid, "phu-kinh.png"):
+        o.append(_sm_a("phu_kinh", "Lớp kính (khi có ảnh nền)", 0, 0, W, H, src="phu-kinh.png", phu=True, trang_tri=True, bo_qua=True, khoa=True,
+                       chi_khi_co="nen_anh"))
+    o.append(_ps_chu("hieu", "Thương hiệu", "POLY STORE", 96, 500, 22, fb, trang, chan=272, gian=4))
+    y = 300
+    o.append(_ps_chu("dong", "Dòng máy", b.get("dong") or "iPad", 90, 900, 50, fb, trang, tren=y, canh="giua"))
+    y += _ps_cao(fb, 50, chu=b.get("dong") or "iPad") + 6
+    o.append(_ps_chu("ten", "Tên máy (rất to)", b.get("ten") or "GEN 11", 40, 1000, 200, tf, mau, tren=y, canh="giua"))
+    y += _ps_cao(tf, 200, chu=b.get("ten") or "GEN 11") + 44
+    o.append(_ps_chu("sl1", "Slogan 1", b.get("sl1") or "Rẻ, nhẹ, bền", 90, 900, 46, "", trang, tren=y, nang=500, canh="giua"))
+    y += _ps_cao("", 46, 500, chu=b.get("sl1") or "Rẻ, nhẹ, bền") + 14
+    o.append(_ps_chu("sl2", "Slogan 2", b.get("sl2") or "Đủ cho con học online", 90, 900, 56, fb, trang, tren=y, canh="giua"))
+    y += _ps_cao(fb, 56, chu=b.get("sl2") or "Đủ cho con học online")
+    y2 = y
+    for k, ten, x, v in (("trai", "trái", 290, b.get("trai")), ("phai", "phải", W - 290, b.get("phai"))):
+        if not (isinstance(v, list) and len(v) == 2):
+            continue
+        g = "so_" + k
+        o.append(_ps_chu("so_%s" % k, "Thông số %s · số" % ten, v[0], x - 160, 320, 60, tf, trang, tren=y + 50, canh="giua", nhom=g))
+        vb = y + 50 + _ps_cao(tf, 60)
+        o.append(_sm_c("nhan_%s" % k, "Thông số %s · nhãn" % ten, v[1], x - 150, vb + 18, 300, 52, 26, 800, trang, ff=fb, canh="giua",
+                       nen="#FFFFFF1F", khung="#FFFFFFE6", om=True, pad=24, bo=26, nhom=g))
+        y2 = max(y2, vb + 18 + 52)
+    top, bot = y2 + 50, 1500
+    may = b.get("may") if isinstance(b.get("may"), list) else ["may.png"]
+    if _ps_tep(tid, "bong-may.png"):
+        o.append(_sm_a("bong", "Bóng dưới máy", cx - 390, bot - 80, 780, 160, src="bong-may.png", trang_tri=True, bo_qua=True))
+    if len(may) >= 3:
+        o.append(_sm_a("may_trai", "Ảnh máy trái (nền trong, nếu có)", 40, top + 70, cx, bot - 30 - top - 70, xoay=-8, bo_qua=True, mau_xem="may-mau2.png"))
+        o.append(_sm_a("may_phai", "Ảnh máy phải (nền trong, nếu có)", cx - 40, top + 70, W - 40 - cx + 40, bot - 30 - top - 70, xoay=8, bo_qua=True,
+                       mau_xem="may-mau3.png"))
+    elif len(may) == 2:
+        o.append(_sm_a("may_phai", "Ảnh máy phải (nền trong, nếu có)", cx - 80, top + 50, W - 30 - cx + 80, bot - 20 - top - 50, xoay=8, bo_qua=True,
+                       mau_xem="may-mau2.png"))
+    l = 150 if len(may) >= 2 else 60
+    o.append(_sm_a("anh", "Ảnh máy giữa (nền trong)", l, top, W - 2 * l, bot - top, mau_xem="may-mau.png"))
+    if b.get("chan") is not False:
+        o.append(_ps_chu("chan", "Dòng nhỏ cuối", b.get("chan") or "Máy likenew, có sẵn tại POLY STORE", 100, 880, 24, fb, "#FFFFFFCC", chan=1575, canh="giua"))
+    nen = _ps_tep(tid, "nen-story.jpg")
+    mt = int(os.path.getmtime(os.path.join(APP, "theme-ps", tid, "theme.json")))
+    m = {"id": "ps-" + t["id"], "ten": str(t.get("ten") or t["id"]), "nhom": "ps", "o": o, "t": mt, "v": PS_BAN,
+         "nen": "anh" if nen else _ps_hex(t.get("nen"), "#121212"), "nen_mau": _ps_hex(t.get("nen"), "#121212")}
+    if nen:
+        m["nen_tep"] = "nen-story.jpg"
+    return m
+
+
+PS_BIA = {"bia_sp": story_mau_glass}
+
+
 def story_mau_ps():
     """Mẫu story sinh từ kho theme Photoshop (đọc theme-ps/*/theme.json mỗi lần, theme mới / sửa là có ngay)."""
     goc = os.path.join(APP, "theme-ps")
@@ -8868,6 +8970,13 @@ def story_mau_ps():
                 continue
             except Exception:
                 log("story mau noel %s loi: %s" % (tid, traceback.format_exc()))
+        bia = next((k for k in PS_BIA if k in (t.get("xem") or {})), None)
+        if bia and t["id"] == tid:
+            try:
+                out.append(PS_BIA[bia](t, tid))
+                continue
+            except Exception:
+                log("story mau ps %s loi: %s" % (tid, traceback.format_exc()))
         nen = _ps_hex(t.get("nen"), "#121212")
         sang = _ps_sang(nen)
         vang = _ps_hex(t.get("vang"), "#FFD60A")
@@ -8989,13 +9098,14 @@ def _sm_bo_goc(im, r):
     return im
 
 
-def _sm_xuong_dong(d, chu, font, w, sach=None):
+def _sm_xuong_dong(d, chu, font, w, sach=None, gian=0):
     out = []
+    do = lambda t: d.textlength(t, font=font) + gian * len(t)
     for doan in str(chu).split("\n"):
         tu, dong = doan.split(" "), ""
         for t in tu:
             thu = (dong + " " + t).strip()
-            if d.textlength(sach(thu) if sach else thu, font=font) <= w or not dong:
+            if do(sach(thu) if sach else thu) <= w or not dong:
                 dong = thu
             else:
                 out.append(dong)
@@ -9030,26 +9140,34 @@ def _sm_doan(l, st, nhan):
 def _sm_chu(im, d, x, chu):
     """Vẽ 1 ô chữ: xuống dòng trong khung, tự thu nhỏ tới khi vừa (tối đa x["dong"] dòng), canh trái / giữa / phải, nền bo góc.
     Mẫu Noel (16/11): mau2 = màu chữ trong *dấu sao*, soc = sọc kẹo chéo trên chữ, lech = bóng cứng lệch, vach = 3 tia cạnh dòng đầu,
-    ke = vạch kẻ sau dòng cuối (cùng cách vẽ với khung design trên trình duyệt)."""
+    ke = vạch kẻ sau dòng cuối. Mẫu theo theme Photoshop (16/11): gian = giãn chữ (px), khung = viền nền chữ, vien_co = độ dày viền chữ,
+    sac = [màu trái, màu phải] chữ chuyển sắc, màu có độ trong (#rrggbbaa: số to mờ, nền nhãn kính). Cùng cách vẽ với khung design trình duyệt."""
     from PIL import Image, ImageDraw, ImageChops
     chu = str(chu or "").strip()
     if not chu:
         return
     nhan = bool(x.get("mau2"))
     sach = (lambda t: t.replace("*", "")) if nhan else None
+    gian = int(x.get("gian") or 0)
+    sac = x.get("sac") if isinstance(x.get("sac"), list) and len(x["sac"]) == 2 else None
+    trong = any(len(str(x.get(k) or "")) == 9 for k in ("mau", "mau2", "nen", "bong", "khung"))
+    goc = im
+    if trong:                                     # màu có độ trong: vẽ lớp riêng rồi trộn (ImageDraw ghi đè chứ không trộn)
+        im = Image.new("RGBA", goc.size, (0, 0, 0, 0))
+        d = ImageDraw.Draw(im)
     pad = int(x.get("pad") or 0)
     w, h = x["w"] - 2 * pad, x["h"]
     co, toi_da = int(round(x["co"])), max(1, int(x.get("dong") or 1))
     while True:
         f = _sm_font(x.get("font") or 700, co, x.get("ff"))
-        ls = _sm_xuong_dong(d, chu, f, w, sach)
+        ls = _sm_xuong_dong(d, chu, f, w, sach, gian)
         cao = co * 1.22
-        if (len(ls) <= toi_da and len(ls) * cao <= h + 2 and max(d.textlength(sach(l) if sach else l, font=f) for l in ls) <= w) \
+        if (len(ls) <= toi_da and len(ls) * cao <= h + 2 and max(d.textlength(sach(l) if sach else l, font=f) + gian * len(sach(l) if sach else l) for l in ls) <= w) \
                 or co <= max(14, x["co"] * 0.45):
             break
         co -= 2
     ls = ls[:toi_da]
-    rong_d = lambda l: d.textlength(sach(l) if sach else l, font=f)
+    rong_d = lambda l: d.textlength(sach(l) if sach else l, font=f) + gian * len(sach(l) if sach else l)
     rong = max(rong_d(l) for l in ls)
     tong = len(ls) * cao
     canh = x.get("canh") or "trai"
@@ -9059,6 +9177,8 @@ def _sm_chu(im, d, x, chu):
         bx = x["x"] + ((x["w"] - bw) / 2 if canh == "giua" and x.get("om") else (x["w"] - bw if canh == "phai" and x.get("om") else 0))
         by = x["y"] + (h - bh) / 2 if not x.get("om") else x["y"]
         d.rounded_rectangle((bx, by, bx + bw, by + bh), x.get("bo") or 0, fill=x["nen"])
+        if x.get("khung"):                        # nhãn viền (thông số bìa Glass)
+            d.rounded_rectangle((bx + 1, by + 1, bx + bw - 1, by + bh - 1), max(0, (x.get("bo") or 0) - 1), outline=x["khung"], width=2)
         y0 = by + (bh - tong) / 2
         lx0, lw = bx + pad, bw - 2 * pad
     else:
@@ -9077,8 +9197,14 @@ def _sm_chu(im, d, x, chu):
         _, _, lx, ly, ps = lch
         px = lx
         for t, a in ps:
-            dd.text((px, ly), t, font=f, fill=mau or (x["mau2"] if a else (x.get("mau") or "#ffffff")), **k)
-            px += dd.textlength(t, font=f)
+            m = mau or (x["mau2"] if a else (x.get("mau") or "#ffffff"))
+            if gian:
+                for ch in t:
+                    dd.text((px, ly), ch, font=f, fill=m, **k)
+                    px += dd.textlength(ch, font=f) + gian
+            else:
+                dd.text((px, ly), t, font=f, fill=m, **k)
+                px += dd.textlength(t, font=f)
     if x.get("bong") and x.get("lech"):          # bóng cứng lệch (tiêu đề Noel)
         for lch in dong:
             l, tw, lx, ly, ps = lch
@@ -9087,8 +9213,8 @@ def _sm_chu(im, d, x, chu):
         for lch in dong:
             l, tw, lx, ly, ps = lch
             chay(d, (l, tw, lx, ly + max(2, co * 0.06), ps), x["bong"])
-    vien = {"stroke_width": max(2, int(co * 0.06)), "stroke_fill": x["vien"]} if x.get("vien") else {}
-    if x.get("soc"):                              # sọc kẹo: vẽ chữ lớp riêng, sọc chỉ hiện trong nét chữ
+    vien = {"stroke_width": int(x.get("vien_co") or max(2, int(co * 0.06))), "stroke_fill": x["vien"]} if x.get("vien") else {}
+    if x.get("soc") or sac:                       # sọc kẹo / chuyển sắc: vẽ chữ lớp riêng, màu chỉ hiện trong nét chữ
         if vien:
             for lch in dong:
                 chay(d, lch, x["vien"], **vien)
@@ -9098,18 +9224,27 @@ def _sm_chu(im, d, x, chu):
             chay(dl, lch)
         bx0 = min(c[2] for c in dong) - 10
         bw0 = max(c[2] + c[1] for c in dong) + 10 - bx0
-        k = max((bw0 + 60) / 1200, (co * 0.75 + 40) / 300, 0.35)
-        b, kh = 26 * k, 58 * k
-        S = Image.new("RGBA", im.size, (0, 0, 0, 0))
-        ds = ImageDraw.Draw(S)
-        mau_s = _sm_rgba(x["soc"])
-        xx = bx0 - tong - kh
-        while xx < bx0 + bw0 + kh:
-            ds.polygon([(xx, y0 + tong), (xx + b, y0 + tong), (xx + b + tong, y0), (xx + tong, y0)], fill=mau_s)
-            xx += kh
-        S.putalpha(ImageChops.multiply(S.getchannel("A"), L.getchannel("A")))
-        im.alpha_composite(L)
-        im.alpha_composite(S)
+        if sac:
+            a1, a2 = _sm_rgba(sac[0]), _sm_rgba(sac[1])
+            g = Image.linear_gradient("L").rotate(90, expand=True).resize((max(1, int(bw0)), max(1, int(tong + 20))))
+            S0 = Image.composite(Image.new("RGBA", g.size, a2), Image.new("RGBA", g.size, a1), g)
+            S = Image.new("RGBA", im.size, (0, 0, 0, 0))
+            S.paste(S0, (int(bx0), int(y0 - 10)))
+            S.putalpha(ImageChops.multiply(S.getchannel("A"), L.getchannel("A")))
+            im.alpha_composite(S)
+        else:
+            k = max((bw0 + 60) / 1200, (co * 0.75 + 40) / 300, 0.35)
+            b, kh = 26 * k, 58 * k
+            S = Image.new("RGBA", im.size, (0, 0, 0, 0))
+            ds = ImageDraw.Draw(S)
+            mau_s = _sm_rgba(x["soc"])
+            xx = bx0 - tong - kh
+            while xx < bx0 + bw0 + kh:
+                ds.polygon([(xx, y0 + tong), (xx + b, y0 + tong), (xx + b + tong, y0), (xx + tong, y0)], fill=mau_s)
+                xx += kh
+            S.putalpha(ImageChops.multiply(S.getchannel("A"), L.getchannel("A")))
+            im.alpha_composite(L)
+            im.alpha_composite(S)
         d = ImageDraw.Draw(im)
     else:
         for lch in dong:
@@ -9133,6 +9268,8 @@ def _sm_chu(im, d, x, chu):
         t = max(2, round(co * 0.1))
         if b > a + 10:
             d.rectangle((a, tam(dong[-1]) - t / 2, b, tam(dong[-1]) + t / 2), fill=x["ke"])
+    if trong:
+        goc.alpha_composite(im)
 
 
 def _sm_anh(im, x, anh, nho=False):
@@ -9168,11 +9305,14 @@ def _sm_anh(im, x, anh, nho=False):
         a = a.resize((max(1, round(a.width * k)), max(1, round(a.height * k))), Image.LANCZOS)
         l, t = (a.width - bw) // 2, (a.height - bh) // 2
         a = a.crop((l, t, l + bw, t + bh))
+    elif x.get("rong"):     # theo bề ngang khung, canh trên (ảnh cận máy tràn xuống, bìa Tối giản)
+        k = bw / a.width
+        a = a.resize((max(1, round(a.width * k)), max(1, round(a.height * k))), Image.LANCZOS)
     else:                   # vừa trong khung (giữ nguyên ảnh)
         k = min(bw / a.width, bh / a.height)
         a = a.resize((max(1, round(a.width * k)), max(1, round(a.height * k))), Image.LANCZOS)
     a = _sm_bo_goc(a, max(0, (x.get("bo") or 0) - pad // 2) if x.get("phu") or not x.get("the") else 0)
-    px, py = int(pad + (bw - a.width) // 2), int(pad + ((bh - a.height) if x.get("day") else (bh - a.height) // 2))   # day: sát đáy khung
+    px, py = int(pad + (bw - a.width) // 2), int(pad + (0 if x.get("rong") else (bh - a.height) if x.get("day") else (bh - a.height) // 2))   # day: sát đáy khung
     if x.get("xoay"):           # xoay quanh tâm khung (kẹo gậy, dây đèn mẫu Noel); trình duyệt xoay chiều kim đồng hồ
         k = Image.new("RGBA", (int(x["w"]), int(x["h"])), (0, 0, 0, 0))
         k.alpha_composite(a, (max(0, px), max(0, py)))
@@ -9198,7 +9338,13 @@ def story_mau_ve(m, chu=None, anh=None, nho=False):
             l, t = (im.width - STORY_W) // 2, (im.height - STORY_H) // 2
             im = im.crop((l, t, l + STORY_W, t + STORY_H))
     d = ImageDraw.Draw(im)
+
+    def co_anh(k):
+        y = next((y for y in m["o"] if y["loai"] == "anh" and y.get("k") == k), None)
+        return bool(y) and (anh.get(k) is not None or (nho and bool(y.get("mau_xem")) and bool(_sm_tep_duong(m["id"], y["mau_xem"]))))
     for x in m["o"]:
+        if (x.get("chi_khi_co") and not co_anh(x["chi_khi_co"])) or (x.get("chi_khi_trong") and x["loai"] != "chu" and co_anh(x["chi_khi_trong"])):
+            continue
         if x["loai"] == "hcn" and x.get("mo_dan"):          # khối mờ dần lên trên (lớp tối dưới ảnh thật mẫu Noel)
             r, g, b, a = _sm_rgba(x.get("mau") or "#000000")
             hh, ww = max(1, int(x["h"])), max(1, int(x["w"]))
@@ -9334,9 +9480,11 @@ def story_mau_them(data):
 # vẽ ở trình duyệt rồi gửi về đây lưu (POST {luu}). Lưu thành mẫu (POST {them_tk} / {sua_tk}): bản vẽ JSON cùng dạng mẫu có sẵn
 # (chu / anh / hcn / tron), ảnh trong bản vẽ tách ra file e<n>.png|jpg, nền ảnh = nen.jpg.
 SM_KIEU = {"chu": ("x", "y", "w", "h", "co", "font", "mau", "nen", "bo", "pad", "om", "canh", "gach", "dong", "giua_doc", "co_dinh", "dien", "k", "nhan", "mac",
-                   "ff", "vien", "bong", "mau2", "soc", "lech", "vach", "ke", "nhom"),
-           "anh": ("x", "y", "w", "h", "bo", "the", "pad", "phu", "k", "nhan", "bo_qua", "nguon", "mo", "toi", "xoay", "day", "khoa", "nhom", "trang_tri"),
-           "hcn": ("x", "y", "w", "h", "mau", "bo", "mo_dan", "khoa", "nhom"), "tron": ("x", "y", "r", "mau", "nhom")}
+                   "ff", "vien", "bong", "mau2", "soc", "lech", "vach", "ke", "nhom", "khung", "gian", "vien_co", "sac", "chi_khi_trong", "chi_khi_co"),
+           "anh": ("x", "y", "w", "h", "bo", "the", "pad", "phu", "k", "nhan", "bo_qua", "nguon", "mo", "toi", "xoay", "day", "khoa", "nhom", "trang_tri", "rong",
+                   "chi_khi_trong", "chi_khi_co"),
+           "hcn": ("x", "y", "w", "h", "mau", "bo", "mo_dan", "khoa", "nhom", "chi_khi_trong", "chi_khi_co"),
+           "tron": ("x", "y", "r", "mau", "nhom", "chi_khi_trong", "chi_khi_co")}
 
 
 def _sm_so(v, lo=-4000, hi=6000):
@@ -9365,17 +9513,21 @@ def story_tk_sach(o_ds, thu_muc=None):
             if k == "ff":
                 if v not in STORY_FONT_TV:
                     continue
-            elif k in ("mau", "nen", "the", "vien", "bong", "mau2", "soc", "vach", "ke"):
+            elif k in ("mau", "nen", "the", "vien", "bong", "mau2", "soc", "vach", "ke", "khung"):
                 v = _sm_mau_hop(v)
                 if v is None:
                     continue
-            elif k in ("k", "nhan", "canh", "nguon", "nhom"):
+            elif k == "sac":
+                v = [_sm_mau_hop(c) for c in v] if isinstance(v, list) and len(v) == 2 else None
+                if not v or None in v:
+                    continue
+            elif k in ("k", "nhan", "canh", "nguon", "nhom", "chi_khi_trong", "chi_khi_co"):
                 v = short(str(v), 40)
             elif k == "mac":
                 v = str(v)[:600]
-            elif k in ("om", "gach", "giua_doc", "co_dinh", "dien", "phu", "bo_qua", "day", "khoa", "mo_dan", "trang_tri"):
+            elif k in ("om", "gach", "giua_doc", "co_dinh", "dien", "phu", "bo_qua", "day", "khoa", "mo_dan", "trang_tri", "rong"):
                 v = bool(v)
-            elif k in ("lech", "xoay"):
+            elif k in ("lech", "xoay", "gian", "vien_co"):
                 v = _sm_so(v, -360, 360)
             elif k == "font":
                 v = int(v) if v in (400, 500, 600, 700, 800, "400", "500", "600", "700", "800") else 700
@@ -9467,8 +9619,9 @@ def _sm_tep_duong(mid, ten):
     if not re.fullmatch(r"[\w][\w.-]{0,80}\.(png|jpg)", ten):
         return None
     m = re.fullmatch(r"ps-([a-z0-9][a-z0-9-]{0,59})", str(mid or ""))
-    if m and ten == "may-mau.png":       # ảnh máy mẫu của ảnh xem trước theme (chỉ có trên máy đã dựng xem trước), dùng cho ảnh nhỏ của mẫu
-        f = os.path.join(APP, "theme-ps", m.group(1), "xem", "tai-nguyen", "anh-that", "may.png")
+    mm = re.fullmatch(r"may-mau(\d?)\.png", ten)
+    if m and mm:            # ảnh máy mẫu của ảnh xem trước theme (chỉ có trên máy đã dựng xem trước), dùng cho ảnh nhỏ của mẫu
+        f = os.path.join(APP, "theme-ps", m.group(1), "xem", "tai-nguyen", "anh-that", "may%s.png" % mm.group(1))
         return f if os.path.isfile(f) else None
     if m:
         for f in (os.path.join(STORY_MAU_DIR, "ps", m.group(1), ten), os.path.join(APP, "theme-ps", m.group(1), "anh", ten)):
