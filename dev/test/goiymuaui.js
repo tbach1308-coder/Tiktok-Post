@@ -18,21 +18,15 @@ let ok = 0, bad = 0; const check = (n, c, x) => { c ? ok++ : bad++; console.log(
   const p = await b.newPage({ viewport: { width: 1386, height: 950 } }); p.on('pageerror', e => errs.push(e.message));
   await p.goto(A + '/#moi'); await p.evaluate(() => { localStorage.setItem('poly-gy-mo', 'true'); }); await p.reload(); await p.waitForSelector('#gyKho .gyhd', { timeout: 15000 });
   await p.click('#seg [data-k="ipad"]'); await p.waitForTimeout(400);
-  await p.evaluate(() => { $('#fKho').value = ''; S.form.kho = ''; $('#fChuDe').value = ''; S.form.chude = ''; gyVe(); });
+  await p.evaluate(() => { S.form.kho = ''; $('#fChuDe').value = ''; S.form.chude = ''; gyVe(); });
   const g = await p.evaluate(() => ({ st: document.querySelector('#gyKho .gyst').innerText, mua: document.querySelectorAll('#gyKho .gymua').length, b: [...document.querySelectorAll('#gyKho .gyi .t b')].length }));
   check('kênh iPad: 2 gợi ý "🎄 Theo mùa" (không tên máy / giá), trạng thái "2 gợi ý iPad (2 theo mùa) · kho chưa có máy iPad (🔗 thêm link kho iPad) … (tự động)"',
     g.mua === 2 && g.b === 0 && /2 gợi ý iPad \(2 theo mùa\)/.test(g.st) && /kho chưa có máy iPad \(🔗 thêm link kho iPad\)/.test(g.st) && /\(tự động\)/.test(g.st), g);
   await p.click('#gyKho [data-gy="0"]'); await p.waitForTimeout(200);
-  const d = await p.evaluate(() => ({ cd: $('#fChuDe').value, kho: $('#fKho').value }));
-  check('Dùng gợi ý theo mùa: điền chủ đề, ô Kho để trống', d.cd === 'iPad nào làm quà Noel cho học sinh?' && d.kho === '', d);
-  await p.fill('#fKho', 'https://app.polystorevn.com/kho-may?loai=IPAD'); await p.waitForTimeout(200);
-  const nut = await p.evaluate(() => ($('#gyLuuLink') || {}).innerText);
-  await p.click('#gyLuuLink'); await p.waitForTimeout(600);
-  const r = await j(A + '/api/goi-y');
-  check('dán link kho vào ô 📦 Kho: hiện "💾 Lưu làm link kho iPad", bấm là lưu link kho iPad (giữ link Laptop), nút ẩn',
-    /Lưu làm link kho iPad/.test(nut || '') && r.b.link.ipad === 'https://app.polystorevn.com/kho-may?loai=IPAD' && r.b.link.laptop === 'https://app.polystorevn.com/kho-may' && !(await p.$('#gyLuuLink')), { nut, link: r.b.link });
-  await p.fill('#fKho', 'C02DK3XYQ6L4'); await p.waitForTimeout(150);
-  check('ô Kho là seri / chữ thường: không có nút lưu link', !(await p.$('#gyLuuLink')));
+  const d = await p.evaluate(() => ({ cd: $('#fChuDe').value, kho: S.form.kho || '' }));
+  check('Dùng gợi ý theo mùa: điền chủ đề, không nhớ máy', d.cd === 'iPad nào làm quà Noel cho học sinh?' && d.kho === '', d);
+  check('không còn ô 📦 Kho / nút 💾 Lưu làm link kho (fen 17/11 bỏ ô Kho)', !(await p.$('#fKho')) && !(await p.$('#gyLuuLink')));
+  await j(A + '/api/goi-y', { link: { laptop: 'https://app.polystorevn.com/kho-may', ipad: 'https://app.polystorevn.com/kho-may?loai=IPAD' } });   // như trước: đã có link kho iPad
   await p.click('#gyLink'); await p.waitForSelector('#klTu');
   const tu0 = await p.evaluate(() => $('#klTu').checked);
   await p.click('#klTu'); await p.click('#klLuu'); await p.waitForTimeout(600);

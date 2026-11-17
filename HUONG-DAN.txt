@@ -119,20 +119,20 @@ DỌN BÀI THÁNG CŨ (10/11)
 - Tên bài đã dọn ghi vào _bo-dung-design\noi-dung\danh-sach-content-da-don.md để Claude vẫn dò trùng được.
 - Lấy lại: chuyển thư mục về chỗ cũ; bài trong app thì mở jobs\<id>\job.json bỏ dòng "an".
 
-LẤY MÁY + GIÁ TỪ KHO POLYSTO (Ô KHO, 9/11)
-- Ô "📦 Kho" dưới ô Chủ đề: dán link kho (https://app.polystorevn.com/kho-may, hoặc bấm "Cả kho") hoặc seri máy
-  (vd JJRNZ54 FNDSSV3). Bấm Viết brief / chat sửa brief: Claude lấy máy thật đang tồn kho + giá bán để viết bài.
-  Trong chat nhắn "lấy máy trong kho", "dùng seri ..." cũng được.
+LẤY MÁY + GIÁ TỪ KHO POLYSTO
+- Ô "📦 Kho" đã bỏ (17/11). Viết brief tự dùng danh sách kho đã 🔄 Cập nhật kho (dòng 💡 dưới ô Chủ đề): tên máy + giá bán.
+  Muốn viết về 1 máy: mở 💡 → Xem → bấm máy trong "📦 Máy trong kho" (tên máy vào ô Chủ đề) hoặc bấm "Dùng" ở 1 gợi ý.
+  Trong ô Chủ đề / chat gõ seri hay "lấy máy trong kho" cũng được.
 - Claude đọc kho qua kết nối POLY của tài khoản Claude (claude.ai > Customize > Connectors > POLY). Báo "Chưa đọc
   được kho" thì vào đó bấm Connect lại.
   Chip "Kho Poly" trên thanh trên cùng (15/11): chấm xanh = đã nối, đỏ = chưa nối; bấm chip → Kiểm lại (1 lượt Claude rất ngắn).
   Hộp ghi tài khoản Claude của máy: POLY phải nối ở đúng tài khoản đó. App KHÔNG tự đọc kho: chỉ khi fen bấm Kiểm lại / Cập nhật kho.
 - Chỉ lấy thông tin máy và giá bán (fen 9/11). Không lấy giá vốn, HH, ghi chú, tên khách; không ghi, không sửa gì
   trong Polysto (app chỉ cho Claude 2 lệnh đọc: tìm máy, số liệu 1 máy). Seri không ghi vào bài.
-- 💡 Gợi ý từ kho (15/11, dòng dưới ô Kho): máy shop bấm "🔄 Cập nhật kho" → Claude (Sonnet, 1–3 phút, tính hạn mức tuần) đọc
+- 💡 Gợi ý từ kho (15/11, dòng dưới ô Chủ đề): máy shop bấm "🔄 Cập nhật kho" → Claude (Sonnet, 1–3 phút, tính hạn mức tuần) đọc
   kho cả 2 kênh (chỉ tên máy + giá bán), so với bài 45 ngày qua, gợi ý 6–12 chủ đề cho máy chưa có bài. Dòng ghi "N gợi ý <kênh> ·
   K dòng máy · 🆕 M mới về" (dòng máy app thấy lần đầu trong 7 ngày; lần đầu coi hết là hàng cũ). Bấm "Xem" mở danh sách: "Dùng" điền
-  chủ đề + tên máy vào ô Kho, rồi bấm ✍ Viết brief; dưới có "📦 Máy trong kho" (tên · số máy · giá bán), bấm 1 máy = điền vào ô Kho.
+  chủ đề (app nhớ máy để lấy đúng giá), rồi bấm ✍ Viết brief; dưới có "📦 Máy trong kho" (tên · số máy · giá bán), bấm 1 máy = điền vào ô Chủ đề.
   Ngày nào cũng có gợi ý (16/11): mỗi kênh ít nhất 4 gợi ý; kho kênh nào không có máy (hoặc máy đều đã có bài) thì Claude gợi ý
   chủ đề theo mùa / chủ đề chung (tag "🎄 Theo mùa", Dùng chỉ điền chủ đề). 🌅 Mỗi sáng 8h app tự cập nhật kho 1 lần (máy shop mở
   app sau 8h thì cập nhật lúc mở; hôm đó fen đã bấm thì thôi; tắt ở 🔗 Link kho). Kho iPad: link …/kho-may?loai=IPAD. Lỡ dán link

@@ -1466,7 +1466,7 @@ function newView(){
     <span class="lbl">Chủ đề <i>(gõ chủ đề, hoặc nhờ kiểu "tìm chủ đề hot mẹo iPad", rồi bấm Viết brief; Claude hiểu ý, viết brief từng slide và dò trùng bài cũ)</i></span>
     <div class="vb"><input class="in" id="fChuDe" placeholder="${esc(CHUDE_PH[f.kenh])}" value="${esc(f.chude || '')}"><button class="btn" id="bVietBrief">✍ Viết brief</button></div>
     <div class="vbst" id="vbSt"></div>
-    <div class="khor"><span class="lbl" title="Claude đọc kho Polysto qua kết nối POLY của tài khoản Claude, chỉ lấy thông tin máy và giá bán (không lấy giá vốn, HH, ghi chú, tên khách)">📦 Kho</span><input class="in" id="fKho" autocomplete="off" placeholder="Dán link kho Polysto hoặc seri máy: Claude lấy máy + giá thật trong kho để viết brief" value="${esc(f.kho || '')}"><button class="btn sm ghost" id="bKhoCa" title="Điền link kho đã lưu của kênh này (🔗 Link kho ở dòng 💡 bên dưới)">Cả kho</button></div>
+    <!-- fen 17/11 10h48 "phần này bị thừa": bỏ ô 📦 Kho + nút Cả kho; Viết brief tự dùng kho đã Cập nhật (💡), máy chọn ở 💡 nhớ ngầm f.kho -->
     <div class="gyk" id="gyKho"></div>
     <span class="lbl">Brief từng slide</span>
     <textarea class="in" id="fBrief" placeholder="${esc(k.ph.brief)}">${esc(f.brief || '')}</textarea>
@@ -1497,8 +1497,8 @@ function newView(){
     f.kenh = k; delete f.kb; saveForm();
     document.querySelectorAll('#seg button').forEach(x => x.classList.toggle('on', x === b));
     const p = KENH[f.kenh].ph; $('#fBrief').placeholder = p.brief; $('#fNote').placeholder = p.note; $('#fChuDe').placeholder = CHUDE_PH[f.kenh]; if (S._veDung) S._veDung(); gyVe(); };
-  const map = {fBrief:'brief', fNote:'note', fChuDe:'chude', fKho:'kho'};   // bỏ ô Tên bài + Ngày đăng (fen 29/10 19h08 "phần này bị thừa")
-  Object.keys(map).forEach(id => $('#' + id).oninput = e => { f[map[id]] = e.target.value; saveForm(); if (id === 'fBrief') { e.target.classList.remove('bad'); gianBrief(); } if (id === 'fKho') gyVe(); });
+  const map = {fBrief:'brief', fNote:'note', fChuDe:'chude'};   // bỏ ô Tên bài + Ngày đăng (fen 29/10 19h08 "phần này bị thừa")
+  Object.keys(map).forEach(id => $('#' + id).oninput = e => { f[map[id]] = e.target.value; saveForm(); if (id === 'fBrief') { e.target.classList.remove('bad'); gianBrief(); } });
   gianBrief(); gyTai();
   setupPick($('#file'), $('#pick'), f.anh, $('#drop'));
   renderThumbs($('#drop'), f.anh);
@@ -1538,7 +1538,8 @@ function newView(){
   if (!S.themeCv) api('/api/theme-canva').then(r => { S.themeCv = r.ds; S.themeDang = r.dang; if (S._veDung) S._veDung(); }).catch(() => {});
   $('#bRun').onclick = runNew;
   $('#bVietBrief').onclick = vietBrief;
-  $('#bKhoCa').onclick = () => { const t = $('#fKho'), lk = khoLink(f.kenh); t.value = lk; f.kho = lk; saveForm(); t.focus(); };
+  if (f.kho && f.khoTu !== 'gy') { f.kho = ''; saveForm(); }    // ô Kho cũ (bỏ 17/11): bỏ chữ còn sót trong nháp
+  $('#fChuDe').addEventListener('input', () => { if (f.kho && !$('#fChuDe').value.trim()) { f.kho = ''; f.khoTu = ''; saveForm(); } });
   $('#bHen').onclick = () => { const bx = $('#henBox'); bx.hidden = !bx.hidden; if (bx.hidden) return;
     const gy = henGoiY((f.ngay || '').trim()); $('#fHen').value = dtLocal(gy[0][1]); $('#fHen').min = dtLocal(new Date());
     setH($('#henQ'), gy.map(([t, d], i) => `<button class="q" data-hq="${i}">${esc(t)}</button>`).join(''));
@@ -2975,12 +2976,12 @@ async function khoTheme(){
   veDang();
   try { ve(await api('/api/theme-canva', {dong_bo: true})); } catch(e) { tai(); }   // mở kho là tự lấy (quá 30 phút mới lấy lại)
 }
-// ---- 💡 Gợi ý từ kho (fen 15/11 11h23 chọn "Gợi ý bài từ hàng mới về"): dòng gọn dưới ô Kho ở Bài mới (chỉ máy shop). 🔄 Quét kho =
+// ---- 💡 Gợi ý từ kho (fen 15/11 11h23 chọn "Gợi ý bài từ hàng mới về"): dòng gọn dưới ô Chủ đề ở Bài mới (chỉ máy shop). 🔄 Quét kho =
 // 1 lượt Claude đọc kho Polysto (tên máy + giá bán), gợi ý chủ đề cho máy chưa có bài; 🆕 = dòng máy app thấy lần đầu trong 7 ngày.
-// "Dùng" điền chủ đề + tên máy vào ô Kho (rồi fen bấm ✍ Viết brief). Đang quét thì 5 giây hỏi lại 1 lần.
+// "Dùng" điền chủ đề (+ nhớ ngầm tên máy ở f.kho, ô Kho bỏ 17/11), rồi fen bấm ✍ Viết brief. Đang quét thì 5 giây hỏi lại 1 lần.
 // fen 15/11 13h31 "kho poly chỉ đăng nhập ở máy admin, rồi có nút bấm update cho máy con" (chọn "Máy shop quét kho, máy con xem được"):
 // nút "🔄 Cập nhật kho" ở máy shop; máy dùng chung xem bản máy shop cập nhật gần nhất (không có nút quét / tự quét). Mở Xem thêm
-// "📦 Máy trong kho" (tên · số máy · giá bán theo kênh), bấm 1 máy = điền tên máy vào ô Kho.
+// "📦 Máy trong kho" (tên · số máy · giá bán theo kênh), bấm 1 máy = điền tên máy vào ô Chủ đề.
 async function gyTai(ep){
   if (!$('#gyKho')) return;
   if (ep || !S.gy || Date.now() - (S.gyT || 0) > 60000 || S.gy.dang) { try { S.gy = await api('/api/goi-y'); S.gyT = Date.now(); } catch(e) { S.gy = { loi: 'Chưa lấy được gợi ý (' + e.message + '), tải lại trang thử lại' }; } }
@@ -2991,29 +2992,26 @@ function gyVe(){
   const el = $('#gyKho'); if (!el || !S.gy) return;
   const d = S.gy, f = S.form, ds = (d.ds || []).filter(x => x.kenh === f.kenh), mays = (d.may || []).filter(x => x.kenh === f.kenh), moi = mays.filter(x => x.moi).length;
   const mo = !!store.get('poly-gy-mo', false), nMua = ds.filter(x => x.mua).length, lk = d.link || {};
-  // fen 16/11 11h59: dán link kho iPad vào ô 📦 Kho (ô của brief) tưởng là link kho → nút lưu thẳng làm 🔗 Link kho của kênh
-  const kf = String(f.kho || '').trim(), luuLink = !KHACH && /^https:\/\/([\w-]+\.)*polystorevn\.com\/\S*kho/i.test(kf) && kf !== (lk[f.kenh] || '');
   const tu = d.tu_luc && d.luc && d.luc >= d.tu_luc && d.luc - d.tu_luc < 900;
   const st = d.dang ? (KHACH ? 'Máy shop đang cập nhật kho… (1–3 phút)' : esc(d.buoc || 'Đang đọc kho Polysto… (1–3 phút)')) : d.loi ? '⚠ ' + esc(d.loi) : d.luc
     ? `${ds.length} gợi ý ${esc(KENH[f.kenh].ten)}${nMua ? ` (${nMua} theo mùa)` : ''}${mays.length ? ` · ${mays.length} dòng máy` : ` · kho chưa có máy ${esc(KENH[f.kenh].ten)}${KHACH || lk[f.kenh] ? '' : ' (🔗 thêm link kho ' + esc(KENH[f.kenh].ten) + ')'}`}${moi ? ` · <span class="moi">🆕 ${moi} mới về</span>` : ''} · cập nhật ${esc(henTxt(d.luc))}${tu ? ' (tự động)' : ''}${KHACH ? ' (máy shop)' : ''}`
     : KHACH ? 'Máy shop chưa cập nhật kho' : 'Chưa cập nhật: lưu 🔗 Link kho rồi bấm 🔄 Cập nhật kho (Chrome đã đăng nhập POLY mở link, chép tên máy + giá bán; tự cập nhật mỗi sáng 8h nếu bật; máy con xem được bản này)';
   setH(el, `<div class="gyhd"><b>💡 Gợi ý từ kho</b><span class="gyst${d.loi && !d.dang ? ' loi' : ''}">${st}</span>
-      ${ds.length || mays.length ? `<button class="btn ghost sm" id="gyMo">${mo ? 'Ẩn' : 'Xem'}</button>` : ''}${luuLink ? `<button class="btn sm" id="gyLuuLink" title="Lưu link trong ô 📦 Kho làm link kho ${esc(KENH[f.kenh].ten)} để 🔄 Cập nhật kho đọc trang này">💾 Lưu làm link kho ${esc(KENH[f.kenh].ten)}</button>` : ''}${KHACH ? '' : `<button class="btn ghost sm" id="gyLink" title="Lưu link kho Polysto của từng kênh">🔗 Link kho</button><button class="btn ghost sm" id="gyQuet"${d.dang ? ' disabled' : ''} title="Mở link kho trên Chrome máy shop (hồ sơ iPad, đã đăng nhập POLY), chép tên máy · cấu hình · giá bán rồi đóng tab; sau đó 1 lượt Claude (Sonnet) gợi ý chủ đề. Máy con xem được bản mới nhất">🔄 Cập nhật kho</button>`}</div>
-    ${mo && (ds.length || mays.length) ? `<div class="gyds">${ds.map((x, i) => `<div class="gyi"><div class="t">${x.moi ? '<span class="gymoi">MỚI VỀ</span>' : ''}${x.mua ? '<span class="gymua">🎄 Theo mùa</span>' : `<b>${esc(x.may)}</b>${x.gia ? ' · ' + esc(x.gia) : ''}`}<span class="cd">${esc(x.chu_de)}</span>${x.ly_do ? `<i>${esc(x.ly_do)}</i>` : ''}</div><button class="btn sm" data-gy="${i}" title="${x.mua ? 'Điền chủ đề này' : 'Điền chủ đề này + tên máy vào ô Kho'}">Dùng</button></div>`).join('')}
-      ${mays.length ? `<div class="gymay"><span>📦 Máy trong kho ${esc(KENH[f.kenh].ten)} (bấm 1 máy = điền vào ô Kho)</span><div class="mys">${mays.map((x, i) => `<button data-gm="${i}" title="Điền ${esc(x.ten)} vào ô Kho">${x.moi ? '<span class="gymoi">MỚI</span>' : ''}${esc(x.ten)}<i>${x.so ? ' · ' + esc(String(x.so)) + ' máy' : ''}${x.gia ? ' · ' + esc(x.gia) : ''}</i></button>`).join('')}</div></div>` : ''}
+      ${ds.length || mays.length ? `<button class="btn ghost sm" id="gyMo">${mo ? 'Ẩn' : 'Xem'}</button>` : ''}${KHACH ? '' : `<button class="btn ghost sm" id="gyLink" title="Lưu link kho Polysto của từng kênh">🔗 Link kho</button><button class="btn ghost sm" id="gyQuet"${d.dang ? ' disabled' : ''} title="Mở link kho trên Chrome máy shop (hồ sơ iPad, đã đăng nhập POLY), chép tên máy · cấu hình · giá bán rồi đóng tab; sau đó 1 lượt Claude (Sonnet) gợi ý chủ đề. Máy con xem được bản mới nhất">🔄 Cập nhật kho</button>`}</div>
+    ${mo && (ds.length || mays.length) ? `<div class="gyds">${ds.map((x, i) => `<div class="gyi"><div class="t">${x.moi ? '<span class="gymoi">MỚI VỀ</span>' : ''}${x.mua ? '<span class="gymua">🎄 Theo mùa</span>' : `<b>${esc(x.may)}</b>${x.gia ? ' · ' + esc(x.gia) : ''}`}<span class="cd">${esc(x.chu_de)}</span>${x.ly_do ? `<i>${esc(x.ly_do)}</i>` : ''}</div><button class="btn sm" data-gy="${i}" title="${x.mua ? 'Điền chủ đề này' : 'Điền chủ đề này (app nhớ máy này để Claude lấy đúng giá trong kho)'}">Dùng</button></div>`).join('')}
+      ${mays.length ? `<div class="gymay"><span>📦 Máy trong kho ${esc(KENH[f.kenh].ten)} (bấm 1 máy = điền vào ô Chủ đề)</span><div class="mys">${mays.map((x, i) => `<button data-gm="${i}" title="Điền ${esc(x.ten)} vào ô Chủ đề">${x.moi ? '<span class="gymoi">MỚI</span>' : ''}${esc(x.ten)}<i>${x.so ? ' · ' + esc(String(x.so)) + ' máy' : ''}${x.gia ? ' · ' + esc(x.gia) : ''}</i></button>`).join('')}</div></div>` : ''}
 </div>` : ''}`);
   const q = $('#gyQuet'); if (q) q.onclick = async () => { q.disabled = true; try { S.gy = await api('/api/goi-y', { quet: true }); S.gyT = Date.now(); gyTai(); }
     catch(e) { if (e.message.startsWith('CHON_HS|')) { toast(e.message.slice(8), true); khoLinkDialog(); } else toast(e.message, true); q.disabled = false; } };
   const m = $('#gyMo'); if (m) m.onclick = () => { store.set('poly-gy-mo', !mo); gyVe(); };
   const lb = $('#gyLink'); if (lb) lb.onclick = khoLinkDialog;
   el.querySelectorAll('[data-gy]').forEach(b => b.onclick = () => { const x = ds[+b.dataset.gy]; if (!x) return;
-    f.chude = x.chu_de; $('#fChuDe').value = x.chu_de; if (x.may) { f.kho = x.may; $('#fKho').value = x.may; } saveForm();
-    toast(x.may ? 'Đã điền chủ đề + máy vào ô Kho: bấm ✍ Viết brief' : 'Đã điền chủ đề: bấm ✍ Viết brief'); $('#fChuDe').focus(); });
-  const ll = $('#gyLuuLink'); if (ll) ll.onclick = async () => { ll.disabled = true;
-    try { S.gy = await api('/api/goi-y', { link: Object.assign({}, lk, { [f.kenh]: kf }) }); S.gyT = Date.now(); toast('Đã lưu link kho ' + KENH[f.kenh].ten + ': bấm 🔄 Cập nhật kho'); gyVe(); }
-    catch(e) { toast(e.message, true); ll.disabled = false; } };
+    f.chude = x.chu_de; $('#fChuDe').value = x.chu_de; f.kho = x.may || ''; f.khoTu = x.may ? 'gy' : ''; saveForm();
+    toast(x.may ? 'Đã điền chủ đề (máy ' + x.may + '): bấm ✍ Viết brief' : 'Đã điền chủ đề: bấm ✍ Viết brief'); $('#fChuDe').focus(); });
   el.querySelectorAll('[data-gm]').forEach(b => b.onclick = () => { const x = mays[+b.dataset.gm]; if (!x) return;
-    f.kho = x.ten; $('#fKho').value = x.ten; saveForm(); toast('Đã điền ' + x.ten + ' vào ô Kho'); $('#fChuDe').focus(); });
+    const cd = $('#fChuDe'), v = cd.value.trim();                 // bấm 1 máy = điền tên máy vào ô Chủ đề (ô Kho bỏ 17/11)
+    if (!v.toLowerCase().includes(x.ten.toLowerCase())) cd.value = v ? v + ' · ' + x.ten : x.ten;
+    f.chude = cd.value; f.kho = x.ten; f.khoTu = 'gy'; saveForm(); toast('Đã điền ' + x.ten + ' vào ô Chủ đề: bấm ✍ Viết brief'); cd.focus(); });
 }
 // 🔗 Link kho (fen 15/11 13h41 "kho cho nhập link vô lưu lại rồi có nút update mình bấm mới truy cập kho"): lưu link kho Polysto từng kênh
 // (config kho_link); 🔄 Cập nhật kho mới đọc kho (Claude + POLY đọc tham số lọc trong link). Ô 📦 Kho "Cả kho" điền link đã lưu của kênh.
