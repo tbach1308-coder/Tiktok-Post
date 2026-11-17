@@ -84,11 +84,12 @@ n=Image.new('RGB',(1200,2000),'#f4e6c8');ImageDraw.Draw(n).rectangle((0,0,1200,3
   await p.click('#tkpFg [data-ff="lobster"]'); await p.waitForTimeout(600);
   check('Font: bảng 18 font (hiện đại, sale, sang trọng, Tết, Noel, viết tay…) chọn là đổi ngay, font tải về dùng được', nf === 18 && await p.evaluate(() => TK.d.o.find(x => x.k === 'nhan').ff === 'lobster' && document.fonts.check('400 40px "tv-lobster"', 'Ưu đãi')), nf);
   const nk0 = await p.evaluate(() => TK.d.o.length);
+  await p.selectOption('#tkMenu', 'kieu'); await p.waitForTimeout(150);   // 17/11: Kiểu chữ nằm trong ô chọn mục
   await p.click('[data-kieu="5"]'); await p.waitForTimeout(300);
   check('Kiểu chữ có sẵn: đang chọn chữ thì đổi kiểu (GIÁ SỐC: Anton vàng viền đen), không thêm ô', await p.evaluate(n => { const x = TK.d.o.find(x => x.k === 'nhan'); return TK.d.o.length === n && x.ff === 'anton' && x.mau === '#ffe600' && x.vien === '#111111' && x.text === 'GIÁ SỐC HÔM NAY'; }, nk0));
   await p.evaluate(() => { TK.sel = -1; tkBang(); }); await p.click('[data-kieu="0"]'); await p.waitForTimeout(300);
   check('chưa chọn chữ: bấm kiểu "Chúc Mừng Năm Mới" thêm ô chữ mới đúng kiểu (Lobster, vàng, viền đỏ)', await p.evaluate(n => { const x = TK.d.o[TK.sel]; return TK.d.o.length === n + 1 && x.text === 'Chúc Mừng Năm Mới' && x.ff === 'lobster' && x.vien === '#8b0a14'; }, nk0));
-  await p.click('#tkUndo'); await p.waitForTimeout(150);
+  await p.click('#tkUndo'); await p.waitForTimeout(150); await p.selectOption('#tkMenu', 'nd'); await p.waitForTimeout(150);
   const iAnh = await p.evaluate(() => TK.d.o.findIndex(x => x.loai === 'anh'));
   const [fc] = await Promise.all([p.waitForEvent('filechooser'), p.click(`#tkNd [data-anh="${iAnh}"]`)]);
   await fc.setFiles('/tmp/sm-may.png'); await p.waitForFunction(i => /^img:/.test(TK.d.o[i].img || '') && !!tkHinh(TK.d.o[i].img), iAnh, { timeout: 8000 });

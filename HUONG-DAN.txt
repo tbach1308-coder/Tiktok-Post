@@ -317,10 +317,16 @@ LÀM 1 BÀI
     phải để đổi cỡ. Phím mũi tên nhích (Shift nhích xa), Delete xoá, Ctrl+Z hoàn tác, Ctrl+Y làm lại, Ctrl+D nhân đôi.
   · Bảng bên trái: chữ (nội dung, cỡ, độ đậm, màu, nền chữ + ôm chữ, bo góc, canh trái / giữa / phải, số dòng, gạch ngang giá cũ);
     ảnh (chọn / đổi ảnh, Vừa khung / Phủ kín, khung màu, bo góc); khối / tròn (màu, bo góc); bấm chỗ trống = chỉnh nền (màu / ảnh nền).
+  · ✥ Dời ảnh trong khung (17/11): bấm đúp vào ảnh (hoặc nút "✥ Dời ảnh" ở bảng ảnh) → khung viền cam, phần ảnh bị cắt hiện mờ bên
+    ngoài. Kéo trên ảnh để chọn phần hiện trong khung, lăn chuột (hoặc thanh "Phóng to %") để phóng to, mũi tên dời từng chút.
+    Esc / Enter / bấm ra ngoài / "✓ Xong" là xong. "↺ Về giữa" bỏ vị trí + phóng. Đổi ảnh khác thì tự về giữa. Ảnh lưu / Lưu thành
+    mẫu giữ đúng phần đã chọn.
   · "＋ Chữ", "＋ Ảnh", "▭ Khối", "◯ Tròn" thêm vào khung; "⧉ Nhân đôi", "⬆ Lên lớp", "⬇ Xuống lớp", "🗑 Xoá"; "↺ Mẫu gốc" bỏ hết chỉnh sửa.
   · 🔤 Font (bảng chữ, 15/11 14h18): bấm ô Font mở bảng 16 font có tiếng Việt (16/11 thêm Alfa Slab One cho tiêu đề Noel): Hiện đại (Be Vietnam Pro, Montserrat, Lexend),
     Sale / giá sốc (Anton, Oswald, Bungee, Paytone One), Sang trọng (Playfair), Tết (Lobster, Charm), Noel / Valentine (Dancing Script),
     Hè (Pacifico), Dễ thương (Baloo 2), Viết tay (Pangolin, Patrick Hand). Thêm "Viền chữ" và "Bóng" (màu tuỳ chọn).
+  · Ô chọn mục dưới bảng (17/11, thay 3 khung gập): chọn "📝 Nội dung (điền nhanh)" / "🔤 Kiểu chữ có sẵn" / "✨ Decor" để mở
+    mục đó (app nhớ mục đang mở; nút ✨ Decor trên thanh tự chọn Decor).
   · "🔤 Kiểu chữ có sẵn": 14 kiểu theo mùa / chủ đề (Tết, Noel, Sale, Black Friday, Sang trọng, Hè, Back to school, Viết tay).
     Đang chọn 1 ô chữ thì bấm kiểu = đổi font + màu + viền / nền của ô đó (giữ chữ); chưa chọn gì thì thêm ô chữ mới kiểu đó.
   · "Nội dung (điền nhanh)": mọi ô chữ + ô ảnh của mẫu để điền lẹ.

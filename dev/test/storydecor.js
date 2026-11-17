@@ -29,7 +29,7 @@ let ok = 0, loi = 0; const check = (n, c, x) => { c ? ok++ : loi++; console.log(
   await p.screenshot({ path: 'shots/story-decor-noel.png' });
   // ✨ Decor
   await p.click('#tkDecorBt'); await p.waitForTimeout(300);
-  const dp = await p.evaluate(() => ({ open: $('#tkDecorD').open, bo: [...document.querySelectorAll('#tkDecor [data-db]')].map(x => x.innerText), on: (document.querySelector('#tkDecor [data-db].on') || {}).innerText, n: document.querySelectorAll('#tkDecor [data-di]').length }));
+  const dp = await p.evaluate(() => ({ open: !$('#tkDecorD').hidden && $('#tkMenu').value === 'decor' && $('#tkNdD').hidden, bo: [...document.querySelectorAll('#tkDecor [data-db]')].map(x => x.innerText), on: (document.querySelector('#tkDecor [data-db].on') || {}).innerText, n: document.querySelectorAll('#tkDecor [data-di]').length }));
   check('✨ Decor: mở mục decor, 4 bộ, mẫu Noel thì bộ Noel (12 icon)', dp.open && dp.bo.length === 4 && /Noel/.test(dp.on) && dp.n === 12, dp);
   await p.click('#tkDecor [data-db="tet"]'); await p.waitForTimeout(200);
   const n0 = await p.evaluate(() => TK.d.o.length);

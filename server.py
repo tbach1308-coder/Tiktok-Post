@@ -9782,17 +9782,22 @@ def _sm_anh(im, x, anh, nho=False):
             a = a.filter(ImageFilter.GaussianBlur(x["mo"]))
         if x.get("toi"):
             a = Image.alpha_composite(a, Image.new("RGBA", a.size, (0, 0, 0, int(255 * min(90, x["toi"]) / 100))))
-    if x.get("phu"):        # phủ kín khung (cắt bớt)
-        k = max(bw / a.width, bh / a.height)
-        a = a.resize((max(1, round(a.width * k)), max(1, round(a.height * k))), Image.LANCZOS)
-        l, t = (a.width - bw) // 2, (a.height - bh) // 2
-        a = a.crop((l, t, l + bw, t + bh))
-    elif x.get("rong"):     # theo bề ngang khung, canh trên (ảnh cận máy tràn xuống, bìa Tối giản)
+    if x.get("rong"):       # theo bề ngang khung, canh trên (ảnh cận máy tràn xuống, bìa Tối giản)
         k = bw / a.width
         a = a.resize((max(1, round(a.width * k)), max(1, round(a.height * k))), Image.LANCZOS)
-    else:                   # vừa trong khung (giữ nguyên ảnh)
-        k = min(bw / a.width, bh / a.height)
+        px, py = pad + (bw - a.width) // 2, pad
+    else:                   # phủ kín khung (cắt bớt) / vừa trong khung; zoom + vị trí ax / ay như tkAnhDo của trình duyệt
+        z = max(1.0, min(4.0, (x.get("zoom") or 100) / 100.0))
+        k = (max(bw / a.width, bh / a.height) if x.get("phu") else min(bw / a.width, bh / a.height)) * z
         a = a.resize((max(1, round(a.width * k)), max(1, round(a.height * k))), Image.LANCZOS)
+        ux = (x["ax"] if x.get("ax") is not None else 500) / 1000.0
+        uy = (x["ay"] if x.get("ay") is not None else (1000 if x.get("day") else 500)) / 1000.0
+        l = int((a.width - bw) * ux) if a.width > bw else 0
+        t = int((a.height - bh) * uy) if a.height > bh else 0
+        if a.width > bw or a.height > bh:      # to hơn khung: cắt phần thừa
+            a = a.crop((l, t, l + min(bw, a.width), t + min(bh, a.height)))
+        px = pad + (int((bw - a.width) * ux) if a.width < bw else 0)
+        py = pad + (int((bh - a.height) * uy) if a.height < bh else 0)
     a = _sm_bo_goc(a, max(0, (x.get("bo") or 0) - pad // 2) if x.get("phu") or not x.get("the") else 0)
     mv = int(x.get("mo_vien") or 0)
     if mv and a.width > 4 * mv and a.height > 4 * mv:       # mép ảnh mờ dần vào nền (ảnh món đồ bìa Chú thích tay)
@@ -9800,7 +9805,7 @@ def _sm_anh(im, x, anh, nho=False):
         mk = Image.new("L", a.size, 0)
         ImageDraw.Draw(mk).rectangle((mv, mv, a.width - mv, a.height - mv), fill=255)
         a.putalpha(ImageChops.multiply(a.getchannel("A"), mk.filter(ImageFilter.GaussianBlur(mv / 2))))
-    px, py = int(pad + (bw - a.width) // 2), int(pad + (0 if x.get("rong") else (bh - a.height) if x.get("day") else (bh - a.height) // 2))   # day: sát đáy khung
+    px, py = int(px), int(py)       # day: sát đáy khung (ay mặc định 1000)
     if x.get("xoay"):           # xoay quanh tâm khung (kẹo gậy, dây đèn mẫu Noel); trình duyệt xoay chiều kim đồng hồ
         k = Image.new("RGBA", (max(int(x["w"]), a.width), max(int(x["h"]), a.height)), (0, 0, 0, 0))
         _sm_dan(k, a, px + (k.width - int(x["w"])) // 2, py + (k.height - int(x["h"])) // 2)
@@ -9971,7 +9976,7 @@ SM_KIEU = {"chu": ("x", "y", "w", "h", "co", "font", "mau", "nen", "bo", "pad", 
                    "ff", "vien", "bong", "mau2", "soc", "lech", "vach", "ke", "nhom", "khung", "gian", "vien_co", "sac", "to", "vien2", "vien2_co",
                    "chi_khi_trong", "chi_khi_co"),
            "anh": ("x", "y", "w", "h", "bo", "the", "pad", "phu", "k", "nhan", "bo_qua", "nguon", "mo", "toi", "xoay", "day", "khoa", "nhom", "trang_tri", "rong", "mo_vien",
-                   "chi_khi_trong", "chi_khi_co"),
+                   "ax", "ay", "zoom", "chi_khi_trong", "chi_khi_co"),
            "hcn": ("x", "y", "w", "h", "mau", "bo", "mo_dan", "khoa", "nhom", "chi_khi_trong", "chi_khi_co"),
            "tron": ("x", "y", "r", "mau", "nhom", "chi_khi_trong", "chi_khi_co")}
 
@@ -10018,6 +10023,10 @@ def story_tk_sach(o_ds, thu_muc=None):
                 v = bool(v)
             elif k in ("lech", "xoay", "gian", "vien_co", "vien2_co"):
                 v = _sm_so(v, -360, 360)
+            elif k in ("ax", "ay"):         # vị trí ảnh trong khung ‰ (fen 17/11 dời ảnh trong ô)
+                v = _sm_so(v, 0, 1000)
+            elif k == "zoom":               # phóng to ảnh trong khung %
+                v = _sm_so(v, 100, 400)
             elif k == "font":
                 v = int(v) if v in (400, 500, 600, 700, 800, "400", "500", "600", "700", "800") else 700
             else:

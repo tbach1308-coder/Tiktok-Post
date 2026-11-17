@@ -188,6 +188,7 @@ a.btn{color:var(--tx);text-decoration:none}
 .tkl{display:flex;flex-direction:column;gap:8px;min-width:0}.tkl .stbar{margin:0}
 .tkcc{display:flex;flex-wrap:wrap;gap:6px;align-items:center}.tkcc .tkgap{flex:1}
 .tkp{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:7px}
+#tkpDich.on{background:#f59e0b;border-color:#f59e0b;color:#111}.tkgoi{margin:0;font-size:11.5px;color:#f59e0b}
 .tkh{font-size:13px}.tkf{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--mut);flex-wrap:wrap}.tkf>span{width:96px;flex:none}
 .tkf input[type=range]{flex:1;min-width:90px}.tkf i{font-style:normal;color:var(--dim);width:30px;text-align:right}
 .tkf input[type=color]{width:38px;height:28px;border:1px solid var(--line);border-radius:6px;background:none;padding:1px;cursor:pointer}
@@ -195,6 +196,7 @@ a.btn{color:var(--tx);text-decoration:none}
 .tkin{width:100%;box-sizing:border-box;background:var(--panel2);border:1px solid var(--line);border-radius:8px;color:var(--tx);font:inherit;font-size:13.5px;padding:6px 9px;resize:vertical}
 select.tkin{width:auto}.tkin:focus{outline:none;border-color:var(--g)}
 .tknd{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:6px 12px}.tknd summary{cursor:pointer;font-size:12.5px;font-weight:600;color:var(--mut);padding:2px 0}
+.tkmn{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 12px;display:flex;flex-direction:column;gap:8px}.tkmn>select{width:100%;font-weight:600;cursor:pointer}.tkpg{margin:0;font-size:11.5px}
 .tkndr{padding:2px 0 4px}.tkndr.on .mfl{color:var(--gl)}.tkndr .mfl{margin-top:4px}
 .tkc{display:flex;flex-direction:column;gap:8px;align-items:flex-start;position:sticky;top:8px}
 .tkst canvas{width:min(380px,100%);aspect-ratio:9/16;border-radius:12px;border:1px solid var(--line);display:block;touch-action:none;background:#222;cursor:default;outline:none}
@@ -3144,7 +3146,7 @@ async function storyMau(id){
 // hoàn tác (Ctrl+Z / Ctrl+Y), phím mũi tên nhích, Delete xoá. "Nội dung" liệt kê mọi ô chữ để điền nhanh. Lưu ảnh = vẽ 1080×1920 ở trình
 // duyệt rồi gửi app lưu (thư mục Story). Lưu thành mẫu (máy shop) = bản vẽ thành mẫu của fen. Bản đang sửa nhớ theo mẫu trên trình duyệt
 // (ảnh vừa gắn thì không nhớ qua lần tải lại trang). Chừa vùng trên 250 / dưới 340 cho chữ + nút của TikTok (vạch mờ).
-const TK = { anh: {}, n: 0, img: {}, sel: -1, hist: [], fut: [], d: null, mau: null, kq: null };
+const TK = { anh: {}, n: 0, img: {}, sel: -1, hist: [], fut: [], d: null, mau: null, kq: null, dichAnh: false };
 const TK_F = '"Be Vietnam Pro","Segoe UI",sans-serif';
 // 🔤 thư viện chữ (fen 15/11 14h18 "cho thư viện chữ đẹp đi, font phù hợp nhiều mùa, chủ đề"): font Google (OFL, đủ tiếng Việt), mỗi font
 // 1 độ đậm (font 'tv-<khoá>' tải khi dùng), Be Vietnam Pro chọn được độ đậm. Kiểu chữ có sẵn = font + màu + viền / bóng / nền theo mùa.
@@ -3263,6 +3265,25 @@ function tkChu(c, x){
     if (b > a + 10) { c.fillStyle = x.ke; c.fillRect(a, tam(d) - t / 2, b - a, t); } }
   c.letterSpacing = '0px';
 }
+// Ảnh nằm đâu trong khung (fen 17/11 16h36 "story cho thêm chức năng di chuyển hình ảnh trong ô vuông"): zoom = phóng to % (100–400),
+// ax / ay = vị trí ảnh ‰ (0 = sát trái / trên, 500 = giữa, 1000 = sát phải / dưới); ảnh to hơn khung thì cắt phần thừa.
+// Mặc định như cũ: phủ kín cắt giữa, vừa khung ở giữa, day sát đáy; rong (theo bề ngang, tràn xuống) giữ nguyên, không dời.
+// Trả phần ảnh gốc (sx sy sw sh) vẽ vào phần khung (dx dy dw dh) + cả ảnh (fx fy fw fh) + khung trong (bx by bw bh).
+function tkAnhDo(x, img){
+  const pad = x.pad || 0, bx = x.x + pad, by = x.y + pad, bw = x.w - 2 * pad, bh = x.h - 2 * pad, iw = img.naturalWidth, ih = img.naturalHeight;
+  if (x.rong) { const k = bw / iw; return { sx: 0, sy: 0, sw: iw, sh: ih, dx: bx, dy: by, dw: bw, dh: ih * k, fx: bx, fy: by, fw: bw, fh: ih * k, bx, by, bw, bh }; }
+  const z = Math.min(4, Math.max(1, (x.zoom || 100) / 100)), k = (x.phu ? Math.max(bw / iw, bh / ih) : Math.min(bw / iw, bh / ih)) * z;
+  const W = iw * k, H = ih * k, ux = (x.ax ?? 500) / 1000, uy = (x.ay ?? (x.day ? 1000 : 500)) / 1000;
+  const fx = bx + (bw - W) * ux, fy = by + (bh - H) * uy;
+  const dx = Math.max(fx, bx), dy = Math.max(fy, by), dw = Math.min(fx + W, bx + bw) - dx, dh = Math.min(fy + H, by + bh) - dy;
+  return { sx: (dx - fx) / k, sy: (dy - fy) / k, sw: dw / k, sh: dh / k, dx, dy, dw, dh, fx, fy, fw: W, fh: H, bx, by, bw, bh };
+}
+// dời ảnh trong khung theo px (kéo / mũi tên), từ vị trí lúc bắt đầu kéo (g = tkAnhDo lúc đó)
+function tkDoiAnh(x, g, mx, my){
+  const tinh = (f, d, b, bw, w) => Math.abs(bw - w) < 0.5 ? 500 : Math.round(Math.max(0, Math.min(1, (f + d - b) / (bw - w))) * 1000);
+  x.ax = tinh(g.fx, mx, g.bx, g.bw, g.fw); x.ay = tinh(g.fy, my, g.by, g.bh, g.fh);
+}
+function tkCoDoiAnh(x){ return !!(x && x.loai === 'anh' && !x.rong && x.img); }      // có ảnh (có thể chưa tải xong: tkHinh trả null)
 function tkAnh(c, x, xuat){
   // nguon: ô này trống thì dùng ảnh của ô khác (nền kính theme Photoshop = ảnh máy làm mờ); mo: làm mờ; toi: tối lại (%)
   const goc = TK.d && x.nguon && !x.img ? TK.d.o.find(y => y.loai === 'anh' && y.k === x.nguon) : null;
@@ -3275,12 +3296,9 @@ function tkAnh(c, x, xuat){
     c.fillText(t, x.x + (x.w - c.measureText(t).width) / 2, x.y + x.h / 2); return;
   }
   const r = (x.phu || !x.the) ? Math.max(0, (x.bo || 0) - pad / 2) : 0;
-  let sx = 0, sy = 0, sw = img.naturalWidth, sh = img.naturalHeight, dw, dh;
-  if (x.phu) { const k = Math.max(bw / sw, bh / sh); dw = bw; dh = bh; const cw = bw / k, ch = bh / k; sx = (sw - cw) / 2; sy = (sh - ch) / 2; sw = cw; sh = ch; }
-  else if (x.rong) { const k = bw / sw; dw = bw; dh = sh * k; }      // rong: theo bề ngang khung, canh trên (ảnh cận máy tràn xuống, bìa Tối giản)
-  else { const k = Math.min(bw / sw, bh / sh); dw = sw * k; dh = sh * k; }
-  // day: sát đáy khung (ảnh máy đứng trên tuyết); xoay: độ, quanh tâm khung (kẹo gậy, dây đèn mẫu Noel)
-  const dx = x.x + pad + (bw - dw) / 2, dy = x.y + pad + (x.rong ? 0 : x.day ? bh - dh : (bh - dh) / 2);
+  const { sx, sy, sw, sh, dx, dy, dw, dh } = tkAnhDo(x, img);
+  if (dw < 1 || dh < 1) return;
+  // xoay: độ, quanh tâm khung (kẹo gậy, dây đèn mẫu Noel)
   c.save(); if (x.xoay) { const cx = x.x + x.w / 2, cy = x.y + x.h / 2; c.translate(cx, cy); c.rotate(x.xoay * Math.PI / 180); c.translate(-cx, -cy); }
   tkRR(c, dx, dy, dw, dh, r); c.clip(); if (x.mo) c.filter = `blur(${x.mo}px)`;
   if (x.mo_vien && dw > 4 * x.mo_vien && dh > 4 * x.mo_vien) {      // mép ảnh mờ dần vào nền (ảnh món đồ bìa Chú thích tay)
@@ -3325,7 +3343,13 @@ function tkVe(){
     if (nh.length > 1) { const bs = nh.map(j => tkGoc(TK.d.o[j])), l = Math.min(...bs.map(q => q[0])), t = Math.min(...bs.map(q => q[1])),
         r = Math.max(...bs.map(q => q[0] + q[2])), b = Math.max(...bs.map(q => q[1] + q[3]));
       c.save(); c.strokeStyle = 'rgba(34,197,94,.55)'; c.lineWidth = 3; c.setLineDash([6, 8]); c.strokeRect(l - 8, t - 8, r - l + 16, b - t + 16); c.restore(); }
-    if (x) { const [gx, gy, gw, gh] = tkGoc(x); c.save(); c.strokeStyle = '#22c55e'; c.lineWidth = 5; c.setLineDash([16, 10]); c.strokeRect(gx, gy, gw, gh);
+    if (x && TK.dichAnh === TK.sel && tkCoDoiAnh(x) && tkHinh(x.img)) {      // đang dời ảnh trong khung: hiện mờ cả ảnh (phần bị cắt) + khung cam
+      const img = tkHinh(x.img), g = tkAnhDo(x, img); c.save();
+      if (x.xoay) { const cx = x.x + x.w / 2, cy = x.y + x.h / 2; c.translate(cx, cy); c.rotate(x.xoay * Math.PI / 180); c.translate(-cx, -cy); }
+      c.globalAlpha = 0.35; c.drawImage(img, g.fx, g.fy, g.fw, g.fh); c.globalAlpha = 1;
+      c.strokeStyle = 'rgba(255,255,255,.7)'; c.lineWidth = 2; c.setLineDash([8, 8]); c.strokeRect(g.fx, g.fy, g.fw, g.fh);
+      c.strokeStyle = '#f59e0b'; c.lineWidth = 6; c.setLineDash([]); c.strokeRect(g.bx, g.by, g.bw, g.bh); c.restore(); }
+    else if (x) { const [gx, gy, gw, gh] = tkGoc(x); c.save(); c.strokeStyle = '#22c55e'; c.lineWidth = 5; c.setLineDash([16, 10]); c.strokeRect(gx, gy, gw, gh);
       c.setLineDash([]); c.fillStyle = '#22c55e'; c.fillRect(gx + gw - 22, gy + gh - 22, 44, 44); c.restore(); }
   });
 }
@@ -3345,7 +3369,7 @@ function tkLui(sau){ const tu = sau ? TK.fut : TK.hist, ve = sau ? TK.hist : TK.
   TK.sel = Math.min(TK.sel, TK.d.o.length - 1); TK.kq = null; tkLuuMay(); tkVe(); tkBang(); tkNoiDung(); tkKq(); }
 function tkMo(mau){
   tkXong();
-  TK.mau = mau; TK.sel = -1; TK.kq = null; TK.decorBo = '';
+  TK.mau = mau; TK.sel = -1; TK.kq = null; TK.decorBo = ''; TK.dichAnh = false;
   const cu = (store.get('poly-tk', {}) || {})[mau.id];
   // bản nhớ trống (lúc trang mới mà app chưa khởi động lại, mẫu chưa có bản vẽ) thì lấy lại mẫu gốc (fen 14h15 khung trống)
   // mẫu đã đổi bố cục (v khác, vd mẫu Noel 16/11 thay mẫu "Theme · Noel" cũ) thì bỏ bản nhớ cũ
@@ -3357,9 +3381,11 @@ function tkMo(mau){
       <div class="tkcc"><button class="btn sm" data-them="chu">＋ Chữ</button><button class="btn sm" data-them="anh">＋ Ảnh</button><button class="btn sm" data-them="hcn">▭ Khối</button><button class="btn sm" data-them="tron">◯ Tròn</button><button class="btn sm" id="tkDecorBt" title="Thả icon decor (dây đèn, châu, nhãn SALE, đèn lồng, mũi tên…) lên story">✨ Decor</button>
         <span class="tkgap"></span><button class="btn ghost sm" id="tkUndo" title="Hoàn tác (Ctrl+Z)">↶</button><button class="btn ghost sm" id="tkRedo" title="Làm lại (Ctrl+Y)">↷</button><button class="btn ghost sm" id="tkGoc" title="Bỏ hết chỉnh sửa, về mẫu gốc">↺ Mẫu gốc</button></div>
       <div class="tkp" id="tkProp"></div>
-      <details class="tknd" id="tkKieuD"${store.get('poly-tk-kieu', true) ? ' open' : ''}><summary>🔤 Kiểu chữ có sẵn (bấm: đổi kiểu chữ đang chọn, chưa chọn thì thêm chữ mới)</summary><div class="tkkieu">${TK_KIEU.map((k, i) => `<button data-kieu="${i}" title="${esc(k.nhom)}" style="background:${k.bg}"><span style="font-family:${esc(tkFam(k.ff))};font-weight:${tkFw(k)};color:${k.mau};${k.nen ? `background:${k.nen};padding:2px 8px;border-radius:${Math.min(k.bo || 0, 12)}px;` : ''}${k.vien ? `-webkit-text-stroke:3px ${k.vien};paint-order:stroke fill;` : ''}${k.bong ? `text-shadow:0 2px 6px ${k.bong};` : ''}">${esc(k.ten)}</span><i>${esc(k.nhom)}</i></button>`).join('')}</div></details>
-      <details class="tknd" id="tkDecorD"${store.get('poly-tk-decor', true) ? ' open' : ''}><summary>✨ Decor (bấm 1 icon: thả vào giữa story, kéo / đổi cỡ / xoay như ảnh)</summary><div id="tkDecor"></div></details>
-      <details class="tknd" open><summary>Nội dung (điền nhanh)</summary><div id="tkNd"></div></details>
+      <div class="tkmn"><select id="tkMenu" class="tkin" aria-label="Chọn mục">
+          <option value="nd">📝 Nội dung (điền nhanh)</option><option value="kieu">🔤 Kiểu chữ có sẵn</option><option value="decor">✨ Decor</option></select>
+        <div class="tkpn" id="tkNdD" data-pn="nd"><div id="tkNd"></div></div>
+        <div class="tkpn" id="tkKieuD" data-pn="kieu" hidden><p class="pnote tkpg">Bấm: đổi kiểu chữ đang chọn, chưa chọn thì thêm chữ mới</p><div class="tkkieu">${TK_KIEU.map((k, i) => `<button data-kieu="${i}" title="${esc(k.nhom)}" style="background:${k.bg}"><span style="font-family:${esc(tkFam(k.ff))};font-weight:${tkFw(k)};color:${k.mau};${k.nen ? `background:${k.nen};padding:2px 8px;border-radius:${Math.min(k.bo || 0, 12)}px;` : ''}${k.vien ? `-webkit-text-stroke:3px ${k.vien};paint-order:stroke fill;` : ''}${k.bong ? `text-shadow:0 2px 6px ${k.bong};` : ''}">${esc(k.ten)}</span><i>${esc(k.nhom)}</i></button>`).join('')}</div></div>
+        <div class="tkpn" id="tkDecorD" data-pn="decor" hidden><p class="pnote tkpg">Bấm 1 icon: thả vào giữa story, kéo / đổi cỡ / xoay như ảnh</p><div id="tkDecor"></div></div></div>
     </div><div class="tkc">
       <div class="tkst" id="tkSt"><canvas id="tkCv" width="1080" height="1920" tabindex="0" aria-label="Khung design 9:16"></canvas></div>
       <div class="tkkq" id="tkKq"></div>
@@ -3367,9 +3393,9 @@ function tkMo(mau){
   const bo = $('#mBo'); if (bo) bo.onclick = async () => { if (!confirm('Bỏ mẫu "' + mau.ten + '"? Mẫu dời vào _to_delete, ảnh đã làm vẫn giữ.')) return;
     try { const r = await api('/api/story-mau', { bo: mau.id }); MAU.ds = r.ds; storyMau(''); } catch(e) { toast(e.message, true); } };
   w.querySelectorAll('[data-them]').forEach(b => b.onclick = () => tkThem(b.dataset.them));
-  $('#tkKieuD').ontoggle = e => store.set('poly-tk-kieu', e.target.open);
-  $('#tkDecorD').ontoggle = e => store.set('poly-tk-decor', e.target.open);
-  $('#tkDecorBt').onclick = () => { const dd = $('#tkDecorD'); dd.open = true; dd.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); };
+  // fen 17/11 16h39 "chỗ này gom lại thành menu dropdown để chọn là được": 3 mục Nội dung / Kiểu chữ / Decor gom vào 1 ô chọn, mở 1 mục
+  $('#tkMenu').onchange = e => tkMenu(e.target.value); tkMenu(store.get('poly-tk-menu', 'nd'));
+  $('#tkDecorBt').onclick = () => { tkMenu('decor'); $('#tkDecorD').scrollIntoView({ block: 'nearest', behavior: 'smooth' }); };
   tkDecorVe();
   w.querySelectorAll('[data-kieu]').forEach(b => b.onclick = () => tkKieu(TK_KIEU[+b.dataset.kieu]));
   TK_KIEU.forEach(k => tkNap(k.ff)); TK.d.o.forEach(x => tkNap(x.ff));
@@ -3423,17 +3449,25 @@ function tkCanvas(){
   cv.onpointerdown = e => {
     const [px, py] = diem(e); cv.focus({ preventScroll: true });   // không cuộn trang khi bấm phần dưới khung (kéo bị lệch)
     const s = TK.d.o[TK.sel];
+    if (TK.dichAnh === TK.sel && tkCoDoiAnh(s)) {      // đang dời ảnh: bấm trong khung = kéo ảnh, bấm ra ngoài = xong
+      const [gx, gy, gw, gh] = tkGoc(s);
+      if (px >= gx && px <= gx + gw && py >= gy && py <= gy + gh) { if (!tkHinh(s.img)) return; keo = { kieu: 'anh', px, py, g: tkAnhDo(s, tkHinh(s.img)) }; cv.setPointerCapture(e.pointerId); cv.style.cursor = 'grabbing'; return; }
+      tkDichAnh(false);
+    }
     if (s) { const [gx, gy, gw, gh] = tkGoc(s); if (Math.abs(px - (gx + gw)) < 44 && Math.abs(py - (gy + gh)) < 44) { keo = { kieu: 'co', px, py, o: JSON.parse(JSON.stringify(s)) }; cv.setPointerCapture(e.pointerId); return; } }
     // lớp khoá (tuyết đáy, lớp tối mẫu Noel): chỉ chọn khi bấm chỗ không có lớp nào khác
     const trung = TK.d.o.map((x, j) => j).filter(j => { const [gx, gy, gw, gh] = tkGoc(TK.d.o[j]); return px >= gx && px <= gx + gw && py >= gy && py <= gy + gh; });
     const mo = trung.filter(j => !TK.d.o[j].khoa), i = mo.length ? mo[mo.length - 1] : trung.length ? trung[trung.length - 1] : -1;
+    if (TK.dichAnh !== false && TK.dichAnh !== i) TK.dichAnh = false;
     TK.sel = i; tkBang(); tkNoiDungChon(); tkVe();
     if (i >= 0) { keo = { kieu: 'dich', px, py, o: JSON.parse(JSON.stringify(TK.d.o[i])), nhom: tkNhom(i).map(j => [j, TK.d.o[j].x, TK.d.o[j].y]) }; cv.setPointerCapture(e.pointerId); }
   };
   cv.onpointermove = e => {
-    if (!keo || TK.sel < 0) { const [px, py] = diem(e), s = TK.d.o[TK.sel]; if (s) { const [gx, gy, gw, gh] = tkGoc(s); cv.style.cursor = Math.abs(px - (gx + gw)) < 44 && Math.abs(py - (gy + gh)) < 44 ? 'nwse-resize' : ''; } return; }
+    if (!keo || TK.sel < 0) { const [px, py] = diem(e), s = TK.d.o[TK.sel]; if (s) { const [gx, gy, gw, gh] = tkGoc(s), trong = px >= gx && px <= gx + gw && py >= gy && py <= gy + gh;
+      cv.style.cursor = TK.dichAnh === TK.sel && tkCoDoiAnh(s) ? (trong ? 'grab' : '') : Math.abs(px - (gx + gw)) < 44 && Math.abs(py - (gy + gh)) < 44 ? 'nwse-resize' : ''; } return; }
     const [px, py] = diem(e), dx = px - keo.px, dy = py - keo.py, x = TK.d.o[TK.sel], o = keo.o; keo.doi = true;
-    if (keo.kieu === 'dich') {
+    if (keo.kieu === 'anh') tkDoiAnh(x, keo.g, dx, dy);
+    else if (keo.kieu === 'dich') {
       x.x = Math.round(o.x + dx); x.y = Math.round(o.y + dy);
       const tam = x.loai === 'tron' ? x.x : x.x + x.w / 2; TK.dinh = !keo.nhom.length && Math.abs(tam - 540) < 14;
       if (TK.dinh) x.x = x.loai === 'tron' ? 540 : Math.round(540 - x.w / 2);
@@ -3442,22 +3476,40 @@ function tkCanvas(){
     else { x.w = Math.max(40, Math.round(o.w + dx)); x.h = Math.max(30, Math.round(o.h + dy)); }
     tkVe();
   };
-  cv.onpointerup = () => { if (keo && keo.doi) { tkGhi(); tkBang(); } keo = null; TK.dinh = false; tkVe(); };
-  cv.ondblclick = () => { const t = $('#tkpText'); if (t) { t.focus(); t.select(); } };
+  cv.onpointerup = () => { if (keo && keo.doi) { tkGhi(); if (keo.kieu !== 'anh') tkBang(); } if (keo && keo.kieu === 'anh') cv.style.cursor = 'grab'; keo = null; TK.dinh = false; tkVe(); };
+  // bấm đúp ảnh (như Canva): dời ảnh trong khung / xong; bấm đúp chữ: sửa chữ
+  cv.ondblclick = () => { const x = TK.d.o[TK.sel]; if (tkCoDoiAnh(x)) return tkDichAnh(TK.dichAnh !== TK.sel); const t = $('#tkpText'); if (t) { t.focus(); t.select(); } };
+  cv.onwheel = e => {        // đang dời ảnh: lăn chuột = phóng to / thu nhỏ ảnh trong khung
+    const x = TK.d.o[TK.sel]; if (TK.dichAnh !== TK.sel || !tkCoDoiAnh(x)) return; e.preventDefault();
+    x.zoom = Math.max(100, Math.min(400, Math.round((x.zoom || 100) * (e.deltaY < 0 ? 1.06 : 1 / 1.06))));
+    if (x.zoom < 103) x.zoom = 100; const z = $('#tkpZoom'), zv = $('#tkpZoomV'); if (z) z.value = x.zoom; if (zv) zv.textContent = x.zoom;
+    tkVe(); clearTimeout(TK.tG); TK.tG = setTimeout(() => { TK.tG = 0; tkGhi(); }, 500); };
   cv.onkeydown = e => {
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') { e.preventDefault(); return tkLui(e.shiftKey); }
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') { e.preventDefault(); return tkLui(true); }
     const x = TK.d.o[TK.sel]; if (!x) return;
+    if (TK.dichAnh === TK.sel && tkCoDoiAnh(x)) {        // đang dời ảnh: Esc / Enter = xong, mũi tên = dời ảnh trong khung
+      if (e.key === 'Escape' || e.key === 'Enter') { e.preventDefault(); return tkDichAnh(false); }
+      const b = e.shiftKey ? 20 : 4, m = { ArrowLeft: [-b, 0], ArrowRight: [b, 0], ArrowUp: [0, -b], ArrowDown: [0, b] }[e.key];
+      if (m && tkHinh(x.img)) { e.preventDefault(); tkDoiAnh(x, tkAnhDo(x, tkHinh(x.img)), m[0], m[1]); tkVe(); clearTimeout(TK.tNhich); TK.tNhich = setTimeout(() => { TK.tNhich = 0; tkGhi(); }, 400); }
+      return;
+    }
     if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); return tkLop('xoa'); }
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'd') { e.preventDefault(); return tkLop('doi'); }
     const b = e.shiftKey ? 20 : 4, m = { ArrowLeft: [-b, 0], ArrowRight: [b, 0], ArrowUp: [0, -b], ArrowDown: [0, b] }[e.key];
     if (m) { e.preventDefault(); (tkNhom(TK.sel).length ? tkNhom(TK.sel) : [TK.sel]).forEach(j => { TK.d.o[j].x += m[0]; TK.d.o[j].y += m[1]; }); tkVe(); clearTimeout(TK.tNhich); TK.tNhich = setTimeout(() => { TK.tNhich = 0; tkGhi(); }, 400); }
   };
 }
+function tkMenu(v){ const m = $('#tkMenu'); if (!m) return; if (![...m.options].some(o => o.value === v)) v = 'nd';
+  m.value = v; document.querySelectorAll('.tkmn [data-pn]').forEach(d => d.hidden = d.dataset.pn !== v); store.set('poly-tk-menu', v); }
+// bật / tắt dời ảnh trong khung cho ảnh đang chọn
+function tkDichAnh(bat){ TK.dichAnh = bat && tkCoDoiAnh(TK.d.o[TK.sel]) ? TK.sel : false; const cv = $('#tkCv'); if (cv) { cv.style.cursor = ''; if (bat) cv.focus({ preventScroll: true }); } tkBang(); tkVe(); }
+// đổi ảnh: ảnh mới khác khổ nên về giữa, không phóng
+function tkGanAnh(x, k){ x.img = k; delete x.ax; delete x.ay; delete x.zoom; }
 // nhóm (phiếu ưu đãi, châu + dây treo của mẫu Noel): kéo / mũi tên / xoá / nhân đôi đi cả nhóm, như nhóm lớp trong Photoshop
 function tkNhom(i){ const x = TK.d.o[i]; return x && x.nhom ? TK.d.o.map((y, j) => j).filter(j => TK.d.o[j].nhom === x.nhom) : []; }
 function tkLop(viec){
-  const o = TK.d.o, i = TK.sel; if (i < 0 || !o[i]) return;
+  const o = TK.d.o, i = TK.sel; if (i < 0 || !o[i]) return; TK.dichAnh = false;
   const nh = tkNhom(i);
   if (viec === 'xoa' && nh.length) { TK.d.o = o.filter((y, j) => !nh.includes(j)); TK.sel = -1; }
   else if (viec === 'doi' && nh.length) { const moi = 'n' + Date.now().toString(36), cuoi = nh[nh.length - 1], h = Date.now().toString(36).slice(-3);
@@ -3493,6 +3545,8 @@ function tkBang(){
   else if (x.loai === 'anh') h = `<b class="tkh">Ảnh${x.nhan ? ' · ' + esc(x.nhan) : ''}</b>
       <div class="tkcc"><button class="btn sm" id="tkpChon">📎 ${x.img ? 'Đổi ảnh' : 'Chọn ảnh'}</button>${x.img ? '<button class="btn ghost sm" id="tkpBoAnh">Bỏ ảnh</button>' : ''}</div>
       <label class="tkf"><span>Kiểu</span><div class="kseg segd" id="tkpPhu"><button data-p="0" class="${x.phu ? '' : 'on'}">Vừa khung</button><button data-p="1" class="${x.phu ? 'on' : ''}">Phủ kín</button></div></label>
+      ${tkCoDoiAnh(x) ? `<div class="tkf"><span>Ảnh trong khung</span><button class="btn sm${TK.dichAnh === TK.sel ? ' on' : ''}" id="tkpDich" title="Hoặc bấm đúp vào ảnh">${TK.dichAnh === TK.sel ? '✓ Xong' : '✥ Dời ảnh'}</button>${x.ax != null || x.ay != null || (x.zoom || 100) > 100 ? '<button class="btn ghost sm" id="tkpVeGiua">↺ Về giữa</button>' : ''}</div>
+      ${so('tkpZoom', x.zoom || 100, 'Phóng to %', 100, 400)}${TK.dichAnh === TK.sel ? '<p class="pnote tkgoi">Kéo trên ảnh để chọn phần hiện trong khung (phần mờ bên ngoài sẽ bị cắt) · lăn chuột: phóng to / thu nhỏ · mũi tên: dời từng chút · Esc hoặc bấm ra ngoài: xong</p>' : ''}` : ''}
       <label class="tkf"><span>Khung</span><input type="checkbox" id="tkpTheCo"${x.the ? ' checked' : ''}><input type="color" id="tkpThe" value="${tkHex(x.the, '#ffffff')}"></label>
       ${so('tkpBo', x.bo, 'Bo góc', 0, 120)}${so('tkpPad', x.pad, 'Lề trong khung', 0, 80)}${so('tkpMo', x.mo, 'Làm mờ', 0, 60)}${so('tkpToi', x.toi, 'Tối lại %', 0, 80)}${so('tkpXoay', x.xoay, 'Xoay', -180, 180)}${lop}`;
   else h = `<b class="tkh">${x.loai === 'tron' ? 'Hình tròn' : 'Khối'}</b>${mau('tkpMau', x.mau, 'Màu')}${x.loai === 'hcn' ? so('tkpBo', x.bo, 'Bo góc', 0, 200) + `<label class="tkf"><span>Mờ dần lên trên</span><input type="checkbox" id="tkpMoDan"${x.mo_dan ? ' checked' : ''}></label>` : ''}${lop}`;
@@ -3527,9 +3581,11 @@ function tkBang(){
   on('tkpDong', 'oninput', e => doi(() => { x.dong = Math.max(1, Math.min(12, +e.target.value || 1)); }));
   on('tkpTheCo', 'onchange', e => doi(() => { x.the = e.target.checked ? $('#tkpThe').value : ''; if (x.the && !x.pad) x.pad = 24; }, true));
   on('tkpThe', 'oninput', e => doi(() => { x.the = e.target.value; $('#tkpTheCo').checked = true; if (!x.pad) x.pad = 24; }));
-  on('tkpChon', 'onclick', () => tkChonFile(k => { x.img = k; tkGhi(); tkVe(); tkBang(); tkNoiDung(); }));
-  on('tkpBoAnh', 'onclick', () => { x.img = ''; tkGhi(); tkVe(); tkBang(); tkNoiDung(); });
-  [['tkpCo', 'co'], ['tkpBo', 'bo'], ['tkpPad', 'pad'], ['tkpMo', 'mo'], ['tkpToi', 'toi'], ['tkpXoay', 'xoay']].forEach(([id, k]) => on(id, 'oninput', e => doi(() => { x[k] = +e.target.value; const v = $('#' + id + 'V'); if (v) v.textContent = e.target.value; })));
+  on('tkpChon', 'onclick', () => tkChonFile(k => { tkGanAnh(x, k); tkGhi(); tkVe(); tkBang(); tkNoiDung(); }));
+  on('tkpBoAnh', 'onclick', () => { tkGanAnh(x, ''); TK.dichAnh = false; tkGhi(); tkVe(); tkBang(); tkNoiDung(); });
+  on('tkpDich', 'onclick', () => tkDichAnh(TK.dichAnh !== TK.sel));
+  on('tkpVeGiua', 'onclick', () => { delete x.ax; delete x.ay; delete x.zoom; tkGhi(); tkVe(); tkBang(); });
+  [['tkpCo', 'co'], ['tkpBo', 'bo'], ['tkpPad', 'pad'], ['tkpMo', 'mo'], ['tkpToi', 'toi'], ['tkpXoay', 'xoay'], ['tkpZoom', 'zoom']].forEach(([id, k]) => on(id, 'oninput', e => doi(() => { x[k] = +e.target.value; const v = $('#' + id + 'V'); if (v) v.textContent = e.target.value; })));
   el.querySelectorAll('#tkpCanh [data-c]').forEach(b => b.onclick = () => doi(() => { x.canh = b.dataset.c; el.querySelectorAll('#tkpCanh [data-c]').forEach(y => y.classList.toggle('on', y === b)); }, true));
   el.querySelectorAll('#tkpPhu [data-p]').forEach(b => b.onclick = () => doi(() => { x.phu = b.dataset.p === '1'; el.querySelectorAll('#tkpPhu [data-p]').forEach(y => y.classList.toggle('on', y === b)); }, true));
 }
@@ -3543,7 +3599,7 @@ function tkNoiDung(){
   el.querySelectorAll('[data-nd]').forEach(t => { const i = +t.dataset.nd;
     t.onfocus = () => { TK.sel = i; tkBang(); tkVe(); tkNoiDungChon(); };
     t.oninput = () => { TK.d.o[i].text = t.value; const p = $('#tkpText'); if (p && TK.sel === i) p.value = t.value; tkVe(); clearTimeout(TK.tG); TK.tG = setTimeout(() => { TK.tG = 0; tkGhi(); }, 600); }; });
-  el.querySelectorAll('[data-anh]').forEach(b => b.onclick = () => { const i = +b.dataset.anh; TK.sel = i; tkBang(); tkNoiDungChon(); tkChonFile(k => { TK.d.o[i].img = k; tkGhi(); tkVe(); tkBang(); tkNoiDung(); }); });
+  el.querySelectorAll('[data-anh]').forEach(b => b.onclick = () => { const i = +b.dataset.anh; TK.sel = i; tkBang(); tkNoiDungChon(); tkChonFile(k => { tkGanAnh(TK.d.o[i], k); tkGhi(); tkVe(); tkBang(); tkNoiDung(); }); });
 }
 function tkNoiDungChon(){ document.querySelectorAll('#tkNd .tkndr').forEach(r => r.classList.toggle('on', +r.dataset.i === TK.sel)); }
 function tkNoiDungSo(){ const t = document.querySelector(`#tkNd [data-nd="${TK.sel}"]`), x = TK.d.o[TK.sel]; if (t && x && document.activeElement !== t) t.value = x.text || ''; }
