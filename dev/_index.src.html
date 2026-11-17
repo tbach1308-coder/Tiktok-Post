@@ -190,7 +190,7 @@ select.tkin{width:auto}.tkin:focus{outline:none;border-color:var(--g)}
 #hoiBox .hoigy{display:flex;flex-direction:column;gap:6px;margin-top:auto}#hoiBox .hoigy p{margin:0 0 2px;color:var(--dim);font-size:12px}
 #hoiBox .hoigy button{text-align:left;background:var(--panel2);border:1px solid var(--line);color:var(--tx);border-radius:9px;padding:7px 10px;font:inherit;font-size:12.5px;cursor:pointer}#hoiBox .hoigy button:hover{border-color:var(--g)}
 #hoiBox .hoinhap{display:flex;gap:8px;padding:10px;border-top:1px solid var(--line);align-items:flex-end}
-#hoiBox .hoinhap textarea{flex:1;resize:none;height:40px;max-height:120px;font-size:13px}
+#hoiBox .hoinhap textarea{flex:1;resize:none;height:40px;min-height:40px;max-height:120px;font-size:13px;line-height:1.45;padding:9px 11px;overflow-y:auto}   /* fen 17/11 17h05 "ô chat to quá": textarea.in chung có min-height 240 */
 /* fen 15/11 10h53 "1 tab để quản lý số lượng bài đăng của từng máy": trang 📊 Số bài theo máy */
 .tkpage .tkbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px}
 .tkpage .tkbar h1{margin:0}
@@ -3672,10 +3672,13 @@ function hoiMo(mo){
 }
 document.body.insertAdjacentHTML('beforeend', `<div id="hoiBox" hidden><div class="hoihd">💬 Thư ký Poly <small>chỉ trả lời, không làm thay</small><span class="sp"></span><button id="hoiXoa" title="Xoá cuộc chat trên máy này">Xoá</button><button id="hoiDong" title="Đóng">✕</button></div>
   <div class="hoids" id="hoiDs"></div>
-  <div class="hoinhap"><textarea class="in" id="hoiTxt" rows="1" placeholder="Hỏi gì đó… (Enter gửi, Shift+Enter xuống dòng)"></textarea><button class="btn pri sm" id="hoiGui">Gửi</button></div></div>`);
+  <div class="hoinhap"><textarea class="in" id="hoiTxt" rows="1" placeholder="Hỏi gì đó… (Enter để gửi)" title="Enter gửi · Shift+Enter xuống dòng"></textarea><button class="btn pri sm" id="hoiGui">Gửi</button></div></div>`);
 $('#hoiNut').onclick = () => hoiMo(); $('#hoiDong').onclick = () => hoiMo(false);
 $('#hoiXoa').onclick = () => { if (HOI.cho) return; HOI.ds = []; hoiLuu(); hoiVe(); };
-$('#hoiGui').onclick = () => { const t = $('#hoiTxt'); const v = t.value; t.value = ''; hoiGui(v); };
+$('#hoiGui').onclick = () => { const t = $('#hoiTxt'); const v = t.value; t.value = ''; hoiCao(); hoiGui(v); };
+// ô chat 1 dòng, gõ dài / Shift+Enter thì cao dần tới 120px
+function hoiCao(){ const t = $('#hoiTxt'); if (!t) return; t.style.height = '40px'; if (t.value) t.style.height = Math.min(120, Math.max(40, t.scrollHeight + 2)) + 'px'; }
+$('#hoiTxt').oninput = hoiCao;
 $('#hoiTxt').onkeydown = e => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); $('#hoiGui').click(); } };
 addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#hoiBox').hidden && !document.querySelector('.lb.on, dialog[open]')) hoiMo(false); });
 hoiVe(); hoiDoi();

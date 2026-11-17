@@ -45,7 +45,13 @@ const cho = async (id, h, u) => { for (let i = 0; i < 40; i++) { const r = await
   await p.waitForFunction(() => !HOI.cho, null, { timeout: 25000 });
   const sau = await p.evaluate(() => ({ m: [...document.querySelectorAll('#hoiDs .hoim')].map(e => [e.className, e.innerHTML]), luu: JSON.parse(localStorage.getItem('poly-hoi') || '[]').length }));
   check('có câu trả lời (chữ **đậm** thành đậm), lưu lịch sử trên máy', sau.m.length === 2 && /bot/.test(sau.m[1][0]) && /<b>Trả lời thử:<\/b>/.test(sau.m[1][1]) && sau.luu === 2, sau);
+  // fen 17/11 17h05 "ô chat to quá": ô gõ 1 dòng, gõ nhiều dòng cao dần tới 120px, gửi xong về 1 dòng
+  const cao = () => p.evaluate(() => Math.round(document.querySelector('#hoiTxt').getBoundingClientRect().height));
+  const c0 = await cao(); await p.fill('#hoiTxt', 'a\nb\nc'); await p.evaluate(() => document.querySelector('#hoiTxt').dispatchEvent(new Event('input'))); const c1 = await cao();
+  await p.fill('#hoiTxt', 'x\n'.repeat(20)); await p.evaluate(() => document.querySelector('#hoiTxt').dispatchEvent(new Event('input'))); const c2 = await cao();
+  check('ô chat: trống cao 1 dòng (~40px), gõ 3 dòng cao lên, dài quá thì dừng 120px', c0 <= 44 && c1 > c0 && c1 <= 120 && c2 === 120, { c0, c1, c2 });
   await p.fill('#hoiTxt', 'Cách đăng TikTok?'); await p.press('#hoiTxt', 'Enter'); await p.waitForTimeout(200);
+  check('gửi xong: ô chat về 1 dòng', await cao() <= 44, await cao());
   check('Enter gửi câu thứ 2 (gửi kèm câu trước)', await p.evaluate(() => HOI.ds.length === 3 && !!HOI.cho));
   await p.reload(); await p.waitForTimeout(800);
   await p.waitForFunction(() => !HOI.cho && HOI.ds.length === 4, null, { timeout: 25000 }).catch(() => {});
