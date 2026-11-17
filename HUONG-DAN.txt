@@ -27,6 +27,12 @@ MỞ APP
 - Bấm vào ô "Claude sẵn sàng" góc trên phải = ô Kiểm máy: tài khoản đang dùng (email, gói),
   plugin, luật chung, file quy tắc, Photoshop tự chạy. Có nút Đổi tài khoản (bấm 2 lần: đăng xuất
   tài khoản cũ, trình duyệt mở ra chọn tài khoản mới). Đang có bài chạy thì không cho đổi.
+  Muốn đổi sang tài khoản khác: trên Chrome vào claude.ai đăng xuất, đăng nhập tài khoản mới TRƯỚC,
+  rồi mới bấm Đổi tài khoản (Chrome đang đăng nhập tài khoản nào thì bấm Cho phép là lấy tài khoản đó).
+- Photoshop tự chạy (17/11): Photoshop bị tắt mà có bài cần dựng thì máy tự mở Photoshop (thu nhỏ),
+  chờ mở xong rồi dựng tiếp, fen không phải làm gì. Ô Kiểm máy ghi "Photoshop đang tắt, có bài là tự mở lên".
+  Mở không được (hộp đăng nhập / cập nhật Adobe đang chặn) thì ô Kiểm máy báo đỏ "tự mở không được":
+  fen mở Photoshop bằng tay, xong bấm Chạy lại ở bài bị lỗi.
 - Lượt chạy trừ vào hạn mức của tài khoản đang đăng nhập (dùng chung với chat trên app Claude).
 - Không đặt ANTHROPIC_API_KEY trên máy: có biến này thì Claude Code tính tiền API, không dùng gói.
 

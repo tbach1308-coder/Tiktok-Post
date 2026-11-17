@@ -1718,8 +1718,21 @@ def san_sang():
         tuoi = now() - os.path.getmtime(hb)
     except OSError:
         tuoi = None
-    ds.append({"ma": "ps", "ten": "Photoshop tự chạy", "ok": tuoi is not None and tuoi < 90, "can": False,
-               "ghi": "đang bật" if tuoi is not None and tuoi < 90 else "chưa mở Photoshop (mở lên là tự bật, bài chờ được)"})
+    # fen 17/11 "fix lại kết nối photoshop": bộ tự chạy máy shop ghi thêm dòng ps=1 / ps=0 (Photoshop tắt, có bài tự mở) /
+    # ps=loi (tự mở không được). Bộ canh Mac / máy mới không ghi dòng này: báo như cũ.
+    try:
+        with open(hb, encoding="utf-8", errors="replace") as fh:
+            m = re.search(r"^ps=(\w+)", fh.read(200), re.M)
+        pst = m.group(1) if m else ""
+    except OSError:
+        pst = ""
+    song = tuoi is not None and tuoi < 90
+    ghi = "đang bật" if song else "chưa mở Photoshop (mở lên là tự bật, bài chờ được)"
+    if song and pst == "0":
+        ghi = "đang bật · Photoshop đang tắt, có bài là tự mở lên"
+    elif song and pst == "loi":
+        ghi = "Photoshop đang tắt, tự mở không được: fen mở Photoshop giúp"
+    ds.append({"ma": "ps", "ten": "Photoshop tự chạy", "ok": song and pst != "loi", "can": False, "ghi": ghi})
     if IS_MAC:
         mac_san_sang(ds, tuoi)
     return ds
