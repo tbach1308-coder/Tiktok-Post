@@ -162,6 +162,10 @@ select.tkin{width:auto}.tkin:focus{outline:none;border-color:var(--g)}
 .tkfg b{font-size:19px;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:400}.tkfg i{font-style:normal;font-size:10.5px;color:var(--dim)}
 .tkkieu{display:grid;grid-template-columns:repeat(auto-fill,minmax(122px,1fr));gap:6px;padding:4px 0 6px}
 .tkkieu button{border:1px solid var(--line);border-radius:9px;min-height:62px;padding:6px 4px 3px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;overflow:hidden}
+/* ✨ kho decor (fen 17/11 "thêm story có icon decor như này") */
+.tkdbo{flex-wrap:wrap;margin:4px 0 2px}.tkdecor{display:grid;grid-template-columns:repeat(auto-fill,minmax(74px,1fr));gap:6px;padding:6px 0}
+.tkdecor button{aspect-ratio:1;background:#3b4556;border:1px solid var(--line);border-radius:10px;padding:7px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.tkdecor button:hover{outline:2px solid var(--g)}.tkdecor img{max-width:100%;max-height:100%;object-fit:contain;pointer-events:none}
 .tkkieu button:hover{outline:2px solid var(--g)}.tkkieu span{font-size:18px;line-height:1.2;text-align:center;max-width:100%}.tkkieu i{font-style:normal;font-size:10px;color:rgba(255,255,255,.75);background:rgba(0,0,0,.35);border-radius:4px;padding:0 5px}
 .side .new .thbtn{width:100%;margin-top:8px;padding:7px 4px}
 .side .new .thbtn.on{border-color:#8b5cf6;background:#241a3d;color:#e3d8ff}
@@ -3061,13 +3065,13 @@ async function storyMau(id){
   const m = $('#main');
   if (!MAU.ds) {
     m.innerHTML = '<div class="pad stpage"><p class="pnote">Đang tải mẫu…</p></div>';
-    try { const r = await api('/api/story-mau'); MAU.ds = r.ds || []; MAU.bc = r.bo_cuc || []; }
+    try { const r = await api('/api/story-mau'); MAU.ds = r.ds || []; MAU.bc = r.bo_cuc || []; MAU.decor = r.decor || []; }
     catch(e) { if (S.view === 'story' && S.stTab === 'mau') m.innerHTML = `<div class="pad stpage"><p class="err">${esc(e.message)}</p></div>`; return; }
     if (S.view !== 'story' || S.stTab !== 'mau') return;
   }
   // nhóm mẫu (fen 15/11 14h43 thêm mẫu theo kho theme Photoshop → nhiều mẫu, lọc theo nhóm)
   // fen 16/11 12h06 "bỏ mục này": không còn nút "Tất cả", luôn lọc theo 1 nhóm (mở mẫu nhóm khác thì sang nhóm đó)
-  const NHOM = [['noel', '🎄 Noel'], ['ps', 'Theme Photoshop'], ['co-ban', 'Cơ bản'], ['fb', 'Reel Facebook'], ['fen', 'Của fen']].filter(([k]) => MAU.ds.some(x => x.nhom === k));
+  const NHOM = [['decor', '✨ Ảnh của fen + decor'], ['noel', '🎄 Noel'], ['ps', 'Theme Photoshop'], ['co-ban', 'Cơ bản'], ['fb', 'Reel Facebook'], ['fen', 'Của fen']].filter(([k]) => MAU.ds.some(x => x.nhom === k));
   let nhom = store.get('poly-mau-nhom', '') || '';
   const chon = id && MAU.ds.find(x => x.id === id);
   if (chon && chon.nhom !== nhom) nhom = chon.nhom;
@@ -3296,7 +3300,7 @@ function tkLui(sau){ const tu = sau ? TK.fut : TK.hist, ve = sau ? TK.hist : TK.
   TK.sel = Math.min(TK.sel, TK.d.o.length - 1); TK.kq = null; tkLuuMay(); tkVe(); tkBang(); tkNoiDung(); tkKq(); }
 function tkMo(mau){
   tkXong();
-  TK.mau = mau; TK.sel = -1; TK.kq = null;
+  TK.mau = mau; TK.sel = -1; TK.kq = null; TK.decorBo = '';
   const cu = (store.get('poly-tk', {}) || {})[mau.id];
   // bản nhớ trống (lúc trang mới mà app chưa khởi động lại, mẫu chưa có bản vẽ) thì lấy lại mẫu gốc (fen 14h15 khung trống)
   // mẫu đã đổi bố cục (v khác, vd mẫu Noel 16/11 thay mẫu "Theme · Noel" cũ) thì bỏ bản nhớ cũ
@@ -3305,10 +3309,11 @@ function tkMo(mau){
   const w = $('#mWork');
   w.innerHTML = `<div class="tkw"><div class="tkl">
       <div class="stbar"><b class="stten" title="${esc(mau.ten)}">${esc(mau.ten)}</b>${!mau.san && !KHACH ? '<button class="btn ghost sm" id="mBo" title="Bỏ mẫu (dời vào _to_delete)">🗑 Bỏ mẫu</button>' : ''}</div>
-      <div class="tkcc"><button class="btn sm" data-them="chu">＋ Chữ</button><button class="btn sm" data-them="anh">＋ Ảnh</button><button class="btn sm" data-them="hcn">▭ Khối</button><button class="btn sm" data-them="tron">◯ Tròn</button>
+      <div class="tkcc"><button class="btn sm" data-them="chu">＋ Chữ</button><button class="btn sm" data-them="anh">＋ Ảnh</button><button class="btn sm" data-them="hcn">▭ Khối</button><button class="btn sm" data-them="tron">◯ Tròn</button><button class="btn sm" id="tkDecorBt" title="Thả icon decor (dây đèn, châu, nhãn SALE, đèn lồng, mũi tên…) lên story">✨ Decor</button>
         <span class="tkgap"></span><button class="btn ghost sm" id="tkUndo" title="Hoàn tác (Ctrl+Z)">↶</button><button class="btn ghost sm" id="tkRedo" title="Làm lại (Ctrl+Y)">↷</button><button class="btn ghost sm" id="tkGoc" title="Bỏ hết chỉnh sửa, về mẫu gốc">↺ Mẫu gốc</button></div>
       <div class="tkp" id="tkProp"></div>
       <details class="tknd" id="tkKieuD"${store.get('poly-tk-kieu', true) ? ' open' : ''}><summary>🔤 Kiểu chữ có sẵn (bấm: đổi kiểu chữ đang chọn, chưa chọn thì thêm chữ mới)</summary><div class="tkkieu">${TK_KIEU.map((k, i) => `<button data-kieu="${i}" title="${esc(k.nhom)}" style="background:${k.bg}"><span style="font-family:${esc(tkFam(k.ff))};font-weight:${tkFw(k)};color:${k.mau};${k.nen ? `background:${k.nen};padding:2px 8px;border-radius:${Math.min(k.bo || 0, 12)}px;` : ''}${k.vien ? `-webkit-text-stroke:3px ${k.vien};paint-order:stroke fill;` : ''}${k.bong ? `text-shadow:0 2px 6px ${k.bong};` : ''}">${esc(k.ten)}</span><i>${esc(k.nhom)}</i></button>`).join('')}</div></details>
+      <details class="tknd" id="tkDecorD"${store.get('poly-tk-decor', true) ? ' open' : ''}><summary>✨ Decor (bấm 1 icon: thả vào giữa story, kéo / đổi cỡ / xoay như ảnh)</summary><div id="tkDecor"></div></details>
       <details class="tknd" open><summary>Nội dung (điền nhanh)</summary><div id="tkNd"></div></details>
     </div><div class="tkc">
       <div class="tkst" id="tkSt"><canvas id="tkCv" width="1080" height="1920" tabindex="0" aria-label="Khung design 9:16"></canvas></div>
@@ -3318,6 +3323,9 @@ function tkMo(mau){
     try { const r = await api('/api/story-mau', { bo: mau.id }); MAU.ds = r.ds; storyMau(''); } catch(e) { toast(e.message, true); } };
   w.querySelectorAll('[data-them]').forEach(b => b.onclick = () => tkThem(b.dataset.them));
   $('#tkKieuD').ontoggle = e => store.set('poly-tk-kieu', e.target.open);
+  $('#tkDecorD').ontoggle = e => store.set('poly-tk-decor', e.target.open);
+  $('#tkDecorBt').onclick = () => { const dd = $('#tkDecorD'); dd.open = true; dd.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); };
+  tkDecorVe();
   w.querySelectorAll('[data-kieu]').forEach(b => b.onclick = () => tkKieu(TK_KIEU[+b.dataset.kieu]));
   TK_KIEU.forEach(k => tkNap(k.ff)); TK.d.o.forEach(x => tkNap(x.ff));
   $('#tkUndo').onclick = () => tkLui(false); $('#tkRedo').onclick = () => tkLui(true);
@@ -3335,6 +3343,26 @@ function tkThem(loai){
   else if (loai === 'hcn') them({ loai: 'hcn', x: 240, y: 760, w: 600, h: 300, mau: '#f5c542', bo: 24 });
   else if (loai === 'tron') them({ loai: 'tron', x: 540, y: 960, r: 160, mau: '#f5c542' });
   else if (loai === 'anh') tkChonFile(k => them({ loai: 'anh', k: 'a' + Date.now().toString(36), nhan: 'Ảnh', img: k, x: 190, y: 560, w: 700, h: 700, bo: 28, phu: false }));
+}
+// ✨ kho decor (fen 17/11 10h45 "thêm story có icon decor như này, hình nền tự thêm"): 4 bộ Noel / Black Friday · Sale / Tết / Ngày thường,
+// bấm icon = thêm ô ảnh trang trí (không vào ô điền) giữa story, cỡ mặc định của icon; kéo / đổi cỡ / xoay / nhân đôi như ảnh.
+const DECOR_MAU = { 'dc-noel': 'noel', 'dc-sale': 'sale', 'dc-tet': 'tet', 'dc-moi': 'thuong' };
+function tkDecorVe(){
+  const el = $('#tkDecor'); if (!el) return; const ds = MAU.decor || [];
+  if (!ds.length) { el.innerHTML = '<p class="pnote">App trên máy shop chưa khởi động lại bản mới nên chưa có kho decor.</p>'; return; }
+  const th = new Date().getMonth() + 1;
+  let bo = TK.decorBo || DECOR_MAU[(TK.mau || {}).id] || store.get('poly-decor-bo', '') || (th >= 11 ? 'noel' : th <= 2 ? 'tet' : 'thuong');
+  if (!ds.some(b => b.id === bo)) bo = ds[0].id;
+  const b = ds.find(x => x.id === bo);
+  el.innerHTML = `<div class="kseg segd tkdbo">${ds.map(x => `<button data-db="${x.id}" class="${x.id === bo ? 'on' : ''}">${esc(x.ten)}</button>`).join('')}</div>
+    <div class="tkdecor">${b.ds.map((x, i) => `<button data-di="${i}" title="${esc(x.ten)}"><img src="${esc(x.url)}" alt="${esc(x.ten)}" loading="lazy"></button>`).join('')}</div>`;
+  el.querySelectorAll('[data-db]').forEach(n => n.onclick = () => { TK.decorBo = n.dataset.db; store.set('poly-decor-bo', n.dataset.db); tkDecorVe(); });
+  el.querySelectorAll('[data-di]').forEach(n => n.onclick = () => tkDecorThem(b.ds[+n.dataset.di]));
+}
+function tkDecorThem(x){
+  const w = x.w, h = x.h;
+  TK.d.o.push({ loai: 'anh', k: 'd' + Date.now().toString(36), nhan: 'Decor · ' + x.ten, img: x.url, x: Math.round(540 - w / 2), y: Math.round(960 - h / 2), w, h, trang_tri: true, bo_qua: true, phu: false });
+  TK.sel = TK.d.o.length - 1; tkGhi(); tkVe(); tkBang(); tkNoiDung(); toast('Đã thả ' + x.ten + ': kéo tới chỗ muốn đặt, kéo góc dưới phải để đổi cỡ');
 }
 function tkKieu(k){
   const x = TK.d.o[TK.sel];
@@ -3514,7 +3542,8 @@ function tkLuuMau(){
     m.querySelectorAll('.acts .btn').forEach(b => b.disabled = true);
     const tep = u => capNhat && (u || '').startsWith('/api/story-mau/tep/' + mau.id + '/') ? u.split('/').pop().split('?')[0] : '';
     const o = TK.d.o.map(x => { const y = Object.assign({}, x); if (y.loai === 'chu') { y.mac = y.text || ''; y.dien = false; delete y.text; }
-      if (y.loai === 'anh') { if (tep(y.img)) y.src_tep = tep(y.img); else if (y.img) y.src = TK.anh[y.img] || tkDataUrl(y.img); delete y.img; } return y; });
+      if (y.loai === 'anh') { if (tep(y.img)) y.src_tep = tep(y.img); else if (/^\/api\/story-mau\/decor\//.test(y.img || '')) y.src = y.img.replace('/api/story-mau/', '').split('?')[0];
+        else if (y.img) y.src = TK.anh[y.img] || tkDataUrl(y.img); delete y.img; } return y; });
     const nen = TK.d.nenImg ? (tep(TK.d.nenImg) ? 'giu' : (TK.anh[TK.d.nenImg] || tkDataUrl(TK.d.nenImg))) : TK.d.nen;
     const vung = TK.d.vung || (mau.ve && mau.ve.vung) || undefined;
     try { const r = await api('/api/story-mau', capNhat ? { sua_tk: { id: mau.id, ten, nen, o, vung } } : { them_tk: { ten, nen, o, vung } });

@@ -12,8 +12,8 @@ im=Image.new('RGBA',(1000,800),(0,0,0,0));d=ImageDraw.Draw(im);d.rounded_rectang
 (async () => {
   for (const d of fs.readdirSync(APP + '/story-mau')) if (/^f[0-9a-f]{8}$/.test(d)) fs.renameSync(APP + '/story-mau/' + d, '/tmp/_bo_mau_' + Date.now() + '_' + d);
   const api = await j(A + '/api/story-mau'), ds = api.b.ds, noel = ds.filter(x => x.nhom === 'noel');
-  check('API: 5 mẫu 🎄 Noel đúng 5 theme Noel của kho Photoshop, lên đầu danh sách, tên như kho',
-    noel.length === 5 && ds.slice(0, 5).every(x => x.nhom === 'noel') && noel.map(x => x.ten).sort().join() === ['Noel · Poly Christmas', 'Noel · Trắng tuyết', 'Noel · Ảnh thật', 'Noel · Đêm xanh', 'Noel · Đỏ nhung'].sort().join(), noel.map(x => x.ten));
+  check('API: 5 mẫu 🎄 Noel đúng 5 theme Noel của kho Photoshop, ngay sau 4 mẫu ✨ decor (17/11), tên như kho',
+    noel.length === 5 && ds.slice(0, 4).every(x => x.nhom === 'decor') && ds.slice(4, 9).every(x => x.nhom === 'noel') && noel.map(x => x.ten).sort().join() === ['Noel · Poly Christmas', 'Noel · Trắng tuyết', 'Noel · Ảnh thật', 'Noel · Đêm xanh', 'Noel · Đỏ nhung'].sort().join(), noel.map(x => x.ten));
   const pc = ds.find(x => x.id === 'ps-noel-poly-christmas'), at = ds.find(x => x.id === 'ps-noel-anh-that'), dx = ds.find(x => x.id === 'ps-noel-dem-xanh');
   const o = k => pc.ve.o.find(x => x.k === k);
   check('Poly Christmas: nền lá thông 9:16 riêng, tiêu đề 2 dòng Alfa Slab sọc kẹo (đỏ sọc trắng / trắng sọc xanh nhạt) + bóng cứng, 3 tia đỏ, dòng đậm *chữ đỏ*, ưu đãi vàng + kẻ',

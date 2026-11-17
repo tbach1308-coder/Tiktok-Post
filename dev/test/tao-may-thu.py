@@ -27,6 +27,9 @@ def main():
     for d in ("ui", "prompts", "dev", "theme-ps"):
         shutil.copytree(os.path.join(REPO, d), os.path.join(app, d), dirs_exist_ok=True,
                         ignore=shutil.ignore_patterns("test", "__pycache__"))
+    # 📱 mẫu story: font, nền theme, ✨ kho decor (17/11) — không chép ảnh xem trước / mẫu fen trên máy dev
+    shutil.copytree(os.path.join(REPO, "story-mau"), os.path.join(app, "story-mau"), dirs_exist_ok=True,
+                    ignore=shutil.ignore_patterns("_xem", "_khach", "f[0-9a-f]*", "__pycache__"))
     shutil.copy2(os.path.join(TEST, "fake_claude.py"), app)
     # thư mục giả: kho bài, quy tắc, plugin, Chrome, Drive, tự chạy
     for d in ("ws/Laptop", "ws/iPad", "qt", "fakeplug/poly-carousel/.claude-plugin", "fakechrome/ud", "tuchay", "dist"):

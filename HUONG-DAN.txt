@@ -298,6 +298,13 @@ LÀM 1 BÀI
   · Kéo 1 chữ của phiếu là cả phiếu đi theo (như nhóm lớp Photoshop); Delete / Nhân đôi cũng cả phiếu. Châu + dây treo cũng 1 nhóm.
   · Tuyết đáy không che ảnh máy (bấm chỗ chồng nhau là chọn ảnh máy). Bảng chữ có thêm "Chữ *nhấn*" (màu chữ trong dấu sao) và
     "Sọc kẹo"; ảnh có thêm "Xoay"; khối có "Mờ dần lên trên". Font mới "Alfa Slab One" (tiêu đề Noel, gần UTM Alberta Heavy).
+  ✨ Nhóm "Ảnh của fen + decor" (17/11, đứng đầu): 4 mẫu Noel / Black Friday / Tết / Máy mới về. Ô "Ảnh nền (của fen)" phủ kín cả
+  story: bấm vào khung (chỗ trống) hoặc ở "Nội dung" bấm chọn ảnh của fen; chưa gắn thì dùng nền mờ có sẵn của mẫu. Icon decor đặt sẵn
+  quanh mép (dây đèn, châu treo, kẹo gậy, tuyết / nhãn SALE, BLACK FRIDAY, tag giá / đèn lồng, cành mai, cành đào, lì xì / nhãn MỚI VỀ,
+  mũi tên, tim…), đáy tối dần cho chữ dễ đọc.
+  Nút "✨ Decor" (khung design, mọi mẫu): mục Decor có 4 bộ (🎄 Noel 12 icon, 🛍 Black Friday · Sale 8, 🧧 Tết 7, ✨ Ngày thường 8),
+  bấm 1 icon là thả vào giữa story → kéo tới chỗ muốn, kéo góc dưới phải đổi cỡ, "Xoay" ở bảng bên trái, Ctrl+D nhân đôi, Delete xoá.
+  Lưu thành mẫu giữ nguyên icon.
   Bấm 1 mẫu → khung 9:16 bên phải là ẢNH THẬT,
   sửa gì thấy ngay (xem trước trực tiếp):
   · Bấm vào chữ / ảnh / khối trên khung để chọn (viền xanh), kéo để di chuyển (gần giữa thì tự dính giữa), kéo ô vuông xanh góc dưới

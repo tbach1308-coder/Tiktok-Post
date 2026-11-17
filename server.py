@@ -8662,6 +8662,146 @@ STORY_MAU_SAN += [
         _sm_c("loi", "Lời khách", "Chép đúng lời khách nhắn / bình luận", 60, 945, 880, 220, 46, 700, "#1c1917", dong=4),
         _sm_c("ten", "Tên khách", "— Tên khách · máy đã mua", 60, 1175, 880, 56, 34, 500, "#57534e")]},
 ]
+# ✨ Kho icon decor (fen 17/11 10h45 gửi ảnh thẻ theme "Noel · Ảnh thật" + "thêm story có icon decor như này, hình nền tự thêm", chọn "Cả 2"
+# + dịp Noel / Black Friday · Sale / Tết / Ngày thường): PNG nền trong ở story-mau/decor/<bộ>/ (story-mau/decor/tao-decor.py vẽ; Noel lấy
+# thêm ảnh có sẵn của theme Noel kho Photoshop). Khung design có nút ✨ Decor thả icon lên story bất kỳ; ô ảnh dùng icon ghi src "decor/<bộ>/<file>".
+STORY_DECOR_DIR = os.path.join(STORY_MAU_DIR, "decor")
+STORY_DECOR = [
+    ("noel", "🎄 Noel", [("day-den.png", "Dây đèn", 640), ("chau-do.png", "Châu đỏ", 150), ("chau-vang.png", "Châu vàng", 150),
+                         ("chau-xanh.png", "Châu xanh", 150), ("chau-trang.png", "Châu bạc", 150), ("keo-gay.png", "Kẹo gậy", 110),
+                         ("sao-vang.png", "Sao vàng", 180), ("hop-qua.png", "Hộp quà", 220), ("bong-tuyet.png", "Bông tuyết", 150),
+                         ("nhua-ruoi.png", "Lá nhựa ruồi", 240), ("mu-noel.png", "Mũ Noel", 240), ("tuyet.png", "Tuyết đáy", 1088)]),
+    ("sale", "🛍 Black Friday · Sale", [("nhan-sale.png", "Nhãn SALE", 280), ("black-friday.png", "BLACK FRIDAY", 640), ("flash-sale.png", "FLASH SALE", 620),
+                                       ("nhan-hot.png", "Nhãn HOT", 240), ("tia-set.png", "Tia sét", 150), ("tag-gia.png", "Tag giá (trống)", 380),
+                                       ("tui-mua-sam.png", "Túi mua sắm", 200), ("phao-giay.png", "Pháo giấy", 1080)]),
+    ("tet", "🧧 Tết", [("den-long.png", "Đèn lồng", 170), ("li-xi.png", "Bao lì xì", 170), ("canh-mai.png", "Cành mai", 460),
+                       ("canh-dao.png", "Cành đào", 460), ("day-phao.png", "Dây pháo", 110), ("dong-xu.png", "Đồng xu vàng", 140),
+                       ("chuc-mung.png", "Chúc Mừng Năm Mới", 820)]),
+    ("thuong", "✨ Ngày thường", [("moi-ve.png", "Nhãn MỚI VỀ", 300), ("mui-ten.png", "Mũi tên cong", 260), ("vong-tron.png", "Vòng khoanh đỏ", 440),
+                                  ("gach-chan.png", "Gạch chân", 520), ("tia-sang.png", "Tia sáng", 180), ("tim.png", "Tim", 170),
+                                  ("sao.png", "Sao", 160), ("bong-chat.png", "Bóng chat", 460)]),
+]
+_SM_DECOR_TI = {}
+
+
+def _sm_decor_duong(src):
+    """'decor/<bộ>/<file>.png' -> đường file (chỉ đúng bộ + tên trong danh sách); 'decor/xem/<bộ>.jpg' = nền mờ mặc định của mẫu."""
+    mx = re.fullmatch(r"decor/xem/([a-z]+)\.jpg", str(src or ""))
+    if mx:
+        f = os.path.join(STORY_DECOR_DIR, "xem", mx.group(1) + ".jpg")
+        return f if any(b == mx.group(1) for b, _, _ in STORY_DECOR) and os.path.isfile(f) else None
+    m = re.fullmatch(r"decor/([a-z]+)/([a-z0-9-]+\.png)", str(src or ""))
+    if not m or not any(b == m.group(1) and any(f == m.group(2) for f, _, _ in ds) for b, _, ds in STORY_DECOR):
+        return None
+    f = os.path.join(STORY_DECOR_DIR, m.group(1), m.group(2))
+    return f if os.path.isfile(f) else None
+
+
+def _sm_decor_ti(src):
+    """cao / rộng của icon (đọc đầu file)."""
+    f = _sm_decor_duong(src)
+    if not f:
+        return 1.0
+    k = (f, os.path.getmtime(f))
+    if k not in _SM_DECOR_TI:
+        try:
+            from PIL import Image
+            with Image.open(f) as im:
+                _SM_DECOR_TI[k] = im.height / im.width
+        except Exception:
+            _SM_DECOR_TI[k] = 1.0
+    return _SM_DECOR_TI[k]
+
+
+def _sm_decor_url(src):
+    f = _sm_decor_duong(src)
+    return "/api/story-mau/%s?t=%d" % (src, int(os.path.getmtime(f))) if f else ""
+
+
+def story_decor_ds():
+    out = []
+    for b, ten, ds in STORY_DECOR:
+        it = []
+        for f, nhan, w in ds:
+            src = "decor/%s/%s" % (b, f)
+            u = _sm_decor_url(src)
+            if u:
+                it.append({"src": src, "ten": nhan, "w": w, "h": round(w * _sm_decor_ti(src)), "url": u})
+        if it:
+            out.append({"id": b, "ten": ten, "ds": it})
+    return out
+
+
+def _sm_d(k, nhan, src, cx, cy, w, xoay=0, **kw):
+    """icon decor trong mẫu: rộng w, tâm (cx, cy)."""
+    h = round(w * _sm_decor_ti(src))
+    return dict({"k": k, "loai": "anh", "nhan": nhan, "x": round(cx - w / 2), "y": round(cy - h / 2), "w": w, "h": h, "src": src,
+                 "trang_tri": True, "bo_qua": True}, **dict({"xoay": xoay} if xoay else {}, **kw))
+
+
+def story_mau_decor():
+    """Mẫu "ảnh của fen + decor": ô ảnh nền phủ kín (fen tự gắn ảnh), lớp tối mờ dần sau chữ, decor quanh mép, chữ trong vùng 250–1580."""
+    D = lambda b, f: "decor/%s/%s" % (b, f)
+    toi_duoi = {"loai": "hcn", "x": 0, "y": 1000, "w": 1080, "h": 920, "mau": "#000000e0", "mo_dan": True, "khoa": True}
+    nen = lambda: _sm_a("anh", "Ảnh nền (của fen)", 0, 0, 1080, 1920, phu=True, bo_qua=True)   # chưa gắn thì dùng nền mờ của mẫu
+    ds = [
+        {"id": "dc-noel", "ten": "Noel · Ảnh của fen", "nen": "#0f2a1d", "o": [
+            nen(), toi_duoi,
+            _sm_d("den1", "Dây đèn trái", D("noel", "day-den.png"), 300, 52, 660, 2),
+            _sm_d("den2", "Dây đèn phải", D("noel", "day-den.png"), 790, 46, 660, -3),
+            {"loai": "hcn", "x": 959, "y": 0, "w": 2, "h": 190, "mau": "#c9a24a", "nhom": "c1"},
+            _sm_d("chau1", "Châu đỏ", D("noel", "chau-do.png"), 960, 250, 130, nhom="c1"),
+            {"loai": "hcn", "x": 853, "y": 0, "w": 2, "h": 132, "mau": "#c9a24a", "nhom": "c2"},
+            _sm_d("chau2", "Châu vàng", D("noel", "chau-vang.png"), 854, 175, 92, nhom="c2"),
+            {"loai": "hcn", "x": 109, "y": 0, "w": 2, "h": 160, "mau": "#c9a24a", "nhom": "c3"},
+            _sm_d("chau3", "Châu xanh", D("noel", "chau-xanh.png"), 110, 212, 104, nhom="c3"),
+            _sm_d("tuyet", "Tuyết đáy", D("noel", "tuyet.png"), 540, 1830, 1088, khoa=True),
+            _sm_d("keo", "Kẹo gậy", D("noel", "keo-gay.png"), 1000, 1660, 96, 14),
+            _sm_d("qua", "Hộp quà", D("noel", "hop-qua.png"), 92, 1690, 150, -8),
+            _sm_c("nho_tren", "Dòng nhỏ", "POLY STORE · MERRY CHRISTMAS", 60, 1090, 960, 50, 30, 800, "#f5c542", gian=4),
+            _sm_c("tieu_de", "Tiêu đề", "Noel lên đời\nmáy xịn", 60, 1150, 960, 230, 96, 400, "#ffffff", dong=2, ff="alfa", lech=5, bong="#0a1e14", dien=True),
+            _sm_c("phu", "Dòng phụ", "iPad · MacBook · laptop giá tốt đến 25/12", 60, 1390, 960, 64, 38, 700, "#ffffff", dien=True),
+            _sm_c("gia", "Giá / ưu đãi", "Giảm đến 500K", 60, 1470, 520, 92, 52, 800, "#7a0f0f", nen="#ffffff", om=True, pad=28, bo=46)]},
+        {"id": "dc-sale", "ten": "Black Friday · Ảnh của fen", "nen": "#111111", "o": [
+            nen(), toi_duoi,
+            _sm_d("phao", "Pháo giấy", D("sale", "phao-giay.png"), 540, 300, 1080),
+            _sm_d("bf", "BLACK FRIDAY", D("sale", "black-friday.png"), 430, 330, 700),
+            _sm_d("sale", "Nhãn SALE", D("sale", "nhan-sale.png"), 905, 500, 270, 10),
+            _sm_d("set", "Tia sét", D("sale", "tia-set.png"), 985, 1040, 120, 12),
+            _sm_c("tieu_de", "Tiêu đề", "Sale sập sàn cuối tháng 11", 60, 1130, 960, 220, 92, 400, "#ffffff", dong=2, ff="anton", dien=True),
+            _sm_c("ten", "Tên máy", "MacBook Air M2 13 inch", 60, 1352, 960, 60, 42, 700, "#ffffff"),
+            _sm_d("tag", "Tag giá", D("sale", "tag-gia.png"), 260, 1512, 420),
+            _sm_c("gia", "Giá", "16.490.000đ", 120, 1475, 360, 80, 52, 400, "#111111", ff="anton", canh="giua"),
+            _sm_c("gia_cu", "Giá cũ (gạch)", "18.990.000đ", 500, 1487, 500, 60, 40, 500, "#d4d4d4", gach=True)]},
+        {"id": "dc-tet", "ten": "Tết · Ảnh của fen", "nen": "#7a0f0f", "o": [
+            nen(), dict(toi_duoi, mau="#5a0a0ae6"),
+            _sm_d("mai", "Cành mai", D("tet", "canh-mai.png"), 230, 300, 470),
+            _sm_d("den1", "Đèn lồng phải", D("tet", "den-long.png"), 960, 250, 150),
+            _sm_d("den2", "Đèn lồng giữa", D("tet", "den-long.png"), 820, 200, 110),
+            _sm_d("dao", "Cành đào", D("tet", "canh-dao.png"), 850, 1700, 460, 180),
+            _sm_d("lixi", "Bao lì xì", D("tet", "li-xi.png"), 110, 1700, 150, -12),
+            _sm_d("chuc", "Chúc Mừng Năm Mới", D("tet", "chuc-mung.png"), 540, 1110, 760),
+            _sm_c("tieu_de", "Tiêu đề", "Tết này lên đời máy mới", 60, 1180, 960, 220, 92, 400, "#ffd45a", dong=2, ff="lobster", canh="giua", vien="#7a0f0f", dien=True),
+            _sm_c("phu", "Dòng phụ", "Lì xì đến 300K khi mua máy tại Poly", 60, 1410, 960, 64, 40, 700, "#ffffff", canh="giua", dien=True),
+            _sm_c("cuoi", "Dòng cuối", "Mở cửa xuyên Tết · Poly Store", 60, 1490, 960, 56, 32, 500, "#ffe2a8", canh="giua")]},
+        {"id": "dc-moi", "ten": "Máy mới về · Ảnh của fen", "nen": "#111827", "o": [
+            nen(), toi_duoi,
+            _sm_d("moi", "Nhãn MỚI VỀ", D("thuong", "moi-ve.png"), 220, 330, 330),
+            _sm_d("sang1", "Tia sáng", D("thuong", "tia-sang.png"), 960, 330, 170),
+            _sm_d("ten_mt", "Mũi tên cong", D("thuong", "mui-ten.png"), 860, 1010, 230, 150),
+            _sm_c("ten", "Tên máy", "iPad Air 5 M1 64GB", 60, 1130, 960, 220, 96, 800, "#ffffff", dong=2, ff="montserrat", dien=True),
+            _sm_c("mo_ta", "Mô tả", "Máy đẹp 99%, pin 90%, bảo hành 6 tháng", 60, 1375, 960, 64, 38, 600, "#e5e7eb", dong=1, dien=True),
+            _sm_c("gia", "Giá", "11.200.000đ", 60, 1465, 560, 96, 60, 800, "#111111", nen="#ffd60a", om=True, pad=30, bo=24),
+            _sm_d("tim", "Tim", D("thuong", "tim.png"), 960, 1520, 120, 12)]},
+    ]
+    for m, bo in zip(ds, ("noel", "sale", "tet", "thuong")):
+        m["nhom"] = "decor"
+        m["nen_mau"], m["nen"] = m["nen"], "anh"
+        m["nen_tep"] = "decor/xem/%s.jpg" % bo
+        m["t"] = max([int(os.path.getmtime(f)) for f in (_sm_decor_duong(x.get("src")) for x in m["o"] + [{"src": m["nen_tep"]}]) if f] or [1])
+    return ds
+
+
 # bố cục cho mẫu fen tự thêm (ảnh nền của fen, chữ trắng / đen): giữ ô của mẫu có sẵn, bỏ nền + trang trí
 STORY_BO_CUC = [("anh-giua", "Ảnh giữa + tên + giá", "may-moi-ve"), ("so-sanh", "So sánh 2 ảnh", "so-sanh"),
                 ("anh-loi", "Ảnh + lời khách", "feedback"), ("chi-chu", "Chỉ chữ (tiêu đề + nội dung)", "thong-bao")]
@@ -9342,6 +9482,10 @@ def story_mau_ds(may=None):
         ds = [m for m in ps if m.get("nhom") == "noel"] + ds + [m for m in ps if m.get("nhom") != "noel"]      # mùa Noel: mẫu Noel lên đầu
     except Exception:
         log("story mau ps loi: " + traceback.format_exc())
+    try:
+        ds = [dict(m, san=True) for m in story_mau_decor()] + ds        # ✨ ảnh của fen + decor (17/11) lên đầu
+    except Exception:
+        log("story mau decor loi: " + traceback.format_exc())
     d = STORY_MAU_DIR
     for ten in sorted(os.listdir(d)) if os.path.isdir(d) else []:
         m = read_json(os.path.join(d, ten, "mau.json"), None) if not ten.startswith("_") and ten != "fonts" else None
@@ -9366,8 +9510,9 @@ def story_mau_ra(m):
     t = int(m.get("t") or 1)
     phang = isinstance(m.get("nen"), str) and m["nen"].startswith("#")
     ve = {"vung": m.get("vung") or None, "nen": m["nen"] if phang else (m.get("nen_mau") or ""),
-          "nen_url": "" if phang else tep + (m.get("nen_tep") or "nen.jpg") + "?t=%d" % t,
-          "o": [dict({k: v for k, v in x.items() if k != "src"}, **({"src_url": tep + x["src"] + ("?t=%d" % t if m["id"].startswith("ps-") else "")}
+          "nen_url": "" if phang else (_sm_decor_url(m["nen_tep"]) if str(m.get("nen_tep") or "").startswith("decor/") else tep + (m.get("nen_tep") or "nen.jpg") + "?t=%d" % t),
+          "o": [dict({k: v for k, v in x.items() if k != "src"}, **({"src_url": _sm_decor_url(x["src"]) if str(x["src"]).startswith("decor/") else
+                                                                   tep + x["src"] + ("?t=%d" % t if m["id"].startswith("ps-") else "")}
                                                                   if x.get("src") else {})) for x in m["o"]]}
     return {"id": m["id"], "ten": m.get("ten") or m["id"], "san": m.get("san", True), "nhom": m.get("nhom") or "", "o": o, "ve": ve, "tk": bool(m.get("tk")),
             "v": int(m.get("v") or 0), "xem": "/api/story-mau/xem/%s?t=%d&v=%d" % (m["id"], t, SM_XEM_BAN)}
@@ -9877,6 +10022,8 @@ def story_tk_sach(o_ds, thu_muc=None):
                 y["src"] = ten
         elif thu_muc and y["loai"] == "anh" and isinstance(x.get("src_tep"), str) and re.fullmatch(r"e\d+\.(png|jpg)", x["src_tep"]):
             y["src"] = x["src_tep"]
+        elif y["loai"] == "anh" and isinstance(src, str) and _sm_decor_duong(src):      # ✨ icon decor: giữ đường kho decor
+            y["src"] = src
         out.append(y)
     return out
 
@@ -9947,6 +10094,8 @@ def _sm_tep_duong(mid, ten):
     """File ảnh của mẫu: mẫu fen thêm story-mau/f<8 hex>/; mẫu theo kho theme Photoshop ps-<theme>: story-mau/ps/<theme>/ (nền 9:16)
     rồi theme-ps/<theme>/anh/ (ảnh trang trí của theme: châu, kẹo gậy, tuyết, phiếu…); mẫu có sẵn khác: story-mau/<id>/."""
     ten = str(ten or "")
+    if ten.startswith("decor/"):        # ✨ icon decor dùng chung mọi mẫu
+        return _sm_decor_duong(ten)
     m = re.fullmatch(r"ps-([a-z0-9][a-z0-9-]{0,59})", str(mid or ""))
     if m and ten.startswith("xem:") and re.fullmatch(r"[\w .()-]{1,120}\.(png|jpe?g)", os.path.basename(ten[4:]), re.I):
         # ảnh bìa mẫu của theme: thư mục xem của theme, rồi "Anh tai ve" của thư mục làm việc (ảnh bộ dựng đã tải)
@@ -10035,7 +10184,7 @@ def story_mau_cai(data, may=None):
         elif IS_MAC:
             subprocess.Popen(["open", d], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         return {"ok": True, "thu_muc": d}
-    return {"ds": [story_mau_ra(m) for m in story_mau_ds()], "bo_cuc": [{"id": a, "ten": b} for a, b, _ in STORY_BO_CUC]}
+    return {"ds": [story_mau_ra(m) for m in story_mau_ds()], "bo_cuc": [{"id": a, "ten": b} for a, b, _ in STORY_BO_CUC], "decor": story_decor_ds()}
 
 
 def _chung_cookie(h, tok):
@@ -10216,6 +10365,13 @@ class H(BaseHTTPRequestHandler):
             if m:
                 b, kieu = story_mau_tep(m.group(1), m.group(2))
                 return self.send(200, b, kieu, {"Cache-Control": "max-age=86400"})
+            m = re.fullmatch(r"/api/story-mau/(decor/[a-z]+/[a-z0-9-]+\.(png|jpg))", u.path)
+            if m:                                   # ✨ icon decor + nền mờ mẫu decor (17/11)
+                f = _sm_decor_duong(m.group(1))
+                if not f:
+                    return self.send(404, {"err": "Không thấy icon"})
+                with open(f, "rb") as fh:
+                    return self.send(200, fh.read(), "image/png" if f.endswith(".png") else "image/jpeg", {"Cache-Control": "max-age=86400"})
             m = re.fullmatch(r"/api/story-mau/xem/([\w-]+)", u.path)
             if m:
                 return self.send(200, story_mau_xem(m.group(1)), "image/jpeg", {"Cache-Control": "max-age=86400"})
