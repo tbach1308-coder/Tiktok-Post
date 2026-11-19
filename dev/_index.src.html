@@ -703,6 +703,7 @@ textarea.in.slfix.co{border-color:var(--y);background:rgba(255,200,60,.06)}
 /* fen 15/11 12h26 "khung chat này nhỏ lại": khung thấp 210px, chữ 12.5px, trả lời dài chỉ hiện 3 dòng đầu + "xem hết" */
 .fix .fm{max-width:86%;padding:5px 9px;border-radius:9px;font-size:12.5px;line-height:1.4;white-space:pre-wrap;overflow-wrap:anywhere}
 .fix .fm .xh{color:var(--gl);cursor:pointer;font-size:11.5px;white-space:nowrap}
+.fix .fqr{align-self:flex-start;max-width:92%;display:flex;flex-direction:column;gap:5px}.fix .fqr p{margin:0;font-size:12px;color:var(--mut)}.fix .fqr>div{display:flex;flex-wrap:wrap;gap:5px}.fix .fqr button:not(.btn){background:var(--panel2);border:1px solid var(--g);color:var(--tx);border-radius:14px;padding:4px 10px;font:inherit;font-size:12px;cursor:pointer}.fix .fqr button:not(.btn):hover,.fix .fqr button.on{background:var(--gsoft)}.fix .fqr .btn{align-self:flex-start}
 .fix .fm.fen{align-self:flex-end;background:var(--gsoft)}.fix .fm.bot{align-self:flex-start;background:var(--panel2)}.fix .fm.dang{color:var(--dim);font-style:italic}.fix .fm.loi{color:#f2a3a3}
 .fix .fin{display:flex;gap:6px;align-items:flex-end}.fix .fin textarea{flex:1;min-height:34px;height:34px;padding:7px 10px;font-size:13px}.fix .fin textarea:focus{min-height:34px}
 .fix .fin #fpick{text-decoration:none;height:34px;display:inline-flex;align-items:center;padding:0 9px}.fix .fin #bFix{height:34px;padding:0 16px}
@@ -1801,7 +1802,7 @@ function updateJob(){
   if (live && d.idle > 480) jb.push(`<div class="banner"><p><b>${Math.floor(d.idle/60)} phút rồi chưa thấy tiến triển.</b> Photoshop có thể đang treo hoặc đang mở hộp thoại. Xem màn hình máy, hoặc bấm Dừng rồi Chạy tiếp.</p></div>`);
   // Claude hỏi fen (dòng HOI_FEN ở câu cuối): bấm chọn rồi Gửi, khác "đang dùng" thì Claude chạy tiếp để sửa
   const hoi = (!live && d.hoi) || [];
-  if (hoi.length) {
+  if (hoi.length && !hoiTrongChat(d)) {      // câu hỏi của lượt chat: hiện nút ngay dưới câu trả lời trong khung chat (veChatBai)
     const ck = j.id + ':' + d.hoi_luot, ch = (S.chon = S.chon || {})[ck] = S.chon[ck] || {};
     jb.push(`<div class="hoi"><h3>Claude hỏi fen</h3>${hoi.map((h, i) => `<div class="hq"><p>${inline(h.q)}</p><div class="ho">${h.opts.map((o, k) => `<button data-hq="${i}" data-ho="${k}" class="${(ch[i] ?? 0) == k ? 'on' : ''}">${esc(o)}${k === 0 ? ' <i>đang dùng</i>' : ''}</button>`).join('')}</div></div>`).join('')}
       <div class="acts"><button class="btn sm pri" data-traloi>Gửi trả lời</button><span class="hint">Giữ hết "đang dùng" thì Claude không làm gì thêm.</span></div></div>`);
@@ -1961,16 +1962,27 @@ function traGon(t, i){
   let ngan = goc.split('\n').filter(l => l.trim()).slice(0, 3).join('\n'); if (ngan.length > 260) ngan = ngan.slice(0, 250).replace(/\s+\S*$/, '');
   return ngan.length < goc.replace(/\n+/g, '\n').length - 5 ? hoiChu(ngan) + `… <span class="xh" data-xh="${i}">xem hết</span>` : hoiChu(goc);
 }
+// câu hỏi (HOI_FEN) của lượt chat mới nhất: hiện thành nút trong khung chat thay cho ô "Claude hỏi fen"
+function hoiTrongChat(d){ const ds = (d && d.chat) || [], x = ds[ds.length - 1]; return !!(d && (d.hoi || []).length && d.job.status !== 'dang-chay' && x && x.chat && x.n === d.hoi_luot); }
 const chatGon = t => String(t || '').replace(/Chung \((fen nhắc, ghi thành quy tắc|chỉ bài này, không ghi quy tắc)\): /g, '').replace(/ \| /g, '\n');
 function veChatBai(){
   const el = $('#fChat'); if (!el || !S.data) return;
   const ds = S.data.chat || [], live = S.data.job.status === 'dang-chay';
-  const h = ds.length ? ds.map((x, i) => `<div class="fm fen">${esc(chatGon(x.text))}</div>` + (x.tra ? `<div class="fm bot${x.loi ? ' loi' : ''}">${traGon(x.tra, i)}</div>`
+  const hq = hoiTrongChat(S.data) ? S.data.hoi : [], ck = S.data.job.id + ':' + S.data.hoi_luot, ch = (S.chon = S.chon || {})[ck] = S.chon[ck] || {};
+  // fen 19/11 "cho chỗ chat này thông minh như trợ lý poly": Claude gợi ý / hỏi lại (HOI_FEN) thì hiện nút bấm ngay dưới câu trả lời
+  const nut = () => `<div class="fqr">${hq.map((q, i) => `<p>${inline(q.q)}</p><div>${q.opts.map((o, k) => `<button data-qi="${i}" data-qk="${k}" class="${hq.length > 1 && (ch[i] ?? 0) == k ? 'on' : ''}">${esc(o)}</button>`).join('')}</div>`).join('')}${hq.length > 1 ? '<button class="btn sm pri" data-qgui>Gửi</button>' : ''}</div>`;
+  const h = ds.length ? ds.map((x, i) => `<div class="fm fen">${esc(chatGon(x.text))}</div>` + (x.tra ? `<div class="fm bot${x.loi ? ' loi' : ''}">${traGon(x.tra, i)}</div>${i === ds.length - 1 && hq.length ? nut() : ''}`
       : x.dang ? `<div class="fm bot dang">Claude đang ${x.chat ? 'đọc bài, trả lời hoặc sửa' : 'sửa'}…</div>` : x.loi ? '<div class="fm bot loi">Lượt này dừng giữa chừng (xem Tiến độ bên phải).</div>' : '')).join('')
-    : '<p class="fchint">Hỏi về bài (vd: “slide 3 đọc có rõ không?”) hoặc nhờ sửa (vd: “chữ cả bài to hơn”, “slide 2 đổi ảnh”). Muốn sửa riêng từng slide thì ghi ở ô dưới slide đó rồi bấm Gửi.</p>';
-  if (setH(el, h)) { el.scrollTop = el.scrollHeight; el.querySelectorAll('[data-xh]').forEach(a => a.onclick = () => { S.xemHet = S.xemHet || {}; S.xemHet[S.data.job.id + ':' + a.dataset.xh] = 1; veChatBai(); }); }
+    : '<p class="fchint">Claude là trợ lý của bài này: hỏi (vd: “slide 3 đọc có rõ không?”), nhờ phân tích / góp ý (vd: “phân tích bài này”), nhờ làm lại cả bài (vd: “làm lại cho hoàn chỉnh”) hoặc nhờ sửa (vd: “slide 2 đổi ảnh”). Có gợi ý thì bấm nút để làm luôn. Muốn sửa riêng từng slide thì ghi ở ô dưới slide đó rồi bấm Gửi.</p>';
+  if (setH(el, h)) { el.scrollTop = el.scrollHeight; el.querySelectorAll('[data-xh]').forEach(a => a.onclick = () => { S.xemHet = S.xemHet || {}; S.xemHet[S.data.job.id + ':' + a.dataset.xh] = 1; veChatBai(); });
+    const gui = async b => { const chon = {}; hq.forEach((q, i) => chon[i] = String(ch[i] ?? 0)); el.querySelectorAll('.fqr button').forEach(x => x.disabled = true);
+      try { const r = await api('/api/job/' + S.data.job.id + '/tra-loi', {chon}); delete S.chon[ck]; toast(r.chay ? 'Claude đang làm theo lựa chọn của fen' : 'Đã ghi, giữ như hiện tại'); await reload(); }
+      catch(e) { toast(e.message, true); el.querySelectorAll('.fqr button').forEach(x => x.disabled = false); } };
+    el.querySelectorAll('[data-qk]').forEach(b => b.onclick = () => { ch[b.dataset.qi] = +b.dataset.qk;
+      if (hq.length === 1) return gui(b); b.parentNode.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); });
+    el.querySelectorAll('[data-qgui]').forEach(b => b.onclick = () => gui(b)); }
   const b = $('#bFix'); if (b && !b.dataset.busy) b.disabled = live;
-  const t = $('#fixText'); if (t) t.placeholder = live ? 'Chờ Claude xong lượt này…' : 'Hỏi về bài hoặc nhờ sửa… (Enter gửi)';
+  const t = $('#fixText'); if (t) t.placeholder = live ? 'Chờ Claude xong lượt này…' : 'Hỏi, nhờ phân tích / góp ý hoặc nhờ sửa bài… (Enter gửi)';
 }
 function suaGhi(df){   // các slide đã ghi sửa (chữ hoặc ảnh)
   const ks = new Set(Object.keys(df.per || {}).concat(Object.keys(df.perAnh || {})));

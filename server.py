@@ -3162,12 +3162,47 @@ def quy_tac_ds():
 # fen 15/11 12h17 "cho chỗ này thành chat box hỏi với sửa bài đi": khung Sửa bài thành khung chat của bài. Tin fen gõ có thể là câu hỏi
 # (Claude chỉ trả lời, không sửa, không dựng lại, cuối câu trả lời có dòng CHI_TRA_LOI) hoặc yêu cầu sửa (sửa như cũ). Quy tắc cho bài
 # sau chỉ ghi khi fen nói rõ "lần sau / từ giờ / luôn / quy tắc" (trước đây ô sửa chung luôn ghi thành quy tắc).
+# fen 19/11 19h11 "cho chỗ chat này thông minh như trợ lý poly" (Claude hiểu "phân tích làm 1 bài hoàn chỉnh đi" thành chỉ sửa slide 5):
+# chat là trợ lý của bài, 4 cách: hỏi / phân tích (trả lời kỹ + HOI_FEN "làm theo gợi ý"), sửa cụ thể, làm lại cả bài (cả bài, không
+# thu nhỏ), ý mơ hồ (hỏi lại bằng HOI_FEN); kèm mấy tin trước trong khung chat; trả lời được dài hơn khi phân tích.
 CHAT_SUA = """
 
-KHUNG CHAT CỦA BÀI (fen 15/11): tin trên là fen gõ trong khung chat của bài này (kèm các ô "Slide N: …" fen ghi dưới từng slide nếu có).
-- Tin là CÂU HỎI / hỏi ý kiến / hỏi vì sao (không bảo sửa, đổi, thêm, bỏ gì): chỉ trả lời ngắn gọn bằng tiếng Việt (gọi fen, xưng mình) dựa trên bài, brief, slide; KHÔNG sửa file, KHÔNG dựng lại, KHÔNG ghi quy tắc. Dòng cuối cùng của câu trả lời ghi đúng chữ CHI_TRA_LOI.
-- Tin là YÊU CẦU SỬA: sửa như bình thường (làm hết, dựng lại 1 lần), câu trả lời cuối tóm tắt ngắn đã sửa gì. Chỉ ghi vào file quy tắc cho bài sau khi fen nói rõ là quy tắc chung (vd "lần sau", "từ giờ", "luôn luôn", "quy tắc").
-- Vừa hỏi vừa nhờ sửa: sửa, rồi trả lời câu hỏi trong câu trả lời cuối."""
+KHUNG CHAT CỦA BÀI: tin trên là fen gõ trong khung chat của bài này (kèm các ô "Slide N: …" fen ghi dưới từng slide nếu có).
+Ở khung chat bạn là TRỢ LÝ CỦA FEN cho bài này (như Thư ký Poly nhưng làm được cả sửa bài): hiểu đúng ý fen trước khi làm,
+nghĩ như người làm content TikTok bán máy giỏi, không làm máy móc theo câu chữ, không tự thu nhỏ việc fen nhờ.
+
+Tin trước trong khung chat (cũ → mới), dùng để hiểu "cái đó", "như vậy", "làm tiếp" là gì:
+%(ls)s
+
+Đọc tin của fen, xác định fen muốn gì rồi làm đúng 1 trong 4 cách:
+1. HỎI / NHỜ PHÂN TÍCH, ĐÁNH GIÁ, GÓP Ý (vd "thấy sao", "đúng chưa", "vì sao", "phân tích bài này", "nên … không", không bảo làm / sửa):
+   KHÔNG sửa file, KHÔNG dựng lại, KHÔNG ghi quy tắc. Xem kỹ cả bài (ảnh slide mới nhất, brief, caption, luật kênh) rồi trả lời
+   thẳng như người có nghề: điểm được, điểm yếu, chỉ rõ slide nào, vì sao, cách sửa cụ thể (đề xuất đổi chữ thì viết sẵn câu mới).
+   Hỏi thông số / giá / máy thì kiểm (kho POLY, web) trước khi khẳng định. Có đề xuất sửa thì thêm 1 dòng
+   "HOI_FEN: Làm theo gợi ý trên? | Chưa, để vậy | Làm hết gợi ý | <1 phần gợi ý, ≤ 8 chữ>" để fen bấm làm luôn.
+   Dòng cuối cùng của câu trả lời ghi đúng chữ CHI_TRA_LOI.
+2. NHỜ SỬA CỤ THỂ (đổi / thêm / bỏ chỗ nào): sửa đúng và đủ chỗ đó, dựng lại 1 lần; câu trả lời cuối tóm tắt đã sửa gì.
+3. NHỜ LÀM LẠI / HOÀN CHỈNH / TỐI ƯU CẢ BÀI (vd "làm hoàn chỉnh", "phân tích rồi làm", "làm lại cho hay", "tối ưu bài", "chưa ổn làm lại"):
+   phạm vi là CẢ BÀI, không thu về 1 slide. Phân tích trước: móc bìa đủ kéo người xem chưa, mạch các slide, thông tin đúng / đủ,
+   chữ dài ngắn, ảnh, slide cuối kêu gọi, caption; so với brief + luật kênh. Rồi sửa hết chỗ yếu; được thêm / bớt / đổi thứ tự slide
+   khi bài hay hơn (giữ ý chính, chữ fen viết rõ trong brief, giá, khuyến mãi), dựng lại 1 lần, duyệt 1 lần. Câu trả lời cuối:
+   1–2 dòng vấn đề chính bạn thấy + mỗi slide đổi gì 1 dòng ngắn.
+4. Ý fen hiểu được 2 cách khác hẳn nhau và làm sai thì tốn công (vd không rõ sửa 1 slide hay cả bài, không rõ đổi hướng bài):
+   không tự chọn cách nhỏ nhất; nói ngắn 2 cách hiểu, thêm 1 dòng "HOI_FEN: <câu hỏi> | <cách 1> | <cách 2>", dòng cuối CHI_TRA_LOI.
+Vừa hỏi vừa nhờ sửa: sửa, rồi trả lời câu hỏi trong câu trả lời cuối.
+Trả lời trong khung chat (thay cho luật "1–3 câu" ở trên): tiếng Việt tự nhiên, gọi fen, xưng mình, không thuật ngữ lập trình,
+không đường dẫn file; phân tích / góp ý được dài tới ~12 dòng, gạch đầu dòng, **đậm** được; báo sửa xong thì gọn.
+Chỉ ghi vào file quy tắc cho bài sau khi fen nói rõ là quy tắc chung (vd "lần sau", "từ giờ", "luôn luôn", "quy tắc")."""
+
+
+def chat_lich_su(job, st, n=6):
+    """Mấy tin gần nhất trong khung chat của bài (fen gõ + câu Claude trả lời, rút gọn) để lượt chat mới hiểu ngữ cảnh."""
+    dong = []
+    for x in chat_bai(job, list((st or {}).get("results") or []))[-n:]:
+        dong.append("- Fen: " + short(x.get("text"), 300))
+        if x.get("tra"):
+            dong.append("  Bạn: " + short(x["tra"], 400))
+    return "\n".join(dong) or "(chưa có)"
 
 
 def fix_job(jid, data):
@@ -3191,9 +3226,10 @@ def _fix_job(jid, data):
     if "model" in data and (data.get("model") or "") in MODEL_VIEC["model_sua"][1]:
         job["model_sua"] = data.get("model") or ""      # fen đổi model ở ô Sửa bài: giữ cho các lượt sửa sau của bài (không đổi model dựng)
     chat = bool(data.get("chat"))
+    ls = chat_lich_su(job, st) if chat else ""      # trước khi thêm tin mới
     job.setdefault("sua", []).append(dict({"t": now(), "text": text, "slides": slides, "anh": anh}, **({"chat": True} if chat else {})))
     lab = ("Chat" if chat else "Sửa") + (" slide " + ", ".join(str(x) for x in slides) if slides else "") + ": " + short(text, 50)
-    start_run(job, build_prompt_sua(job, text, slides, anh, resumed) + (CHAT_SUA if chat else ""), "sua", sid if resumed else None, lab)
+    start_run(job, build_prompt_sua(job, text, slides, anh, resumed) + (CHAT_SUA % {"ls": ls} if chat else ""), "sua", sid if resumed else None, lab)
     return job
 
 
@@ -3208,6 +3244,7 @@ def chat_bai(job, results):
         tra = re.sub(r"^\s*THU_MUC_BAI\s*=.*$", "", (rr or {}).get("text") or "", flags=re.M).strip()
         chi = "CHI_TRA_LOI" in tra
         tra = re.sub(r"\n?\s*CHI_TRA_LOI\s*$", "", tra).replace("CHI_TRA_LOI", "").strip()
+        tra = tach_hoi(tra)[1]       # dòng HOI_FEN thành nút bấm trong khung chat, không hiện chữ thô
         out.append({"t": x.get("t"), "text": x.get("text") or "", "chat": bool(x.get("chat")), "n": r and r["n"],
                     "tra": tra[:2500], "ok": bool(rr and rr.get("ok")), "hoi": chi,
                     "dang": bool(r and not rr and r.get("ket_qua") is None and job.get("status") == "dang-chay"),

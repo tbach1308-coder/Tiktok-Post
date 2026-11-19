@@ -212,7 +212,11 @@ LÀM 1 BÀI
    có rõ không?") → Claude chỉ trả lời, không sửa gì; hoặc nhờ sửa (vd "chữ cả bài to hơn") → Claude sửa, dựng lại 1 lần, trả lời
    đã sửa gì. Enter gửi, Shift+Enter xuống dòng, 📎 gắn ảnh. Sửa riêng từng slide: ghi vào ô "Sửa slide N…" dưới slide đó (dán /
    kéo ảnh vào ô cũng được) rồi bấm Gửi, mọi ô gửi kèm 1 lượt. Lịch sử hỏi / sửa của bài giữ trong khung. Muốn thành quy tắc cho
-   bài sau thì nói rõ ("từ giờ…", "lần sau…", "luôn…"), không thì chỉ sửa bài này. Xem to slide rồi bấm "Sửa slide này" là
+   bài sau thì nói rõ ("từ giờ…", "lần sau…", "luôn…"), không thì chỉ sửa bài này.
+   19/11: Claude trong khung chat là trợ lý của bài: nhờ "phân tích bài này" / "góp ý" → Claude soát cả bài, nói rõ điểm yếu
+   từng slide + câu chữ đề xuất, dưới câu trả lời có nút "Làm hết gợi ý" / "Chỉ sửa …" bấm là làm luôn ("Chưa, để vậy" = không
+   làm gì). Nhờ "làm lại cho hoàn chỉnh" / "tối ưu bài" → sửa cả bài (được thêm / bớt / đổi thứ tự slide), không chỉ 1 slide.
+   Câu mơ hồ thì Claude hỏi lại bằng nút. Claude nhớ mấy tin trước trong khung nên nói "làm tiếp", "cái đó" là hiểu. Xem to slide rồi bấm "Sửa slide này" là
    nhảy tới ô của slide đó. Đang chạy 1 lượt thì nút Gửi khoá tới khi xong.
 7. Đăng bài (ô "Đăng bài" bên phải, khi bài xong): caption Claude viết sẵn, sửa thẳng trong ô.
    Bài xong có 2 nút iPad | Laptop ở đầu trang: bấm để đổi kênh của bài, nút đăng đổi theo.
