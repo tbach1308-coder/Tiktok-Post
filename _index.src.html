@@ -876,10 +876,12 @@ async function danhDauDang(id, bo){
 async function xoaBai(id){
   const j = S.jobs.find(x => x.id === id); if (!j) return;
   if (j.status === 'dang-chay') { toast('Bài đang chạy, bấm Dừng trước rồi mới xoá', true); return; }
-  if (!confirm('Xoá "' + (j.tieu_de || 'bài này').slice(0, 60) + '" khỏi danh sách?' + (j.status === 'hen' ? ' Hẹn dựng cũng huỷ luôn.' : '') + ' Slide trong thư mục bài vẫn giữ nguyên.')) return;
-  try { await api('/api/job/' + id + '/xoa', {}); toast('Đã xoá khỏi danh sách'); } catch(e) { toast(e.message, true); return; }
+  if (!confirm('Xoá "' + (j.tieu_de || 'bài này').slice(0, 60) + '"?' + (j.status === 'hen' ? ' Hẹn dựng cũng huỷ luôn.' : '') + ' Thư mục slide trên máy cũng vào Thùng rác (lấy lại được bằng Restore).')) return;
+  try { toastXoa(await api('/api/job/' + id + '/xoa', {})); } catch(e) { toast(e.message, true); return; }
   await loadJobs(); if (S.jobId === id) newView();
 }
+// fen 21/11 14h03 "bấm vô ô xóa thì file trên window xóa luôn": xoá bài = thư mục slide vào Thùng rác
+function toastXoa(r){ toast(r && r.thung_rac ? 'Đã xoá bài, thư mục slide đang vào Thùng rác' : r && r.giu ? 'Đã xoá khỏi danh sách. Thư mục slide giữ lại: ' + r.giu : 'Đã xoá bài'); }
 function xoaNhapId(id){
   const x = S.nhap.ds.find(y => y.id === id); if (!x) return;
   if (S.view === 'new' && x === S.form) return xoaBanNhap();
@@ -1338,7 +1340,7 @@ function renderJobs(){
   setH($('#sbTabs'), TAB_SB.map(([k, t, g]) => `<button class="${S.sbTab === k ? 'on' : ''}" data-t="${k}" title="${t}: ${nhom[k].length} bài">${g}<b>${nhom[k].length}</b></button>`).join(''));
   document.querySelectorAll('#sbTabs [data-t]').forEach(b => b.onclick = () => { S.sbTab = b.dataset.t; store.set('poly-sbtab', S.sbTab); S.sbTheo = S.jobId; renderJobs(); });
   const item = j => { const g = nhomBai(j), p = dongPhu(j, g);
-    return `<button class="ji co-bia ${S.jobId === j.id ? 'on' : ''}" data-id="${j.id}">${j.status !== 'dang-chay' ? `<span class="jx" role="button" data-xj="${j.id}" title="Xoá bài khỏi danh sách (slide trong thư mục bài vẫn giữ)">🗑</span>` : ''}${g === 'cho' ? `<span class="jk" role="button" data-dj="${j.id}" title="Đã đăng bài này (đăng tay, đăng bằng điện thoại): chuyển sang tab Đã đăng">✓ Đã đăng</span>` : g === 'dang' && j.da_dang && j.da_dang.tay ? `<span class="jk" role="button" data-bj="${j.id}" title="Bỏ đánh dấu, đưa bài về Chờ đăng">↩ Chưa đăng</span>` : ''}${j.bia ? `<img class="bia" src="${esc(j.bia)}" loading="lazy" alt="">` : '<span class="bia trong"></span>'}
+    return `<button class="ji co-bia ${S.jobId === j.id ? 'on' : ''}" data-id="${j.id}">${j.status !== 'dang-chay' ? `<span class="jx" role="button" data-xj="${j.id}" title="Xoá bài: khỏi danh sách + thư mục slide trên máy vào Thùng rác (lấy lại được)">🗑</span>` : ''}${g === 'cho' ? `<span class="jk" role="button" data-dj="${j.id}" title="Đã đăng bài này (đăng tay, đăng bằng điện thoại): chuyển sang tab Đã đăng">✓ Đã đăng</span>` : g === 'dang' && j.da_dang && j.da_dang.tay ? `<span class="jk" role="button" data-bj="${j.id}" title="Bỏ đánh dấu, đưa bài về Chờ đăng">↩ Chưa đăng</span>` : ''}${j.bia ? `<img class="bia" src="${esc(j.bia)}" loading="lazy" alt="">` : '<span class="bia trong"></span>'}
       <div><div class="t">${esc(j.tieu_de || 'Bài')}</div>${unseen(j) ? '<span class="new">mới</span>' : ''}
       <div class="m"><span class="kn ${j.kenh}">${esc((KENH[j.kenh]||{}).ten || j.kenh)}</span>${tagDung(j, false, true)}${j.khach ? `<span class="khtag" title="Bài máy dùng chung tạo: ${esc(j.khach.ten || '')}">👤 ${esc(j.khach.ten || '')}</span>` : ''}${j.trung ? `<span class="trtag" title="Bài này trùng với ${j.trung} bài khác (đã báo fen): mở bài để xem">⚠️ Trùng</span>` : ''}<span class="dot ${j.status === 'dang-chay' ? 'run' : j.status === 'xong' ? 'ok' : j.status === 'loi' ? 'err' : j.status === 'hen' ? 'hen' : 'warn'}"></span><span class="jl" title="${esc(jobLine(j))}">${esc(jobLine(j).replace(/ trước$/, ''))}</span>${j.ngay_dang ? `<span class="nd">đăng ${esc(j.ngay_dang)}</span>` : ''}</div>
       ${p ? `<div class="mt2 ${p[0]}" title="${esc(p[1])}">${esc(p[1])}</div>` : ''}</div>
@@ -2065,11 +2067,11 @@ function bindActs(){
   on('bMore', e => {
     e.stopPropagation(); const old = $('.menu'); if (old) { old.remove(); return; }
     const m = document.createElement('div'); m.className = 'menu';
-    m.innerHTML = `<button data-a="log">Chi tiết kỹ thuật</button><button data-a="del" class="bad" ${j.status === 'dang-chay' ? 'disabled' : ''}>Xoá khỏi danh sách</button>`;
+    m.innerHTML = `<button data-a="log">Chi tiết kỹ thuật</button><button data-a="del" class="bad" ${j.status === 'dang-chay' ? 'disabled' : ''}>Xoá bài</button>`;
     $('#acts').appendChild(m);
     m.onclick = async ev => { const a = ev.target.dataset.a; m.remove();
       if (a === 'log') window.open('/api/job/' + j.id + '/log', '_blank');
-      if (a === 'del') { if (!confirm('Xoá bài khỏi danh sách? Slide trong thư mục bài vẫn giữ nguyên.')) return; await api('/api/job/' + j.id + '/xoa', {}).catch(err => toast(err.message, true)); await loadJobs(); newView(); } };
+      if (a === 'del') { if (!confirm('Xoá bài này? Thư mục slide trên máy cũng vào Thùng rác (lấy lại được bằng Restore).')) return; await api('/api/job/' + j.id + '/xoa', {}).then(toastXoa).catch(err => toast(err.message, true)); await loadJobs(); newView(); } };
   });
 }
 document.addEventListener('click', e => { const m = $('.menu'); if (m && !m.contains(e.target)) m.remove(); });

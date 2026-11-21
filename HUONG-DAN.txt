@@ -257,8 +257,8 @@ LÀM 1 BÀI
   Cột trái có nhãn ⚠️ Trùng. Máy shop mở bài: thấy bài bị trùng (bấm tên để mở), bấm "▶️ Vẫn dựng" thì bài vào hàng dựng
   như thường, hoặc "Huỷ bài trùng". Máy con chỉ thấy "trùng 1 bài máy khác, đã báo fen", không bấm chạy được, chỉ Huỷ được.
   Bài đang giữ không chặn bài khác: bài khác vẫn dựng bình thường.
-- "Dừng": dừng bài đang chạy. "Chạy tiếp": làm tiếp từ chỗ dở. Nút ⋯ > "Xoá khỏi danh sách":
-  chuyển bài vào thư mục _to_delete của app (không xoá hẳn).
+- "Dừng": dừng bài đang chạy. "Chạy tiếp": làm tiếp từ chỗ dở. Nút ⋯ > "Xoá bài" (như nút 🗑, 21/11): bài trong app
+  vào thư mục _to_delete của app, thư mục slide trên máy (E:\Social Claude\<Kênh>\T11_…) vào Thùng rác (lấy lại bằng Restore).
 - Nút "💻 Máy khác" trên cùng (12/11): máy này làm MÁY CHỦ, máy khác (MacBook…) mở app qua mạng ở đâu cũng được,
   dùng đủ mọi chức năng, không đăng nhập Claude hay tài khoản gì (việc chạy trên máy này bằng tài khoản của fen).
   Bật → app tự tải đường nối Cloudflare (lần đầu ~60 MB, miễn phí) → có link https://….trycloudflare.com.
@@ -424,8 +424,9 @@ CÀI TIỆN ÍCH POLY TIKTOK (1 lần, cho nút Đăng TikTok)
 - CỘT TRÁI CHIA TAB (29/10 tối): Đang làm (đang chạy, cần xem, hẹn dựng, mới tạo) · Chờ đăng (dựng xong, chưa đăng;
   bài có giờ hẹn đăng lên đầu, ghi "⏰ Giờ hẹn …") · Bản nháp (brief chưa chạy) · Đã đăng (cả bài đã Schedule, ghi
   "TikTok sẽ đăng …"). Mỗi bài có ảnh bìa nhỏ + dòng trạng thái. Mở bài nào cột trái tự sang đúng tab của bài đó.
-  Rê chuột vào 1 dòng là hiện nút 🗑 góc phải: bài thì xoá khỏi danh sách (slide trong thư mục bài vẫn giữ, bài hẹn dựng
-  thì huỷ luôn; bài đang chạy phải Dừng trước), nháp thì cất vào Lịch sử brief. Tab Chờ đăng có thêm nút "✓ Đã đăng"
+  Rê chuột vào 1 dòng là hiện nút 🗑 góc phải: bài thì xoá luôn cả thư mục slide trên máy vào Thùng rác (21/11; bài đã đăng
+  thì ghi tên vào danh sách bài đã dọn cho khỏi làm trùng; thư mục bài khác còn dùng thì giữ; bài hẹn dựng thì huỷ luôn;
+  bài đang chạy phải Dừng trước), nháp thì cất vào Lịch sử brief. Tab Chờ đăng có thêm nút "✓ Đã đăng"
   (đăng tay / bằng điện thoại xong bấm là bài sang tab Đã đăng); tab Đã đăng có "↩ Chưa đăng" cho bài đánh dấu tay.
 - HẸN GIỜ ĐĂNG (iPad, tiện ích 0.10.0, fen chốt 29/10 17h50): 2 cách, đều là FEN TỰ BẤM Schedule.
   a) Trong app: mở bài > thẻ Đăng bài > "⏰ Hẹn giờ đăng", chọn giờ (sau ít nhất 20 phút, trong 10 ngày, phút tròn 5).

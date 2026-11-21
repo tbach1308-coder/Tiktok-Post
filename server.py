@@ -7369,6 +7369,110 @@ def don_thang(data):
     return {"ok": True, "thu_muc": len(da_chuyen), "bai": n_an, "den": goc if da_chuyen else "", "loi": loi}
 
 
+# ---------------------------------------------------------------- nút 🗑 xoá bài (fen 21/11 14h03 "bấm vô ô xóa thì file trên window xóa luôn")
+# Bài trong app: dời jobs/<id> vào _to_delete của app (như cũ). Thư mục slide của bài (thu_muc_bai): đưa vào Thùng rác
+# (Windows Recycle Bin / Mac Trash, lấy lại được bằng Restore), chạy nền. Chỉ đưa thư mục bài nằm ngay trong thư mục kênh
+# (E:\Social Claude\iPad\T11_…), không đụng thư mục kênh / thư mục "_…"; bài khác còn dùng chung thư mục thì giữ.
+# Bài đã đăng: ghi tên vào noi-dung/danh-sach-content-da-don.md (dò trùng vẫn biết là bài đã làm, như các lần dọn trước).
+def vao_thung_rac(p):
+    """Đưa thư mục / file vào Thùng rác. Lỗi (Windows không đưa được, máy không có Thùng rác) thì raise OSError."""
+    if IS_WIN:
+        import ctypes
+        from ctypes import wintypes
+
+        class SHFILEOPSTRUCTW(ctypes.Structure):
+            _fields_ = [("hwnd", wintypes.HWND), ("wFunc", wintypes.UINT), ("pFrom", wintypes.LPCWSTR), ("pTo", wintypes.LPCWSTR),
+                        ("fFlags", ctypes.c_uint16), ("fAnyOperationsAborted", wintypes.BOOL), ("hNameMappings", ctypes.c_void_p),
+                        ("lpszProgressTitle", wintypes.LPCWSTR)]
+        # FO_DELETE + FOF_ALLOWUNDO (vào Thùng rác) + không hỏi / không hiện tiến trình; FOF_WANTNUKEWARNING: quá to không vào được
+        # Thùng rác thì Windows hỏi trên máy shop chứ không tự xoá hẳn
+        op = SHFILEOPSTRUCTW(None, 3, os.path.abspath(p) + "\0", None, 0x40 | 0x10 | 0x4 | 0x400 | 0x4000, False, None, None)
+        r = ctypes.windll.shell32.SHFileOperationW(ctypes.byref(op))
+        if r or op.fAnyOperationsAborted or os.path.exists(p):
+            raise OSError("Windows chưa đưa vào Thùng rác được (mã %s)" % r)
+    elif IS_MAC:
+        r = subprocess.run(["osascript", "-e", 'tell application "Finder" to delete (POSIX file "%s" as alias)' % p.replace("\\", "\\\\").replace('"', '\\"')],
+                           stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, timeout=120)
+        if r.returncode or os.path.exists(p):
+            raise OSError("Finder chưa đưa vào Thùng rác được: %s" % (r.stderr or b"").decode("utf-8", "replace")[:200])
+    elif os.environ.get("POLY_THUNG_RAC"):      # máy thử Linux: "Thùng rác" giả là 1 thư mục
+        os.makedirs(os.environ["POLY_THUNG_RAC"], exist_ok=True)
+        shutil.move(p, os.path.join(os.environ["POLY_THUNG_RAC"], os.path.basename(p.rstrip("\\/")) + "-" + uuid.uuid4().hex[:4]))
+    else:
+        raise OSError("Máy này không có Thùng rác")
+
+
+def _thu_muc_bai_xoa_duoc(p):
+    """Thư mục bài nằm ngay trong 1 thư mục kênh (không phải chính thư mục kênh, không phải thư mục "_…")."""
+    if not p or not os.path.isdir(p) or os.path.basename(p.rstrip("\\/")).startswith(("_", ".")):
+        return False
+    rp = os.path.normcase(os.path.realpath(p))
+    for root in (CFG.get("thu_muc_bai") or {}).values():
+        if root and os.path.isdir(root) and os.path.normcase(os.path.dirname(rp)) == os.path.normcase(os.path.realpath(root)):
+            return True
+    return False
+
+
+def _ghi_da_don(dong, tieu_de):
+    nd = os.path.join(CFG.get("thu_muc_lam_viec") or APP, "_bo-dung-design", "noi-dung")
+    os.makedirs(nd, exist_ok=True)
+    fp = os.path.join(nd, "danh-sach-content-da-don.md")
+    cu = read_text(fp) if os.path.exists(fp) else ""
+    with open(fp, "a", encoding="utf-8") as fh:
+        if not cu:
+            fh.write("# Bài đã dọn khỏi thư mục kênh (vẫn là bài ĐÃ LÀM, dò trùng như danh sách content)\n")
+        if tieu_de not in cu:
+            fh.write("\n" + tieu_de + "\n")
+        fh.write(dong + "\n")
+
+
+def xoa_bai(jid):
+    job = load_job(jid)
+    if job and job.get("status") == "dang-chay":
+        raise ValueError("Bài đang chạy, bấm Dừng trước rồi mới xoá")
+    if not os.path.isdir(job_dir(jid)):
+        raise ValueError("Không thấy bài (đã xoá rồi?)")
+    tm = (job or {}).get("thu_muc_bai") or ""
+    dst = os.path.join(APP, "_to_delete")
+    os.makedirs(dst, exist_ok=True)
+    shutil.move(job_dir(jid), os.path.join(dst, jid))       # không xoá hẳn: dời vào _to_delete của app
+    with LOCK:
+        STATE.pop(jid, None)
+    out = {"ok": True, "thung_rac": False, "giu": ""}
+    if not tm or not os.path.isdir(tm):
+        return out
+    if not _thu_muc_bai_xoa_duoc(tm):
+        out["giu"] = "thư mục không nằm trong thư mục kênh"
+        return out
+    cung = []
+    for x in (os.listdir(JOBS) if os.path.isdir(JOBS) else []):
+        jx = job_nho(x) or {}
+        if jx.get("thu_muc_bai") and not jx.get("an") and os.path.normcase(os.path.realpath(jx["thu_muc_bai"])) == os.path.normcase(os.path.realpath(tm)):
+            cung.append(x)
+    if cung:
+        out["giu"] = "bài khác còn dùng thư mục này"
+        log("xoa bai %s: giu thu muc %s (bai %s con dung)" % (jid, tm, ", ".join(cung[:3])))
+        return out
+    if job.get("da_dang"):
+        try:
+            ten, ngay = ten_thu_muc(os.path.basename(tm.rstrip("\\/")))
+            _ghi_da_don("- %s · %s (%s)" % (ngay or time.strftime("%d/%m", time.localtime(job.get("created") or now())), ten_hien(job)[0] or ten,
+                                           CFG["kenh"].get(job.get("kenh"), {}).get("ten", job.get("kenh"))),
+                        "## Xoá bằng nút 🗑 trong app (đã đăng TikTok)")
+        except Exception as e:
+            log("ghi danh sach da don loi: %s" % e)
+
+    def chay():
+        try:
+            vao_thung_rac(tm)
+            log("xoa bai %s: thu muc %s vao Thung rac" % (jid, tm))
+        except Exception as e:
+            log("xoa bai %s: thu muc %s CHUA vao Thung rac: %s" % (jid, tm, e))
+    threading.Thread(target=chay, daemon=True).start()
+    out["thung_rac"] = True
+    return out
+
+
 def list_jobs():
     out = []
     if not os.path.isdir(JOBS):
@@ -10818,16 +10922,7 @@ class H(BaseHTTPRequestHandler):
                         subprocess.Popen(["open", p], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)   # mở bằng Finder
                     return self.send(200, {"ok": True})
                 if act == "xoa":
-                    # khong xoa han: chuyen vao jobs\_to_delete
-                    job = load_job(jid)
-                    if job and job.get("status") == "dang-chay":
-                        raise ValueError("Bài đang chạy")
-                    dst = os.path.join(APP, "_to_delete")
-                    os.makedirs(dst, exist_ok=True)
-                    shutil.move(job_dir(jid), os.path.join(dst, jid))
-                    with LOCK:
-                        STATE.pop(jid, None)
-                    return self.send(200, {"ok": True})
+                    return self.send(200, xoa_bai(jid))
             return self.send(404, {"err": "không có"})
         except ValueError as e:
             return self.send(400, {"err": str(e)})
