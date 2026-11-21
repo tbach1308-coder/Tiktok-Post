@@ -77,5 +77,5 @@ Nạp trong slide bìa: `$.evalFile(new File("E:/Social Claude/_bo-dung-design/c
 - `sticker(str, cx, cy, xoay, kieu, size)` — kieu "trang" / "xanh" / "vang" / "do" / "xanhduong", nghiêng xoay độ
 - `vsBadge(cx, cy, r, xoay)` — huy hiệu VS tròn vàng
 - `soTo(str, cx, cy, size, op, hex)` — số / chữ rất to mờ phía sau máy (gọi TRƯỚC lopBia)
-- `tieuDeBia(["DÒNG 1", "*TỪ KHOÁ* DÒNG 2"], { duoi, duoiCo, yMax, deu, co })` — chữ tiêu đề bìa đúng skill `typo-bia`: vàng căn trái thẳng POLY STORE (đặt lớp "Thương hiệu" trước), `*…*` trắng, `_…_` nghiêng trắng cùng dòng, tự chọn cỡ 84–112 (dòng chỉ từ khoá tới 124); trả `{box, co, lop, log}`, `LOG += r.log`
+- `tieuDeBia(["DÒNG 1", "*TỪ KHOÁ* DÒNG 2"], { duoi, duoiCo, yMax, deu, co })` — chữ tiêu đề bìa đúng skill `typo-bia` (chỉ bài không theme, máy shop; bài có theme dùng hàm bìa của theme): vàng căn trái thẳng POLY STORE (đặt lớp "Thương hiệu" trước), `*…*` trắng, `_…_` nghiêng trắng cùng dòng, tự chọn cỡ 84–112 (dòng chỉ từ khoá tới 124); trả `{box, co, lop, log}`, `LOG += r.log`
 - `muiTen(x1, y1, x2, y2, hex)` — mũi tên chỉ chi tiết

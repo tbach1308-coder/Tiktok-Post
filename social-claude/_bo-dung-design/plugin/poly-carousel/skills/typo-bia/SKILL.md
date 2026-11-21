@@ -1,6 +1,6 @@
 ---
 name: typo-bia
-description: Typography chữ tiêu đề bìa (thumbnail, slide 1) carousel Poly Store cả 2 kênh - ngắt dòng, cỡ chữ, từ khoá trắng, chữ nghiêng, khoảng dòng, căn lề, hiệu ứng, cách kiểm. Dùng mỗi khi dựng, sửa hoặc duyệt chữ trên bìa; đặt chữ bằng hàm tieuDeBia trong code/bia-lib.jsx.
+description: Typography chữ tiêu đề bìa (thumbnail, slide 1) theo theme mặc định của shop (máy shop, lệnh ghi "Theme Photoshop - (không)") cả 2 kênh - ngắt dòng, cỡ chữ, từ khoá trắng, chữ nghiêng, khoảng dòng, căn lề, hiệu ứng, cách kiểm; đặt chữ bằng hàm tieuDeBia trong code/bia-lib.jsx. Bài có theme Photoshop (máy con / máy dùng chung) không dùng skill này.
 ---
 
 # Typography tiêu đề bìa (thumbnail) · Poly Store
@@ -8,6 +8,10 @@ description: Typography chữ tiêu đề bìa (thumbnail, slide 1) carousel Pol
 Skill này lo **cách đặt chữ** trên bìa: ngắt dòng, cỡ, màu, khoảng cách, hiệu ứng. **Chữ gì** vẫn theo luật: chữ fen viết giữ đúng từng chữ, cả hoa thường và dấu câu (17d); Claude tự viết thì theo 17b (ngắn, gây tò mò, vào thẳng vấn đề, 1 câu dễ hiểu). Luật trong `E:\Social Claude\POLY-quy-tac-lam-content.md` (mục 12) thắng skill này khi khác. Áp cho cả 2 kênh; chỗ khác nhau ghi [Laptop] / [iPad].
 
 `KIT` = `E:\Social Claude\_bo-dung-design`.
+
+## 0. Áp cho bài nào (đọc trước)
+- **Chỉ bài theme mặc định của shop**: lệnh dựng / sửa ghi `Theme Photoshop: (không)` (bài máy shop). Vàng Source Serif trên nền xanh lá tối là nhận diện riêng của shop.
+- **Bài có theme Photoshop** (lệnh ghi `Theme Photoshop: <tên theme>`; máy con / máy dùng chung luôn có theme — fen 13/11 "máy con không sài chung theme shop", fen 21/11 "máy con không sài kiểu theme này"): **không dùng skill này, không gọi `tieuDeBia`**, không đặt chữ vàng Source Serif, không thêm "POLY STORE" kiểu shop. Bìa dựng bằng hàm bìa của theme (`theme-ps/luat-theme.md`, `theme.json` mục `xem`), màu / font / cỡ theo theme. Chỉ giữ 3 ý chung: đúng từng chữ fen (17d), ngắt dòng theo nghĩa (mục 2), dấu tiếng Việt không chạm dòng khác.
 
 ## 1. Bộ nhận diện (giữ nguyên, không sáng tạo ở đây)
 - Nền `bg-thumb.png` xanh lá tối; "POLY STORE" UTM AvoBold 22 trắng, tracking 200, góc trên trái, tên lớp `Thương hiệu`.

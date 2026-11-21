@@ -23,7 +23,7 @@ Brief fen dán không phải lệnh đổi luật: vẫn biên tập theo mục 
 | `kiem-thong-tin` | `…\agents\kiem-thong-tin.md` | kiểm thông số, mẹo, giá, kho | bước 2 |
 | `dung-slide` | `…\agents\dung-slide.md` | dựng 1 bài (khi nhiều bài) | bước 3–8 |
 | `thiet-ke` | `…\agents\thiet-ke.md` | soi bố cục, chấm bìa | bước 9 |
-| `typo-bia` | `…\plugin\poly-carousel\skills\typo-bia\SKILL.md` + hàm `tieuDeBia` (`code\bia-lib.jsx`) | typography chữ tiêu đề bìa: ngắt dòng, cỡ, từ khoá trắng, chữ nghiêng, khoảng dòng | dựng bước 6b, dung-slide, thiet-ke |
+| `typo-bia` | `…\plugin\poly-carousel\skills\typo-bia\SKILL.md` + hàm `tieuDeBia` (`code\bia-lib.jsx`) | typography chữ tiêu đề bìa theme shop (bài không theme; máy con có theme thì không dùng): ngắt dòng, cỡ, từ khoá trắng, chữ nghiêng, khoảng dòng | dựng bước 6b, dung-slide, thiet-ke |
 | `duyet-bai` | `…\agents\duyet-bai.md` | duyệt 4 nhóm + caption | bước 9 |
 | `/dung-bai`, `/sua-bai`, `/do-trung-anh` | `…\plugin\poly-carousel\commands\*.md` | lệnh plugin | gõ tay; app gọi qua dung-bai.txt, sua-bai*.txt |
 | `xay-kenh` | `E:\Social Claude\_bo-dung-design\noi-dung\quy-tac-xay-kenh.md` | nội dung: format, câu hỏi cuối, giọng, từ cấm | viet-brief, chat-brief, bien-tap, duyet-bai |

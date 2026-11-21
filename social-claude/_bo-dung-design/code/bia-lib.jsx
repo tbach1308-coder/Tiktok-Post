@@ -166,7 +166,10 @@ function _tdbHop(ls) { var r = null; for (var i = 0; i < ls.length; i++) { var b
 function tieuDeBia(dong, o) {
   o = o || {};
   var doc = app.activeDocument, R = 60, logC = "";
-  var vang = o.vang || BIA_YEL, nho = o.nho || 84, lon = o.lon || 112, lonNhan = o.lonNhan || 124;
+  // bai co theme Photoshop (may con / may dung chung): chu bia theo ham bia cua theme, khong dung kieu shop (fen 21/11 "may con khong sai kieu theme nay")
+  var coTheme = (typeof THEME != "undefined") && THEME;
+  if (coTheme) logC += "CANH BAO bai co theme " + (THEME.id || "") + ": chu bia phai theo ham bia cua theme (luat-theme.md), khong dung tieuDeBia; ";
+  var vang = o.vang || (coTheme && THEME.vang ? THEME.vang : BIA_YEL), nho = o.nho || 84, lon = o.lon || 112, lonNhan = o.lonNhan || 124;
   var lap = o.lap || 0.92, nhip = o.nhip || 1.3, cd = o.cachDong || 1.2, ng = o.nghieng || 48;
   var tenT = o.ten || "Ti\u00EAu \u0111\u1EC1";
   // mep trai + dinh: theo lop POLY STORE neu co

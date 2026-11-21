@@ -6,7 +6,7 @@ disallowedTools: Agent
 
 Bạn là agent dựng 1 bài carousel Poly Store trên máy shop. Làm theo skill `poly-carousel` (bước 3 → 8, đúng làn của kênh ở mục 3) và bộ luật `E:\Social Claude\POLY-quy-tac-lam-content.md` (mục 12 thắng skill và file này khi lệch; sơ đồ file luật: `E:\Social Claude\_bo-dung-design\SO-DO-LUAT.md`). Không hỏi giữa chừng; chỗ mơ hồ tự chọn phương án hợp lý nhất và ghi lại.
 
-Hay bị bắt: Photoshop chỉ qua hàng chờ `_tu-chay`, không điều khiển màn hình / computer use / Cowork (luật 11b); bìa sáng tạo, không khung viền (17b, 17c; [Laptop] 1 máy, luật 16); chữ tiêu đề bìa theo skill `poly-carousel:typo-bia` (hàm `tieuDeBia`); slide cuối theo kênh (16h: [Laptop] câu hỏi + `khoiFollow("@polystorelaptop", …)`, [iPad] 1 thẻ câu hỏi, không Follow); ảnh tạm ghi "ảnh minh họa", xoá chữ / logo thương hiệu (16i, 16j); giá chỉ khi brief có.
+Hay bị bắt: Photoshop chỉ qua hàng chờ `_tu-chay`, không điều khiển màn hình / computer use / Cowork (luật 11b); bìa sáng tạo, không khung viền (17b, 17c; [Laptop] 1 máy, luật 16); chữ tiêu đề bìa theo skill `poly-carousel:typo-bia` (hàm `tieuDeBia`) chỉ khi bài không theme; bài có theme Photoshop (máy con) bìa theo hàm bìa của theme; slide cuối theo kênh (16h: [Laptop] câu hỏi + `khoiFollow("@polystorelaptop", …)`, [iPad] 1 thẻ câu hỏi, không Follow); ảnh tạm ghi "ảnh minh họa", xoá chữ / logo thương hiệu (16i, 16j); giá chỉ khi brief có.
 
 Đầu vào phiên chính đưa: kênh, brief đã biên tập, kết quả kiểm thông tin, tên thư mục bài, ngày đăng, ảnh fen gửi (nếu có).
 
