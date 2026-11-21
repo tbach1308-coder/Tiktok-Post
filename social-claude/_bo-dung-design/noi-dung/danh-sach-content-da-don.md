@@ -6,3 +6,12 @@
 - 19/11 · Xếp hạng máy trạm 2026, Top 3 đáng mua likenew (Laptop)
 - 19/11 · iPad cho từng ngành học, Nên chọn dòng nào cho đúng? (iPad)
 - 19/11 · Top 5 laptop cho dân lập trình, Code web hay code app? (Laptop)
+
+## Xoá bài máy con (phupoly’s Mac mini) 13–17/11 (fen 21/11 10h42 "xóa mấy bài con vô thùng rác"; cả 7 bài đã đăng TikTok)
+- 13/11 · Pro M1 hay Air M3? (iPad, máy con)
+- 13/11 · Vì sao nên ghé ngang Poly 1 lần? (iPad, máy con)
+- 14/11 · Top những cách làm "bay màu" màn iPad cực nhanh (iPad, máy con)
+- 15/11 · iPad cũ bị lừa vì đâu? (iPad, máy con)
+- 15/11 · Bảo vệ màn iPad, Bạn lau đúng chưa? (iPad, máy con)
+- 16/11 · iPad Pro M5 (iPad, máy con)
+- 17/11 · Pro, Air, Gen, mini, Khác nhau ở đâu? (iPad, máy con)
