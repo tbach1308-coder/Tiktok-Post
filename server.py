@@ -1937,12 +1937,147 @@ def _dem_hang():
                 continue
             if pid_alive(r.get("pid"), r.get("started")):
                 dang += 1
-        elif j.get("status") == "hen" and (j.get("hen_luc") or 0) <= now():
+        elif j.get("status") == "hen" and (j.get("hen_luc") or 0) <= now() and not j.get("cho_admin"):    # bài trùng đang giữ: không tính
             cho += 1
     return dang, cho
 
 
+# ---------- chặn gửi trùng + báo bài trùng giữa các máy (fen 21/11 12h58 + 13h01) ----------
+# 12h52 máy con gửi 1 bài 2 lần cách 2 giây (bấm lại khi mạng chậm / mở 2 cửa sổ): ra 2 bài giống hệt, bài sau xếp hàng tốn thêm
+# 1 lượt Opus, fen tưởng máy con hiện bài của máy admin.
+# (1) Cùng 1 máy (máy shop / máy con / người Telegram) gửi lại đúng brief + kênh + ghi chú + cách dựng trong 60 giây: không tạo bài
+#     mới, trả bài vừa tạo (2 lần gửi chen nhau thì lần sau chờ lần trước tạo xong).
+# (2) fen 13h01 "phát hiện giữa các app có bài trùng nhau là báo liền": bài mới cùng kênh trùng tiêu đề (cùng chữ, không kể thứ tự,
+#     vd "Air M3 hay Air M4?" = "Air M4 hay Air M3?") hoặc brief giống >= 80% với bài của máy khác (hoặc bài cùng máy trong 24 giờ)
+#     -> nhắn Telegram fen ngay + ghi trung.json trong thư mục bài (danh sách / trang bài hiện ⚠️ Trùng). Máy con chỉ thấy "trùng 1 bài
+#     máy khác", không thấy bài máy khác (mỗi máy chỉ thấy bài của mình). Luật dò trùng theo từng máy (13/11) giữ nguyên.
+# (3) fen 13h05 "có bài trùng là báo admin, chờ xử lý xong mới được chạy": bài trùng không dựng ngay, giữ (cho_admin) tới khi
+#     fen bấm Vẫn dựng / Huỷ trên máy shop (hen_job duyet_trung); máy con không bấm Chạy ngay được bài đang giữ.
+GUI_GAN, GUI_GAN_KHOA, GUI_GAN_S = {}, threading.Lock(), 60
+TRUNG_BRIEF, TRUNG_CUNG_MAY_S = 0.8, 86400
+_TRUNG = {}          # jid -> danh sách bài trùng (đọc trung.json 1 lần)
+
+
+def _gui_khoa(data):
+    kh = data.get("_khach") if isinstance(data.get("_khach"), dict) else {}
+    tg = data.get("_tg_nguoi") if isinstance(data.get("_tg_nguoi"), dict) else {}
+    return (str(kh.get("id") or "shop"), str(tg.get("id") or ""), str(data.get("kenh") or ""), (data.get("brief") or "").strip(),
+            (data.get("ghi_chu") or "").strip(), str(data.get("dung_bang") or ""), str(data.get("theme_ps") or ""), str(data.get("theme_canva") or ""))
+
+
 def create_job(data):
+    """Tạo bài (chặn cùng máy gửi lại đúng bài đó trong 60 giây) rồi dò bài trùng giữa các máy (chạy nền, báo fen)."""
+    khoa, het, cu = _gui_khoa(data), time.time() + 20, None
+    while True:
+        with GUI_GAN_KHOA:
+            t0 = time.time()
+            for k in [k for k, v in GUI_GAN.items() if v[1] and t0 - v[0] > GUI_GAN_S]:
+                GUI_GAN.pop(k, None)
+            cu = GUI_GAN.get(khoa)
+            if not cu or cu[1] or t0 > het:      # chưa gửi / đã tạo xong / lần trước treo quá lâu: thôi chờ
+                if not cu or not cu[1]:
+                    GUI_GAN[khoa], cu = [t0, None], None
+                break
+        time.sleep(0.3)                          # lần gửi trước đang tạo bài: chờ xong rồi trả bài đó
+    if cu:
+        try:
+            jc = load_job(cu[1])
+        except Exception:
+            jc = None
+        if jc:
+            log("gui trung %s: cung may gui lai dung bai nay trong %ds, khong tao bai moi" % (cu[1], GUI_GAN_S))
+            return dict(jc, trung_gui=True)
+        with GUI_GAN_KHOA:
+            GUI_GAN[khoa] = [time.time(), None]
+    try:
+        job = _tao_job(data)
+    except Exception:
+        with GUI_GAN_KHOA:
+            GUI_GAN.pop(khoa, None)
+        raise
+    with GUI_GAN_KHOA:
+        GUI_GAN[khoa] = [time.time(), job["id"]]
+    if job.get("cho_admin"):
+        threading.Thread(target=bao_trung_may, args=(job["id"],), daemon=True).start()
+    return job
+
+
+def _chu_td(s):
+    return frozenset(re.sub(r"[^\w\s]", " ", (s or "").lower()).split())
+
+
+def _chu_brief(s):
+    return " ".join(re.sub(r"[^\w\s]", " ", (s or "").lower()).split())
+
+
+def trung_cua(jid):
+    """Danh sách bài trùng đã dò cho bài jid ([] = không trùng / chưa dò)."""
+    if jid not in _TRUNG:
+        v = read_json(os.path.join(job_dir(jid), "trung.json"), None)
+        _TRUNG[jid] = v if isinstance(v, list) else []
+    return _TRUNG[jid]
+
+
+def tim_trung_may(job):
+    """Bài cùng kênh của máy khác (hoặc cùng máy, tạo trong 24 giờ) trùng tiêu đề / brief với job. Không tính việc ẩn (Viết brief…)."""
+    import difflib
+    may, kenh, t = (job.get("khach") or {}).get("id"), job.get("kenh"), job.get("created") or now()
+    td, br = _chu_td(job.get("tieu_de")), _chu_brief(job.get("brief"))
+    out = []
+    if not os.path.isdir(JOBS):
+        return out
+    for jid in sorted(os.listdir(JOBS), reverse=True)[:300]:
+        if jid == job["id"]:
+            continue
+        j = job_nho(jid)
+        if not j or j.get("loai") in VIEC_AN or j.get("an") or j.get("kenh") != kenh:
+            continue
+        cung = (j.get("khach") or {}).get("id") == may
+        if cung and abs(t - (j.get("created") or 0)) > TRUNG_CUNG_MAY_S:
+            continue                             # cùng máy, bài cũ: dò trùng theo máy (luật 13/11) đã lo
+        kieu = ""
+        if len(td) >= 2 and _chu_td(j.get("tieu_de")) == td:
+            kieu = "tiêu đề"
+        else:
+            b2 = _chu_brief(j.get("brief"))
+            if len(br) > 40 and len(b2) > 40:
+                sm = difflib.SequenceMatcher(None, br, b2, autojunk=False)
+                if sm.real_quick_ratio() >= TRUNG_BRIEF and sm.quick_ratio() >= TRUNG_BRIEF and sm.ratio() >= TRUNG_BRIEF:
+                    kieu = "brief"
+        if kieu:
+            out.append({"id": jid, "td": short(ten_hien(j)[0] or j.get("tieu_de") or "", 70), "kenh": kenh, "kieu": kieu, "cung_may": cung,
+                        "may": (j.get("khach") or {}).get("ten") or "máy shop", "t": j.get("created"), "st": j.get("status"),
+                        "da_dang": bool(j.get("da_dang"))})
+            if len(out) >= 5:
+                break
+    return out
+
+
+def bao_trung_may(jid):
+    """Chạy nền sau khi tạo bài trùng (đã dò + ghi trung.json lúc tạo): nhắn Telegram fen (chat lệnh Remote + nhóm nhận slide)."""
+    try:
+        job = load_job(jid)
+        ds = trung_cua(jid)
+        if not job or not ds:
+            return
+        ten_may = (job.get("khach") or {}).get("ten") or "máy shop"
+        log("bai trung %s (%s): %s" % (jid, ten_may, ", ".join("%s %s" % (x["id"], x["kieu"]) for x in ds)))
+        kenh = CFG["kenh"].get(job.get("kenh"), {}).get("ten", job.get("kenh"))
+        dong = ["⚠️ Có bài trùng giữa các máy", "Bài mới: «%s» (%s · %s · %s)" % (short(ten_hien(job)[0] or job.get("tieu_de") or "", 70),
+                                                                             kenh, ten_may, _gio_ngan(job.get("created") or now()))]
+        for x in ds:
+            dong.append("Trùng %s với: «%s» (%s · %s · %s)" % (x["kieu"], x["td"], "cùng máy" if x["cung_may"] else x["may"], _gio_ngan(x["t"] or 0),
+                                                            "đã đăng" if x["da_dang"] else {"xong": "xong", "dang-chay": "đang dựng", "hen": "đang chờ",
+                                                                                            "moi": "đang chờ"}.get(x["st"], x["st"] or "")))
+        dong.append("⏸ Bài mới đang GIỮ, chưa dựng: mở app Poly Dựng Bài trên máy shop, vào bài đó bấm ▶️ Vẫn dựng hoặc Huỷ bài.")
+        chats = [c for c in (CFG.get("tg_lenh_chat"), CFG.get("telegram_chat")) if c]
+        if CFG.get("telegram_token") and chats:
+            _bao_tg("\n".join(dong), chats=list(dict.fromkeys(chats)))
+    except Exception:
+        log("do trung giua may loi: " + traceback.format_exc())
+
+
+def _tao_job(data):
     kenh = data.get("kenh") if data.get("kenh") in CFG["kenh"] else "laptop"
     brief = (data.get("brief") or "").strip()
     if len(brief) < 5:
@@ -1993,6 +2128,13 @@ def create_job(data):
     with open(os.path.join(d, "brief.txt"), "w", encoding="utf-8") as f:
         f.write(brief)
     job["anh"] = save_images(d, data.get("anh") or [])
+    # fen 21/11 13h05 "có bài trùng là báo admin, chờ xử lý xong mới được chạy": trùng bài khác -> giữ bài (status hen + cho_admin),
+    # lịch không tự chạy; fen bấm "Vẫn dựng" (hoặc Huỷ) trên app máy shop. Máy con không tự bấm chạy được bài đang giữ.
+    tr = tim_trung_may(job)
+    if tr:
+        _TRUNG[jid] = tr
+        write_json(os.path.join(d, "trung.json"), tr)
+        job["cho_admin"] = now()
     hen = data.get("hen_luc")
     if hen:   # "Hẹn làm": chưa chạy, luồng lich() tự bắt đầu khi tới giờ (làm dần từng bài)
         try:
@@ -2003,6 +2145,12 @@ def create_job(data):
         with LOCK:
             save_job(job)
         log("hen %s luc %s" % (jid, time.strftime("%d/%m %H:%M", time.localtime(job["hen_luc"]))))
+        return job
+    if job.get("cho_admin"):
+        job["status"], job["hen_luc"] = "hen", now()
+        with LOCK:
+            save_job(job)
+        log("giu bai trung %s cho admin xu ly" % jid)
         return job
     # fen 30/10 15h30 "bấm chạy liên tục thì tự xếp hàng chờ không bị chồng lên": đang có bài dựng (hoặc còn bài đang
     # chờ lượt) thì bài này xếp hàng (status hen, hen_luc = lúc bấm, xep_hang), luồng lich() chạy lần lượt, mỗi lúc tối đa hen_toi_da bài
@@ -6069,7 +6217,9 @@ def tgl_chay(jid, tra, bo_nut, canva=False, fr=None):
     tgl_gan(jid, {"chay": job["id"]})
     ten, tk = ten_hien(job)[0], CFG["kenh"].get(job.get("kenh"), {}).get("ten", job.get("kenh"))
     rg = " · xong bot gửi riêng cho %s" % job["tg_nguoi"]["ten"] if job.get("tg_nguoi") else ""
-    if job.get("status") == "hen" and job.get("xep_hang"):
+    if job.get("cho_admin"):
+        tgl_gui("⏸ Bài trùng bài đã có, chưa dựng: %s (%s). Fen bấm ▶️ Vẫn dựng / Huỷ trên app máy shop." % (ten, tk))
+    elif job.get("status") == "hen" and job.get("xep_hang"):
         tgl_gui("⏳ Xếp hàng thứ %d: %s (%s)%s" % (job.get("thu") or 1, ten, tk, rg))
     else:
         tgl_gui("▶️ Đang dựng: %s (%s)%s" % (ten, tk, rg))
@@ -6559,14 +6709,29 @@ def tgl_bam_bang(viec, tra):
             TGL["hoi_qt"] = mid
 
 
-def hen_job(jid, data):
-    """Bài đã hẹn: đổi giờ (hen_luc), sửa brief, hoặc làm ngay (lam_ngay)."""
+def hen_job(jid, data, admin=True):
+    """Bài đã hẹn: đổi giờ (hen_luc), sửa brief, hoặc làm ngay (lam_ngay). admin=False: máy dùng chung gọi.
+    duyet_trung (chỉ máy shop): bài trùng đang giữ cho chạy (hẹn chưa tới giờ thì chờ giờ hẹn, không thì xếp hàng như thường)."""
     with LOCK:
         job = load_job(jid)
         if not job:
             raise ValueError("Không thấy bài")
         if job.get("status") != "hen":
             raise ValueError("Bài này không còn ở trạng thái hẹn")
+        if job.get("cho_admin") and not admin and data.get("lam_ngay"):
+            raise ValueError("Bài trùng đang chờ fen xử lý trên máy shop: fen bấm Vẫn dựng thì bài tự chạy")
+        if data.get("duyet_trung"):
+            if not admin:
+                raise ValueError("Chỉ máy shop duyệt được bài trùng")
+            if job.pop("cho_admin", None):
+                job["duyet_trung"] = now()
+                if (job.get("hen_luc") or 0) <= now():
+                    job["xep_hang"] = True
+                log("admin cho chay bai trung %s" % jid)
+            save_job(job)
+            return {"ok": True}
+        if data.get("lam_ngay") and job.pop("cho_admin", None):     # máy shop bấm Làm ngay = duyệt luôn
+            job["duyet_trung"] = now()
         if data.get("brief") is not None:
             b = (data.get("brief") or "").strip()
             if len(b) < 5:
@@ -6639,7 +6804,8 @@ def _chay_lich_1():
                     _bao_tg("⚠️ Bài %s: viết caption xong nhưng chưa %s được: %s" % (ten_hien(jj)[0], "mở TikTok" if act == "tiktok" else "gửi Telegram", str(e).split("|")[-1]))
     # (a2 tự mở TikTok để hẹn đã bỏ 29/10 17h50: điều khoản TikTok cấm script tự động; fen tự mở bài, tự bấm Schedule)
     # b) bài hẹn tới giờ: làm dần, mỗi lúc tối đa `hen_toi_da` bài đang chạy (mặc định 1)
-    den = sorted([j for j in jobs if j.get("status") == "hen" and (j.get("hen_luc") or 0) <= now()], key=lambda j: j.get("hen_luc") or 0)
+    den = sorted([j for j in jobs if j.get("status") == "hen" and (j.get("hen_luc") or 0) <= now() and not j.get("cho_admin")],
+                 key=lambda j: j.get("hen_luc") or 0)
     if not den:
         return
     dang = [j for j in jobs if j.get("status") == "dang-chay" and j.get("loai") not in VIEC_AN]
@@ -6659,7 +6825,7 @@ def _chay_lich_1():
         return
     with LOCK:
         jj = load_job(den[0]["id"])
-        if not jj or jj.get("status") != "hen":
+        if not jj or jj.get("status") != "hen" or jj.get("cho_admin"):
             return
         jj.pop("hen_bao", None)
         jj["hen_chay"] = now()
@@ -7073,7 +7239,7 @@ def job_view(jid, since=0):
             ly_do = job["loi_chay"]
     return {
         "ly_do": ly_do,
-        "job": dict({k: job.get(k) for k in ("id", "kenh", "tieu_de", "ten_bai", "ngay_dang", "brief", "ghi_chu", "status", "created", "thu_muc_bai", "session_id", "khach", "anh", "sua", "model", "model_sua", "hen_luc", "sau_caption", "hen_bao", "nhac", "da_dang", "dang_loi", "hen_dang", "xep_hang", "dung_bang", "canva_loi", "theme_canva", "theme_ps")},
+        "job": dict({k: job.get(k) for k in ("id", "kenh", "tieu_de", "ten_bai", "ngay_dang", "brief", "ghi_chu", "status", "created", "thu_muc_bai", "session_id", "khach", "anh", "sua", "model", "model_sua", "hen_luc", "sau_caption", "hen_bao", "nhac", "da_dang", "dang_loi", "hen_dang", "xep_hang", "dung_bang", "canva_loi", "theme_canva", "theme_ps", "cho_admin")},
                     **dict(zip(("tieu_de", "ngay_dang"), ten_hien(job)))),
         "run": run and {"n": run["n"], "kind": run["kind"], "started": run["started"], "ended": run.get("ended")},
         "runs": len(job.get("runs", [])),
@@ -7216,13 +7382,14 @@ def list_jobs():
                 job, _ = parse_job(jid)
             except Exception:
                 pass
-        it = {k: job.get(k) for k in ("id", "kenh", "tieu_de", "status", "created", "ngay_dang", "hen_luc", "hen_dang", "hen_dang_mo", "da_dang", "xep_hang", "dung_bang", "theme_canva", "theme_ps", "khach")}
+        it = {k: job.get(k) for k in ("id", "kenh", "tieu_de", "status", "created", "ngay_dang", "hen_luc", "hen_dang", "hen_dang_mo", "da_dang", "xep_hang", "dung_bang", "theme_canva", "theme_ps", "khach", "cho_admin")}
         it["tieu_de"], it["ngay_dang"] = ten_hien(job)
         lr = (job.get("runs") or [{}])[-1]
         it["started"], it["ended"] = lr.get("started"), lr.get("ended")
         gui = [x for x in (job.get("da_gui") or []) if x.get("kieu") in ("tiktok", "telegram")]
         it["gui"] = gui[-1] if gui else None
         it["bia"] = bia_bai(job) if job.get("status") == "xong" else ""
+        it["trung"] = len(trung_cua(jid))          # ⚠️ trùng bài máy khác (fen 21/11)
         out.append(it)
     return out
 
@@ -10461,6 +10628,10 @@ class H(BaseHTTPRequestHandler):
             m = re.fullmatch(r"/api/job/([\w-]+)", u.path)
             if m:
                 v = job_view(m.group(1), int((q.get("since") or ["0"])[0]))
+                if v:     # bài trùng (fen 21/11): máy dùng chung không thấy bài máy khác, chỉ biết có trùng
+                    tr = trung_cua(m.group(1))
+                    v["trung"] = tr if not self.may() else [{"cung_may": x["cung_may"], "kieu": x["kieu"],
+                                                              **({"id": x["id"], "td": x["td"], "t": x["t"]} if x["cung_may"] else {})} for x in tr]
                 return self.send(200 if v else 404, v or {"err": "không thấy bài"})
             if u.path == "/file":
                 p = (q.get("p") or [""])[0]
@@ -10567,7 +10738,8 @@ class H(BaseHTTPRequestHandler):
                 return self.send(200, {"bat": True})
             if u.path == "/api/run":
                 job = create_job(data)
-                return self.send(200, {"id": job["id"], "xep_hang": bool(job.get("xep_hang") and job.get("status") == "hen"), "thu": job.get("thu") or 0})
+                return self.send(200, {"id": job["id"], "xep_hang": bool(job.get("xep_hang") and job.get("status") == "hen"), "thu": job.get("thu") or 0,
+                                       "trung_gui": bool(job.get("trung_gui")), "cho_admin": bool(job.get("cho_admin"))})
             if u.path == "/api/telegram":
                 return self.send(200, tg_cai(data))
             if u.path == "/api/tg-lenh":
@@ -10608,7 +10780,7 @@ class H(BaseHTTPRequestHandler):
                 return self.send(200, danh_dau_dang(m.group(1), data))
             m = re.fullmatch(r"/api/job/([\w-]+)/hen", u.path)
             if m:
-                return self.send(200, hen_job(m.group(1), data))
+                return self.send(200, hen_job(m.group(1), data, admin=not self.may()))
             m = re.fullmatch(r"/api/job/([\w-]+)/kenh", u.path)
             if m:
                 return self.send(200, doi_kenh(m.group(1), data))
@@ -10798,7 +10970,8 @@ class HK(H):
                 data.pop("_tg_nguoi", None)
                 data["_khach"] = dict(self.khach)
                 job = create_job(data)
-                return self.send(200, {"id": job["id"], "xep_hang": bool(job.get("xep_hang") and job.get("status") == "hen"), "thu": job.get("thu") or 0})
+                return self.send(200, {"id": job["id"], "xep_hang": bool(job.get("xep_hang") and job.get("status") == "hen"), "thu": job.get("thu") or 0,
+                                       "trung_gui": bool(job.get("trung_gui")), "cho_admin": bool(job.get("cho_admin"))})
         except ValueError as e:
             return self.send(400, {"err": str(e)})
         except Exception:

@@ -506,6 +506,8 @@ select.in.msel option{background:var(--panel);color:var(--tx)}
 
 /* ---------- banner ---------- */
 .banner{margin:0 0 14px;border-radius:12px;padding:12px 14px;border:1px solid #4a3a1f;background:#241d12;color:var(--ytext);display:flex;gap:12px;align-items:center}
+.banner.trung{border-color:#5c2b2b;background:#2a1515;color:#ffc2c2}.banner.trung a{color:#ffd9d9;text-decoration:underline}
+.ji .m .trtag{flex:0 0 auto;font-size:11px;color:#ff9b9b;margin-left:4px;white-space:nowrap}
 .banner.red{border-color:var(--rline);background:var(--rsoft);color:var(--rtext)}
 .banner.ok{border-color:#1f3a2a;background:var(--gnote);color:var(--gs)}
 .banner p{margin:0;flex:1}
@@ -1305,6 +1307,9 @@ async function loadJobs(){
     if (j.dung && S.health && S.health.dung && (j.dung.pt >= 80) !== !!S.health.dung.canh_bao) health();
     const old = new Map(S.jobs.map(x => [x.id, x.status])); S.jobs = j.jobs || [];
     S.jobs.forEach(x => { if (old.get(x.id) === 'dang-chay' && x.status !== 'dang-chay' && x.id !== S.jobId) notify(x); });
+    { const co = S.jobs.filter(x => x.trung).map(x => x.id);      // bài trùng mới: báo liền (lần đầu mở app thì chỉ ghi nhớ, không báo bài cũ)
+      if (S.trungThay) S.jobs.filter(x => x.trung && !S.trungThay.has(x.id)).forEach(x => toast('⚠️ Bài «' + (x.tieu_de || 'Bài').slice(0, 40) + '» trùng với ' + (x.trung > 1 ? x.trung + ' bài' : '1 bài') + ' khác' + (KHACH ? ' (đã báo fen)' : ': mở bài để xem'), true));
+      S.trungThay = new Set(co); }
     renderJobs();
   } catch(e) { if (e.status !== 401) offline(); }
 }
@@ -1327,9 +1332,10 @@ function canReload(){
   return !Object.values(S.drafts || {}).some(d => (d.text || '').trim() || d.anh.length || d.slides.size || Object.values(d.per || {}).some(t => (t || '').trim()) || Object.values(d.perAnh || {}).some(a => a.length));
 }
 // bài xếp hàng / hẹn đã tới giờ: thứ mấy trong hàng chờ (theo giờ bấm Chạy / giờ hẹn)
-function thuHang(j){ const ds = (S.jobs || []).filter(x => x.status === 'hen' && (x.hen_luc || 0) <= nowS()).sort((a, b) => (a.hen_luc || 0) - (b.hen_luc || 0)); const i = ds.findIndex(x => x.id === j.id); return i < 0 ? 0 : i + 1; }
+function thuHang(j){ const ds = (S.jobs || []).filter(x => x.status === 'hen' && !x.cho_admin && (x.hen_luc || 0) <= nowS()).sort((a, b) => (a.hen_luc || 0) - (b.hen_luc || 0)); const i = ds.findIndex(x => x.id === j.id); return i < 0 ? 0 : i + 1; }
 function jobLine(j){
   if (j.status === 'dang-chay') { const s = nowS() - (j.started || j.created); return 'Đang chạy · ' + (s < 60 ? 'vừa bắt đầu' : Math.floor(s/60) + ' phút'); }
+  if (j.status === 'hen' && j.cho_admin) return KHACH ? 'Bài trùng, chờ fen xử lý' : 'Bài trùng, chờ fen bấm Vẫn dựng / Huỷ';
   if (j.status === 'hen' && j.xep_hang) { const n = thuHang(j); return 'Xếp hàng' + (n ? ' thứ ' + n : '') + ', chờ bài trước xong'; }
   if (j.status === 'hen') return (j.hen_luc && j.hen_luc <= nowS() ? 'Tới giờ, chờ lượt · ' : 'Hẹn ') + (j.hen_luc ? henTxt(j.hen_luc) : '');
   const t = j.ended || j.started || j.created;
@@ -1379,7 +1385,7 @@ function renderJobs(){
   const item = j => { const g = nhomBai(j), p = dongPhu(j, g);
     return `<button class="ji co-bia ${S.jobId === j.id ? 'on' : ''}" data-id="${j.id}">${j.status !== 'dang-chay' ? `<span class="jx" role="button" data-xj="${j.id}" title="Xoá bài khỏi danh sách (slide trong thư mục bài vẫn giữ)">🗑</span>` : ''}${g === 'cho' ? `<span class="jk" role="button" data-dj="${j.id}" title="Đã đăng bài này (đăng tay, đăng bằng điện thoại): chuyển sang tab Đã đăng">✓ Đã đăng</span>` : g === 'dang' && j.da_dang && j.da_dang.tay ? `<span class="jk" role="button" data-bj="${j.id}" title="Bỏ đánh dấu, đưa bài về Chờ đăng">↩ Chưa đăng</span>` : ''}${j.bia ? `<img class="bia" src="${esc(j.bia)}" loading="lazy" alt="">` : '<span class="bia trong"></span>'}
       <div><div class="t">${esc(j.tieu_de || 'Bài')}</div>${unseen(j) ? '<span class="new">mới</span>' : ''}
-      <div class="m"><span class="kn ${j.kenh}">${esc((KENH[j.kenh]||{}).ten || j.kenh)}</span>${tagDung(j, false, true)}${j.khach ? `<span class="khtag" title="Bài máy dùng chung tạo: ${esc(j.khach.ten || '')}">👤 ${esc(j.khach.ten || '')}</span>` : ''}<span class="dot ${j.status === 'dang-chay' ? 'run' : j.status === 'xong' ? 'ok' : j.status === 'loi' ? 'err' : j.status === 'hen' ? 'hen' : 'warn'}"></span><span class="jl" title="${esc(jobLine(j))}">${esc(jobLine(j).replace(/ trước$/, ''))}</span>${j.ngay_dang ? `<span class="nd">đăng ${esc(j.ngay_dang)}</span>` : ''}</div>
+      <div class="m"><span class="kn ${j.kenh}">${esc((KENH[j.kenh]||{}).ten || j.kenh)}</span>${tagDung(j, false, true)}${j.khach ? `<span class="khtag" title="Bài máy dùng chung tạo: ${esc(j.khach.ten || '')}">👤 ${esc(j.khach.ten || '')}</span>` : ''}${j.trung ? `<span class="trtag" title="Bài này trùng với ${j.trung} bài khác (đã báo fen): mở bài để xem">⚠️ Trùng</span>` : ''}<span class="dot ${j.status === 'dang-chay' ? 'run' : j.status === 'xong' ? 'ok' : j.status === 'loi' ? 'err' : j.status === 'hen' ? 'hen' : 'warn'}"></span><span class="jl" title="${esc(jobLine(j))}">${esc(jobLine(j).replace(/ trước$/, ''))}</span>${j.ngay_dang ? `<span class="nd">đăng ${esc(j.ngay_dang)}</span>` : ''}</div>
       ${p ? `<div class="mt2 ${p[0]}" title="${esc(p[1])}">${esc(p[1])}</div>` : ''}</div>
     </button>`; };
   const ds = nhom[S.sbTab];
@@ -1717,7 +1723,9 @@ async function runNew(henLuc){
   b.disabled = true; b.dataset.busy = 1; b.textContent = 'Đang gửi…';
   try {
     const r = await api('/api/run', {kenh:f.kenh, ten_bai:f.ten, ngay_dang:(f.ngay || '').trim(), brief:f.brief, ghi_chu:f.note, anh:f.anh, model: f.model || (f.nhanh ? 'sonnet' : ''), dung_bang: f.dung === 'canva' ? 'canva' : '', theme_canva: f.dung === 'canva' ? (f.theme || '') : '', theme_ps: f.dung === 'canva' ? '' : (f.themePs || ''), hen_luc: henLuc || undefined});
-    if (henLuc) toast('Đã hẹn dựng lúc ' + henTxt(henLuc));
+    if (r.trung_gui) toast('Bài này vừa gửi rồi (cùng brief trong 1 phút): mở bài đang có, không tạo thêm bài trùng.');
+    else if (r.cho_admin) toast(KHACH ? '⚠️ Bài này trùng bài đã có: đã báo fen, fen xử lý xong mới dựng.' : '⚠️ Bài này trùng bài đã có: đang giữ, bấm Vẫn dựng nếu muốn làm tiếp.', true);
+    else if (henLuc) toast('Đã hẹn dựng lúc ' + henTxt(henLuc));
     else if (r.xep_hang) toast('Đang có bài khác dựng: bài này xếp hàng' + (r.thu ? ' thứ ' + r.thu : '') + ', bài trước xong là tự chạy.');
     clearTimeout(f._t); clearTimeout(f._tc); S.nhap.ds = S.nhap.ds.filter(x => x !== f);   // nháp đã thành bài (xem lại ở Lịch sử brief)
     if (!S.nhap.ds.length) S.nhap.ds.push(nhapMoi({kenh: f.kenh}));
@@ -1829,7 +1837,17 @@ function updateJob(){
   if (setH($('#acts'), acts.join(''))) bindActs();
   // banner trên đầu
   const jb = [];
-  if (j.status === 'hen') {
+  const tr = d.trung || [];     // fen 21/11 13h01 "phát hiện giữa các app có bài trùng nhau là báo liền" (máy con không thấy bài máy khác)
+  if (tr.length) jb.push(`<div class="banner trung"><p><b>⚠️ Bài trùng.</b> ${tr.map(x => x.td
+      ? `Trùng ${esc(x.kieu)} với <a href="#" data-motrung="${esc(x.id)}">«${esc(x.td)}»</a> (${x.cung_may ? (KHACH ? 'máy này' : 'cùng máy') : esc(x.may || 'máy khác')}${x.t ? ' · ' + esc(ago(x.t)) : ''}${x.da_dang ? ' · đã đăng' : ''})`
+      : `Trùng ${esc(x.kieu)} với 1 bài máy khác đã làm`).join('; ')}. ${KHACH ? 'Đã báo fen.' : 'Đã nhắn Telegram.'}${tr.some(x => x.cung_may && x.td) ? ' Bài gửi 2 lần thì huỷ 1 bài cho đỡ tốn lượt.' : ''}</p></div>`);
+  if (j.status === 'hen' && j.cho_admin) {    // fen 21/11 13h05: bài trùng giữ lại, chờ fen (máy shop) xử lý xong mới chạy
+    const henSau = j.hen_luc && j.hen_luc > nowS() + 60;
+    jb.push(`<div class="banner trung"><p><b>⏸ Bài trùng: đang giữ, chưa dựng.</b> ${KHACH ? 'Đã báo fen. Fen xử lý trên máy shop xong thì bài tự chạy (hoặc fen huỷ). Muốn bỏ bài này thì bấm Huỷ.' : 'Xem bài trùng ở trên. Bấm <b>▶️ Vẫn dựng</b> thì bài ' + (henSau ? 'chạy đúng giờ hẹn ' + esc(henTxt(j.hen_luc)) : 'vào hàng dựng như thường') + ', hoặc Huỷ bài trùng.'}</p>
+      ${KHACH ? '' : '<button class="btn sm pri" data-trungok>▶️ Vẫn dựng</button>'}<button class="btn sm ghost" data-henhuy>Huỷ${KHACH ? '' : ' bài trùng'}</button></div>`);
+    jb.push(`
+      <div class="card henbrief"><div class="sec">Brief <span class="n">sửa được tới lúc bắt đầu dựng</span></div><textarea class="in" id="henBrief">${esc(j.brief || '')}</textarea><div class="acts"><button class="btn sm" data-henluu>Lưu brief</button></div></div>`);
+  } else if (j.status === 'hen') {
     const toi = j.hen_luc && j.hen_luc <= nowS();
     const xh = !!j.xep_hang, thu = xh ? thuHang(j) : 0;
     jb.push(xh ? `<div class="banner hen"><p><b>⏳ Đang xếp hàng${thu ? ' thứ ' + thu : ''}.</b> Đang có bài khác dựng, bài đó xong là bài này tự chạy (không chồng lên nhau). Brief còn sửa được ở dưới.${j.hen_bao ? ' <span class="doi">Claude Code trên máy chưa sẵn sàng (chưa đăng nhập?), bấm Đăng nhập ở góc trên.</span>' : ''}</p>
@@ -1861,11 +1879,13 @@ function updateJob(){
   const henDangGo = j.status === 'hen' && document.activeElement && ['henBrief', 'henDoi'].includes(document.activeElement.id);
   if (!henDangGo && setH($('#jb'), jb.join(''))) {
     $('#jb').querySelectorAll('[data-retry]').forEach(b => b.onclick = () => retry(b));
+    $('#jb').querySelectorAll('[data-motrung]').forEach(a => a.onclick = ev => { ev.preventDefault(); openJob(a.dataset.motrung); });
     const hapi = async (b, body, msg) => { b.disabled = true; try { const r = await api('/api/job/' + j.id + '/hen', body); toast(msg); await reload(); loadJobs(); return r; } catch(e) { toast(e.message, true); b.disabled = false; } };
     $('#jb').querySelectorAll('[data-hendoi]').forEach(b => b.onclick = () => { const v = $('#henDoi').value; if (!v) return; const t = new Date(v).getTime() / 1000; hapi(b, {hen_luc: t}, 'Đã đổi giờ hẹn: ' + henTxt(t)); });
     $('#jb').querySelectorAll('[data-henngay]').forEach(b => b.onclick = () => { if (confirm(j.xep_hang ? 'Chạy bài này ngay, song song với bài đang dựng? (Photoshop vẫn làm lần lượt từng script)' : 'Dựng bài này ngay bây giờ?')) hapi(b, {lam_ngay: true}, 'Đã bắt đầu dựng'); });
     $('#jb').querySelectorAll('[data-henluu]').forEach(b => b.onclick = () => hapi(b, {brief: $('#henBrief').value}, 'Đã lưu brief'));
-    $('#jb').querySelectorAll('[data-henhuy]').forEach(b => b.onclick = async () => { if (!confirm(j.xep_hang ? 'Huỷ bài đang xếp hàng và xoá khỏi danh sách? (brief vẫn còn ở Lịch sử brief)' : 'Huỷ hẹn và xoá bài này khỏi danh sách?')) return; await api('/api/job/' + j.id + '/xoa', {}).catch(err => toast(err.message, true)); await loadJobs(); newView(); });
+    $('#jb').querySelectorAll('[data-trungok]').forEach(b => b.onclick = () => { if (confirm('Bài này trùng bài đã có. Vẫn dựng bài này?')) hapi(b, {duyet_trung: true}, 'Đã cho dựng bài trùng'); });
+    $('#jb').querySelectorAll('[data-henhuy]').forEach(b => b.onclick = async () => { if (!confirm(j.cho_admin ? 'Huỷ bài trùng này và xoá khỏi danh sách? (brief vẫn còn ở Lịch sử brief)' : j.xep_hang ? 'Huỷ bài đang xếp hàng và xoá khỏi danh sách? (brief vẫn còn ở Lịch sử brief)' : 'Huỷ hẹn và xoá bài này khỏi danh sách?')) return; await api('/api/job/' + j.id + '/xoa', {}).catch(err => toast(err.message, true)); await loadJobs(); newView(); });
     $('#jb').querySelectorAll('[data-open]').forEach(b => b.onclick = openFolder);
     const doiK = async (k, ep) => {
       const seg = $('#jb .kb'); seg && seg.querySelectorAll('button').forEach(x => x.disabled = true);

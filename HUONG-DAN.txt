@@ -251,6 +251,12 @@ LÀM 1 BÀI
 - Bấm Chạy nhiều bài liên tục (30/10): bài sau tự XẾP HÀNG, bài trước dựng xong mới tới bài sau, không chồng lên nhau.
   Cột trái ghi "Xếp hàng thứ N". Mở bài đang xếp hàng: sửa brief được, "Chạy ngay (song song)" nếu cần gấp, "Huỷ" để bỏ.
   Viết brief, chat brief, viết caption, ô Sửa vẫn chạy liền không phải chờ. Photoshop vẫn làm lần lượt từng script.
+- Bài trùng (21/11): cùng 1 máy bấm Chạy 2 lần đúng 1 bài trong 1 phút (bấm lại khi mạng chậm, mở 2 cửa sổ) thì chỉ ra 1 bài.
+  Bài mới trùng tiêu đề (cùng chữ, đảo thứ tự cũng tính, vd "Air M3 hay Air M4?" = "Air M4 hay Air M3?") hoặc brief giống
+  từ 80% với bài của máy khác (hoặc bài cùng máy làm trong 24 giờ): app nhắn Telegram fen liền, bài mới GIỮ LẠI, chưa dựng.
+  Cột trái có nhãn ⚠️ Trùng. Máy shop mở bài: thấy bài bị trùng (bấm tên để mở), bấm "▶️ Vẫn dựng" thì bài vào hàng dựng
+  như thường, hoặc "Huỷ bài trùng". Máy con chỉ thấy "trùng 1 bài máy khác, đã báo fen", không bấm chạy được, chỉ Huỷ được.
+  Bài đang giữ không chặn bài khác: bài khác vẫn dựng bình thường.
 - "Dừng": dừng bài đang chạy. "Chạy tiếp": làm tiếp từ chỗ dở. Nút ⋯ > "Xoá khỏi danh sách":
   chuyển bài vào thư mục _to_delete của app (không xoá hẳn).
 - Nút "💻 Máy khác" trên cùng (12/11): máy này làm MÁY CHỦ, máy khác (MacBook…) mở app qua mạng ở đâu cũng được,
