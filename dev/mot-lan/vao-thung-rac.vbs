@@ -1,16 +1,14 @@
 ' POLY STORE - dua thu muc vao Thung rac (Recycle Bin), lay lai duoc bang Restore
-' fen 21/11 11h17 "xoa het may bai nay trong app voi window" (5 bai iPad 03-17/11 + luot app da xoa)
+' fen 21/11 11h22 (anh 3 bai Laptop, tiep lenh 11h17 "xoa het may bai nay trong app voi window") + luot app da xoa
 Option Explicit
 Dim fso, sh, rb, ds, p, i, kq, L
 Set fso = CreateObject("Scripting.FileSystemObject")
 Set sh = CreateObject("Shell.Application")
 Set rb = sh.NameSpace(10)
 ds = Array( _
-  "E:\Social Claude\iPad\T11_LoiiPadTuSua_17-11", _
-  "E:\Social Claude\iPad\T11_ThoiQuenTuongDung_14-11", _
-  "E:\Social Claude\iPad\T11_XaiIPadNenTranh_13-11", _
-  "E:\Social Claude\iPad\T11_SacKhongVao_11-11", _
-  "E:\Social Claude\iPad\T11_DigitalArtist_03-11", _
+  "E:\Social Claude\Laptop\T11_5ThacMacLaptop_17-11", _
+  "E:\Social Claude\Laptop\T11_LaptopDungVideo_13-11", _
+  "E:\Social Claude\Laptop\T11_LaptopWin10_03-11", _
   "E:\Tool\poly-dung-bai\_to_delete")
 kq = ""
 For Each p In ds
