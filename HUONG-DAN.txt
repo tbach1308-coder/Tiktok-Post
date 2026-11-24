@@ -33,6 +33,9 @@ MỞ APP
   chờ mở xong rồi dựng tiếp, fen không phải làm gì. Ô Kiểm máy ghi "Photoshop đang tắt, có bài là tự mở lên".
   Mở không được (hộp đăng nhập / cập nhật Adobe đang chặn) thì ô Kiểm máy báo đỏ "tự mở không được":
   fen mở Photoshop bằng tay, xong bấm Chạy lại ở bài bị lỗi.
+  (24/11) Từ 19/11 hàng chờ Photoshop do POLYTool canh: ô Kiểm máy ghi "đang bật (POLYTool) · Photoshop đang mở / đang tắt"
+  (app tự hỏi Windows). Bài dựng bằng Photoshop bắt đầu chạy mà Photoshop tắt thì app mở sẵn Photoshop (thu nhỏ); có file chờ trong
+  hàng chờ mà Photoshop tắt cũng vậy. Bộ tự chạy cũ (poly-tu-chay.vbs) thấy POLYTool đang canh thì không bật, khỏi 2 bộ giành 1 file.
 - Lượt chạy trừ vào hạn mức của tài khoản đang đăng nhập (dùng chung với chat trên app Claude).
 - Không đặt ANTHROPIC_API_KEY trên máy: có biến này thì Claude Code tính tiền API, không dùng gói.
 

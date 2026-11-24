@@ -1696,6 +1696,127 @@ def plugin_dir():
     return d if d and os.path.isfile(os.path.join(d, ".claude-plugin", "plugin.json")) else ""
 
 
+# ---------------------------------------------------------------- Photoshop: app tự kiểm + tự mở (fen 24/11 chọn "Giữ POLYTool, app tự lo")
+# Từ 19/11 hàng chờ Photoshop máy shop do POLYTool canh (dang-chay.txt "… polytool pid N", không có dòng ps=): app tự hỏi Windows
+# Photoshop có đang chạy không để ô Kiểm máy báo đúng; Photoshop tắt mà có bài dựng bằng Photoshop (bắt đầu dựng / có .jsx chờ) thì
+# app tự mở Photoshop (thu nhỏ). Máy thử: POLY_PS_GIA = file giả "Photoshop đang chạy", POLY_PS_EXE = chương trình giả mở Photoshop.
+PS_TT = {"luc": 0, "chay": None, "mo_luc": 0, "mo_loi": "", "exe": "", "len_luc": 0}
+PS_LOCK = threading.Lock()
+PS_GIA = os.environ.get("POLY_PS_GIA") or ""
+PS_CHO = int(os.environ.get("POLY_PS_CHO") or 240)       # giây chờ Photoshop lên sau khi mở
+PS_LAI = int(os.environ.get("POLY_PS_LAI") or 180)       # không mở lại trong chừng này giây
+
+
+def ps_dang_chay(moi=False):
+    """Photoshop.exe có đang chạy không (Windows: tasklist, nhớ 15 giây). None = không hỏi được (Mac / lỗi)."""
+    if not moi and time.time() - PS_TT["luc"] < 15:
+        return PS_TT["chay"]
+    chay = None
+    if PS_GIA:
+        chay = os.path.exists(PS_GIA)
+    elif IS_WIN:
+        try:
+            r = subprocess.run(["tasklist", "/FI", "IMAGENAME eq Photoshop.exe", "/NH", "/FO", "CSV"], capture_output=True,
+                               timeout=20, creationflags=CREATE_NO_WINDOW)
+            if r.returncode == 0:
+                chay = b'"photoshop.exe"' in r.stdout.lower()
+        except Exception as e:
+            log("photoshop: khong hoi duoc tasklist: %s" % e)
+    PS_TT.update(luc=time.time(), chay=chay)
+    return chay
+
+
+def ps_tim_exe():
+    """Đường dẫn Photoshop.exe: config ps_exe, rồi App Paths của Windows, rồi bản mới nhất trong Program Files\\Adobe (như poly-tu-chay.vbs)."""
+    for x in (CFG.get("ps_exe"), os.environ.get("POLY_PS_EXE")):
+        if x and os.path.isfile(x):
+            return x
+    if not IS_WIN:
+        return ""
+    try:
+        import winreg
+        for goc in (winreg.HKEY_LOCAL_MACHINE, winreg.HKEY_CURRENT_USER):
+            try:
+                with winreg.OpenKey(goc, r"SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\Photoshop.exe") as k:
+                    x = str(winreg.QueryValueEx(k, "")[0] or "").strip().strip('"')
+                if x and os.path.isfile(x):
+                    return x
+            except OSError:
+                pass
+    except Exception:
+        pass
+    ds = []
+    for pf in {os.environ.get("ProgramFiles") or r"C:\Program Files", os.environ.get("ProgramW6432") or r"C:\Program Files"}:
+        g = os.path.join(pf, "Adobe")
+        try:
+            ds += [os.path.join(g, x, "Photoshop.exe") for x in os.listdir(g) if x.lower().startswith("adobe photoshop ")]
+        except OSError:
+            pass
+    ds = [x for x in ds if os.path.isfile(x)]
+    return max(ds, key=lambda x: os.path.basename(os.path.dirname(x)).lower()) if ds else ""
+
+
+def ps_can_mo(ly):
+    """Có bài cần Photoshop: Photoshop đang tắt thì mở (mỗi PS_LAI giây tối đa 1 lần). Trả True khi vừa mở."""
+    if not (PS_GIA or IS_WIN) or CFG.get("ps_tu_mo") is False:
+        return False
+    with PS_LOCK:
+        c = ps_dang_chay(moi=True)
+        if c is None:
+            return False
+        if c:
+            PS_TT["mo_loi"] = ""
+            return False
+        if time.time() - PS_TT["mo_luc"] < PS_LAI:
+            return False
+        PS_TT.update(mo_luc=time.time(), mo_loi="", len_luc=0)
+        exe = ps_tim_exe()
+        if not exe:
+            PS_TT["mo_loi"] = "không thấy Photoshop.exe trên máy"
+            log("photoshop: dang tat (%s) nhung khong thay Photoshop.exe" % ly)
+            return False
+        PS_TT["exe"] = exe
+        try:
+            kw = {"cwd": os.path.dirname(exe) or None, "stdin": subprocess.DEVNULL, "stdout": subprocess.DEVNULL, "stderr": subprocess.DEVNULL}
+            if IS_WIN:
+                si = subprocess.STARTUPINFO()
+                si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+                si.wShowWindow = 7              # thu nhỏ, không chiếm màn hình fen đang làm
+                kw.update(startupinfo=si, creationflags=0x00000008 | CREATE_NEW_PROCESS_GROUP, close_fds=True)
+            else:
+                kw["start_new_session"] = True
+            subprocess.Popen([exe], **kw)
+        except Exception as e:
+            PS_TT["mo_loi"] = short("không mở được Photoshop: %s" % e, 160)
+            log("photoshop: mo loi: %s" % e)
+            return False
+        log("photoshop: dang tat ma co bai (%s) -> app tu mo %s" % (ly, exe))
+    threading.Thread(target=_ps_cho_len, args=(time.time(),), daemon=True).start()
+    return True
+
+
+def _ps_cho_len(t0):
+    while time.time() - t0 < PS_CHO:
+        time.sleep(3)
+        if ps_dang_chay(moi=True):
+            PS_TT.update(len_luc=time.time(), mo_loi="")
+            log("photoshop: da len sau %d giay" % (time.time() - t0))
+            return
+    PS_TT["mo_loi"] = "đã mở Photoshop nhưng %d phút chưa thấy lên (hộp đăng nhập / cập nhật Adobe?)" % max(1, PS_CHO // 60)
+    log("photoshop: mo roi ma %d giay chua thay len" % PS_CHO)
+
+
+def ps_canh_hang():
+    """Vòng lịch 15 giây: có file .jsx chờ trong hàng chờ mà Photoshop tắt thì mở."""
+    q = CFG.get("tu_chay") or ""
+    try:
+        co = q and any(f.lower().endswith(".jsx") for f in os.listdir(q))
+    except OSError:
+        return
+    if co:
+        ps_can_mo("co file .jsx cho trong hang cho")
+
+
 def san_sang():
     """Kiểm máy có đủ đồ để tài khoản Claude nào đăng nhập cũng dựng được bài (hiện ở ô Kiểm máy)."""
     ds = []
@@ -1722,17 +1843,34 @@ def san_sang():
     # ps=loi (tự mở không được). Bộ canh Mac / máy mới không ghi dòng này: báo như cũ.
     try:
         with open(hb, encoding="utf-8", errors="replace") as fh:
-            m = re.search(r"^ps=(\w+)", fh.read(200), re.M)
-        pst = m.group(1) if m else ""
+            nd = fh.read(300)
     except OSError:
-        pst = ""
+        nd = ""
+    m = re.search(r"^ps=(\w+)", nd, re.M)
+    pst = m.group(1) if m else ""
     song = tuoi is not None and tuoi < 90
-    ghi = "đang bật" if song else "chưa mở Photoshop (mở lên là tự bật, bài chờ được)"
-    if song and pst == "0":
-        ghi = "đang bật · Photoshop đang tắt, có bài là tự mở lên"
+    # 24/11: POLYTool canh hàng chờ (không ghi ps=): app tự hỏi Windows Photoshop có chạy không
+    pt = " (POLYTool)" if "polytool" in nd.lower() else ""
+    if song and not pst:
+        c = ps_dang_chay()
+        if c is not None:
+            pst = "1" if c else "0"
+            if not c and PS_TT["mo_loi"] and time.time() - PS_TT["mo_luc"] < 900:
+                pst = "loi"
+    ghi = ("đang bật" + pt) if song else "chưa mở Photoshop (mở lên là tự bật, bài chờ được)"
+    if song and pst == "1" and pt:
+        ghi = "đang bật%s · Photoshop đang mở" % pt
+    elif song and pst == "0":
+        ghi = "đang bật%s · Photoshop đang tắt, có bài là tự mở lên" % pt
     elif song and pst == "loi":
-        ghi = "Photoshop đang tắt, tự mở không được: fen mở Photoshop giúp"
-    ds.append({"ma": "ps", "ten": "Photoshop tự chạy", "ok": song and pst != "loi", "can": False, "ghi": ghi})
+        ml = PS_TT["mo_loi"] if pt and PS_TT["mo_loi"] else ""
+        ghi = "Photoshop đang tắt, tự mở không được%s: fen mở Photoshop giúp" % (" (" + ml + ")" if ml else "")
+    it = {"ma": "ps", "ten": "Photoshop tự chạy", "ok": song and pst != "loi", "can": False, "ghi": ghi}
+    if pt:        # để soát máy: app tự mở Photoshop bằng file nào
+        if time.time() - PS_TT.get("exe_luc", 0) > 600:
+            PS_TT.update(exe=PS_TT["exe"] or ps_tim_exe(), exe_luc=time.time())
+        it["exe"] = PS_TT["exe"]
+    ds.append(it)
     if IS_MAC:
         mac_san_sang(ds, tuoi)
     return ds
@@ -1872,6 +2010,8 @@ def start_run(job, prompt, kind, resume=None, label=None, model=None, them_dir=N
     save_job(job)
     log("chay %s %s luot %d pid %d" % (kind, job["id"], n, p.pid))
     threading.Thread(target=_reap, args=(p, job["id"]), daemon=True).start()
+    if kind in ("dung", "tiep", "sua") and job.get("dung_bang") != "canva":      # bài dựng bằng Photoshop: Photoshop tắt thì mở sẵn
+        threading.Thread(target=ps_can_mo, args=("bai %s %s" % (job["id"], kind),), daemon=True).start()
     return n
 
 
@@ -6896,6 +7036,10 @@ def lich():
         time.sleep(CFG.get("lich_giay") or 15)
         try:
             _chay_lich()
+        except Exception:
+            log(traceback.format_exc())
+        try:
+            ps_canh_hang()
         except Exception:
             log(traceback.format_exc())
 

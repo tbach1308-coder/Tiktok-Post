@@ -45,7 +45,7 @@ check('máy dùng chung thấy cờ theo mùa', all(x.get("mua") for x in S.goi_
 goi = []
 S.goi_y_quet = lambda web=False: goi.append(1) or {}
 S.KHO_TU_GIO = 0
-S.CFG.pop("kho_tu_sang", None)      # goiymuaui.js có thể đã tắt ô 🌅 trong config máy thử
+S.CFG.pop("kho_tu_sang", None)      # reset.sh tắt ô 🌅 trong config máy thử (khỏi tự đọc kho lúc thử)
 S.write_json(S.GOI_Y_FILE, dict(S.read_json(S.GOI_Y_FILE, {}), luc=S.now() - 2 * 86400, dang=False))
 S.APP_MO = time.time()
 r0 = S.goi_y_tu_sang()

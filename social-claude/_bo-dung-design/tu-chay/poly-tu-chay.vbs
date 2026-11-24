@@ -5,6 +5,9 @@
 '   bao "Object required", bai nao cung loi). Gio: Photoshop dang tat ma co bai -> tu mo Photoshop (thu nho), cho mo xong
 '   roi moi chay; mo khong duoc thi ghi LOI ro ly do. dang-chay.txt dong 2: ps=1 (Photoshop dang mo), ps=0 (dang tat,
 '   co bai se tu mo), ps=loi (vua tu mo khong duoc) -> app hien dung o o Kiem may.
+' 24/11 (fen chon "Giu POLYTool, app tu lo"): tu 19/11 hang cho do POLYTool canh (dang-chay.txt "... polytool pid N").
+'   POLYTool dang canh (nhip < 15 phut, ke ca luc dang chay 1 script dai) thi bo nay khong bat; dang chay ma thay POLYTool
+'   ghi nhip thi tu tat (23/11 21:15 ca 2 bo cung canh 1 hang). App Poly Dung Bai tu mo Photoshop khi co bai.
 ' Tham so (chi de thu): /q:<hang cho> /ten:<ten tien trinh> /exe:<duong dan Photoshop.exe> /progid:<COM> /cho:<giay cho mo>
 '   /san:<giay cho Photoshop san sang> /nghi:<mili giay giua 2 lan xem> /tuoiloi:<giay> (may khong doc duoc gio sua file, vd wine)
 Option Explicit
@@ -37,6 +40,8 @@ If Not fso.FolderExists(D) Then fso.CreateFolder D
 If fso.FileExists(lockF) Then
   If TuoiF(fso.GetFile(lockF)) < 20 Then WScript.Quit
 End If
+' POLYTool dang canh hang cho (nhip ghi "polytool", con moi < 15 phut) -> khong bat (2 bo cung canh 1 hang thi gianh file)
+If PolyTool(900) Then WScript.Quit
 ' dang chay 1 script dai (Photoshop chua tra ve) thi dang-lam.txt con moi -> khong bat them ban thu 2
 If fso.FileExists(Q & "\dang-lam.txt") Then
   If TuoiF(fso.GetFile(Q & "\dang-lam.txt")) < 900 Then WScript.Quit
@@ -50,8 +55,13 @@ Sub GhiLog(s)
 End Sub
 
 ' bao con song (dong 1: gio, dong 2: tinh trang Photoshop); loi ghi file thi bo qua, lan sau ghi lai
+' Truoc khi ghi: POLYTool vua ghi nhip (chu "polytool") thi tu tat, khong ghi de len nhip cua POLYTool
 Sub Nhip()
   Dim h
+  If PolyTool(60) Then
+    GhiLog "POLYTOOL DANG CANH HANG CHO - BO TU CHAY CU TU TAT"
+    WScript.Quit
+  End If
   On Error Resume Next
   Set h = fso.CreateTextFile(lockF, True)
   h.WriteLine Now
@@ -60,6 +70,23 @@ Sub Nhip()
   Err.Clear
   On Error GoTo 0
 End Sub
+
+' nhip trong dang-chay.txt do POLYTool ghi (co chu "polytool") va con moi hon tuoi giay
+Function PolyTool(tuoi)
+  Dim h, x
+  PolyTool = False
+  On Error Resume Next
+  If fso.FileExists(lockF) Then
+    If TuoiF(fso.GetFile(lockF)) < tuoi Then
+      Set h = fso.OpenTextFile(lockF, 1)
+      x = h.ReadAll
+      h.Close
+      If InStr(1, x, "polytool", 1) > 0 Then PolyTool = True
+    End If
+  End If
+  Err.Clear
+  On Error GoTo 0
+End Function
 
 ' Photoshop co dang chay khong (hoi Windows danh sach tien trinh). Khong hoi duoc thi coi nhu dang chay (lam nhu ban cu).
 Function PsDangChay()
@@ -180,6 +207,10 @@ If Not PsDangChay() Then psTT = "0"
 moLoiLuc = Now - 1
 GhiLog "BO TU CHAY DA BAT"
 Do
+  If PolyTool(60) Then
+    GhiLog "POLYTOOL DANG CANH HANG CHO - BO TU CHAY CU TU TAT"
+    WScript.Quit
+  End If
   If PsDangChay() Then
     psTT = "1"
   ElseIf psTT = "loi" And Giay(moLoiLuc) < 600 Then

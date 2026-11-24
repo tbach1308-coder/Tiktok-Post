@@ -56,15 +56,24 @@ check('bài chưa đăng: thư mục vào Thùng rác, không ghi DS đã dọn'
 # 3) 2 bài dùng chung 1 thư mục: xoá 1 bài thì giữ thư mục
 c, fc = lam("Bìa: iPAD CHO DÂN VĂN PHÒNG " + M + "\nSlide 2: Office")
 d, _ = lam("Bìa: iPAD CHO DÂN THIẾT KẾ " + M + "\nSlide 2: Procreate")
-jf = os.path.join(J, d, 'job.json'); jd = json.load(open(jf, encoding='utf-8')); jd['thu_muc_bai'] = fc
-json.dump(jd, open(jf, 'w', encoding='utf-8'), ensure_ascii=False)
-time.sleep(3.2)
+jf = os.path.join(J, d, 'job.json')
+
+
+def doi_tm(tm):
+    # app còn ghi job.json vài giây sau khi bài xong (ảnh nhỏ, caption…): ghi lại tới khi giữ được
+    for _ in range(8):
+        jd = json.load(open(jf, encoding='utf-8')); jd['thu_muc_bai'] = tm
+        json.dump(jd, open(jf, 'w', encoding='utf-8'), ensure_ascii=False)
+        time.sleep(3.2)
+        if json.load(open(jf, encoding='utf-8')).get('thu_muc_bai') == tm:
+            return
+
+
+doi_tm(fc)
 r = req('/api/job/%s/xoa' % c, {})
 check('thư mục bài khác còn dùng: giữ, báo lý do', not r.get('thung_rac') and 'bài khác' in (r.get('giu') or '') and os.path.isdir(fc), r)
 # 4) thư mục bài là chính thư mục kênh (lỗi dữ liệu): không đụng
-jd['thu_muc_bai'] = G + '/ws/iPad'
-json.dump(jd, open(jf, 'w', encoding='utf-8'), ensure_ascii=False)
-time.sleep(3.2)
+doi_tm(G + '/ws/iPad')
 r = req('/api/job/%s/xoa' % d, {})
 check('thư mục kênh: không đưa vào Thùng rác', not r.get('thung_rac') and r.get('giu') and os.path.isdir(G + '/ws/iPad'), r)
 # 5) bài đang chạy: không xoá
