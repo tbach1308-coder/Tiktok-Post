@@ -2621,6 +2621,12 @@ def goi_y_xong(jid):
 # tiện ích báo về, tab để nguyên cho fen tự đăng nhập. Chỉ chạy khi fen bấm 🔄 Cập nhật kho / Kiểm lại.
 KHO_WEB_F = os.path.join(APP, "kho-web.json")
 KHO_WEB = {"tok": None}
+APP_MO = time.time()     # lúc mở app: tự cập nhật kho buổi sáng chờ Chrome / tiện ích sẵn sàng sau khi bật máy (fen 24/11)
+# fen 24/11 13h45 "kiểm tra app có lỗi gì ko" -> chọn "Sửa kho Polysto": đọc kho qua Chrome lúc được lúc không (23/11 khong-thay,
+# 24/11 sáng Chrome chưa gửi về sau 3 phút; bấm lại thì được). Lỗi tạm (hết giờ / không thấy bảng / bảng trống) tự thử lại tối đa
+# 2 lần (sau 1 phút, rồi 3 phút) rồi mới báo lỗi; tiện ích báo "đã vào trang kho" + chẩn đoán cấu trúc trang để nhật ký ghi rõ lý do.
+KHO_THU_LAI = tuple(int(x) for x in (os.environ.get("POLY_KHO_THU") or "60,180").split(","))   # máy thử đặt ngắn
+KHO_HET = int(os.environ.get("POLY_KHO_HET") or 180)
 KHO_LAP = re.compile(r"dell|thinkpad|lenovo|legion|asus|rog|zenbook|vivobook|hp\b|elitebook|probook|omen|victus|msi|acer|predator|macbook|"
                      r"surface|lg gram|gram|razer|laptop|latitude|precision|xps|inspiron|vostro|zbook|yoga|ideapad", re.I)
 
@@ -2676,8 +2682,8 @@ def kho_web_gom(rows, k_mac):
     return out[:300]
 
 
-def kho_web_bat():
-    """Bấm Cập nhật kho: mở link kho trong Chrome, chờ tiện ích gửi bảng về."""
+def kho_web_bat(lan=1):
+    """Bấm Cập nhật kho: mở link kho trong Chrome, chờ tiện ích gửi bảng về. lan > 1: app tự thử lại sau lỗi tạm."""
     lk = kho_link_ds()
     ds = []
     if lk["laptop"] and lk["ipad"] and lk["laptop"] != lk["ipad"]:
@@ -2687,7 +2693,7 @@ def kho_web_bat():
     if not ds:
         raise ValueError("Chưa lưu link kho: bấm 🔗 Link kho, dán link trang kho Polysto")
     KHO_WEB.clear()
-    KHO_WEB.update(tok=uuid.uuid4().hex[:16], ds=ds, i=0, rows=[], bat=now(), cot=[])
+    KHO_WEB.update(tok=uuid.uuid4().hex[:16], ds=ds, i=0, rows=[], bat=now(), cot=[], lan=lan, vao=False)
     try:
         _kho_web_mo()
     except Exception:
@@ -2695,9 +2701,10 @@ def kho_web_bat():
         raise
     cu = read_json(GOI_Y_FILE, {}) or {}
     cu.pop("web_may", None)
-    write_json(GOI_Y_FILE, dict(cu, dang=True, jid=None, web=True, bat=now(), loi="", buoc="Đang mở trang kho trên Chrome, đọc bảng máy… (dưới 1 phút)"))
+    write_json(GOI_Y_FILE, dict(cu, dang=True, jid=None, web=True, bat=now(), loi="",
+                                buoc="Đang mở trang kho trên Chrome, đọc bảng máy… (dưới 1 phút)" + (" · thử lại lần %d" % lan if lan > 1 else "")))
     poly_ghi_tt("dang", "đọc web")
-    log("kho web: mo %s" % ", ".join("%s=%s" % (k, short(u, 70)) for k, u in ds))
+    log("kho web: mo %s%s" % (", ".join("%s=%s" % (k, short(u, 70)) for k, u in ds), " (thu lai lan %d)" % lan if lan > 1 else ""))
     return goi_y_doc()
 
 
@@ -2782,6 +2789,14 @@ def kho_web_nhan(data):
         raise ValueError("Mã đọc kho hết hạn: trong app bấm lại 🔄 Cập nhật kho")
     cot = [short(str(x), 40) for x in (data.get("cot") or [])][:30]
     tt = data.get("tt")
+    if tt == "vao":            # tiện ích báo đã vào trang kho (0.13.3): nhật ký biết lỗi nằm ở Chrome hay ở trang
+        KHO_WEB["vao"] = True
+        log("kho web: tien ich da vao trang kho (%s)" % short(str(data.get("url") or ""), 60))
+        return {"ok": True, "dong": False}
+    if data.get("ct"):
+        log("kho web: chan doan %s" % short(json.dumps(data.get("ct"), ensure_ascii=False), 400))
+    if tt == "khong-thay" and _kho_web_thu_lai("không thấy bảng máy"):
+        return {"ok": True, "dong": True}
     if tt != "ok":
         KHO_WEB["tok"] = None
         ly = ("Chrome chưa đăng nhập POLY: fen đăng nhập ở tab Polysto vừa mở trên Chrome (hồ sơ Chrome iPad) rồi bấm 🔄 Cập nhật kho lại"
@@ -2814,8 +2829,10 @@ def kho_web_nhan(data):
     if KHO_WEB["i"] < len(KHO_WEB["ds"]):
         _kho_web_mo()
         return {"ok": True, "dong": True}
-    KHO_WEB["tok"] = None
     may = KHO_WEB["rows"]
+    if not may and _kho_web_thu_lai("bảng kho trống"):
+        return {"ok": True, "dong": True}
+    KHO_WEB["tok"] = None
     if not may:
         cu = read_json(GOI_Y_FILE, {}) or {}
         cu.update(dang=False, loi="Đọc được trang kho nhưng không ra dòng máy nào (cột: %s)" % (", ".join(cot) or "?"), loi_t=now(), buoc="")
@@ -2846,10 +2863,42 @@ def _kho_web_goi_y(may):
         write_json(GOI_Y_FILE, cu)
 
 
+def _kho_web_thu_lai(ly):
+    """Lỗi tạm khi đọc kho qua Chrome: còn lượt thì hẹn tự mở lại trang kho (giữ trạng thái "đang cập nhật"), trả True."""
+    lan = KHO_WEB.get("lan") or 1
+    if lan > len(KHO_THU_LAI):
+        return False
+    cho = KHO_THU_LAI[lan - 1]
+    KHO_WEB["tok"] = None
+    cu = read_json(GOI_Y_FILE, {}) or {}
+    cu.update(dang=True, web=True, jid=None, bat=now() + cho, loi="",
+              buoc="Chrome chưa đọc được kho (%s), %d %s nữa app tự thử lại (lần %d)…" % (ly, cho // 60 or cho, "phút" if cho >= 60 else "giây", lan + 1))
+    write_json(GOI_Y_FILE, cu)
+    log("kho web: %s -> thu lai lan %d sau %ds" % (ly, lan + 1, cho))
+
+    def lai():
+        d = read_json(GOI_Y_FILE, {}) or {}
+        if not d.get("dang") or not d.get("web") or KHO_WEB.get("tok"):      # fen đã bấm lại / đã có lượt khác
+            return
+        try:
+            kho_web_bat(lan + 1)
+        except Exception as e:
+            d.update(dang=False, loi=short("Thử lại đọc kho chưa được: %s" % str(e).split("|")[-1], 200), loi_t=now(), buoc="")
+            write_json(GOI_Y_FILE, d)
+            poly_ghi_tt("loi", "đọc web", d["loi"])
+            log("kho web: thu lai loi: %s" % e)
+    t = threading.Timer(cho, lai)
+    t.daemon = True
+    t.start()
+    return True
+
+
 def kho_web_het_gio():
     """Đang chờ Chrome mà quá 3 phút không thấy gửi về: báo lỗi (tiện ích chưa nạp bản mới, Chrome không mở, trang treo)."""
     cu = read_json(GOI_Y_FILE, {}) or {}
-    if cu.get("dang") and cu.get("web") and not cu.get("jid") and not cu.get("web_may") and now() - (cu.get("bat") or 0) > 180:
+    if cu.get("dang") and cu.get("web") and not cu.get("jid") and not cu.get("web_may") and now() - (cu.get("bat") or 0) > KHO_HET:
+        if KHO_WEB.get("tok") and _kho_web_thu_lai("hết 3 phút chưa gửi về, tiện ích %s vào trang kho" % ("đã" if KHO_WEB.get("vao") else "chưa")):
+            return
         KHO_WEB["tok"] = None
         ly = ("Chrome chưa gửi kho về sau 3 phút: kiểm Chrome có mở trang kho không, đã đăng nhập POLY chưa; tiện ích Poly TikTok "
               "tự nạp bản mới khi mở trang app trong Chrome")
@@ -2961,8 +3010,11 @@ KHO_TU_GIO = 8          # mỗi sáng 8h
 def goi_y_tu_sang():
     """🌅 Mỗi sáng tự cập nhật kho (fen 16/11 11h45 "ngày nào cũng có gợi ý", chọn "Mỗi sáng tự cập nhật kho"; trước đó 15/11 13h41 chỉ
     đọc kho khi fen bấm): từ 8h, hôm nay chưa cập nhật lần nào (fen bấm hoặc tự) thì cập nhật 1 lần như bấm 🔄 Cập nhật kho; máy shop mở
-    app sau 8h thì cập nhật lúc mở. Mỗi ngày thử đúng 1 lần (lỗi không thử lại, fen bấm tay). Tắt ở 🔗 Link kho (config kho_tu_sang)."""
+    app sau 8h thì cập nhật lúc mở (chờ 4 phút sau khi mở app). Mỗi ngày 1 lượt; lỗi tạm thì lượt đó tự thử lại 2 lần (24/11).
+    Tắt ở 🔗 Link kho (config kho_tu_sang)."""
     if CFG.get("kho_tu_sang") is False:
+        return False
+    if time.time() - APP_MO < 240:      # vừa bật máy / mở app: chờ Chrome + tiện ích sẵn sàng (24/11 sáng mở ngay thì Chrome không gửi về)
         return False
     t = time.localtime()
     if t.tm_hour < KHO_TU_GIO:
@@ -2995,6 +3047,7 @@ def goi_y_lich():
             d = read_json(GOI_Y_FILE, {}) or {}
             if d.get("dang") and d.get("jid"):
                 goi_y_xong(d["jid"])
+            kho_web_het_gio()          # không ai mở app cũng biết hết giờ -> tự thử lại / báo lỗi (24/11)
             goi_y_tu_sang()
         except Exception:
             log("goi y kho lich loi: " + traceback.format_exc())

@@ -45,7 +45,12 @@ check('máy dùng chung thấy cờ theo mùa', all(x.get("mua") for x in S.goi_
 goi = []
 S.goi_y_quet = lambda web=False: goi.append(1) or {}
 S.KHO_TU_GIO = 0
+S.CFG.pop("kho_tu_sang", None)      # goiymuaui.js có thể đã tắt ô 🌅 trong config máy thử
 S.write_json(S.GOI_Y_FILE, dict(S.read_json(S.GOI_Y_FILE, {}), luc=S.now() - 2 * 86400, dang=False))
+S.APP_MO = time.time()
+r0 = S.goi_y_tu_sang()
+check('mỗi sáng: vừa mở app (chưa đủ 4 phút) thì chờ, chưa cập nhật (24/11: Chrome / tiện ích chưa sẵn sàng)', not r0 and not goi, [r0, goi])
+S.APP_MO = time.time() - 300
 r1 = S.goi_y_tu_sang(); r2 = S.goi_y_tu_sang()
 check('mỗi sáng: hôm nay chưa cập nhật -> tự cập nhật đúng 1 lần (ghi goi-y-tu.json)', r1 and not r2 and len(goi) == 1 and S.read_json(S.GOI_Y_TU, {}).get("ngay") == time.strftime("%Y-%m-%d"), [r1, r2, goi])
 os.remove(S.GOI_Y_TU); goi.clear()

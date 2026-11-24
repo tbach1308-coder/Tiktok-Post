@@ -14,7 +14,7 @@ let ok = 0, bad = 0; const check = (n, c, x) => { c ? ok++ : bad++; console.log(
 const rm = f => { try { fs.renameSync(f, '/tmp/_bo_' + Date.now() + '_' + f.split('/').pop()); } catch (e) {} };
 const cho = async (f, n = 60) => { for (let i = 0; i < n; i++) { const r = await j(A + '/api/goi-y'); if (f(r.b)) return r.b; await new Promise(x => setTimeout(x, 500)); } return (await j(A + '/api/goi-y')).b; };
 const moTu = async () => { for (let i = 0; i < 30; i++) { const m = (fs.readFileSync(T + '/fakechrome/args.log', 'utf8').match(/(http:\/\/127\.0\.0\.1:8790\/kho-mo\?tok=\w+)/) || [])[1]; if (m) return m; await new Promise(x => setTimeout(x, 200)); } return ''; };   // Chrome giả ghi link chậm
-const KHO = fs.readFileSync('/home/claude/repo/tiktok-ext/kho.js', 'utf8');
+const KHO = fs.readFileSync(require('path').resolve(__dirname, fs.existsSync(__dirname + '/../../tiktok-ext/kho.js') ? '../../tiktok-ext/kho.js' : '/home/claude/tiktok-post/tiktok-ext/kho.js'), 'utf8');
 // cột giống trang kho thật (15/11 14h49): #, TÊN MÁY & SERI (tên + seri xuống dòng), CẤU HÌNH, T.TRẠNG, PIN, GIÁ BÁN, HH, GHI CHÚ, TRẠNG THÁI, (nút)
 const ROWS = [['1', 'Dell Latitude 7420 i7 16GB 512GB<br>C02DK3XYQ6L4', 'i7-1185G7 · 16GB', 'Like new', '92%', '12.900<br>9.100', '500.000', 'Khách Nguyễn Văn A cọc', 'Đang bán', 'Sửa'],
   ['2', 'Dell Latitude 7420 i7 16GB 512GB<br>C02DK3XYQ6L5', 'i7-1185G7 · 16GB', 'Like new', '90%', '13.500<br>9.300', '500.000', '', 'Đang bán', 'Sửa'],
@@ -52,7 +52,7 @@ const trangLogin = `<!doctype html><meta charset=utf-8><title>POLY Store</title>
     if (location.host === '127.0.0.1:8790' && coTi) document.addEventListener('readystatechange', () => { document.documentElement.dataset.polyTiktok = '0.13.0'; }, { once: true });
     if (location.host !== 'app.polystorevn.com') return;
     window.__kho = null;
-    Object.defineProperty(window, 'chrome', { value: { runtime: { sendMessage: m => { window.__kho = m; return Promise.resolve({}); } } }, configurable: true });
+    Object.defineProperty(window, 'chrome', { value: { runtime: { sendMessage: m => { if (m && m.data && m.data.tt === 'vao') window.__vao = m; else window.__kho = m; return Promise.resolve({}); } } }, configurable: true });   // 0.13.3: tin 'vao' (đã vào trang kho) gửi trước, giữ riêng
     new Function(KHO)();
   }, { KHO, coTi: true });
   const p = await ctx.newPage(); p.on('pageerror', e => errs.push(e.message));
@@ -97,7 +97,7 @@ const trangLogin = `<!doctype html><meta charset=utf-8><title>POLY Store</title>
   await j(A + '/api/goi-y', { quet: true });
   const f = JSON.parse(fs.readFileSync(T + '/goi-y-kho.json')); f.bat -= 200; fs.writeFileSync(T + '/goi-y-kho.json', JSON.stringify(f));
   d = (await j(A + '/api/goi-y')).b;
-  check('Chrome không gửi kho về sau 3 phút: hết chờ, báo lỗi rõ', !d.dang && /sau 3 phút/.test(d.loi), d.loi);
+  check('Chrome không gửi kho về sau 3 phút: chưa báo lỗi, app tự thử lại (24/11; hết lượt thử thì báo lỗi: kholai.py)', d.dang && !d.loi && /tự thử lại \(lần 2\)/.test(d.buoc), d);
   // chưa chọn hồ sơ Chrome (fen 14h30: Chrome tự chọn hồ sơ mở gần nhất → mở nhầm hồ sơ không có tiện ích)
   await j(A + '/api/tiktok-cai', { ho_so: '' }); await j(A + '/api/goi-y', { hs: '' });
   const SP = T + '/fakechrome/ud/Profile 9/Secure Preferences', SP2 = SP + '.bo'; if (fs.existsSync(SP)) fs.renameSync(SP, SP2);

@@ -148,6 +148,8 @@ LẤY MÁY + GIÁ TỪ KHO POLYSTO
   Chrome (hồ sơ đăng TikTok iPad) mở link kho, tiện ích Poly TikTok đợi bảng hiện, chỉ chép tên máy · cấu hình · tình trạng · giá bán
   (không mã, giá nhập / vốn, khách, ngày), tự sang trang sau, gửi về app rồi đóng tab; app gom theo dòng máy rồi Claude gợi ý chủ đề.
   Chrome chưa đăng nhập POLY: tab đăng nhập để nguyên, fen tự đăng nhập (mật khẩu + mã PIN) rồi bấm Cập nhật kho lại.
+  (24/11) Chrome không gửi kho về (hết 3 phút, hoặc trang kho chưa hiện bảng) thì app tự thử lại 2 lần (sau 1 phút, rồi 3 phút),
+  dòng 💡 ghi "tự thử lại (lần 2)…"; cả 3 lần không được mới báo lỗi. Mở máy / mở app sau 8h thì chờ 4 phút cho Chrome sẵn sàng rồi mới tự cập nhật.
   (15/11 14h50) Bảng kho thật có cột TÊN MÁY & SERI, CẤU HÌNH, T.TRẠNG, PIN, GIÁ BÁN, HH, GHI CHÚ, TRẠNG THÁI: tiện ích chỉ lấy dòng tên
   (bỏ seri), cấu hình, tình trạng, pin, giá bán, trạng thái; không lấy seri, HH, ghi chú. App gom theo tên + cấu hình: "2 máy · 12,9–13,5
   triệu · Like new · pin 90–92%". Ô hồ sơ Chrome tự dò hồ sơ nào có tiện ích Poly TikTok (✓), chưa chọn thì tự dùng hồ sơ đó.

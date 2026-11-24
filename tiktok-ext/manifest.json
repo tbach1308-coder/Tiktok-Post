@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Poly TikTok",
-  "version": "0.13.2",
+  "version": "0.13.3",
   "description": "App Poly Dựng Bài bấm Đăng TikTok là tiện ích này mở tab Ảnh, gắn sẵn slide + caption vào TikTok Studio (máy shop, hoặc máy dùng chung qua đường nối của máy shop). Fen tự kiểm và tự bấm Đăng (tiện ích không bao giờ bấm Đăng). 0.13: bấm 🔄 Cập nhật kho trong app thì đọc trang kho Polysto (chỉ tên máy, cấu hình, giá bán) rồi đóng tab.",
   "minimum_chrome_version": "111",
   "permissions": [

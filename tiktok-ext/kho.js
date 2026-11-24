@@ -1,4 +1,4 @@
-// Poly TikTok 0.13 (fen 15/11 13h49 "https://app.polystorevn.com/kho-may đọc qua link này là dc mầ", chọn "Đọc link qua Chrome đã
+// Poly TikTok 0.13 (0.13.3 fen 24/11: báo đã vào trang + chẩn đoán khi không thấy bảng) (fen 15/11 13h49 "https://app.polystorevn.com/kho-may đọc qua link này là dc mầ", chọn "Đọc link qua Chrome đã
 // đăng nhập"): app bấm 🔄 Cập nhật kho mở link kho đã lưu trong Chrome này, kèm #poly_kho=<mã>&k=<kênh>. Không có dấu đó thì tiện ích
 // KHÔNG làm gì trên trang Polysto. CHỈ ĐỌC: đợi bảng máy hiện, chép cột tên / cấu hình / tình trạng / giá bán (bỏ giá vốn, giá nhập,
 // seri, mã, khách, nhân viên, ghi chú, ngày), bấm nút "trang sau" của bảng nếu có (tối đa 40 trang), gửi về app rồi app đóng tab.
@@ -60,7 +60,18 @@
       return la && !b.disabled && b.getAttribute('aria-disabled') !== 'true' && !/disabled/i.test(b.className || '');
     });
   }
+  // 0.13.3 (fen 24/11: đọc kho lúc được lúc không): chẩn đoán CẤU TRÚC trang khi không đọc được (không chép ô dữ liệu nào)
+  function chanDoan() {
+    const tb = [...document.querySelectorAll('table')].slice(0, 5).map(t => ({ th: t.querySelectorAll('th').length, tr: t.querySelectorAll('tbody tr').length,
+      an: !t.offsetParent }));
+    const dlg = [...document.querySelectorAll('[role=dialog],[role=alertdialog],[aria-modal=true],.modal,.ant-modal,[class*=Dialog],[class*=Modal]')]
+      .filter(x => x.offsetParent || getComputedStyle(x).position === 'fixed').slice(0, 3)
+      .map(x => sach(x.querySelector('h1,h2,h3,h4,[class*=title],[class*=Title]') || x).slice(0, 40));
+    const tai = !!document.querySelector('[aria-busy=true],[class*=skeleton],[class*=Skeleton],[class*=spinner],[class*=Spinner],[class*=loading],[class*=Loading]');
+    return { an: document.visibilityState, path: location.pathname, bang: tb, hop: dlg, tai, grid: document.querySelectorAll('[role=row]').length };
+  }
   async function chay() {
+    gui({ tt: 'vao', url: location.pathname });          // báo app: tiện ích đã vào trang kho
     let truoc = '', yen = 0, trang = 1, hd = [], cot = null;
     const da = new Set(), rows = [];
     for (let i = 0; i < 120; i++) {           // tối đa ~2 phút
@@ -94,7 +105,7 @@
     try { sessionStorage.removeItem(KEY); } catch (e) {}
     if (!cot || cot.ten < 0 || !rows.length) {
       const nhan = hd.length ? hd : [...document.querySelectorAll('h1,h2,h3,th,[role=columnheader]')].map(sach).filter(Boolean).slice(0, 20);
-      return gui({ tt: 'khong-thay', cot: nhan.map(x => x.slice(0, 40)) });
+      return gui({ tt: 'khong-thay', cot: nhan.map(x => x.slice(0, 40)), ct: chanDoan() });
     }
     gui({ tt: 'ok', cot: hd.map(x => x.slice(0, 40)), chon: { ten: hd[cot.ten], gia: cot.gia >= 0 ? hd[cot.gia] : '', them: cot.them.map(i => hd[i]), tt: cot.tt >= 0 ? hd[cot.tt] : '' }, rows, trang });
   }
