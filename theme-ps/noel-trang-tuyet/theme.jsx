@@ -878,22 +878,27 @@ if (THEME.noel_sang) {
       return r;
     };
   }
-  var NOEL_LI0 = liGroup;
-  liGroup = function (items, top, name) {
-    NOEL_KHUNG = null;
-    var r = NOEL_LI0(items, top, name);
-    if (NOEL_KHUNG) { try { NOEL_KHUNG.fillOpacity = 100; } catch (e) {} }
-    return r;
-  };
+  if (typeof liGroup == "function") {        // liGroup chỉ có ở bộ iPad
+    var NOEL_LI0 = liGroup;
+    liGroup = function (items, top, name) {
+      NOEL_KHUNG = null;
+      var r = NOEL_LI0(items, top, name);
+      if (NOEL_KHUNG) { try { NOEL_KHUNG.fillOpacity = 100; } catch (e) {} }
+      return r;
+    };
+  }
 }
 
 // ---------- trang noi dung: tieu de trang soc xanh nhat + bong cung (nhu chu CHRISTMAS) ----------
-var NOEL_HEADC0 = headC;
-headC = function (n, bg, pillTxt, t, sub, op, blur) {
-  var d = NOEL_HEADC0(n, bg, pillTxt, t, sub, op, blur);
-  try { noelSoc(d.artLayers.getByName("Tiêu đề"), NOEL_SOC_TIEU, 4); } catch (e) { RUN += "   noel: tieu de soc loi (" + e.message + ")\n"; }
-  return d;
-};
+// headC chỉ có ở bộ iPad (ipad/poly-lib.jsx): bài laptop (code/build.py) không có thì bỏ qua (24/11: bài laptop theme này lỗi "headC is undefined")
+if (typeof headC == "function") {
+  var NOEL_HEADC0 = headC;
+  headC = function (n, bg, pillTxt, t, sub, op, blur) {
+    var d = NOEL_HEADC0(n, bg, pillTxt, t, sub, op, blur);
+    try { noelSoc(d.artLayers.getByName("Tiêu đề"), NOEL_SOC_TIEU, 4); } catch (e) { RUN += "   noel: tieu de soc loi (" + e.message + ")\n"; }
+    return d;
+  };
+}
 
 // ---------- phieu uu dai (nhu thiep trong banner): giay kem vien thu may bay, chu viet tay, gia do, tem, dau buu dien, "— Poly Store" ----------
 // p = { chu: "Mua iPad giảm", gia: "200K", tem: "HSSV", mau: "xanh" | "do" }

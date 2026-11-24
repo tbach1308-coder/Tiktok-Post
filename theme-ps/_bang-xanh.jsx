@@ -60,24 +60,27 @@ rect = function (l, t, r, b, rad, hex, name) {
   if (name == "Nhãn") rad = Math.min(rad, 8);          // nhan bo goc nho thanh tab (mau theo "pill" cua theme)
   return BX_RECT0(l, t, r, b, rad, hex, name);
 };
-var BX_HEADC0 = headC;
-headC = function (n, bg, pillTxt, t, sub, op, blur) {
-  var d = BX_HEADC0(n, bg, pillTxt, t, sub, op, blur);
-  try {
-    var T = d.artLayers.getByName("Tiêu đề"), q = bb(T), top = q[1] - 44, bot = q[3] + 30;
-    var P = bxKeo(THEME_N % 2 ? "giay-xe.png" : "giay-xe-2.png", -24, top, W + 24, bot, "Giấy xé");
-    if (P) { try { P.move(d.artLayers.getByName("Thương hiệu"), ElementPlacement.PLACEBEFORE); } catch (e) {} }
-    // tab: tam o mep tren giay
-    var ls = [];
-    try { ls.push(d.artLayers.getByName("Nhãn")); ls.push(d.artLayers.getByName("Nhãn - chữ")); } catch (e) {}
-    if (ls.length == 2) { var qn = bb(ls[0]), dy = top + 4 - (qn[1] + qn[3]) / 2; ls[0].translate(0, dy); ls[1].translate(0, dy); }
-    // phu de trang ngay duoi giay
-    var S = null;
-    try { S = d.artLayers.getByName("Phụ đề"); } catch (e) {}
-    if (S) { var qs = bb(S), can = bot + 20 - qs[1]; if (can > 0) S.translate(0, can); }
-  } catch (e2) { RUN += "   bang xanh: tieu de giay xe loi (" + e2.message + ")\n"; }
-  return d;
-};
+// headC chỉ có ở bộ iPad (ipad/poly-lib.jsx): bài laptop (code/build.py) không có thì bỏ qua (24/11: bài laptop theme này lỗi "headC is undefined")
+if (typeof headC == "function") {
+  var BX_HEADC0 = headC;
+  headC = function (n, bg, pillTxt, t, sub, op, blur) {
+    var d = BX_HEADC0(n, bg, pillTxt, t, sub, op, blur);
+    try {
+      var T = d.artLayers.getByName("Tiêu đề"), q = bb(T), top = q[1] - 44, bot = q[3] + 30;
+      var P = bxKeo(THEME_N % 2 ? "giay-xe.png" : "giay-xe-2.png", -24, top, W + 24, bot, "Giấy xé");
+      if (P) { try { P.move(d.artLayers.getByName("Thương hiệu"), ElementPlacement.PLACEBEFORE); } catch (e) {} }
+      // tab: tam o mep tren giay
+      var ls = [];
+      try { ls.push(d.artLayers.getByName("Nhãn")); ls.push(d.artLayers.getByName("Nhãn - chữ")); } catch (e) {}
+      if (ls.length == 2) { var qn = bb(ls[0]), dy = top + 4 - (qn[1] + qn[3]) / 2; ls[0].translate(0, dy); ls[1].translate(0, dy); }
+      // phu de trang ngay duoi giay
+      var S = null;
+      try { S = d.artLayers.getByName("Phụ đề"); } catch (e) {}
+      if (S) { var qs = bb(S), can = bot + 20 - qs[1]; if (can > 0) S.translate(0, can); }
+    } catch (e2) { RUN += "   bang xanh: tieu de giay xe loi (" + e2.message + ")\n"; }
+    return d;
+  };
+}
 
 // ---------- bia (nhu the san pham trong anh mau) ----------
 // o = { tab: "POLY STORE", ten: "iPad Pro M1 - 11inch" (chu xanh tren giay xe), anh: "ảnh máy nền trong.png",

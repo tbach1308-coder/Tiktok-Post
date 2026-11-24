@@ -16,6 +16,7 @@ Mỗi theme ở `theme-ps/<id>/` (thư mục app): `theme.json` (bảng màu, fo
 - iPad: `python "E:/Social Claude/_bo-dung-design/ipad/build.py" "<bài>" "<part>" "<out>" [--only 3,4] --theme "<thư mục app>/theme-ps/<id>/theme.jsx"`
 - Laptop: `python "E:/Social Claude/_bo-dung-design/code/build.py" slides/<x>.jsx <thư mục bài> <tên> vN [1,2] --theme "<…>/theme.jsx"`
 - Log bài có dòng `Theme <tên>: T=<font> B=<font>`: không có dòng đó là quên --theme, build lại.
+- Viết phần riêng theme (`_*.jsx`): hàm chỉ bộ iPad có (`headC`, `liGroup`, `hook`) phải bọc trong `if (typeof headC == "function") { … }`; bộ laptop không có hàm đó (24/11 bài laptop theme Noel lỗi "headC is undefined"). Test: `node dev/test/themelaptop.js`.
 
 ## Theme tự làm (không cần viết)
 - `newDoc()` vẽ nền phẳng màu theme + hình khối trang trí ở góc (slide lẻ / chẵn đổi góc).

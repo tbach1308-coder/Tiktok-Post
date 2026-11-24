@@ -973,15 +973,18 @@ themeNen = function () {
   }
 };
 // tieu de trang noi dung (headC) co 1 gach chan ve tay o giua, nhu gach gia o bia. Sat phu de qua thi bo.
-var TAY_HEADC0 = headC;
-headC = function (n, bg, pillTxt, t, sub, op, blur) {
-  var d = TAY_HEADC0(n, bg, pillTxt, t, sub, op, blur);
-  if (THEME.tay_gach_tieu === false) return d;
-  try {
-    var T = d.artLayers.getByName("Tiêu đề"), q = bb(T), y = q[3] + 12, S = null;
-    try { S = d.artLayers.getByName("Phụ đề"); } catch (e) {}
-    if (S) { var qs = bb(S), gap = qs[1] - q[3]; if (gap < 44) S.translate(0, Math.min(30, 44 - gap)); }   // day phu de xuong cho gach chan (than bai bat dau tu 450)
-    var w = q[2] - q[0]; tayGach(q[0] + w * 0.1, q[2] - w * 0.1, y, 5, THEME.tay_mau || "FFFFFF", "Tiêu đề - gạch chân", true);
-  } catch (e2) { RUN += "   gach chan tieu de: " + e2.message + "\n"; }
-  return d;
-};
+// headC chỉ có ở bộ iPad (ipad/poly-lib.jsx): bài laptop (code/build.py) không có thì bỏ qua (24/11: bài laptop theme này lỗi "headC is undefined")
+if (typeof headC == "function") {
+  var TAY_HEADC0 = headC;
+  headC = function (n, bg, pillTxt, t, sub, op, blur) {
+    var d = TAY_HEADC0(n, bg, pillTxt, t, sub, op, blur);
+    if (THEME.tay_gach_tieu === false) return d;
+    try {
+      var T = d.artLayers.getByName("Tiêu đề"), q = bb(T), y = q[3] + 12, S = null;
+      try { S = d.artLayers.getByName("Phụ đề"); } catch (e) {}
+      if (S) { var qs = bb(S), gap = qs[1] - q[3]; if (gap < 44) S.translate(0, Math.min(30, 44 - gap)); }   // day phu de xuong cho gach chan (than bai bat dau tu 450)
+      var w = q[2] - q[0]; tayGach(q[0] + w * 0.1, q[2] - w * 0.1, y, 5, THEME.tay_mau || "FFFFFF", "Tiêu đề - gạch chân", true);
+    } catch (e2) { RUN += "   gach chan tieu de: " + e2.message + "\n"; }
+    return d;
+  };
+}
