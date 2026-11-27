@@ -4889,10 +4889,7 @@ def kho_chung(data=None):
         if not d:
             raise ValueError("Máy này chưa có ổ Google Drive")
         os.makedirs(d, exist_ok=True)
-        if IS_WIN:
-            os.startfile(d)
-        elif IS_MAC:
-            subprocess.Popen(["open", d])
+        mo_thu_muc(d)
     if data.get("dua"):
         kho_chung_dua(data["dua"])
         if not CFG.get("kho_chung_chu"):
@@ -7571,6 +7568,102 @@ def don_thang(data):
 # (Windows Recycle Bin / Mac Trash, lấy lại được bằng Restore), chạy nền. Chỉ đưa thư mục bài nằm ngay trong thư mục kênh
 # (E:\Social Claude\iPad\T11_…), không đụng thư mục kênh / thư mục "_…"; bài khác còn dùng chung thư mục thì giữ.
 # Bài đã đăng: ghi tên vào noi-dung/danh-sach-content-da-don.md (dò trùng vẫn biết là bài đã làm, như các lần dọn trước).
+# ---------------------------------------------------------------- mở thư mục, cửa sổ lên trước
+# fen 27/11 14h50 "bấm nút này folder hiện lên trước luôn": app chạy ngầm nên Windows không cho cửa sổ File Explorer
+# vừa mở lên trước (nằm sau trình duyệt, chỉ nháy ở thanh tác vụ). Mở xong thì tìm đúng cửa sổ (mới mở / tab mới đổi tên)
+# rồi đưa lên trước: gắn vào luồng cửa sổ đang đứng trước -> mẹo phím Alt -> ít nhất đặt nằm trên cùng.
+def _chon_cua_so(truoc, sau, ten):
+    """truoc / sau: [(hwnd, tiêu đề)] cửa sổ File Explorer trước / sau khi mở. Chọn cửa sổ của thư mục `ten`:
+    ưu tiên cửa sổ mới có tiêu đề chứa tên thư mục, rồi cửa sổ có tiêu đề chứa tên (Windows 11 mở tab mới trong cửa sổ cũ)."""
+    ten = (ten or "").strip().lower()
+    cu = {h for h, _ in truoc}
+    khop = [h for h, t in sau if ten and ten in (t or "").lower()]
+    moi = [h for h in khop if h not in cu]
+    return (moi or khop or [None])[0]
+
+
+def _win_explorer_ds():
+    import ctypes
+    from ctypes import wintypes
+    u = ctypes.windll.user32
+    ds = []
+
+    @ctypes.WINFUNCTYPE(wintypes.BOOL, wintypes.HWND, wintypes.LPARAM)
+    def cb(h, _l):
+        lop = ctypes.create_unicode_buffer(64)
+        u.GetClassNameW(h, lop, 64)
+        if lop.value == "CabinetWClass" and u.IsWindowVisible(h):
+            t = ctypes.create_unicode_buffer(512)
+            u.GetWindowTextW(h, t, 512)
+            ds.append((h, t.value))
+        return True
+    u.EnumWindows(cb, 0)
+    return ds
+
+
+def _win_len_truoc(hwnd):
+    import ctypes
+    from ctypes import wintypes
+    u, k = ctypes.windll.user32, ctypes.windll.kernel32
+    u.GetForegroundWindow.restype = wintypes.HWND
+    u.GetWindowThreadProcessId.argtypes = [wintypes.HWND, ctypes.c_void_p]
+    for f in ("IsIconic", "ShowWindow", "BringWindowToTop", "SetForegroundWindow", "SetWindowPos"):
+        getattr(u, f).argtypes = [wintypes.HWND] + {"ShowWindow": [ctypes.c_int],
+                                                    "SetWindowPos": [wintypes.HWND] + [ctypes.c_int] * 4 + [wintypes.UINT]}.get(f, [])
+    if u.IsIconic(hwnd):
+        u.ShowWindow(hwnd, 9)                               # SW_RESTORE: đang thu nhỏ thì mở ra
+    if u.GetForegroundWindow() == hwnd:
+        return "san"
+    fg = u.GetForegroundWindow()
+    t_fg, t_me = u.GetWindowThreadProcessId(fg, None) if fg else 0, k.GetCurrentThreadId()
+    gan = bool(t_fg and t_fg != t_me and u.AttachThreadInput(t_me, t_fg, True))
+    try:
+        u.BringWindowToTop(hwnd)
+        u.SetForegroundWindow(hwnd)
+    finally:
+        if gan:
+            u.AttachThreadInput(t_me, t_fg, False)
+    if u.GetForegroundWindow() == hwnd:
+        return "gan"
+    u.keybd_event(0x12, 0, 0, 0)                            # mẹo phím Alt: Windows cho đổi cửa sổ trước
+    u.SetForegroundWindow(hwnd)
+    u.keybd_event(0x12, 0, 2, 0)
+    if u.GetForegroundWindow() == hwnd:
+        return "alt"
+    nut = 0x0001 | 0x0002 | 0x0040                          # SWP_NOSIZE | SWP_NOMOVE | SWP_SHOWWINDOW
+    u.SetWindowPos(hwnd, -1, 0, 0, 0, 0, nut)              # nằm trên cùng rồi thả ra: ít nhất hiện trên các cửa sổ khác
+    u.SetWindowPos(hwnd, -2, 0, 0, 0, 0, nut)
+    return "tren"
+
+
+def _win_dua_len(p, truoc):
+    ten = os.path.basename(os.path.normpath(p))
+    try:
+        for _ in range(40):                                 # chờ cửa sổ hiện (tối đa ~4 giây)
+            time.sleep(0.1)
+            h = _chon_cua_so(truoc, _win_explorer_ds(), ten)
+            if h:
+                time.sleep(0.15)                            # cửa sổ vừa vẽ xong
+                log("mo thu muc %s: len truoc (%s)" % (ten, _win_len_truoc(h)))
+                return
+        log("mo thu muc %s: khong thay cua so File Explorer de dua len truoc" % ten)
+    except Exception as e:
+        log("mo thu muc %s: loi dua len truoc: %s" % (ten, e))
+
+
+def mo_thu_muc(p):
+    """Mở thư mục bằng File Explorer (Windows) / Finder (Mac), cửa sổ hiện lên trước."""
+    if IS_WIN:
+        try:
+            truoc = _win_explorer_ds()
+        except Exception:
+            truoc = []
+        os.startfile(p)  # noqa
+        threading.Thread(target=_win_dua_len, args=(p, truoc), daemon=True).start()
+    elif IS_MAC:
+        subprocess.Popen(["open", p], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)    # Finder tự lên trước
+
+
 def vao_thung_rac(p):
     """Đưa thư mục / file vào Thùng rác. Lỗi (Windows không đưa được, máy không có Thùng rác) thì raise OSError."""
     if IS_WIN:
@@ -10706,10 +10799,7 @@ def story_mau_cai(data, may=None):
             raise ValueError("Mở thư mục làm trên máy shop")
         d = _sm_thu_muc(None)
         os.makedirs(d, exist_ok=True)
-        if IS_WIN:
-            os.startfile(d)  # noqa
-        elif IS_MAC:
-            subprocess.Popen(["open", d], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        mo_thu_muc(d)
         return {"ok": True, "thu_muc": d}
     return {"ds": [story_mau_ra(m) for m in story_mau_ds()], "bo_cuc": [{"id": a, "ten": b} for a, b, _ in STORY_BO_CUC], "decor": story_decor_ds()}
 
@@ -11113,10 +11203,7 @@ class H(BaseHTTPRequestHandler):
                     p = data.get("p") or job.get("thu_muc_bai") or job_dir(jid)
                     if not allowed_path(p):
                         raise ValueError("Không mở được thư mục này")
-                    if IS_WIN:
-                        os.startfile(p)  # noqa
-                    elif IS_MAC:
-                        subprocess.Popen(["open", p], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)   # mở bằng Finder
+                    mo_thu_muc(p)
                     return self.send(200, {"ok": True})
                 if act == "xoa":
                     return self.send(200, xoa_bai(jid))
