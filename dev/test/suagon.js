@@ -33,6 +33,12 @@ let ok = 0, bad = 0; const check = (n, c, x) => { c ? ok++ : bad++; console.log(
     check('bấm Laptop ở Kênh của bài: đổi luôn, không hỏi', k1 === 'laptop' && await p.evaluate(() => !document.querySelector('.kxn')), k1);
     await p.click('#jb [data-kenh="ipad"]'); await p.waitForTimeout(1200);
     check('bấm iPad lại: về iPad', (await (await fetch('http://127.0.0.1:8790/api/job/' + jk.id)).json()).job.kenh === 'ipad'); }
+  // fen 27/11 14h30 "thay nút chép caption thành nút mở folder": máy shop có 📂 Mở thư mục ở hàng Caption, bấm là gọi mở thư mục bài
+  { await p.goto('http://127.0.0.1:8790/#bai=' + j.id); await p.reload(); await p.waitForSelector('#bMoTm', { timeout: 15000 });
+    const m = await p.evaluate(() => ({ copy: !!document.querySelector('#bCopy'), chu: document.querySelector('#bMoTm').textContent, nhom: document.querySelector('#bMoTm').closest('.pag').querySelector('span').textContent }));
+    const rq = p.waitForRequest(r => r.url().endsWith('/api/job/' + j.id + '/mo') && r.method() === 'POST', { timeout: 5000 }).then(() => true, () => false);
+    await p.click('#bMoTm');
+    check('máy shop: hàng Caption có 📂 Mở thư mục thay Chép caption, bấm là mở thư mục bài', !m.copy && m.chu === '📂 Mở thư mục' && m.nhom === 'Caption' && await rq, m); }
   check('không lỗi JS', errs.length === 0, errs);
   await b.close(); console.log(`\n${ok} đạt, ${bad} lỗi`); process.exit(bad ? 1 : 0);
 })().catch(e => { console.error(e); process.exit(1); });

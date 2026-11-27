@@ -498,7 +498,7 @@ CÀI TIỆN ÍCH POLY TIKTOK (1 lần, cho nút Đăng TikTok)
 - TikTok đổi giao diện mà tiện ích không gắn được ảnh: khung Poly TikTok góc dưới phải báo lỗi,
   fen kéo slide trong thư mục bài vào tay và báo Claude sửa tiện ích. Khung báo "ô chỉ nhận 1 file":
   bấm sang đăng Ảnh rồi Điền lại; vẫn vậy thì bấm "Vẫn gắn N slide" rồi xem TikTok nhận đủ chưa.
-  Không điền được caption thì bấm "Chép caption" trong app rồi dán.
+  Không điền được caption thì chép dòng 1 trong ô caption của app rồi dán (máy con: bấm "Chép caption").
 
 BÊN TRONG
 - App gọi Claude Code (claude.exe) chạy ngầm tại E:\Social Claude với lệnh plugin
