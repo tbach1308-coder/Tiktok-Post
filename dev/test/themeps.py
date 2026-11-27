@@ -23,14 +23,24 @@ def cho_xong(jid, n=90):
         if j.get('status') in ('xong', 'loi', 'dung'): return j
         time.sleep(1)
     return j
+# bài thử lần chạy trước dời ra chỗ khác: không thì bài mới trùng tiêu đề bài cũ cùng máy, bị giữ chờ máy shop (fen 21/11), lệnh không chạy
+import shutil
+_CU = os.path.join(TGL, '_to_delete', 'themeps'); os.makedirs(_CU, exist_ok=True)
+for _j in os.listdir(os.path.join(TGL, 'jobs')):
+    try:
+        _b = json.load(open(os.path.join(TGL, 'jobs', _j, 'job.json'), encoding='utf-8')).get('brief') or ''
+    except Exception:
+        continue
+    if _b.split('\n')[0] in ('Bìa: CHÚ THÍCH', 'Bìa: GLASS', 'Bìa: KHÔNG THEME', 'Bìa: MÁY KHÁC', 'Bìa: THEME PHẲNG', 'Bìa: x') or _b.startswith('Bìa: NOEL KIỂU POLY'):
+        shutil.move(os.path.join(TGL, 'jobs', _j), os.path.join(_CU, _j))
 def prompt():
     return open(os.path.join(TGL, 'last-prompt.txt'), encoding='utf-8').read()
 
 s, b, _ = req(APP, '/api/theme-ps')
 ds = b.get('ds', []) if s == 200 else []
 ids = [t['id'] for t in ds]
-check('GET /api/theme-ps: 18 theme kho chung', s == 200 and ids == ['anh-that-chu-nghieng', 'anh-that-chu-thich', 'anh-that-chu-vang', 'anh-that-day-toi', 'anh-that-nen-sang', 'bang-xanh-giay-xe', 'glass-tim-hong', 'glass-xanh-ngoc', 'noel-anh-that', 'noel-dem-xanh', 'noel-do-nhung', 'noel-poly-christmas', 'noel-trang-tuyet', 'phang-than-xanh-duong', 'phang-xanh-dem', 'tiem-ve-tay', 'toi-gian-den', 'toi-xanh-bang'] and all(t['kc'] for t in ds), (s, b))
-check('kiểu theme: ảnh thật / glass / phẳng', [t['kieu'] for t in ds] == ['ảnh thật', 'ảnh thật', 'ảnh thật', 'ảnh thật', 'ảnh thật', 'phẳng', 'glass', 'glass', 'ảnh thật', 'phẳng', 'phẳng', 'phẳng', 'phẳng', 'phẳng', 'phẳng', 'phẳng', 'phẳng', 'phẳng'], [t.get('kieu') for t in ds])
+check('GET /api/theme-ps: 19 theme kho chung', s == 200 and ids == ['anh-that-chu-nghieng', 'anh-that-chu-thich', 'anh-that-chu-vang', 'anh-that-day-toi', 'anh-that-nen-sang', 'bang-xanh-giay-xe', 'glass-tim-hong', 'glass-xanh-ngoc', 'noel-anh-that', 'noel-dem-xanh', 'noel-do-nhung', 'noel-kieu-poly', 'noel-poly-christmas', 'noel-trang-tuyet', 'phang-than-xanh-duong', 'phang-xanh-dem', 'tiem-ve-tay', 'toi-gian-den', 'toi-xanh-bang'] and all(t['kc'] for t in ds), (s, b))
+check('kiểu theme: ảnh thật / glass / phẳng / kiểu bài shop', [t['kieu'] for t in ds] == ['ảnh thật', 'ảnh thật', 'ảnh thật', 'ảnh thật', 'ảnh thật', 'phẳng', 'glass', 'glass', 'ảnh thật', 'phẳng', 'phẳng', 'kiểu bài shop', 'phẳng', 'phẳng', 'phẳng', 'phẳng', 'phẳng', 'phẳng', 'phẳng'], [t.get('kieu') for t in ds])
 check('mỗi theme 3 ảnh xem trước + tên + màu', all(len(t['anh']) == 3 and t['ten'] and len(t['mau']) == 3 for t in ds), ds)
 t0 = next((t for t in ds if t['id'] == 'phang-xanh-dem'), ds[0] if ds else None)
 s, b, h = req(APP, t0['anh'][0].split('?')[0], raw=True) if t0 else (0, b'', {})
@@ -83,7 +93,7 @@ HOST = r['url'].split('//')[1]; ma = req(APP, '/api/chung', {"ma_moi": True})[1]
 TOK = req(K, '/api/chung/vao', {"ma": ma, "ten": "Máy thử theme"}, h={'Host': HOST})[1].get('token')
 T = {'Host': HOST, 'X-Poly-Khach': TOK}
 s, b, _ = req(K, '/api/theme-ps', h=T)
-check('máy dùng chung: thấy 18 theme Photoshop kho chung', s == 200 and len(b.get('ds', [])) == 18, (s, b))
+check('máy dùng chung: thấy 19 theme Photoshop kho chung', s == 200 and len(b.get('ds', [])) == 19, (s, b))
 s, b, _ = req(K, '/api/theme-ps/anh/phang-xanh-dem/2', h=T, raw=True)
 check('máy dùng chung: xem ảnh theme', s == 200 and b[:4] == b'\x89PNG', s)
 s, b, _ = req(K, '/api/run', {"kenh": "ipad", "brief": "Bìa: MÁY KHÁC\nSlide 2: x", "theme_ps": "phang-than-xanh-duong"}, h=T)
@@ -92,9 +102,18 @@ jk = cho_xong(b.get('id'))
 check('bài máy khác ghi theme + khách', (jk.get('theme_ps') or {}).get('id') == 'phang-than-xanh-duong' and (jk.get('khach') or {}).get('ten') == 'Máy thử theme', jk)
 req(APP, '/api/chung', {"bat": False})
 
+# fen 27/11 "Noel · Kiểu Poly": theme giữ kiểu bài kênh -> lệnh dặn giữ luật kênh (nền ảnh mờ, bg-thumb), không "theme thắng màu, font, nền"
+s, b, _ = req(APP, '/api/run', {"kenh": "ipad", "brief": "Bìa: NOEL KIỂU POLY %d\nSlide 2: x" % (time.time() % 100000), "theme_ps": "noel-kieu-poly"})
+cho_xong(b.get('id')); pr_np = prompt()
+check('theme Noel · Kiểu Poly: lệnh có --theme, dặn GIỮ NGUYÊN kiểu bài kênh, không dặn theme thắng màu / font / nền',
+      'noel-kieu-poly/theme.jsx' in pr_np and 'GIỮ NGUYÊN kiểu bài của kênh' in pr_np and 'Theme thắng phần màu' not in pr_np, pr_np[:900])
 # file theme.jsx đúng dạng (THEME + động cơ)
 for i in ids:
     js = open(os.path.join(TGL, 'theme-ps', i, 'theme.jsx'), encoding='utf-8').read()
+    if i == 'noel-kieu-poly':       # fen 27/11: giữ nguyên kiểu bài shop -> không ghép động cơ (không đổi font, màu, bóng), chỉ thêm thông + tuyết
+        check('theme.jsx noel-kieu-poly: chỉ THEME + phần Noel nhẹ, không động cơ', js.startswith('// theme.jsx tự tạo') and 'var THEME = {' in js and 'function themeNen()' not in js
+              and 'fxGlow = function' not in js and 'function npVe()' in js and 'var THEME_LOG' in js)
+        continue
     check('theme.jsx %s: có THEME + nền phẳng + bỏ bóng' % i, js.startswith('// theme.jsx tự tạo') and 'var THEME = {' in js and 'function themeNen()' in js and 'fxGlow = function () {};' in js)
 s, b, _ = req(APP, '/api/run', {"kenh": "ipad", "brief": "Bìa: GLASS\nSlide 2: x", "theme_ps": "glass-tim-hong"})
 cho_xong(b.get('id')); pr = prompt()

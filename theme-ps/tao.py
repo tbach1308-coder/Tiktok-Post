@@ -13,7 +13,9 @@ for ten in sorted(os.listdir(D)):
         continue
     t = json.load(io.open(p, encoding="utf-8"))
     js = "// theme.jsx tự tạo bằng theme-ps/tao.py - sửa theme.json / _dong-co.jsx rồi chạy lại, đừng sửa tay\n"
-    js += "var THEME = " + json.dumps(t, ensure_ascii=False, indent=1) + ";\n" + dong_co
+    js += "var THEME = " + json.dumps(t, ensure_ascii=False, indent=1) + ";\n"
+    if t.get("dong_co") is not False:      # "dong_co": false = giữ nguyên kiểu bài shop, chỉ ghép phần riêng (theme "Noel · Kiểu Poly", fen 27/11)
+        js += dong_co
     if t.get("ve_tay"):
         js += "\n" + ve_tay
     for f in t.get("them") or []:          # phần riêng của theme (vd "_noel.jsx" theme Noel, fen 14/11 17h59)

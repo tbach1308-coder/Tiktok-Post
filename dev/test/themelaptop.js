@@ -1,6 +1,6 @@
 // fen 24/11 "kiểm tra app có lỗi gì ko": bài laptop dùng theme Noel lỗi ngay khi chạy (14:10 nganh24-v1.jsx
 // "headC is undefined", dòng var NOEL_HEADC0 = headC;): theme bọc hàm chỉ có trong bộ iPad (poly-lib.jsx) mà không hỏi có hàm đó chưa.
-// Thử: nạp theme.jsx của cả 18 theme như bộ laptop (code/build.py: không có hàm riêng iPad) và như bộ iPad: không lỗi lúc nạp.
+// Thử: nạp theme.jsx của cả 19 theme như bộ laptop (code/build.py: không có hàm riêng iPad) và như bộ iPad: không lỗi lúc nạp.
 //   node dev/test/themelaptop.js
 const fs = require('fs'), path = require('path');
 const R = path.resolve(__dirname, '../..'), K = path.join(R, 'social-claude/_bo-dung-design');
@@ -37,7 +37,7 @@ function nap(js, thieu) {
 }
 const TP = path.join(R, 'theme-ps');
 const ids = fs.readdirSync(TP).filter(d => fs.existsSync(path.join(TP, d, 'theme.jsx'))).sort();
-check('18 theme', ids.length === 18, ids.length);
+check('19 theme', ids.length === 19, ids.length);
 for (const id of ids) {
   const js = fs.readFileSync(path.join(TP, id, 'theme.jsx'), 'utf8');
   const lap = nap(js, new Set(chiIpad)), ip = nap(js, new Set()), boc = NAP && NAP.has('headC');

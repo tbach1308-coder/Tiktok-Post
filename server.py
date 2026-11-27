@@ -5338,6 +5338,7 @@ def theme_ps_ds():
                    "mo_ta": str(t.get("mo_ta") or "")[:300], "anh": anh, "kc": True,
                    "kieu": str(t.get("kieu") or "")[:20] or ("glass" if t.get("nen_kieu") == "kinh" else "phẳng"),     # fen 21h26 "cho thêm theme kiểu glass"; 14/11 "ảnh thật"
                    "mau": ["#" + str(t[k]) for k in ("nen", "nhan", "vang") if re.fullmatch(r"[0-9A-Fa-f]{6}", str(t.get(k) or ""))],
+                   "giu_kenh": t.get("dong_co") is False,       # fen 27/11 "Noel · Kiểu Poly": giữ kiểu bài kênh, theme chỉ thêm trang trí
                    **_mua_ra(dict(t, ten=t.get("ten") or ten))})      # fen 14/11 21h35 "kho theme phân theo mùa": theme Photoshop cũng có mùa (Noel…)
     return ds
 
@@ -5358,6 +5359,13 @@ def theme_ps_bien(job):
             '(theme "%s" fen chọn đã bị bỏ khỏi kho: dựng theo theme của kênh như thường)' % short(th.get("ten") or "", 60)
     jsx = os.path.join(THEME_PS_DIR, t["id"], "theme.jsx").replace("\\", "/")
     luat = os.path.join(THEME_PS_DIR, "luat-theme.md").replace("\\", "/")
+    if t.get("giu_kenh"):
+        return ('"%s" (kho chung, %s: %s)\n'
+                "Dựng bằng theme này: đọc mục theme \"%s\" trong \"%s\" trước khi viết slide; ghép theme khi build: iPad thêm --theme \"%s\" vào lệnh ipad/build.py, "
+                "Laptop thêm --theme \"%s\" vào lệnh code/build.py (mọi lần build, cả lần dựng lại). Theme này GIỮ NGUYÊN kiểu bài của kênh "
+                "(màu, font, nền ảnh mờ, bg-thumb, khung, hiệu ứng, bìa theo luật kênh như bài không theme), chỉ tự thêm phần trang trí của theme: "
+                "chừa trống chỗ trang trí ghi trong luật theme. Dặn agent thiết kế + agent duyệt: chấm theo luật kênh như thường, trang trí do theme tự thêm."
+                % (t["ten"], t["kieu"], t["mo_ta"], t["ten"], luat, jsx, jsx))
     return ('"%s" (kho chung, %s: %s)\n'
             "Dựng bằng theme này: đọc \"%s\" trước khi viết slide; ghép theme khi build: iPad thêm --theme \"%s\" vào lệnh ipad/build.py, "
             "Laptop thêm --theme \"%s\" vào lệnh code/build.py (mọi lần build, cả lần dựng lại). Theme thắng phần màu, font, nền, thẻ, "
@@ -10020,6 +10028,8 @@ def story_mau_ps():
     for tid in sorted(os.listdir(goc)) if os.path.isdir(goc) else []:
         t = read_json(os.path.join(goc, tid, "theme.json"), None)
         if not isinstance(t, dict) or not t.get("id"):
+            continue
+        if t.get("dong_co") is False:       # theme giữ kiểu bài kênh ("Noel · Kiểu Poly" 27/11): không có bìa riêng -> không làm mẫu story
             continue
         if "_noel.jsx" in (t.get("them") or []) and t["id"] == tid:
             try:

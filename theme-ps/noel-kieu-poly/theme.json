@@ -1,0 +1,79 @@
+{
+ "id": "noel-kieu-poly",
+ "ten": "Noel · Kiểu Poly",
+ "kieu": "kiểu bài shop",
+ "kenh": "",
+ "dong_co": false,
+ "them": [
+  "_noel-poly.jsx"
+ ],
+ "mo_ta": "Giữ nguyên kiểu bài shop (nền ảnh mờ tối, chữ trắng viền, nhãn + khung xanh lá, bìa tự làm như mọi bài), chỉ thêm Noel nhẹ: cụm thông + châu đỏ, châu vàng ở góc phải trên, lớp tuyết mỏng ở đáy. Trang trí nằm ngay trên nền, dưới chữ / thẻ / ảnh máy. Đừng đặt chữ ở góc phải trên (x > 760, y < 230) và dưới y 1380.",
+ "nen": "111111",
+ "nhan": "22C55E",
+ "vang": "FFD200",
+ "do": "D63A32",
+ "pill": [
+  "22C55E",
+  "FFFFFF"
+ ],
+ "font_tieu_de": [
+  "UTM-Cookies",
+  "UTM-Alberta-Heavy",
+  "SegoeUIBlack"
+ ],
+ "font_than": [
+  "UTMAvoBold",
+  "SegoeUI-Bold"
+ ],
+ "np_goc": "goc-thong.png",
+ "np_goc_rong": 420,
+ "np_tuyet": "tuyet-mong.png",
+ "xem": {
+  "t1": "iPAD NÀO",
+  "t2": "ĐÁNG MUA NOEL?",
+  "nho": "3 máy chạy ngon, giá dễ thở",
+  "pill": "QUÀ NOEL",
+  "tieu": "LÊN ĐỜI ĐÓN NOEL",
+  "phu": "Máy ngon giá mềm cho mùa lễ",
+  "ten": "iPad Pro 11 M4",
+  "cau": "Chip M4 · 256GB",
+  "gia": "25.990.000đ",
+  "y": [
+   [
+    "check",
+    "Pin còn tốt, máy zin đẹp"
+   ],
+   [
+    "check",
+    "Bảo hành tại shop"
+   ],
+   [
+    "bang",
+    "Ghé shop xem máy tận tay"
+   ]
+  ],
+  "ghi": [
+   "125/16/26 Bùi Đình Túy, P. Bình Thạnh",
+   "Hotline 0902.96.0804"
+  ],
+  "moc": "Xem máy đang có",
+  "hoi": "Noel này bạn\rlên đời máy gì?",
+  "nen": [
+   null,
+   [
+    "unsplash-goi-video-ipad-10tr.jpg",
+    2000,
+    700,
+    0,
+    1000
+   ],
+   [
+    "unsplash-doc-ipad-quan-10tr.jpg",
+    2000,
+    0,
+    300,
+    2000
+   ]
+  ]
+ }
+}

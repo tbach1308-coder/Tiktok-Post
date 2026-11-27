@@ -11,6 +11,7 @@ Skill này lo **cách đặt chữ** trên bìa: ngắt dòng, cỡ, màu, kho�
 
 ## 0. Áp cho bài nào (đọc trước)
 - **Chỉ bài theme mặc định của shop**: lệnh dựng / sửa ghi `Theme Photoshop: (không)` (bài máy shop). Vàng Source Serif trên nền xanh lá tối là nhận diện riêng của shop.
+  Theme **giữ kiểu bài shop** (lệnh ghi "Theme này GIỮ NGUYÊN kiểu bài của kênh", vd "Noel · Kiểu Poly" 27/11) tính như theme mặc định: dùng skill này + `tieuDeBia` như thường, chỉ chừa góc phải trên cho trang trí của theme (xem luật theme).
 - **Bài có theme Photoshop** (lệnh ghi `Theme Photoshop: <tên theme>`; máy con / máy dùng chung luôn có theme — fen 13/11 "máy con không sài chung theme shop", fen 21/11 "máy con không sài kiểu theme này"): **không dùng skill này, không gọi `tieuDeBia`**, không đặt chữ vàng Source Serif, không thêm "POLY STORE" kiểu shop. Bìa dựng bằng hàm bìa của theme (`theme-ps/luat-theme.md`, `theme.json` mục `xem`), màu / font / cỡ theo theme. Chỉ giữ 3 ý chung: đúng từng chữ fen (17d), ngắt dòng theo nghĩa (mục 2), dấu tiếng Việt không chạm dòng khác.
 
 ## 1. Bộ nhận diện (giữ nguyên, không sáng tạo ở đây)

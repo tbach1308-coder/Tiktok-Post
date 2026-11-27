@@ -167,7 +167,7 @@ function tieuDeBia(dong, o) {
   o = o || {};
   var doc = app.activeDocument, R = 60, logC = "";
   // bai co theme Photoshop (may con / may dung chung): chu bia theo ham bia cua theme, khong dung kieu shop (fen 21/11 "may con khong sai kieu theme nay")
-  var coTheme = (typeof THEME != "undefined") && THEME;
+  var coTheme = (typeof THEME != "undefined") && THEME && THEME.dong_co !== false;   // theme giu kieu bai shop ("Noel · Kieu Poly" 27/11): dung tieuDeBia nhu bai khong theme
   if (coTheme) logC += "CANH BAO bai co theme " + (THEME.id || "") + ": chu bia phai theo ham bia cua theme (luat-theme.md), khong dung tieuDeBia; ";
   var vang = o.vang || (coTheme && THEME.vang ? THEME.vang : BIA_YEL), nho = o.nho || 84, lon = o.lon || 112, lonNhan = o.lonNhan || 124;
   var lap = o.lap || 0.92, nhip = o.nhip || 1.3, cd = o.cachDong || 1.2, ng = o.nghieng || 48;

@@ -126,6 +126,13 @@ Phần riêng `_bang-xanh.jsx` (`"them": ["_bang-xanh.jsx"]`), ảnh trong `bang
 - Trang trong: `headC` tự đặt dải giấy xé sau tiêu đề (chữ tiêu đề xanh), nhãn thành tab xanh đậm gài mép trên giấy, phụ đề trắng ngay dưới giấy. Thẻ xanh thẫm trong, dấu tích vàng.
 - Khung trắng sát mép (cách mép 30px) có sẵn trong nền: chữ, thẻ trong lề 96–984 như thường.
 
+## Theme "Noel · Kiểu Poly" (`noel-kieu-poly`, fen 27/11 14h51 "tạo concept mới cho noel" + ảnh bài "iPad của bạn nên đổi chưa?", chọn "Kiểu bài shop + Noel")
+- `"dong_co": false`: tao.py **không** ghép `_dong-co.jsx` → giữ nguyên kiểu bài shop: font, màu, nền ảnh mờ tối (`bgPhoto`), nền `bg-thumb`, khung xanh lá, viền + bóng chữ, bìa tự làm (sticker, `tieuDeBia`…) như bài không theme.
+- Phần riêng `_noel-poly.jsx` chỉ thêm 2 lớp Noel ngay trên nền, dưới chữ / thẻ / ảnh máy: cụm thông + châu đỏ, châu vàng ở góc phải trên (`anh/goc-thong.png`, rộng 420) và lớp tuyết mỏng ở đáy (`anh/tuyet-mong.png`); vẽ bằng `noel-kieu-poly/tao_anh.py`.
+  Đặt nền sau `newDoc` (`bgPhoto`, `background`, `placeSO(…, "Nền…")`) thì 2 lớp tự đưa lên trên nền. Tên lớp nền tự đặt phải bắt đầu bằng "Nền".
+- Viết bài như bài không theme (luật kênh), chỉ tránh: chữ / sticker ở góc phải trên (x > 760, y < 230: thông + châu) và dưới y 1380 (tuyết).
+- Agent duyệt chấm theo luật kênh như bài không theme (không theo mục "Khi viết slide" bên dưới: theme này không phẳng).
+
 ## Khi viết slide
 - Theme phẳng: không đặt ảnh phủ kín trang (ảnh nền mờ, `bg-thumb.png`, `lopBia` có nền): nền phẳng của theme là nền. Theme glass và theme ảnh thật: xem mục trên (dùng `bgPhoto`, không dùng `bg-thumb` / `lopBia` có nền; bìa theme ảnh thật là `biaAnhThat`). Bìa: `newDoc` → "POLY STORE" → tiêu đề → ảnh máy tách nền (`devIn` / `placeAt`), không khung, không bóng.
 - Màu: chỉ dùng biến (`C.WHITE` chữ thường, `YEL2` iPad / `YEL` Laptop cho chữ nhấn, `C.GREEN_L` tên máy / số nổi bật, `C.GREEN` nhãn, `MINT` + `NAVY` ô ghi chú). Không ghi mã màu cứng trong slide.

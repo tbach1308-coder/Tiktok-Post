@@ -46,5 +46,7 @@ ok(!M.layers().some(l => l.name === 'tdb do'), 'khong con lop do tam');
 r = bia(['NEWSEAL CPO', 'OPENBOX LIKENEW', 'KHÁC GÌ NHAU?'], { co: [74, 74, 0] }); ok(r.co[0] === 74 && r.co[1] === 74 && r.co[2] > 74, 'co dat tay theo vai tro ' + r.co);
 global.THEME = { id: 'toi-gian-den', vang: 'E5E7EB' };
 r = bia(['iPAD PRO M5'], {}); ok(/CANH BAO bai co theme toi-gian-den/.test(r.log) && r.lop[0].hex === 'E5E7EB', 'bai co theme (may con): canh bao + khong dung vang shop');
+global.THEME = { id: 'noel-kieu-poly', dong_co: false, vang: 'FFD200' };
+r = bia(['iPAD CỦA BẠN', 'NÊN *ĐỔI* CHƯA?'], {}); ok(!/CANH BAO/.test(r.log) && r.lop[0].hex !== 'FFD200', 'theme giu kieu shop (Noel Kieu Poly 27/11): khong canh bao, dung vang shop ' + r.lop[0].hex);
 delete global.THEME;
 console.log(loi ? 'LOI ' + loi : 'TAT CA DAT'); process.exit(loi ? 1 : 0);
