@@ -79,3 +79,14 @@ Nạp trong slide bìa: `$.evalFile(new File("E:/Social Claude/_bo-dung-design/c
 - `soTo(str, cx, cy, size, op, hex)` — số / chữ rất to mờ phía sau máy (gọi TRƯỚC lopBia)
 - `tieuDeBia(["DÒNG 1", "*TỪ KHOÁ* DÒNG 2"], { duoi, duoiCo, yMax, deu, co })` — chữ tiêu đề bìa đúng skill `typo-bia` (chỉ bài không theme, máy shop; bài có theme dùng hàm bìa của theme): vàng căn trái thẳng POLY STORE (đặt lớp "Thương hiệu" trước), `*…*` trắng, `_…_` nghiêng trắng cùng dòng, tự chọn cỡ 84–112 (dòng chỉ từ khoá tới 124); trả `{box, co, lop, log}`, `LOG += r.log`
 - `muiTen(x1, y1, x2, y2, hex)` — mũi tên chỉ chi tiết
+
+## Bố cục trang trong sinh động (27/11, đọc `ipad/BO-CUC.md`: mỗi slide nội dung 1 kiểu, không 2 slide liền nhau cùng kiểu)
+- `headTrai(n, bg, pill, [dòng…], phụ?, {maxW?, co?, mau?})` — đầu trang căn trái
+- `bcAnh(file, l, t, r, b, rad, tên, {vien?, xoay?, tam?})` — ảnh phủ kín khung bo góc (mặt nạ), viền trắng ảnh dán, nghiêng
+- `bcAnhTron(file, cx, cy, r, tên, {tam?, vien?})` — ảnh tròn viền trắng
+- `bcSo(chữ, x, y, {co?, mau?, can?, xoay?})` — chữ / số rất to viền navy
+- `bcThe({l, r, t, nhan?, nhanKieu?: "pill"|"chu", y: [[kind, chữ]], co?, mauVien?})` — thẻ ý, nhãn gài mép
+- `bcHang({l?, r?, t, kind, nhan?, chinh, phu?})` — 1 hàng thẻ (nhãn nhỏ, dòng chính to, dòng phụ)
+- `bcCot(o)`, `bcHaiCot(trái, phải)`, `bcVs(cx, cy, r?)` — 2 cột so sánh cao bằng nhau + VS
+- `bcSticker(chữ, cx, cy, xoay, kieu, cỡ?)` — nhãn dán nghiêng; `bcGop([khối…])` — gộp khối cạnh nhau cho `bodyFit`
+- Mẫu đủ 5 kiểu: `ipad/vi-du-bo-cuc.part.jsx` (bài "Đừng mua iPad quá đắt…" 27/11).

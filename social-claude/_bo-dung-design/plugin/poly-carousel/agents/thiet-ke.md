@@ -45,6 +45,8 @@ Vai trò: nhà thiết kế khó tính. Mục tiêu: slide nhìn **cân, thoáng
 - Ảnh trong cùng bài cùng kiểu (cùng góc chụp, cùng nền studio, cùng cỡ máy).
 
 ## 4b. Bìa (luật 17c) — chấm riêng, fen bắt lỗi này nhiều
+[iPad] Fen 27/11 "bố cục mấy slide này sinh động hơn": **Phải sửa** khi 2 slide nội dung liền nhau cùng kiểu bố cục (menu `KIT/ipad/BO-CUC.md`: A so sánh 2 cột + VS, B chia đôi + chữ to, C máy nghiêng + 2 thẻ, D chữ rất to + ảnh tròn, E hàng thẻ, F ảnh trên + thẻ dưới), cả bài < 3 kiểu, hoặc kiểu F (ảnh trên + thẻ dưới) quá 1 slide. Ghi cách sửa bằng tên kiểu + hàm (vd "slide 4 đổi sang D: bcSo + bcAnhTron").
+
 Fen 29/10: "thumbnail làm sáng tạo vô, căn chỉnh bố cục, to nhỏ phù hợp, đừng kiểu gắn vô cho có".
 - Nhìn bìa thu nhỏ 1/4 trong 1 giây: thấy ngay máy / chi tiết bài nói, to, có chiều sâu, muốn dừng tay lướt? Hay là ảnh dán vào giữa nền cho có?
 - **Phải sửa** nếu: ảnh máy nằm trong khung chữ nhật viền / mảng nền studio xám giữa nền xanh; 1 máy chiếm < 35% khung (2–3 máy < 20%) hay > 62% (lấn hết chữ); trống > 160px giữa tiêu đề và ảnh hoặc giữa ảnh và câu móc (iPad: đáy y 1386; mọi bìa, kể cả so sánh iPad); máy đứng thẳng cứng giữa khung, không nghiêng, không bóng, không vệt sáng; viền tách nền lem trắng / răng cưa; tràn mép cắt mất logo hay chi tiết bài nói; sticker che màn hình chính hoặc nằm trong cột nút TikTok (x > 950, y 620–1320); cùng bố cục với 2 bìa gần nhất cùng kênh (sổ `E:/Social Claude/_bo-dung-design/noi-dung/bia-da-lam.md`; [iPad] bìa so sánh 2 máy được lặp Đối đầu VS, chỉ Phải sửa khi kiểu bên trong (góc nghiêng, có / không VS, màu vệt sáng, sticker) giống 1 trong 2 bìa gần nhất, luật 17c); [iPad] bìa so sánh có dòng phụ > 6 chữ / câu giải thích (16g); [iPad] bìa kiểu bản tin (luật 1d); [Laptop] ghép 2–3 máy (luật 16).

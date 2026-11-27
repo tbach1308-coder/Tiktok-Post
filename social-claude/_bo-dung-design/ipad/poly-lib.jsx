@@ -859,6 +859,196 @@ function noteBox(lines, cx, top, w, name) {
   return blk(out, R);
 }
 
+// ================= BỐ CỤC TRANG TRONG SINH ĐỘNG (fen 27/11 19h23 "làm cho phần trình bày và bố cục mấy slide này sinh động hơn",
+// chọn "Mỗi slide 1 bố cục khác"). Khối dựng sẵn cho các kiểu trong luật bố cục (ipad/BO-CUC.md): đầu trang căn trái, ảnh dán nghiêng
+// viền trắng, ảnh tròn, số / chữ rất to, thẻ ý có nhãn gài mép, hàng thẻ, 2 cột so sánh + VS. Ảnh cắt bằng mặt nạ (không clipping).
+var BC_L = 96, BC_R = 984;
+// điểm của hình chữ nhật bo góc (chọn vùng)
+function bcBoGoc(l, t, r, b, rad) {
+  var p = [], n = 10;
+  function cung(cx, cy, a0) { for (var i = 0; i <= n; i++) { var g = (a0 + 90 * i / n) * Math.PI / 180; p.push([cx + rad * Math.cos(g), cy + rad * Math.sin(g)]); } }
+  if (rad <= 0) return [[l, t], [r, t], [r, b], [l, b]];
+  cung(r - rad, t + rad, -90); cung(r - rad, b - rad, 0); cung(l + rad, b - rad, 90); cung(l + rad, t + rad, 180);
+  return p;
+}
+function bcTron(cx, cy, r) { var p = []; for (var i = 0; i < 72; i++) { var g = i * 5 * Math.PI / 180; p.push([cx + r * Math.cos(g), cy + r * Math.sin(g)]); } return p; }
+function bcFile(file) { return /^[A-Za-z]:|^\//.test(file) ? file : A + file; }
+// ảnh phủ kín vùng (pts) đã chọn: đặt ảnh, phóng vừa phủ hộp [l,t,r,b], giữ điểm tam [x,y] (0..1) ở giữa, mặt nạ theo vùng
+function bcPhu(file, name, l, t, r, b, pts, tam) {
+  var doc = app.activeDocument, L = placeSO(bcFile(file), name);
+  var q = bb(L), w = q[2] - q[0], h = q[3] - q[1], s = Math.max((r - l) / w, (b - t) / h) * 100;
+  L.resize(s, s, AnchorPosition.MIDDLECENTER); q = bb(L); w = q[2] - q[0]; h = q[3] - q[1];
+  var tx = tam ? tam[0] : 0.5, ty = tam ? tam[1] : 0.5;
+  var nl = Math.min(l, Math.max(r - w, (l + r) / 2 - tx * w)), nt = Math.min(t, Math.max(b - h, (t + b) / 2 - ty * h));
+  L.translate(nl - q[0], nt - q[1]);
+  doc.activeLayer = L;
+  doc.selection.select(pts, SelectionType.REPLACE, 0, true);
+  maskFromSelection();
+  doc.selection.deselect();
+  return L;
+}
+// ảnh trong khung bo góc. o: { vien: px viền trắng (ảnh dán), xoay: độ (ảnh nghiêng, gộp khung + ảnh thành 1 lớp), tam: [x,y] }
+function bcAnh(file, l, t, r, b, rad, name, o) {
+  o = o || {};
+  var v = o.vien || 0;
+  var Fr = rect(l - v, t - v, r + v, b + v, rad + (v ? Math.round(v / 2) : 0), v ? C.WHITE : C.BLACK, name + " - khung");
+  fx(Fr, { shadow: { op: 55, dist: 12, blur: 28 } });
+  var L = bcPhu(file, name, l, t, r, b, bcBoGoc(l, t, r, b, rad), o.tam);
+  if (o.xoay) {
+    // ảnh thành ảnh thường + áp mặt nạ -> khung ảnh = đúng vùng khung, xoay khung + ảnh quanh cùng 1 tâm (Photoshop không gộp được ảnh vào khung)
+    L.rasterize(RasterizeType.ENTIRELAYER);
+    app.activeDocument.activeLayer = L;
+    try { applyMask(); } catch (e) {}
+    Fr.rotate(o.xoay, AnchorPosition.MIDDLECENTER);
+    L.rotate(o.xoay, AnchorPosition.MIDDLECENTER);
+  }
+  return blk([Fr, L], Fr);
+}
+// ảnh tròn viền trắng
+function bcAnhTron(file, cx, cy, r, name, o) {
+  o = o || {};
+  var v = o.vien == null ? 8 : o.vien;
+  var Fr = oval(cx - r - v, cy - r - v, cx + r + v, cy + r + v, C.WHITE, name + " - viền");
+  fx(Fr, { shadow: { op: 55, dist: 12, blur: 28 } });
+  var L = bcPhu(file, name, cx - r, cy - r, cx + r, cy + r, bcTron(cx, cy, r), o.tam);
+  return blk([Fr, L], Fr);
+}
+// đầu trang căn trái: POLY STORE, nhãn xanh, tiêu đề 1–2 dòng (cỡ theo dòng dài nhất, tối đa 96), phụ đề (tuỳ chọn). Đặt BODY_TOP2 / TOP0.
+function headTrai(n, bg, pillTxt, lines, sub, o) {
+  o = o || {};
+  var d = newDoc("Slide 0" + n);
+  if (bg) bgPhoto(bg[0], bg[1], bg[2], bg[3], bg[4], o.mo || 22, o.toi || 64);
+  text("POLY STORE", F.B, 22, C.WHITE, BC_L, 112, { track: 200, name: "Thương hiệu" });
+  if (pillTxt) pill(pillTxt, BC_L, 172, 26, C.WHITE, C.GREEN, 26, 56, F.B, 40, "Nhãn");
+  var maxW = o.maxW || (BC_R - BC_L), mw = 0, i, T;
+  for (i = 0; i < lines.length; i++) { T = text(lines[i], F.T, 84, C.WHITE, BC_L, 300, { name: "đo" }); var b0 = bb(T); mw = Math.max(mw, b0[2] - b0[0]); T.remove(); }
+  var ts = Math.max(72, Math.min(o.co || 96, Math.floor(84 * (maxW - 10) / mw)));
+  var y = 300 + (pillTxt ? 0 : -40), bot = 0;
+  for (i = 0; i < lines.length; i++) {
+    T = text(lines[i], F.T, ts, o.mau && o.mau[i] ? o.mau[i] : C.WHITE, BC_L, y, { maxW: maxW, name: "Tiêu đề " + (i + 1) });
+    var bt = bb(T); T.translate(BC_L - bt[0], 0);
+    fx(T, { stroke: { hex: NAVY, size: 9 }, shadow: { op: 52, dist: 0, blur: 30 } });
+    bot = bb(T)[3]; y += Math.round(ts * 1.12);
+  }
+  if (sub) {
+    var S = text(sub, F.B, 31, C.WHITE, BC_L, bot + 52, { maxW: maxW, name: "Phụ đề" });
+    fx(S, { shadow: { op: 62, dist: 2, blur: 7 } });
+    bot = bb(S)[3];
+  }
+  BODY_TOP2 = bot + 44; TOP0 = BODY_TOP2;
+  RUN += "0" + n + " dau trang can trai, tieu de co " + ts + "\n";
+  return d;
+}
+// chữ / số rất to (M1, WIFI, 2X…): F.T, viền navy, màu nhấn. o: { co, mau, can: "trai"|"giua"|"phai", xoay }
+function bcSo(str, x, y, o) {
+  o = o || {};
+  var co = o.co || 200, can = o.can || "trai";
+  var T = text(str, F.T, co, o.mau || C.GREEN_L, 0, y, { name: "Chữ to - " + str.replace(/\r/g, " ") });
+  var b = bb(T), dx = x - b[0];
+  if (can == "giua") dx = x - (b[0] + b[2]) / 2; else if (can == "phai") dx = x - b[2];
+  T.translate(dx, y - b[1]);
+  fx(T, { stroke: { hex: NAVY, size: Math.max(8, Math.round(co / 18)) }, shadow: { op: 55, dist: 0, blur: 30 } });
+  if (o.xoay) T.rotate(o.xoay, AnchorPosition.MIDDLECENTER);
+  return blk([T], T);
+}
+// thẻ ý: khung kính tối viền xanh, nhãn gài mép trên (pill) hoặc chữ nhãn trong thẻ, các ý (check / x / bang).
+// o: { l, r, t, nhan, nhanKieu: "pill"|"chu", y: [[kind, chu]], co: 31, mauVien }
+function bcThe(o) {
+  var l = o.l == null ? LX : o.l, r = o.r == null ? RX : o.r, t = o.t == null ? TOP0 : o.t, co = o.co || 31;
+  var ls = [], pad = 40, cy = t + 70, bot = t, Lb = null;
+  if (o.nhan && o.nhanKieu != "pill") cy = t + 112;
+  if (o.nhan && o.nhanKieu != "pill") { Lb = text(o.nhan, F.B, 26, C.GREEN_L, (l + r) / 2, t + 50, { align: Justification.CENTER, track: 60, name: "Nhãn - " + o.nhan }); ls.push(Lb); }
+  for (var i = 0; i < o.y.length; i++) {
+    ls = ls.concat(dotIcon(o.y[i][0], l + pad + 22, cy, 22));
+    var T = text(o.y[i][1], F.B, co, C.WHITE, l + pad + 66, cy + 11, { maxW: r - l - pad * 2 - 70, name: "Ý " + (i + 1) });
+    fx(T, { shadow: { op: 60, dist: 2, blur: 6 } });
+    ls.push(T);
+    var b = bb(T); bot = Math.max(cy + 24, b[3]); cy = Math.max(cy + 74, b[3] + 44);
+  }
+  var G = glass(l, t, r, bot + 38, 26, "Thẻ - " + (o.nhan || "ý"));
+  fx(G, { stroke: { hex: o.mauVien || C.GREEN_L, size: 3, op: 80, inside: true } });
+  G.move(ls[0], ElementPlacement.PLACEAFTER);
+  ls.unshift(G);
+  if (o.nhan && o.nhanKieu == "pill") {
+    var cx = (l + r) / 2, Tp = text(o.nhan, F.B, 26, C.WHITE, 0, t + 9, { track: 40, name: "Nhãn thẻ - " + o.nhan + " - chữ" });
+    var bp = bb(Tp), wp = bp[2] - bp[0];
+    Tp.translate(cx - wp / 2 - bp[0], t - (bp[1] + bp[3]) / 2);
+    var P = rect(cx - wp / 2 - 26, t - 26, cx + wp / 2 + 26, t + 26, 26, C.GREEN, "Nhãn thẻ - " + o.nhan);
+    P.move(Tp, ElementPlacement.PLACEAFTER);
+    ls.push(P); ls.push(Tp);
+  }
+  return blk(ls, G);
+}
+// 1 hàng thẻ: nhãn nhỏ xanh (trên), dòng chính đậm, dòng phụ; dấu tròn bên trái. o: { l, r, t, kind, nhan, chinh, phu }
+function bcHang(o) {
+  var l = o.l == null ? BC_L : o.l, r = o.r == null ? BC_R : o.r, t = o.t == null ? TOP0 : o.t, ls = [], x = l + 104, y = t + 30;
+  var Ln = null;
+  if (o.nhan) { Ln = text(o.nhan, F.B, 24, C.GREEN_L, x, y + 24, { track: 60, maxW: r - x - 30, name: "Hàng - nhãn - " + o.nhan }); ls.push(Ln); y = bb(Ln)[3] + 14; }
+  var Tc = text(o.chinh, F.T, 46, C.WHITE, x, y + 44, { maxW: r - x - 30, name: "Hàng - chính - " + o.chinh });
+  fx(Tc, { stroke: { hex: NAVY, size: 6 }, shadow: { op: 45, dist: 0, blur: 16 } });
+  var bc = bb(Tc); Tc.translate(0, y - bc[1]); ls.push(Tc); y = bb(Tc)[3];
+  if (o.phu) { var Tp = text(o.phu, F.B, 29, C.WHITE, x, y + 44, { maxW: r - x - 30, name: "Hàng - phụ" }); fx(Tp, { shadow: { op: 60, dist: 2, blur: 6 } }); var bp = bb(Tp); Tp.translate(0, y + 12 - bp[1]); ls.push(Tp); y = bb(Tp)[3]; }
+  var G = glass(l, t, r, y + 30, 26, "Hàng - thẻ");
+  var vh = AMBER;                       // ExtendScript đọc sai 2 dấu ? lồng nhau (27/11: thẻ check ra viền đỏ) -> if
+  if (o.kind == "check") vh = C.GREEN_L; else if (o.kind == "x") vh = RED;
+  fx(G, { stroke: { hex: vh, size: 3, op: 75, inside: true } });
+  G.move(ls[0], ElementPlacement.PLACEAFTER);
+  var cyI = (t + y + 30) / 2;
+  ls = [G].concat(ls).concat(dotIcon(o.kind || "check", l + 54, cyI, 28));
+  return blk(ls, G);
+}
+// huy hiệu VS tròn vàng
+function bcVs(cx, cy, r) {
+  r = r || 56;
+  var O = oval(cx - r, cy - r, cx + r, cy + r, YEL2, "VS - nền");
+  fx(O, { stroke: { hex: C.WHITE, size: 5 }, shadow: { op: 60, dist: 8, blur: 20 } });
+  var T = text("VS", F.T, Math.round(r * 0.9), NAVY, 0, cy, { name: "VS - chữ" });
+  var b = bb(T); T.translate(cx - (b[0] + b[2]) / 2, cy - (b[1] + b[3]) / 2);
+  return [O, T];
+}
+// cột so sánh: tên to trên cùng, các ý; khung kính viền màu. o: { l, r, t, ten, mau, y: [[kind, chu]], co }
+function bcCot(o) {
+  var l = o.l, r = o.r, t = o.t == null ? TOP0 : o.t, co = o.co || 30, pad = 30, ls = [];
+  var Tn = text(o.ten, F.T, 54, o.mau || C.WHITE, (l + r) / 2, t + 80, { align: Justification.CENTER, maxW: r - l - 40, name: "Cột - " + o.ten });
+  fx(Tn, { stroke: { hex: NAVY, size: 6 }, shadow: { op: 45, dist: 0, blur: 16 } });
+  var bt = bb(Tn); Tn.translate(0, t + 34 - bt[1]); ls.push(Tn);
+  var cy = bb(Tn)[3] + 50, bot = cy;
+  for (var i = 0; i < o.y.length; i++) {
+    ls = ls.concat(dotIcon(o.y[i][0], l + pad + 18, cy, 18));
+    var T = text(o.y[i][1], F.B, co, C.WHITE, l + pad + 50, cy + 10, { maxW: r - l - pad * 2 - 52, name: "Cột " + o.ten + " - ý " + (i + 1) });
+    fx(T, { shadow: { op: 60, dist: 2, blur: 6 } });
+    ls.push(T); var b = bb(T); bot = Math.max(cy + 20, b[3]); cy = Math.max(cy + 64, b[3] + 38);
+  }
+  var G = glass(l, t, r, Math.max(bot + 36, o.cao ? t + o.cao : 0), 26, "Cột - thẻ - " + o.ten);
+  fx(G, { stroke: { hex: o.vien || o.mau || C.GREEN_L, size: 3, op: 80, inside: true } });
+  G.move(ls[0], ElementPlacement.PLACEAFTER);
+  return blk([G].concat(ls), G);
+}
+// nhãn dán nghiêng (như sticker bìa, không gom nhóm): kieu "xanh" | "vang" | "trang" | "do"
+function bcSticker(str, cx, cy, rot, kieu, size) {
+  size = size || 34;
+  var M = { xanh: [C.GREEN, C.WHITE], vang: [YEL2, NAVY], trang: [C.WHITE, NAVY], "do": [RED, C.WHITE] }[kieu || "xanh"] || [C.GREEN, C.WHITE];
+  var T = text(str, F.B, size, M[1], 0, 300, { name: "Nhãn dán - " + str + " - chữ" });
+  var b = bb(T), w = b[2] - b[0], px = Math.round(size * 0.62), hh = Math.round(size * 1.75);
+  T.translate(cx - (b[0] + b[2]) / 2, cy - (b[1] + b[3]) / 2);
+  var R = rect(cx - w / 2 - px, cy - hh / 2, cx + w / 2 + px, cy + hh / 2, Math.round(hh * 0.28), M[0], "Nhãn dán - " + str);
+  fx(R, { shadow: { op: 50, dist: 8, blur: 16 } });
+  R.move(T, ElementPlacement.PLACEAFTER);
+  if (rot) { R.rotate(rot, AnchorPosition.MIDDLECENTER); T.rotate(rot, AnchorPosition.MIDDLECENTER); }
+  return blk([R, T], R);
+}
+// 2 cột so sánh cao bằng nhau (cột thấp dựng lại với cao = cột cao)
+function bcHaiCot(oT, oP) {
+  var a = bcCot(oT), b = bcCot(oP), ha = blkBox(a).h, hb = blkBox(b).h, i;
+  if (Math.abs(ha - hb) > 2) {
+    if (ha < hb) { for (i = 0; i < a.ls.length; i++) a.ls[i].remove(); oT.cao = hb; a = bcCot(oT); }
+    else { for (i = 0; i < b.ls.length; i++) b.ls[i].remove(); oP.cao = ha; b = bcCot(oP); }
+  }
+  return [a, b];
+}
+// gộp nhiều khối thành 1 (xếp chung 1 hàng / 1 cụm, đo theo khung chung)
+function bcGop(blocks) { var ls = []; for (var i = 0; i < blocks.length; i++) ls = ls.concat(blocks[i].ls); return blk(ls, null); }
+
 // ---------- đầu slide nội dung ----------
 function headC(n, bg, pillTxt, t, sub, op, blur) {
   var d = newDoc("Slide 0" + n);
